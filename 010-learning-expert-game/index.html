@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>學習高手島｜3D 學習冒險</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#1F2A5C; --paper:#FDFBF4; --sky:#A8DDF5; --line:#CFE2F3; --margin:#F2677A;
+  --hy:#FFE45C; --hp:#FF7EB6; --hg:#7CE0A3; --hb:#6EC6FF;
+  --font:"Noto Sans HK","PingFang HK","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--sky);font-family:var(--font);color:var(--ink);
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
+input{-webkit-user-select:text;user-select:text}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;z-index:0}
+.hidden{display:none!important}
+
+/* notebook paper cards */
+.note{background:var(--paper);border:3px solid var(--ink);border-radius:18px;box-shadow:5px 5px 0 var(--ink);position:relative}
+.tape{position:absolute;top:-17px;left:50%;width:130px;height:30px;transform:translateX(-50%) rotate(-3deg);
+  background:repeating-linear-gradient(45deg,rgba(255,126,182,.9) 0 10px,rgba(255,176,210,.9) 10px 20px);border-radius:3px;
+  box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.ruled{background:
+  linear-gradient(90deg,transparent 40px,var(--margin) 40px,var(--margin) 42px,transparent 42px),
+  repeating-linear-gradient(180deg,var(--paper) 0 38px,var(--line) 38px 40px);}
+
+.btn{font:inherit;font-weight:900;font-size:21px;line-height:1.2;padding:12px 22px;min-height:56px;border:3px solid var(--ink);
+  border-radius:999px;background:var(--hy);color:var(--ink);box-shadow:4px 4px 0 var(--ink);cursor:pointer;touch-action:manipulation}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn:focus-visible,.spk:focus-visible,.badge:focus-visible,.chk:focus-visible{outline:4px dashed var(--hp);outline-offset:3px}
+.btn.alt{background:#fff}.btn.green{background:var(--hg)}.btn.pink{background:var(--hp)}.btn.blue{background:var(--hb)}
+.btn.icon{font-size:19px;padding:8px 14px;min-height:50px}
+.spk{flex:none;width:48px;height:48px;border-radius:50%;border:3px solid var(--ink);background:var(--hy);font-size:21px;line-height:1;
+  cursor:pointer;box-shadow:2px 2px 0 var(--ink);padding:0;display:inline-flex;align-items:center;justify-content:center;touch-action:manipulation}
+.spk:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+.spk.talking{animation:talk .5s ease-in-out 3}
+@keyframes talk{50%{transform:scale(1.18) rotate(-8deg)}}
+
+/* title */
+#title{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(ellipse at center,rgba(168,221,245,.15),rgba(31,42,92,.35))}
+.titleCard{width:min(560px,92vw);padding:40px 30px 28px 62px;text-align:left}
+.titleCard h1{margin:0 0 6px;font-size:clamp(44px,9vw,76px);font-weight:900;letter-spacing:.02em;line-height:1.05}
+.titleCard h1 span{background:linear-gradient(180deg,transparent 58%,var(--hy) 58%,var(--hy) 92%,transparent 92%);padding:0 4px}
+.titleCard .sub{font-size:22px;font-weight:700;margin:10px 0 22px;line-height:1.6}
+.titleCard .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.titleCard .small{font-size:15px;opacity:.8;margin-top:18px;line-height:1.6}
+.btn.big{font-size:28px;padding:16px 34px;min-height:70px}
+
+/* world hud */
+#hud,#ghud{position:fixed;inset:0;z-index:5;pointer-events:none}
+#hud>*,#ghud>*{pointer-events:auto}
+#badgeBar{position:absolute;top:calc(12px + var(--st));left:calc(12px + var(--sl));padding:8px 12px;display:flex;align-items:center;gap:10px}
+#badges{display:grid;grid-template-columns:repeat(7,42px);gap:5px}
+.badge{width:42px;height:42px;border-radius:12px;border:2px dashed #9AA3C7;background:#EEF0F7;font-size:22px;padding:0;cursor:pointer;filter:grayscale(1);opacity:.55;touch-action:manipulation}
+.badge.on{border:2px solid var(--ink);background:var(--hy);filter:none;opacity:1;box-shadow:2px 2px 0 var(--ink)}
+#badgeCount{font-weight:900;font-size:18px;white-space:nowrap}
+#topRight{position:absolute;top:calc(12px + var(--st));right:calc(12px + var(--sr));display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:52vw}
+.tipbar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(14px + var(--sb));width:min(760px,94vw);
+  padding:10px 16px;display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;line-height:1.45;background:#FFF6B8}
+.tipbar span{flex:1}
+@media (max-width:900px){ .lbl{display:none} #badges{grid-template-columns:repeat(7,36px)} .badge{width:36px;height:36px;font-size:19px} #badgeCount{display:none} }
+@media (max-width:600px){ #topRight{top:calc(70px + var(--st))} .tipbar{font-size:17px} }
+
+/* game hud */
+#gTop{position:absolute;top:calc(12px + var(--st));left:calc(12px + var(--sl));right:calc(12px + var(--sr));display:flex;gap:10px;align-items:center;pointer-events:none}
+#gTop>*{pointer-events:auto}
+#gTitle{padding:8px 16px;font-weight:900;font-size:21px}
+#gStatus{margin-left:auto;padding:8px 16px;font-weight:900;font-size:20px;background:#fff}
+#gStatus:empty{display:none}
+#gTools{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + var(--sb));display:flex;gap:12px;width:min(760px,96vw);justify-content:center}
+.btn.tool{flex:1;font-size:19px;border-radius:20px;padding:10px 8px;min-height:84px;background:#fff}
+.btn.tool b{font-size:30px;display:block}
+@media (max-width:600px){ #gTitle{font-size:17px} #gStatus{font-size:16px} .btn.tool{font-size:16px} }
+
+/* modal */
+#modalWrap{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(31,42,92,.38);
+  padding:calc(20px + var(--st)) 14px calc(20px + var(--sb))}
+#modal{width:min(660px,95vw);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;padding:30px 22px 22px 58px;animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drop{from{transform:translateY(-30px) rotate(-2deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){#modal{animation:none}.spk.talking{animation:none}}
+.mhead{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.mhead h2{margin:0;font-size:clamp(24px,4.5vw,32px);font-weight:900;flex:1;line-height:1.25}
+.mbody{font-size:20px;line-height:1.75;font-weight:500}
+.mbody p{margin:6px 0}
+.mbody .step{display:flex;gap:10px;align-items:flex-start}
+.mbody .step i{font-style:normal;flex:none;width:32px;height:32px;border-radius:50%;background:var(--hp);border:2px solid var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;margin-top:4px}
+.mbtns{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.stars{font-size:52px;letter-spacing:6px;text-align:center}
+.stars .off{opacity:.2;filter:grayscale(1)}
+.res{font-size:22px;font-weight:900;text-align:center}
+.lesson{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 14px;margin-top:12px}
+.lesson h3{margin:0 0 6px;font-size:22px;background:linear-gradient(180deg,transparent 55%,var(--hg) 55%);display:inline}
+.lesson ul,.bk ul{list-style:none;margin:10px 0 0;padding:0}
+.lesson li,.bk li{display:flex;gap:10px;align-items:center;margin:8px 0;font-size:19px;line-height:1.5}
+.bk{border-bottom:2px dashed #B9C3E3;padding:10px 0}
+.bk h3{margin:0;font-size:21px;display:flex;gap:10px;align-items:center}
+.bk.locked{opacity:.7}
+.mine{font-weight:900}
+.habit{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:2px dashed #CBD3EC;font-size:20px;font-weight:700}
+.habit span{flex:1}
+.chk{width:52px;height:52px;border-radius:14px;border:3px solid var(--ink);background:#fff;font-size:30px;font-weight:900;color:#1a9a55;cursor:pointer;flex:none;touch-action:manipulation}
+.habit.on .chk{background:var(--hg);color:var(--ink)}
+.habit.on span{text-decoration:line-through;text-decoration-color:var(--hp);text-decoration-thickness:3px}
+.cert{text-align:center;border:4px double var(--ink);border-radius:16px;padding:16px;background:#fff}
+.cert .cap{font-size:64px;line-height:1}
+.certTitle{font-size:34px;font-weight:900;background:linear-gradient(180deg,transparent 55%,var(--hy) 55%);display:inline-block;padding:0 6px}
+.cert input{font:inherit;font-size:26px;font-weight:900;text-align:center;border:0;border-bottom:3px solid var(--ink);background:transparent;color:var(--ink);width:80%;padding:4px}
+.certBadges{font-size:34px;letter-spacing:4px}
+#voiceWarn{position:fixed;z-index:25;left:50%;transform:translateX(-50%);top:calc(80px + var(--st));width:min(620px,94vw);padding:14px 16px;font-size:17px;line-height:1.6;background:#FFE0EC}
+#voiceWarn b{font-weight:900}
+#noThree{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:var(--sky);font-size:22px;padding:30px;text-align:center;line-height:1.7}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="title">
+  <div class="titleCard note ruled">
+    <div class="tape"></div>
+    <h1><span>學習高手島</span></h1>
+    <p class="sub">跟住《學習高手》嘅秘訣，<br>一齊玩出學習好習慣！</p>
+    <div class="row">
+      <button class="btn big green" id="startBtn">▶ 開始冒險</button>
+      <button class="spk" type="button" id="titleSpk" aria-label="讀出嚟">🔊</button>
+    </div>
+    <p class="small">適合 6 至 12 歲小朋友。請開大聲，用 iPad 或電腦都玩得。<br>每張卡都有小喇叭 🔊，㩒一下就會用廣東話讀出嚟。</p>
+  </div>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="badgeBar" class="note"><div id="badges"></div><div id="badgeCount"></div></div>
+  <div id="topRight">
+    <button class="btn icon" id="bookBtn" aria-label="高手秘笈">📖<span class="lbl"> 秘笈</span></button>
+    <button class="btn icon" id="checkBtn" aria-label="每日打卡">✅<span class="lbl"> 打卡</span></button>
+    <button class="btn icon alt" id="voiceBtn" aria-label="自動讀出">🔊<span class="lbl"> 自動讀出</span></button>
+    <button class="btn icon alt" id="helpBtn" aria-label="點樣玩">❓<span class="lbl"> 點玩</span></button>
+  </div>
+  <div id="worldTip" class="tipbar note"></div>
+</div>
+
+<div id="ghud" class="hidden">
+  <div id="gTop">
+    <button class="btn icon alt" id="gBack">⬅<span class="lbl"> 返島上</span></button>
+    <div id="gTitle" class="note"></div>
+    <div id="gStatus" class="note"></div>
+  </div>
+  <div id="gTools" class="hidden"></div>
+  <div id="gTip" class="tipbar note hidden"></div>
+</div>
+
+<div id="modalWrap" class="hidden"><div id="modal" class="note ruled" role="dialog" aria-modal="true"></div></div>
+<div id="voiceWarn" class="note hidden"></div>
+<div id="noThree" class="hidden"><div>3D 遊戲引擎載入唔到。<br>請確認部機已經連接互聯網，然後重新開啟呢個檔案。</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+if(typeof THREE==='undefined'){ document.getElementById('noThree').classList.remove('hidden'); document.getElementById('title').classList.add('hidden'); return; }
+
+/* ---------- small utilities ---------- */
+const $=s=>document.querySelector(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const rand=(a,b)=>a+Math.random()*(b-a);
+const randi=n=>Math.floor(Math.random()*n);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeBack=t=>{const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2);};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const FONT='"Noto Sans HK","PingFang HK","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif';
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+const lerpAngle=(a,b,t)=>{let d=((b-a+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;return a+d*t;};
+let T=0; // global elapsed time
+
+/* ---------- saved progress ---------- */
+const Store={key:'xuexi-gaoshou-island-v1',data:{badges:{},stars:{},best:{},name:'',checkin:{},auto:true,toldHall:false},
+  load(){try{const s=localStorage.getItem(this.key);if(s)Object.assign(this.data,JSON.parse(s));}catch(e){}},
+  save(){try{localStorage.setItem(this.key,JSON.stringify(this.data));}catch(e){}}};
+Store.load();
+
+/* ---------- Cantonese voice ---------- */
+let EMOJI_RE;
+try{EMOJI_RE=new RegExp('[\\u{1F000}-\\u{1FAFF}\\u{2300}-\\u{23FF}\\u{2600}-\\u{27BF}\\u{2B00}-\\u{2BFF}\\u{FE0F}\\u{200D}\\u{20E3}]','gu');}
+catch(e){EMOJI_RE=/[\uD83C-\uDBFF][\uDC00-\uDFFF]|[\u2300-\u23FF\u2600-\u27BF\uFE0F\u200D]/g;}
+const Voice={
+  supported:('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window),
+  voice:null,hasCantonese:false,voicesLoaded:false,auto:Store.data.auto!==false,token:0,
+  init(){
+    if(!this.supported)return;
+    const pick=()=>{
+      const vs=speechSynthesis.getVoices()||[];
+      if(vs.length)this.voicesLoaded=true;
+      const v=vs.find(v=>/^zh[-_]HK/i.test(v.lang))||vs.find(v=>/^yue/i.test(v.lang))||vs.find(v=>/Cantonese|粵|粤|Sinji|Sin-ji/i.test(v.name));
+      if(v){this.voice=v;this.hasCantonese=true;}
+    };
+    pick();
+    if(speechSynthesis.addEventListener)speechSynthesis.addEventListener('voiceschanged',pick);else speechSynthesis.onvoiceschanged=pick;
+  },
+  unlock(){if(!this.supported)return;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;u.lang='zh-HK';speechSynthesis.speak(u);}catch(e){}},
+  clean(t){
+    let s=String(t);
+    try{s=s.replace(EMOJI_RE,'');}catch(e){}
+    return s.replace(/[✔✓✗✘❌⭐☆★]/g,'').replace(/×/g,'乘').replace(/\n+/g,'，').replace(/，\s*，/g,'，').replace(/\s+/g,' ').trim();
+  },
+  say(text,cb){
+    const my=++this.token; let done=false;
+    const fin=()=>{if(done)return;done=true;if(cb)cb();};
+    const s=this.clean(text);
+    if(!this.supported||!s){setTimeout(fin,500+s.length*150);return;}
+    const parts=(s.match(/[^。！？!?；]+[。！？!?；]*/g)||[s]).map(p=>p.trim()).filter(Boolean);
+    const fb=setTimeout(fin,3000+s.length*330);
+    const go=()=>{
+      if(my!==this.token)return;
+      parts.forEach((p,i)=>{
+        const u=new SpeechSynthesisUtterance(p);
+        u.lang='zh-HK'; if(this.voice)u.voice=this.voice; u.rate=0.95; u.pitch=1.08;
+        if(i===parts.length-1){u.onend=()=>{clearTimeout(fb);fin();};u.onerror=()=>{clearTimeout(fb);fin();};}
+        speechSynthesis.speak(u);
+      });
+    };
+    if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(go,90);}else go();
+  },
+  autoSay(text,cb){if(this.auto)this.say(text,cb);else if(cb)setTimeout(cb,1200);},
+  stop(){this.token++;if(this.supported)speechSynthesis.cancel();}
+};
+Voice.init();
+
+/* ---------- little sound effects ---------- */
+const Sfx={ctx:null,
+  init(){if(this.ctx)return;try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}},
+  resume(){this.init();if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
+  tone(f,d,type,v,delay){const c=this.ctx;if(!c)return;type=type||'sine';v=v||0.15;delay=delay||0;
+    const t=c.currentTime+delay,o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(v,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+0.05);},
+  good(){this.tone(660,.14,'triangle',.16);this.tone(990,.22,'triangle',.16,.1);},
+  bad(){this.tone(210,.22,'square',.07);this.tone(160,.25,'square',.06,.12);},
+  pop(){this.tone(560,.08,'sine',.2);},
+  water(){this.tone(900,.07,'sine',.14);this.tone(1350,.1,'sine',.1,.06);},
+  win(){[523,659,784,1047].forEach((f,i)=>this.tone(f,.32,'triangle',.15,i*.12));}
+};
+
+/* ---------- three.js setup ---------- */
+const canvas=$('#c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const clock=new THREE.Clock();
+const ray=new THREE.Raycaster();
+
+function M(c,o){o=o||{};if(o.flatShading)return new THREE.MeshPhongMaterial(Object.assign({color:c,shininess:12},o));return new THREE.MeshLambertMaterial(Object.assign({color:c},o));}
+function mesh(geo,mat){return new THREE.Mesh(geo,mat);}
+function at(o,x,y,z){o.position.set(x,y,z);return o;}
+function addLights(scene,bright){
+  scene.add(new THREE.HemisphereLight(0xFFFFFF,0xB9AE96,bright||0.8));
+  const d=new THREE.DirectionalLight(0xFFFFFF,0.65);d.position.set(6,14,10);scene.add(d);return d;
+}
+function shadows(o){o.traverse(m=>{if(m.isMesh){m.castShadow=true;}});return o;}
+function pick(ndc,cam,objs,recursive){ray.setFromCamera(ndc,cam);return ray.intersectObjects(objs,recursive!==false);}
+function planePoint(ndc,cam,y){ray.setFromCamera(ndc,cam);const p=new THREE.Plane(new THREE.Vector3(0,1,0),-y);const out=new THREE.Vector3();return ray.ray.intersectPlane(p,out)?out:null;}
+function findUp(o,prop){while(o){if(o.userData&&o.userData[prop]!==undefined)return o;o=o.parent;}return null;}
+function fitCam(cam,center,halfW,halfH,dir){
+  const t=Math.tan(THREE.MathUtils.degToRad(cam.fov/2));
+  const d=Math.max(halfH/t,halfW/(t*cam.aspect));
+  cam.position.copy(center).add(dir.clone().normalize().multiplyScalar(d));cam.lookAt(center);return d;
+}
+
+/* ---------- canvas textures (Chinese text + emoji) ---------- */
+function roundRect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();}
+function makeLabel(text,o){
+  o=Object.assign({size:56,fg:'#1F2A5C',bg:'#FFFFFF',border:'#1F2A5C',pad:24,scale:0.012,weight:900,top:false},o||{});
+  const lines=String(text).split('\n');
+  const c=document.createElement('canvas'),x=c.getContext('2d');
+  x.font=`${o.weight} ${o.size}px ${FONT}`;
+  const w=Math.ceil(Math.max(...lines.map(l=>x.measureText(l).width)))+o.pad*2;
+  const lh=o.size*1.3,h=Math.ceil(lines.length*lh+o.pad*1.1);
+  c.width=w+14;c.height=h+14;
+  x.font=`${o.weight} ${o.size}px ${FONT}`;
+  if(o.bg){x.fillStyle=o.border;roundRect(x,9,9,w,h,24);x.fill();
+    x.fillStyle=o.bg;roundRect(x,3,3,w,h,24);x.fill();x.lineWidth=5;x.strokeStyle=o.border;x.stroke();}
+  x.fillStyle=o.fg;x.textAlign='center';x.textBaseline='middle';
+  lines.forEach((l,i)=>x.fillText(l,3+w/2,3+o.pad*0.55+lh*(i+0.5)));
+  const tex=new THREE.CanvasTexture(c);tex.minFilter=THREE.LinearFilter;
+  const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:!o.top});
+  const s=new THREE.Sprite(mat);s.scale.set(c.width*o.scale,c.height*o.scale,1);
+  if(o.top)s.renderOrder=10;
+  return s;
+}
+function faceTexture(text,o){
+  o=Object.assign({bg:'#FFFFFF',fg:'#1F2A5C',w:512,h:512,border:'#1F2A5C',bw:16,maxFont:200,weight:900},o||{});
+  const c=document.createElement('canvas');c.width=o.w;c.height=o.h;const x=c.getContext('2d');
+  x.fillStyle=o.bg;x.fillRect(0,0,o.w,o.h);
+  if(o.bw){x.lineWidth=o.bw;x.strokeStyle=o.border;x.strokeRect(o.bw/2,o.bw/2,o.w-o.bw,o.h-o.bw);}
+  const lines=String(text).split('\n');let fs=o.maxFont;
+  const fit=()=>{x.font=`${o.weight} ${fs}px ${FONT}`;return Math.max(...lines.map(l=>x.measureText(l).width));};
+  while(fs>14&&(fit()>o.w*0.84||fs*1.22*lines.length>o.h*0.82))fs-=3;
+  x.fillStyle=o.fg;x.textAlign='center';x.textBaseline='middle';
+  const lh=fs*1.22,top=o.h/2-lh*(lines.length-1)/2;
+  lines.forEach((l,i)=>x.fillText(l,o.w/2,top+i*lh+fs*0.04));
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+const emojiCache={};const CACHED_TEX=new Set();
+function emojiTexture(e){
+  if(emojiCache[e])return emojiCache[e];
+  const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
+  x.font=`190px ${EMOJI_FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillText(e,128,140);
+  const t=new THREE.CanvasTexture(c);CACHED_TEX.add(t);emojiCache[e]=t;return t;
+}
+function makeEmoji(e,size){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTexture(e),transparent:true}));s.scale.set(size||1.5,size||1.5,1);return s;}
+let STAR_GEO=null,STAR_MAT=null;
+function starMesh(){
+  if(!STAR_GEO){
+    const sh=new THREE.Shape();
+    for(let i=0;i<10;i++){const r=i%2?0.27:0.62,a=i/10*Math.PI*2+Math.PI/2,x=Math.cos(a)*r,y=Math.sin(a)*r;i?sh.lineTo(x,y):sh.moveTo(x,y);}
+    sh.closePath();
+    STAR_GEO=new THREE.ExtrudeGeometry(sh,{depth:0.22,bevelEnabled:true,bevelThickness:0.06,bevelSize:0.05,bevelSegments:2});
+    STAR_GEO.center();STAR_GEO.userData.shared=true;
+    STAR_MAT=M(0xFFD23F,{emissive:0x664400});STAR_MAT.userData.shared=true;
+  }
+  return mesh(STAR_GEO,STAR_MAT);
+}
+function disposeScene(scene){
+  scene.traverse(o=>{
+    if(o.geometry&&!o.geometry.userData.shared)o.geometry.dispose();
+    const ms=Array.isArray(o.material)?o.material:(o.material?[o.material]:[]);
+    ms.forEach(m=>{if(m.userData&&m.userData.shared)return;if(m.map&&!CACHED_TEX.has(m.map))m.map.dispose();m.dispose();});
+  });
+}
+
+/* ---------- tweens & timers (cleared together when leaving a game) ---------- */
+let tweens=[];
+function tween(dur,fn,done){const tw={t:0,dur,fn,done,dead:false};tweens.push(tw);fn(0);return tw;}
+function later(sec,fn){return tween(sec,()=>{},fn);}
+function updateTweens(dt){
+  const list=tweens.slice();
+  for(const tw of list){if(tw.dead)continue;tw.t+=dt;const k=tw.dur>0?Math.min(1,tw.t/tw.dur):1;tw.fn(k);if(k>=1){tw.dead=true;if(tw.done)tw.done();}}
+  tweens=tweens.filter(t=>!t.dead);
+}
+function clearTweens(){tweens.forEach(t=>t.dead=true);tweens=[];}
+function popIn(obj,dur){
+  if(!obj.userData.s0)obj.userData.s0=obj.scale.clone();
+  const s0=obj.userData.s0;obj.visible=true;
+  return tween(dur||0.4,k=>{obj.scale.copy(s0).multiplyScalar(Math.max(0.001,easeBack(k)));});
+}
+function shake(obj,amp,dur){
+  if(obj.userData.shaking)return;obj.userData.shaking=true;
+  const x0=obj.position.x;amp=amp||0.18;
+  tween(dur||0.4,k=>{obj.position.x=x0+Math.sin(k*42)*amp*(1-k);},()=>{obj.position.x=x0;obj.userData.shaking=false;});
+}
+function hop(obj,to,h,dur,done){
+  const from=obj.position.clone();
+  return tween(dur,k=>{obj.position.lerpVectors(from,to,easeOut(k));obj.position.y+=Math.sin(k*Math.PI)*h;},done);
+}
+
+/* ---------- confetti particles ---------- */
+const particles=[];
+const PGEO=new THREE.BoxGeometry(0.18,0.18,0.05);PGEO.userData.shared=true;
+const CONFETTI=[0xFF7EB6,0xFFE45C,0x7CE0A3,0x6EC6FF,0xFF9F43,0xB38CFF];
+function burst(scene,pos,o){
+  o=Object.assign({n:40,colors:CONFETTI,speed:6,life:1.4,gravity:9,size:1},o||{});
+  for(let i=0;i<o.n;i++){
+    const m=mesh(PGEO,new THREE.MeshBasicMaterial({color:o.colors[randi(o.colors.length)],transparent:true}));
+    m.position.copy(pos);m.scale.setScalar(o.size);
+    const v=new THREE.Vector3(rand(-1,1),rand(0.3,1.4),rand(-1,1)).normalize().multiplyScalar(o.speed*rand(.45,1));
+    scene.add(m);particles.push({m,v,life:o.life*rand(.7,1),max:o.life,scene,g:o.gravity,spin:new THREE.Vector3(rand(-9,9),rand(-9,9),rand(-9,9))});
+  }
+}
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.life-=dt;p.v.y-=p.g*dt;p.m.position.addScaledVector(p.v,dt);
+    p.m.rotation.x+=p.spin.x*dt;p.m.rotation.y+=p.spin.y*dt;p.m.rotation.z+=p.spin.z*dt;
+    p.m.material.opacity=clamp(p.life/p.max*2.5,0,1);
+    if(p.life<=0){p.scene.remove(p.m);p.m.material.dispose();particles.splice(i,1);}
+  }
+}
+function clearParticles(){particles.forEach(p=>{p.scene.remove(p.m);p.m.material.dispose();});particles.length=0;}
+
+/* ---------- HTML helpers: speaker buttons, modal, tips ---------- */
+function spk(text){return `<button class="spk" type="button" aria-label="讀出嚟" data-say="${encodeURIComponent(text)}">🔊</button>`;}
+document.addEventListener('click',e=>{
+  const b=e.target.closest&&e.target.closest('.spk[data-say]');
+  if(!b)return;e.stopPropagation();Sfx.resume();
+  b.classList.remove('talking');void b.offsetWidth;b.classList.add('talking');
+  Voice.say(decodeURIComponent(b.dataset.say));
+});
+let modalOpen=false;
+function showModal(o){
+  const m=$('#modal');
+  m.innerHTML=`<div class="tape"></div><div class="mhead"><h2>${o.title}</h2>${o.say?spk(o.say):''}</div><div class="mbody">${o.body||''}</div><div class="mbtns"></div>`;
+  const bb=m.querySelector('.mbtns');
+  (o.buttons||[{label:'知道喇！',cls:'green'}]).forEach(b=>{
+    const el=document.createElement('button');el.className='btn '+(b.cls||'');el.type='button';el.textContent=b.label;
+    el.onclick=()=>{Sfx.resume();Sfx.pop();if(!b.keep)hideModal();if(b.onClick)b.onClick();};
+    bb.appendChild(el);
+  });
+  $('#modalWrap').classList.remove('hidden');modalOpen=true;m.scrollTop=0;
+  if(o.say&&o.autoSpeak!==false)Voice.autoSay(o.say);
+  return m;
+}
+function hideModal(){$('#modalWrap').classList.add('hidden');modalOpen=false;}
+function paras(text){
+  return String(text).split('\n').map(l=>{
+    const m=l.match(/^(\d)[.、]\s*(.*)$/);
+    return m?`<p class="step"><i>${m[1]}</i><span>${esc(m[2])}</span></p>`:`<p>${esc(l)}</p>`;
+  }).join('');
+}
+function setTip(text,speak,sayText,cb){
+  const el=$('#gTip');const s=sayText||text;
+  el.innerHTML=spk(s)+`<span>${esc(text).replace(/\n/g,'<br>')}</span>`;el.classList.remove('hidden');
+  if(speak!==false)Voice.autoSay(s,cb);else if(cb)setTimeout(cb,300);
+}
+function setStatus(html){$('#gStatus').innerHTML=html||'';}
+function setTools(list){
+  const el=$('#gTools');el.innerHTML='';
+  if(!list){el.classList.add('hidden');return;}
+  el.classList.remove('hidden');
+  list.forEach(t=>{const b=document.createElement('button');b.className='btn tool';b.type='button';b.innerHTML=t.html;b.onclick=()=>{Sfx.resume();t.onClick();};el.appendChild(b);});
+}
+function worldTip(text){$('#worldTip').innerHTML=spk(text)+`<span>${esc(text)}</span>`;}
+
+/* ======================================================
+   STATIONS: each teaches one idea from 《學習高手》
+   ====================================================== */
+const STATIONS=[
+ {id:'goal',name:'目標山',emoji:'⛰️',hex:0x5CCB8A,pos:[-12,-6],
+  intro:'有個好大嘅目標，好似一座高山咁，一下爬唔上去。學習高手會將大目標拆做一個個細目標，一步一步行上山頂！\n玩法：\n1. 㩒大石頭3下，將大目標拆細。\n2. 跟住次序㩒細目標，砌成樓梯，幫小朋友爬上山頂。',
+  lessonTitle:'高手秘訣：大目標，拆細做！',
+  lesson:['大目標太難？拆做一個個細目標，每日做少少。','好嘅目標要講得清楚：做乜嘢、做幾多、幾時做完。','做完一個細目標，就同自己講：我又行近咗一步！']},
+ {id:'memory',name:'記憶森林',emoji:'🌳',hex:0x3FAE6A,pos:[-5,-9.5],
+  intro:'記嘢唔使死記硬背！學習高手會用「故事串聯記憶法」：將要記嘅嘢，串埋做一個搞笑故事。\n玩法：\n1. 用眼睇、用耳聽，記住個故事。\n2. 啲嘢會撈亂晒，你要跟住故事嘅次序，順序㩒返出嚟。',
+  lessonTitle:'高手秘訣：故事串聯，越搞笑越記得！',
+  lesson:['要記一串嘢？將佢哋編成一個搞笑故事。','用眼睇、用耳聽、用口講，幾個感官一齊用，記得更牢。','朝早起身同夜晚瞓覺前，係記嘢嘅好時間。']},
+ {id:'focus',name:'番茄專注塔',emoji:'🍅',hex:0xFF5A4E,pos:[5,-9.5],
+  intro:'學習高手用「番茄鐘工作法」：專心做一段時間，然後休息一陣。\n玩法：用手指拖住番茄籃左右移動。接住金色星星同書本，避開手機、遊戲機、電視同糖果呢啲分心怪！專心25秒，之後休息5秒。',
+  lessonTitle:'高手秘訣：番茄鐘，專心做！',
+  lesson:['專心做25分鐘，然後休息5分鐘，呢個就係一個番茄鐘。','做功課前，將手機同玩具收埋，唔好俾分心怪打擾。','兩分鐘原則：一件事兩分鐘內做得完，就即刻做，唔好拖！']},
+ {id:'schulte',name:'專注方格',emoji:'🔢',hex:0x8E7CFF,pos:[12,-6],
+  intro:'「舒爾特方格」係訓練專注力嘅遊戲。\n玩法：方格入面有唔同數字，你要由1開始，順序㩒到最後一個數字，越快越好！\n揀難度：3乘3係初級，4乘4係中級，5乘5係高手級。',
+  lessonTitle:'高手秘訣：專注力可以練出嚟！',
+  lesson:['專注力好似肌肉咁，越練越強。','每日練一兩次舒爾特方格，睇書同做功課都會快啲。','練嘅時候眼睛望住方格中間，用眼角搵數字。']},
+ {id:'mistake',name:'錯題寶石礦',emoji:'💎',hex:0x36C5E0,pos:[12,5.5],
+  intro:'做錯題目唔使驚！每一條錯題都係一粒未打磨嘅寶石。學習高手會用錯題本，將錯題變成寶石。\n玩法：每嚿石頭都係一條錯題，要用啱次序㩒工具：\n1. 搵出錯喺邊。\n2. 抄入錯題本。\n3. 過幾日再做一次。\n做啱晒，石頭就會變寶石！',
+  lessonTitle:'高手秘訣：錯題係寶石！',
+  lesson:['做錯唔緊要，最緊要搵出錯喺邊、點解會錯。','準備一本錯題本，寫低題目、錯嘅答案同正確做法。','過幾日再做一次，考試前再睇一次，同一個錯就唔會再犯。']},
+ {id:'time',name:'四象限時間城',emoji:'⏰',hex:0xFFB020,pos:[4.5,9.5],
+  intro:'學習高手每日都會寫「任務清單」，仲會用「四象限」分清楚先後次序。\n紅色格：重要又緊急，要即刻做。\n綠色格：重要但唔緊急，要計劃好做。\n黃色格：緊急但唔重要，快快手做完。\n藍色格：唔重要又唔緊急，最後先做。\n玩法：將每件事拖去啱嘅格仔。你亦可以先㩒一下件事，再㩒格仔。',
+  lessonTitle:'高手秘訣：先做重要嘅事！',
+  lesson:['每日寫一張任務清單，做完一樣就打個剔。','重要又緊急，即刻做。重要但唔緊急，每日計劃好時間做。','緊急但唔重要，快快手做完。唔重要又唔緊急，做完正經嘢先做，仲要限時。']},
+ {id:'review',name:'複習花園',emoji:'🌻',hex:0xFF7EB6,pos:[-5,9.5],
+  intro:'學完嘅嘢，如果唔溫習，好快就會唔記得。學習高手會分階段複習。\n玩法：每朵花代表一樣你學過嘅知識，佢會慢慢謝。㩒一下朵花，就係幫佢淋水，即係溫習！\n小秘密：溫得越多次，花就開得越耐。如果花謝晒，就要由頭學過！守住花園40秒！',
+  lessonTitle:'高手秘訣：分階段溫習，記得最牢！',
+  lesson:['學完當日溫一次，第二日再溫一次。','一個星期後再溫，一個月後再溫一次。','溫得越多次，記得越耐！仲可以同同學互相考吓對方。']},
+];
+const HALL={id:'hall',name:'高手殿堂',emoji:'🎓',hex:0xFFD23F,pos:[0,-1]};
+const OWL_POS=[3.4,2.6];
+const HABITS=[{e:'📝',t:'寫低今日嘅任務清單'},{e:'📖',t:'預習聽日要學嘅嘢'},{e:'🍅',t:'專心做功課一個番茄鐘'},{e:'🔁',t:'溫習今日學咗嘅嘢'},{e:'📒',t:'將錯題抄入錯題本'},{e:'🎯',t:'為自己定一個細目標'},{e:'🙋',t:'有唔明就勇敢問老師'}];
+const WELCOME='歡迎嚟到學習高手島！我係貓頭鷹智叻叻。\n島上面有七個學習站，每個站都藏住一個《學習高手》嘅學習秘訣。\n㩒地面就可以行路；行去發光嘅圓圈，就可以玩遊戲。你亦可以㩒左上角嘅徽章，自動行過去。用手指左右拖，可以轉個鏡頭。\n每張卡都有小喇叭，㩒一下就會用廣東話讀俾你聽。\n集齊七個徽章，就可以去中間嘅高手殿堂，攞學習高手證書！';
+const WORLD_TIP='㩒地面就可以行路。行去發光嘅圓圈，就可以玩遊戲！';
+
+/* ---------- characters ---------- */
+function makeKid(shirt){
+  const g=new THREE.Group();
+  const skin=M(0xFFD6B0),dark=M(0x3A2A22),shirtM=M(shirt||0xFF7EB6),pants=M(0x3B5BA5);
+  const legGeo=new THREE.CylinderGeometry(0.13,0.13,0.5,10);
+  const legL=new THREE.Group(),legR=new THREE.Group();
+  legL.add(at(mesh(legGeo,pants),0,-0.25,0));legR.add(at(mesh(legGeo,pants),0,-0.25,0));
+  at(legL,-0.18,0.5,0);at(legR,0.18,0.5,0);g.add(legL,legR);
+  g.add(at(mesh(new THREE.CylinderGeometry(0.38,0.48,0.8,16),shirtM),0,0.88,0));
+  const armGeo=new THREE.CylinderGeometry(0.1,0.1,0.6,8);
+  const aL=at(mesh(armGeo,shirtM),-0.5,0.95,0);aL.rotation.z=0.35;const aR=at(mesh(armGeo,shirtM),0.5,0.95,0);aR.rotation.z=-0.35;g.add(aL,aR);
+  g.add(at(mesh(new THREE.SphereGeometry(0.5,24,18),skin),0,1.72,0));
+  const hair=at(mesh(new THREE.SphereGeometry(0.53,24,12,0,Math.PI*2,0,Math.PI*0.55),dark),0,1.76,-0.02);hair.rotation.x=-0.3;g.add(hair);
+  const eyeGeo=new THREE.SphereGeometry(0.065,10,8),eyeM=M(0x1F2A5C);
+  g.add(at(mesh(eyeGeo,eyeM),-0.17,1.74,0.46),at(mesh(eyeGeo,eyeM),0.17,1.74,0.46));
+  const chGeo=new THREE.SphereGeometry(0.07,10,8),chM=M(0xFF9CB8);
+  g.add(at(mesh(chGeo,chM),-0.29,1.6,0.4),at(mesh(chGeo,chM),0.29,1.6,0.4));
+  const mouth=at(mesh(new THREE.TorusGeometry(0.08,0.022,6,12,Math.PI),M(0xC2415B)),0,1.6,0.47);mouth.rotation.z=Math.PI;g.add(mouth);
+  g.add(at(mesh(new THREE.BoxGeometry(0.56,0.6,0.28),M(0xFFD23F)),0,0.96,-0.46));
+  g.userData.legL=legL;g.userData.legR=legR;
+  return shadows(g);
+}
+function makeOwl(){
+  const g=new THREE.Group();
+  const body=at(mesh(new THREE.SphereGeometry(0.9,24,18),M(0x9B6B43)),0,1.1,0);body.scale.set(1,1.2,0.9);g.add(body);
+  const belly=at(mesh(new THREE.SphereGeometry(0.62,20,14),M(0xF1D7A8)),0,0.95,0.42);belly.scale.set(1,1.2,0.5);g.add(belly);
+  const eyes=new THREE.Group();
+  [-0.3,0.3].forEach(x=>{eyes.add(at(mesh(new THREE.SphereGeometry(0.28,16,12),M(0xFFFFFF)),x,0,0));eyes.add(at(mesh(new THREE.SphereGeometry(0.12,12,10),M(0x1F2A5C)),x,0,0.22));});
+  at(eyes,0,1.62,0.6);g.add(eyes);
+  const beak=at(mesh(new THREE.ConeGeometry(0.1,0.26,8),M(0xFF9F43)),0,1.38,0.82);beak.rotation.x=Math.PI*0.6;g.add(beak);
+  [-1,1].forEach(s=>{const t=at(mesh(new THREE.ConeGeometry(0.15,0.42,6),M(0x7A4F2E)),s*0.45,2.12,0);t.rotation.z=-s*0.4;g.add(t);
+    const w=at(mesh(new THREE.SphereGeometry(0.4,12,10),M(0x86582F)),s*0.85,1.0,0);w.scale.set(0.4,1,0.7);g.add(w);
+    g.add(at(mesh(new THREE.SphereGeometry(0.14,8,6),M(0xFF9F43)),s*0.3,0.08,0.4));});
+  const cap=new THREE.Group();
+  cap.add(at(mesh(new THREE.CylinderGeometry(0.42,0.46,0.26,16),M(0x1F2A5C)),0,0,0));
+  const board=at(mesh(new THREE.BoxGeometry(1.25,0.08,1.25),M(0x1F2A5C)),0,0.15,0);board.rotation.y=Math.PI/4;cap.add(board);
+  cap.add(at(mesh(new THREE.CylinderGeometry(0.025,0.025,0.55,6),M(0xFFD23F)),0.62,-0.1,0));
+  cap.add(at(mesh(new THREE.SphereGeometry(0.08,8,6),M(0xFFD23F)),0.62,-0.4,0));
+  at(cap,0,2.22,0);g.add(cap);
+  g.userData.eyes=eyes;g.userData.owl=true;
+  return shadows(g);
+}
+
+/* ======================================================
+   THE ISLAND: a giant open notebook floating on the sea
+   ====================================================== */
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function pageTexture(isLeft){
+  const c=document.createElement('canvas');c.width=512;c.height=756;const x=c.getContext('2d');
+  x.fillStyle='#FDFBF4';x.fillRect(0,0,512,756);
+  x.strokeStyle='#A9CBEA';x.lineWidth=2;
+  for(let y=40;y<756;y+=27){x.beginPath();x.moveTo(0,y);x.lineTo(512,y);x.stroke();}
+  x.strokeStyle='#F2677A';x.lineWidth=3;const mx=isLeft?452:60;x.beginPath();x.moveTo(mx,0);x.lineTo(mx,756);x.stroke();
+  const g=isLeft?x.createLinearGradient(512,0,430,0):x.createLinearGradient(0,0,82,0);
+  g.addColorStop(0,'rgba(120,100,70,0.28)');g.addColorStop(1,'rgba(120,100,70,0)');x.fillStyle=g;x.fillRect(0,0,512,756);
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
+}
+function makePencil(color){
+  const g=new THREE.Group();
+  g.add(at(mesh(new THREE.CylinderGeometry(0.26,0.26,0.35,6),M(0xFF9CB8)),0,0.18,0));
+  g.add(at(mesh(new THREE.CylinderGeometry(0.27,0.27,0.18,6),M(0xC9CED8)),0,0.44,0));
+  g.add(at(mesh(new THREE.CylinderGeometry(0.26,0.26,2.0,6),M(color)),0,1.53,0));
+  g.add(at(mesh(new THREE.ConeGeometry(0.26,0.55,6),M(0xF5CFA0)),0,2.8,0));
+  g.add(at(mesh(new THREE.ConeGeometry(0.09,0.19,6),M(0x333A55)),0,2.99,0));
+  return g;
+}
+function makeBush(){
+  const g=new THREE.Group();const c=[0x6FCF7F,0x58B96C,0x86DB8F][randi(3)];
+  for(let i=0;i<3;i++){const s=at(mesh(new THREE.SphereGeometry(rand(.45,.7),12,10),M(c)),rand(-.4,.4),.4,rand(-.4,.4));g.add(s);}
+  return g;
+}
+function makeBooks(){
+  const g=new THREE.Group();const cs=[0xFF7EB6,0x6EC6FF,0xFFE45C,0x7CE0A3];
+  for(let i=0;i<3;i++){const b=at(mesh(new THREE.BoxGeometry(1.2-i*0.1,0.28,0.85),M(cs[(i+randi(4))%4])),rand(-.08,.08),0.14+i*0.28,0);b.rotation.y=rand(-.3,.3);g.add(b);}
+  return g;
+}
+function makeTree(s,c){
+  const g=new THREE.Group();
+  g.add(at(mesh(new THREE.CylinderGeometry(0.18*s,0.25*s,1.2*s,8),M(0x9B6B43)),0,0.6*s,0));
+  g.add(at(mesh(new THREE.SphereGeometry(0.95*s,14,12),M(c||0x58B96C)),0,1.75*s,0));
+  return g;
+}
+function buildLandmark(id,st){
+  const g=new THREE.Group();
+  if(id==='goal'){
+    g.add(at(mesh(new THREE.ConeGeometry(2.1,3.6,7),M(0x7FB77E,{flatShading:true})),0,1.8,0));
+    g.add(at(mesh(new THREE.ConeGeometry(0.8,1.35,7),M(0xFFFFFF,{flatShading:true})),0,3.03,0));
+    g.add(at(mesh(new THREE.CylinderGeometry(0.04,0.04,1.3,6),M(0x555555)),0,4.2,0));
+    const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(0.8,-0.25);sh.lineTo(0,-0.5);sh.closePath();
+    const f=at(mesh(new THREE.ShapeGeometry(sh),M(0xFF5A4E,{side:THREE.DoubleSide})),0.03,4.8,0);g.add(f);st.anim=t=>{f.rotation.y=Math.sin(t*3)*0.35;};
+  }else if(id==='memory'){
+    g.add(at(makeTree(1,0x4FB36A),-1.1,0,0.1));g.add(at(makeTree(1.25,0x3FA05E),0.8,0,-0.7));g.add(at(makeTree(0.85,0x6FCF7F),0.4,0,1.0));
+    const bulb=at(makeEmoji('💡',1.3),0,3.4,0.8);g.add(bulb);st.anim=t=>{bulb.position.y=3.4+Math.sin(t*2)*0.2;};
+  }else if(id==='focus'){
+    const tom=at(mesh(new THREE.SphereGeometry(1.4,24,18),M(0xFF5A4E)),0,1.25,0);tom.scale.set(1,0.85,1);g.add(tom);
+    for(let i=0;i<5;i++){const l=at(mesh(new THREE.ConeGeometry(0.22,0.9,5),M(0x3FAE6A)),Math.cos(i*1.256)*0.35,2.38,Math.sin(i*1.256)*0.35);l.rotation.z=Math.PI/2;l.rotation.y=-i*1.256;g.add(l);}
+    g.add(at(mesh(new THREE.CylinderGeometry(0.08,0.1,0.4,6),M(0x2E8A4E)),0,2.5,0));
+    const face=at(mesh(new THREE.CircleGeometry(0.72,32),M(0xFFFFFF)),0,1.25,1.33);g.add(face);
+    const hand1=new THREE.Group(),hand2=new THREE.Group();
+    hand1.add(at(mesh(new THREE.BoxGeometry(0.07,0.5,0.03),M(0x1F2A5C)),0,0.25,0));hand2.add(at(mesh(new THREE.BoxGeometry(0.07,0.35,0.03),M(0xFF5A4E)),0,0.17,0));
+    at(hand1,0,1.25,1.36);at(hand2,0,1.25,1.37);g.add(hand1,hand2);
+    st.anim=t=>{hand1.rotation.z=-t*1.2;hand2.rotation.z=-t*0.1;};
+  }else if(id==='schulte'){
+    g.add(at(mesh(new THREE.BoxGeometry(3.1,0.5,3.1),M(0x1F2A5C)),0,0.25,0));
+    const nums=shuffle([1,2,3,4,5,6,7,8,9]);const cubes=[];
+    for(let r=0;r<3;r++)for(let c=0;c<3;c++){
+      const side=M((r+c)%2?0xFFB3D1:0xB3E0FF),top=new THREE.MeshLambertMaterial({map:faceTexture(String(nums[r*3+c]),{w:128,h:128,bw:6,maxFont:90})});
+      const b=at(mesh(new THREE.BoxGeometry(0.85,0.6,0.85),[side,side,top,side,side,side]),-0.95+c*0.95,0.8,-0.95+r*0.95);g.add(b);cubes.push(b);
+    }
+    st.anim=t=>{cubes.forEach((b,i)=>{b.position.y=0.8+Math.max(0,Math.sin(t*2-i*0.7))*0.25;});};
+  }else if(id==='mistake'){
+    [[-0.9,0.6,0.3,0.9],[0.9,0.5,-0.4,0.75],[0.2,0.45,0.9,0.6]].forEach(a=>g.add(at(mesh(new THREE.IcosahedronGeometry(a[3],0),M(0x9C98A8,{flatShading:true})),a[0],a[1],a[2])));
+    const gem=at(mesh(new THREE.OctahedronGeometry(0.7,0),M(0x6EF0FF,{emissive:0x1D6C80,flatShading:true})),0,2.4,0);g.add(gem);
+    st.anim=t=>{gem.rotation.y=t*1.5;gem.position.y=2.4+Math.sin(t*2)*0.2;};
+  }else if(id==='time'){
+    [[0xFF8A8A,-0.8,-0.8],[0x8FE3A8,0.8,-0.8],[0xFFE27A,-0.8,0.8],[0x9CCBFF,0.8,0.8]].forEach(a=>{
+      g.add(at(mesh(new THREE.BoxGeometry(1.2,1.1,1.2),M(a[0])),a[1],0.55,a[2]));
+      const roof=at(mesh(new THREE.ConeGeometry(0.95,0.8,4),M(0x1F2A5C)),a[1],1.5,a[2]);roof.rotation.y=Math.PI/4;g.add(roof);});
+    const clk=at(makeEmoji('⏰',1.3),0,2.9,0);g.add(clk);st.anim=t=>{clk.material.rotation=Math.sin(t*8)*0.12*(Math.sin(t*0.8)>0.6?1:0);};
+  }else if(id==='review'){
+    const cols=[0xFF7EB6,0xFFB347,0xB38CFF,0x6EC6FF,0xFF5A4E,0xFFE45C,0x7CE0A3];
+    for(let i=0;i<9;i++){const a=i/9*Math.PI*2,r=i%2?1.4:0.7,x=Math.cos(a)*r,z=Math.sin(a)*r,h=rand(0.8,1.4);
+      g.add(at(mesh(new THREE.CylinderGeometry(0.05,0.05,h,6),M(0x3FAE6A)),x,h/2,z));
+      g.add(at(mesh(new THREE.SphereGeometry(0.3,12,10),M(cols[i%cols.length])),x,h+0.1,z));}
+  }else if(id==='hall'){
+    g.add(at(mesh(new THREE.CylinderGeometry(3,3.2,0.4,28),M(0xFFE45C)),0,0.2,0));
+    for(let i=0;i<6;i++){const a=i/6*Math.PI*2+Math.PI/6;g.add(at(mesh(new THREE.CylinderGeometry(0.2,0.24,2.6,10),M(0xFFFFFF)),Math.cos(a)*2.4,1.7,Math.sin(a)*2.4));}
+    g.add(at(mesh(new THREE.CylinderGeometry(2.9,2.9,0.3,28),M(0x1F2A5C)),0,3.15,0));
+    g.add(at(mesh(new THREE.CylinderGeometry(1,1.1,0.7,20),M(0x1F2A5C)),0,3.65,0));
+    const board=at(mesh(new THREE.BoxGeometry(3.4,0.16,3.4),M(0x2B3A7A)),0,4.08,0);board.rotation.y=Math.PI/4;g.add(board);
+    const tas=new THREE.Group();tas.add(at(mesh(new THREE.CylinderGeometry(0.05,0.05,1.2,6),M(0xFFD23F)),0,-0.6,0));tas.add(at(mesh(new THREE.SphereGeometry(0.16,10,8),M(0xFFD23F)),0,-1.2,0));
+    at(tas,2.35,4.1,0);g.add(tas);st.anim=t=>{tas.rotation.z=Math.sin(t*2)*0.15;};
+  }
+  return shadows(g);
+}
+
+const World={scene:null,camera:null,player:null,owl:null,target:null,pending:null,lastOpened:null,
+  clickables:[],groundHit:null,clouds:[],yaw:0,camLook:new THREE.Vector3(),marker:null,stationObjs:{}};
+
+World.build=function(){
+  const scene=new THREE.Scene();this.scene=scene;
+  scene.background=new THREE.Color(0xA8DDF5);scene.fog=new THREE.Fog(0xA8DDF5,60,130);
+  this.camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,0.1,300);
+  scene.add(new THREE.HemisphereLight(0xFFFFFF,0xB9AE96,0.78));
+  const d=new THREE.DirectionalLight(0xFFFFFF,0.62);d.position.set(14,30,12);d.castShadow=true;
+  d.shadow.mapSize.set(1024,1024);Object.assign(d.shadow.camera,{left:-24,right:24,top:20,bottom:-20,near:1,far:80});scene.add(d);
+
+  // sea
+  const sea=at(mesh(new THREE.PlaneGeometry(400,400),M(0x6CC4E4)),0,-1.3,0);sea.rotation.x=-Math.PI/2;scene.add(sea);
+  // book: cover, pages, spine, bookmark
+  scene.add(at(mesh(new THREE.BoxGeometry(40.4,0.5,30),M(0xE8577E)),0,-0.95,0));
+  [-1,1].forEach(s=>{
+    const p=at(mesh(new THREE.BoxGeometry(19.4,0.7,28.6),M(0xF3EEDF)),s*9.8,-0.35,0);p.receiveShadow=true;scene.add(p);
+    const top=at(mesh(new THREE.PlaneGeometry(19.4,28.6),new THREE.MeshLambertMaterial({map:pageTexture(s<0)})),s*9.8,0.005,0);
+    top.rotation.x=-Math.PI/2;top.receiveShadow=true;scene.add(top);
+  });
+  scene.add(at(mesh(new THREE.BoxGeometry(0.25,0.72,28.6),M(0xE2D8C0)),0,-0.34,0));
+  const rib=at(mesh(new THREE.BoxGeometry(0.9,0.06,4.5),M(0xFF5A4E)),1.2,-0.7,15.6);rib.rotation.x=0.5;scene.add(rib);
+
+  // ground picking plane
+  this.groundHit=at(mesh(new THREE.PlaneGeometry(40,29),new THREE.MeshBasicMaterial()),0,0,0);
+  this.groundHit.rotation.x=-Math.PI/2;this.groundHit.visible=false;scene.add(this.groundHit);
+
+  // stations
+  const dotGeo=new THREE.CylinderGeometry(0.17,0.17,0.03,10);
+  [...STATIONS,HALL].forEach(st=>{
+    const [x,z]=st.pos;
+    const lm=buildLandmark(st.id,st);at(lm,x,0,z);scene.add(lm);
+    const ringMat=new THREE.MeshBasicMaterial({color:st.hex,transparent:true,opacity:0.7});
+    const ring=at(mesh(new THREE.RingGeometry(st.id==='hall'?3.3:2.1,st.id==='hall'?3.75:2.55,48),ringMat),x,0.03,z);ring.rotation.x=-Math.PI/2;scene.add(ring);
+    const label=makeLabel(`${st.emoji} ${st.name}`,{size:58,scale:0.0115,top:true});at(label,x,st.id==='hall'?6.1:5.1,z);scene.add(label);
+    const star=starMesh();at(star,x,st.id==='hall'?7.2:6.2,z);star.visible=false;scene.add(star);
+    const hit=at(mesh(new THREE.CylinderGeometry(st.id==='hall'?3.3:2.6,st.id==='hall'?3.3:2.6,5.5,12),new THREE.MeshBasicMaterial()),x,2.7,z);
+    hit.visible=false;hit.userData.station=st;scene.add(hit);this.clickables.push(hit);
+    this.stationObjs[st.id]={ring,ringMat,star,label};
+    if(st.id!=='hall'){
+      const dist=Math.hypot(x-HALL.pos[0],z-HALL.pos[1]),dx=(x-HALL.pos[0])/dist,dz=(z-HALL.pos[1])/dist;
+      for(let t=4.1;t<dist-2.8;t+=0.85){const dot=at(mesh(dotGeo,M(st.hex)),HALL.pos[0]+dx*t,0.02,HALL.pos[1]+dz*t);scene.add(dot);}
+    }
+  });
+
+  // decorations (seeded so the island looks the same every time)
+  const R=mulberry(20240925);const pencilCols=[0xFFD23F,0x6EC6FF,0x7CE0A3,0xB38CFF,0xFF9F43];
+  const spots=[...STATIONS,HALL].map(s=>s.pos).concat([OWL_POS,[0,4.5]]);
+  const segDist=(px,pz,ax,az,bx,bz)=>{const vx=bx-ax,vz=bz-az,t=clamp(((px-ax)*vx+(pz-az)*vz)/(vx*vx+vz*vz),0,1);return Math.hypot(px-(ax+vx*t),pz-(az+vz*t));};
+  let placed=0,tries=0;
+  while(placed<46&&tries<900){
+    tries++;const x=(R()*2-1)*18.2,z=(R()*2-1)*13.4;
+    if(Math.abs(x)<0.8)continue;
+    if(spots.some(p=>Math.hypot(p[0]-x,p[1]-z)<4.4))continue;
+    if(STATIONS.some(s=>segDist(x,z,HALL.pos[0],HALL.pos[1],s.pos[0],s.pos[1])<1.3))continue;
+    const kind=R();let o;
+    if(kind<0.45)o=makePencil(pencilCols[Math.floor(R()*5)]);else if(kind<0.8)o=makeBush();else o=makeBooks();
+    o.rotation.y=R()*6.28;const s=0.8+R()*0.5;o.scale.setScalar(s);at(o,x,0,z);scene.add(shadows(o));placed++;
+  }
+  // clouds
+  for(let i=0;i<9;i++){
+    const c=new THREE.Group();const n=3+randi(3);
+    for(let j=0;j<n;j++)c.add(at(mesh(new THREE.SphereGeometry(rand(1.4,2.4),12,10),M(0xFFFFFF)),j*1.8-n,rand(-.3,.4),rand(-.6,.6)));
+    const a=i/9*Math.PI*2;at(c,Math.cos(a)*rand(28,45),rand(9,15),Math.sin(a)*rand(26,40));c.userData.v=rand(0.4,0.9);scene.add(c);this.clouds.push(c);
+  }
+  // player and owl
+  this.player=makeKid();at(this.player,0,0,4.5);scene.add(this.player);
+  this.owl=makeOwl();at(this.owl,OWL_POS[0],0,OWL_POS[1]);this.owl.rotation.y=-0.4;scene.add(this.owl);
+  const owlHit=at(mesh(new THREE.CylinderGeometry(1.2,1.2,3,10),new THREE.MeshBasicMaterial()),OWL_POS[0],1.3,OWL_POS[1]);owlHit.visible=false;owlHit.userData.owl=true;scene.add(owlHit);this.clickables.unshift(owlHit);
+  const owlLabel=makeLabel('🦉 智叻叻',{size:44,scale:0.011,top:true});at(owlLabel,OWL_POS[0],3.3,OWL_POS[1]);scene.add(owlLabel);
+  // tap marker
+  this.marker=at(mesh(new THREE.RingGeometry(0.3,0.5,24),new THREE.MeshBasicMaterial({color:0xFF7EB6,transparent:true,opacity:0})),0,0.05,0);
+  this.marker.rotation.x=-Math.PI/2;scene.add(this.marker);
+  this.camera.position.set(0,22,32);this.camera.lookAt(0,0,0);
+  this.refresh();
+};
+
+World.refresh=function(){
+  const b=Store.data.badges;let n=0;
+  STATIONS.forEach(st=>{const o=this.stationObjs[st.id];const on=!!b[st.id];if(on)n++;o.star.visible=on;o.ringMat.color.setHex(on?0xFFD23F:st.hex);});
+  this.stationObjs.hall.star.visible=n===7;
+  $('#badges').innerHTML=STATIONS.map(st=>`<button class="badge ${b[st.id]?'on':''}" type="button" data-id="${st.id}" aria-label="${st.name}">${st.emoji}</button>`).join('');
+  $('#badgeCount').textContent=`徽章 ${n} / 7`;
+};
+World.badgeCount=function(){return STATIONS.filter(s=>Store.data.badges[s.id]).length;};
+
+World.goToStation=function(st){
+  const p=this.player.position,[x,z]=st.pos;
+  let dx=p.x-x,dz=p.z-z,d=Math.hypot(dx,dz);
+  const r=st.id==='hall'?3.9:2.9;
+  if(d<r+0.4){this.target=null;this.pending=null;this.arrive(st);return;}
+  dx/=d;dz/=d;this.target=new THREE.Vector3(clamp(x+dx*r,-18.4,18.4),0,clamp(z+dz*r,-13.3,13.3));this.pending=st;
+};
+World.arrive=function(st){
+  this.lastOpened=st.id;
+  const p=this.player.position;this.player.rotation.y=Math.atan2(st.pos[0]-p.x,st.pos[1]-p.z);
+  if(st.id==='hall')openHall();else openStation(st);
+};
+World.tap=function(ndc){
+  const hits=pick(ndc,this.camera,this.clickables,false);
+  if(hits.length){
+    const o=hits[0].object;
+    if(o.userData.owl){owlTalk();return;}
+    if(o.userData.station){Sfx.pop();this.goToStation(o.userData.station);return;}
+  }
+  const g=pick(ndc,this.camera,[this.groundHit],false);
+  if(g.length){
+    const pt=g[0].point;this.target=new THREE.Vector3(clamp(pt.x,-18.4,18.4),0,clamp(pt.z,-13.3,13.3));this.pending=null;
+    const m=this.marker;m.position.set(this.target.x,0.05,this.target.z);
+    tween(0.6,k=>{m.material.opacity=0.9*(1-k);m.scale.setScalar(1+k*1.5);});
+  }
+};
+World.update=function(dt,mode){
+  this.clouds.forEach(c=>{c.position.x+=c.userData.v*dt;if(c.position.x>55)c.position.x=-55;});
+  [...STATIONS,HALL].forEach(st=>{const o=this.stationObjs[st.id];o.ringMat.opacity=0.45+0.3*Math.sin(T*3+st.pos[0]);o.star.rotation.y=T*2;if(st.anim)st.anim(T);});
+  const owl=this.owl;owl.position.y=Math.abs(Math.sin(T*2))*0.12;owl.userData.eyes.scale.y=(T%4)<0.12?0.1:1;
+  const cam=this.camera;
+  if(mode==='title'){const a=T*0.07;cam.position.set(Math.sin(a)*34,23,Math.cos(a)*34);cam.lookAt(0,0,0);this.camLook.set(0,0,0);return;}
+  const pl=this.player,p=pl.position;let walking=false;
+  if(this.target&&!modalOpen){
+    const dx=this.target.x-p.x,dz=this.target.z-p.z,d=Math.hypot(dx,dz);
+    if(d<0.08){this.target=null;if(this.pending){const s=this.pending;this.pending=null;this.arrive(s);}}
+    else{const step=Math.min(d,6.5*dt);p.x+=dx/d*step;p.z+=dz/d*step;pl.rotation.y=lerpAngle(pl.rotation.y,Math.atan2(dx,dz),Math.min(1,dt*12));walking=true;}
+  }
+  const sw=walking?Math.sin(T*13)*0.6:0;pl.userData.legL.rotation.x=sw;pl.userData.legR.rotation.x=-sw;
+  p.y=walking?Math.abs(Math.sin(T*13))*0.12:0;
+  if(!modalOpen&&!this.target){
+    for(const st of [...STATIONS,HALL]){
+      const d=Math.hypot(st.pos[0]-p.x,st.pos[1]-p.z),r=st.id==='hall'?4.2:3.2;
+      if(d<r&&this.lastOpened!==st.id){this.arrive(st);break;}
+    }
+  }
+  if(this.lastOpened){const st=[...STATIONS,HALL].find(s=>s.id===this.lastOpened);const r=st.id==='hall'?5:4.3;if(Math.hypot(st.pos[0]-p.x,st.pos[1]-p.z)>r)this.lastOpened=null;}
+  const k=cam.aspect<1?1.5:(cam.aspect<1.3?1.2:1);
+  const want=new THREE.Vector3(p.x+Math.sin(this.yaw)*12*k,14*k,p.z+Math.cos(this.yaw)*12*k);
+  cam.position.lerp(want,1-Math.exp(-dt*3.5));this.camLook.lerp(p,1-Math.exp(-dt*6));
+  cam.lookAt(this.camLook.x,this.camLook.y+0.6,this.camLook.z);
+};
+
+/* ======================================================
+   FLOW: station cards, owl, book, check-in, certificate
+   ====================================================== */
+let state='title',G=null;
+
+function openStation(st){
+  World.target=null;World.pending=null;Sfx.pop();
+  const stars=Store.data.stars[st.id]||0;
+  const body=paras(st.intro)+(stars?`<p class="mine">你最高攞過：${'⭐'.repeat(stars)}</p>`:'');
+  let buttons=[{label:'遲啲先',cls:'alt'},{label:'▶ 開始玩！',cls:'green',onClick:()=>startGame(st)}];
+  let tail='準備好就㩒「開始玩」！';
+  if(st.id==='schulte'){
+    buttons=[{label:'遲啲先',cls:'alt'},{label:'3×3 初級',cls:'green',onClick:()=>startGame(st,3)},{label:'4×4 中級',cls:'blue',onClick:()=>startGame(st,4)},{label:'5×5 高手級',cls:'pink',onClick:()=>startGame(st,5)}];
+    tail='揀一個難度，就可以開始！';
+  }
+  showModal({title:`${st.emoji} ${st.name}`,body,say:st.intro+'\n'+tail,buttons});
+}
+function owlSay(text,buttons){showModal({title:'🦉 智叻叻話你知',body:paras(text),say:text,buttons:buttons||[{label:'知道喇！',cls:'green'}]});}
+function owlTalk(){
+  Sfx.pop();const n=World.badgeCount();
+  if(n===7){owlSay('你集齊晒七個徽章喇！行入中間嘅高手殿堂，攞你嘅學習高手證書啦！',[{label:'知道喇！',cls:'alt'},{label:'🎓 帶我去',cls:'green',onClick:()=>World.goToStation(HALL)}]);return;}
+  const next=STATIONS.find(s=>!Store.data.badges[s.id]);
+  const msg=(n===0?'你好！我係貓頭鷹智叻叻。':`好叻！你已經有${n}個徽章喇。`)+`\n下一站可以去「${next.name}」，學「${next.lessonTitle.replace('高手秘訣：','')}」。\n㩒「帶我去」，我就帶你行過去！`;
+  owlSay(msg,[{label:'遲啲先',cls:'alt'},{label:`${next.emoji} 帶我去`,cls:'green',onClick:()=>World.goToStation(next)}]);
+}
+function openHall(){
+  World.target=null;World.pending=null;
+  const n=World.badgeCount();
+  if(n<7){
+    const miss=STATIONS.filter(s=>!Store.data.badges[s.id]).map(s=>s.name).join('、');
+    owlSay(`高手殿堂要集齊七個徽章先可以入去㗎！\n你而家有${n}個，仲差${7-n}個：${miss}。\n加油！`);return;
+  }
+  showCertificate();
+}
+function showCertificate(){
+  Sfx.win();fireworks();
+  const body=`<div class="cert"><div class="cap">🎓</div><div class="certTitle">學習高手證書</div><p>頒發俾</p>
+    <input id="nameIn" maxlength="12" placeholder="㩒呢度寫你個名" value="${esc(Store.data.name||'')}">
+    <p>你已經學識《學習高手》七大秘訣：</p><div class="certBadges">${STATIONS.map(s=>s.emoji).join('')}</div>
+    <p>學習高手唔係一日練成，每日做少少，慢慢就變成好習慣！</p></div>`;
+  const say='恭喜你！你已經學識咗《學習高手》入面七個秘訣：大目標拆細做、故事串聯記憶、番茄鐘專心做、專注方格、錯題本、四象限時間管理，同埋分階段複習。你已經係學習高手喇！學習高手唔係一日練成，每日做少少，慢慢就會變成好習慣。記得每日嚟打卡啊！';
+  const m=showModal({title:'🎉 恭喜你成為學習高手！',body,say,buttons:[{label:'🎆 放煙花',cls:'pink',keep:true,onClick:fireworks},{label:'✅ 每日高手打卡',cls:'green',onClick:showCheckin},{label:'關閉',cls:'alt'}]});
+  const inp=m.querySelector('#nameIn');inp.addEventListener('input',()=>{Store.data.name=inp.value.trim();Store.save();});
+}
+function fireworks(){
+  const sc=World.scene;
+  for(let i=0;i<5;i++)later(i*0.35,()=>{Sfx.tone(rand(500,900),.25,'triangle',.12);burst(sc,new THREE.Vector3(HALL.pos[0]+rand(-5,5),rand(7,10),HALL.pos[1]+rand(-4,4)),{n:60,speed:7,life:1.8,gravity:4});});
+}
+function todayKey(d){d=d||new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function streak(){
+  let s=0;const d=new Date();
+  for(let i=0;i<400;i++){const k=todayKey(d);if((Store.data.checkin[k]||[]).length){s++;d.setDate(d.getDate()-1);}else if(i===0){d.setDate(d.getDate()-1);}else break;}
+  return s;
+}
+function showCheckin(){
+  const key=todayKey();const done=Store.data.checkin[key]||[];
+  const st=streak();
+  const body=`<p>做完一樣，就㩒個格仔打個剔 ✔</p>`+HABITS.map((h,i)=>`<div class="habit ${done.includes(i)?'on':''}" data-i="${i}"><button class="chk" type="button" data-i="${i}" aria-label="${h.t}">${done.includes(i)?'✔':''}</button><span>${h.e} ${esc(h.t)}</span>${spk(h.t)}</div>`).join('')
+    +`<p class="mine" id="streakP">${st?`你已經連續打卡 ${st} 日！`:'今日開始第一日打卡啦！'}</p>`;
+  const say='每日高手打卡！做完一樣，就㩒個格仔打個剔。今日七個高手習慣係：'+HABITS.map(h=>h.t).join('、')+'。'+(st?`你已經連續打卡${st}日！`:'');
+  const m=showModal({title:'✅ 每日高手打卡',body,say,buttons:[{label:'完成',cls:'green'}]});
+  m.querySelectorAll('.chk').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i;let arr=Store.data.checkin[key]||[];
+    if(arr.includes(i))arr=arr.filter(x=>x!==i);else arr=arr.concat(i);
+    Store.data.checkin[key]=arr;Store.save();
+    const row=b.parentElement;const on=arr.includes(i);row.classList.toggle('on',on);b.textContent=on?'✔':'';
+    const s2=streak();m.querySelector('#streakP').textContent=s2?`你已經連續打卡 ${s2} 日！`:'今日開始第一日打卡啦！';
+    if(on&&arr.length===HABITS.length){Sfx.win();Voice.say('好叻！今日七個高手習慣全部做晒，你真係學習高手！');}
+    else if(on){Sfx.good();Voice.say(`${HABITS[i].t}，做到喇！`);}else Sfx.pop();
+  }));
+}
+function showBook(){
+  const n=World.badgeCount();
+  const body=STATIONS.map(st=>Store.data.badges[st.id]
+    ?`<div class="bk"><h3>${spk(st.lessonTitle+'。'+st.lesson.join(''))}${st.emoji} ${esc(st.lessonTitle.replace('高手秘訣：',''))}</h3><ul>${st.lesson.map(p=>`<li>${spk(p)}<span>${esc(p)}</span></li>`).join('')}</ul></div>`
+    :`<div class="bk locked"><h3>${spk('去「'+st.name+'」玩遊戲，就可以解鎖呢個秘訣。')}🔒 ${st.emoji} ${st.name}</h3><p>去「${st.name}」玩遊戲，就可以解鎖呢個秘訣。</p></div>`).join('');
+  const say=n?`呢本係高手秘笈。你已經解鎖咗${n}個秘訣，㩒小喇叭就可以聽返每一個秘訣。`:'呢本係高手秘笈。你仲未解鎖任何秘訣，快啲去學習站玩遊戲啦！';
+  showModal({title:'📖 高手秘笈',body,say,buttons:[{label:'合埋秘笈',cls:'green'}]});
+}
+function showHelp(){showModal({title:'🦉 點樣玩？',body:paras(WELCOME),say:WELCOME,buttons:[{label:'出發！',cls:'green'}]});}
+
+/* ---------- mini-game framework ---------- */
+function startGame(st,param){
+  hideModal();Voice.stop();clearTweens();clearParticles();setTools(null);
+  if(G){G.alive=false;disposeScene(G.scene);}
+  const g=CREATORS[st.id](param);g.st=st;g.param=param;g.alive=true;g.finished=false;G=g;
+  state='game';$('#hud').classList.add('hidden');$('#ghud').classList.remove('hidden');
+  $('#gTitle').textContent=`${st.emoji} ${st.name}`;setStatus('');$('#gTip').classList.add('hidden');
+  onResize();if(g.begin)g.begin();
+}
+function finishGame(res){
+  const g=G;if(!g||g.finished)return;g.finished=true;g.running=false;
+  const st=g.st;const first=!Store.data.badges[st.id];
+  Store.data.badges[st.id]=true;Store.data.stars[st.id]=Math.max(Store.data.stars[st.id]||0,res.stars);Store.save();
+  Sfx.win();burst(g.scene,new THREE.Vector3(0,3,0),{n:80,speed:9});setTools(null);
+  later(1.2,()=>{
+    if(G!==g)return;
+    const starsHtml='<div class="stars">'+[0,1,2].map(i=>i<res.stars?'⭐':'<span class="off">⭐</span>').join('')+'</div>';
+    const pts=st.lesson.map(p=>`<li>${spk(p)}<span>${esc(p)}</span></li>`).join('');
+    const say=`${res.line}${first?`你攞到「${st.name}」徽章！`:''}${st.lessonTitle}。${st.lesson.join('')}`;
+    showModal({title:first?`🏅 攞到「${st.name}」徽章！`:`🎉 完成「${st.name}」！`,
+      body:`${starsHtml}<p class="res">${esc(res.line)}</p><div class="lesson"><h3>${esc(st.lessonTitle)}</h3><ul>${pts}</ul></div>`,
+      say,buttons:[{label:'🔁 再玩一次',cls:'alt',onClick:()=>startGame(st,g.param)},{label:'🏝️ 返去島上',cls:'green',onClick:exitGame}]});
+  });
+}
+function exitGame(){
+  Voice.stop();clearTweens();clearParticles();setTools(null);hideModal();
+  if(G){G.alive=false;disposeScene(G.scene);}G=null;
+  state='world';$('#ghud').classList.add('hidden');$('#hud').classList.remove('hidden');
+  World.refresh();onResize();
+  if(World.badgeCount()===7&&!Store.data.toldHall){Store.data.toldHall=true;Store.save();
+    later(0.5,()=>owlSay('嘩！你集齊晒七個徽章喇！快啲行去中間嘅高手殿堂，攞你嘅學習高手證書！',[{label:'遲啲先',cls:'alt'},{label:'🎓 帶我去',cls:'green',onClick:()=>World.goToStation(HALL)}]));}
+}
+
+/* ======================================================
+   GAME 1 目標山: break a big goal into small steps
+   ====================================================== */
+const GOAL_SETS=[
+  {big:'一個月讀完一本故事書',steps:['第1個星期\n讀第1、2章','第2個星期\n讀第3、4章','第3個星期\n讀第5、6章','第4個星期\n讀第7、8章']},
+  {big:'學識連續跳繩50下',steps:['第1步\n連續跳10下','第2步\n連續跳20下','第3步\n連續跳35下','第4步\n連續跳50下']},
+  {big:'一個星期記熟20個英文生字',steps:['星期一、二\n記5個','星期三、四\n再記5個','星期五、六\n再記10個','星期日\n20個溫一次']},
+];
+let lastGoal=-1;
+function createGoal(){
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xBDE6FF);addLights(scene);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  let si;do{si=randi(GOAL_SETS.length);}while(si===lastGoal);lastGoal=si;const set=GOAL_SETS[si];
+  const SW=1.9,SH=1.3,X0=-2.4;
+  scene.add(at(mesh(new THREE.BoxGeometry(46,1,26),M(0x9BDB8A)),0,-0.5,-3));
+  for(let i=0;i<8;i++)scene.add(at(mesh(new THREE.ConeGeometry(rand(3,5),rand(4,8),6),M(0xA8D8B0,{flatShading:true})),-21+i*6,1.5,-13));
+  for(let i=0;i<4;i++){const c=new THREE.Group();for(let j=0;j<3;j++)c.add(at(mesh(new THREE.SphereGeometry(rand(.8,1.2),10,8),M(0xFFFFFF)),j*1.2,rand(-.2,.2),0));at(c,-12+i*8,rand(8,10),-8);scene.add(c);}
+  const cliffX=X0+3.5*SW+2.2,cliffTop=5*SH;
+  scene.add(at(mesh(new THREE.BoxGeometry(4.4,cliffTop,4),M(0xC9B08F)),cliffX,cliffTop/2,0));
+  scene.add(at(mesh(new THREE.BoxGeometry(4.6,0.3,4.2),M(0x7FCB70)),cliffX,cliffTop,0));
+  const flag=new THREE.Group();flag.add(at(mesh(new THREE.CylinderGeometry(0.06,0.06,2.4,8),M(0x555555)),0,1.2,0));
+  const sh=new THREE.Shape();sh.moveTo(0,0);sh.lineTo(1.2,-0.35);sh.lineTo(0,-0.7);sh.closePath();
+  const cloth=at(mesh(new THREE.ShapeGeometry(sh),M(0xFF5A4E,{side:THREE.DoubleSide})),0.05,2.35,0);flag.add(cloth);at(flag,cliffX+1,cliffTop,0);scene.add(flag);
+  const kid=makeKid();at(kid,X0-2.3,0,0.3);kid.rotation.y=Math.PI/2;scene.add(kid);
+  const boulder=at(mesh(new THREE.DodecahedronGeometry(1.35,0),M(0x9C98A8,{flatShading:true})),-1.2,1.35,2.8);scene.add(boulder);
+  const bLabel=makeLabel('大目標：\n'+set.big,{size:46,scale:0.0115,bg:'#FFE45C'});at(bLabel,-1.2,3.8,2.8);scene.add(bLabel);
+  const pal=[0xFF9FC5,0xFFE45C,0x8FE3A8,0x9CCBFF];
+  let phase='break',taps=0,next=0,mistakes=0;const blocks=[];
+  const flat=s=>s.replace('\n','：');
+  function spawnBlocks(){
+    const xs=shuffle([-4.8,-2.2,0.4,3.0]);
+    set.steps.forEach((label,i)=>{
+      const side=M(pal[i]);
+      const front=new THREE.MeshLambertMaterial({map:faceTexture(label,{w:512,h:352,bw:14,maxFont:90})});
+      const b=at(mesh(new THREE.BoxGeometry(SW*0.98,SH,1.3),[side,side,side,side,front,side]),xs[i],SH/2,3.6);
+      b.userData.idx=i;b.userData.label=label;b.visible=false;scene.add(b);blocks.push(b);
+      later(i*0.18,()=>{Sfx.pop();popIn(b,0.45);});
+    });
+  }
+  function finalClimb(){
+    hop(kid,new THREE.Vector3(cliffX-0.6,cliffTop+0.15,0.3),1.5,0.6,()=>{
+      Sfx.win();burst(scene,new THREE.Vector3(cliffX,cliffTop+2.5,0),{n:70,speed:8});
+      setTip('嘩！你一步一步爬到山頂，完成咗大目標！');
+      later(1.4,()=>finishGame({stars:mistakes===0?3:mistakes<=2?2:1,line:`你將「${set.big}」拆成4個細目標，一步一步爬到山頂！`}));
+    });
+  }
+  g.begin=()=>{setStatus(`🎯 ${set.big}`);setTip('大目標好似一嚿大石，搬唔郁！㩒大石頭3下，將佢拆細！');g.running=true;};
+  g.down=ndc=>{
+    if(!g.running)return;
+    if(phase==='break'){
+      if(!pick(ndc,cam,[boulder]).length)return;
+      taps++;Sfx.tone(150+taps*70,.15,'square',.1);shake(boulder,.22,.35);boulder.scale.setScalar(1-taps*0.09);
+      burst(scene,boulder.position.clone(),{n:12,colors:[0x9C98A8,0xC9C5D6],speed:4});
+      if(taps>=3){phase='wait';later(.35,()=>{burst(scene,boulder.position.clone(),{n:45,colors:[0x9C98A8,0xC9C5D6,0xFFE45C],speed:7});scene.remove(boulder);scene.remove(bLabel);spawnBlocks();
+        later(1.0,()=>{phase='build';setTip('大目標拆成4個細目標喇！由第一步開始，順序㩒細目標，砌樓梯上山頂！');});});}
+      else setTip(`好！再㩒${3-taps}下！`);
+      return;
+    }
+    if(phase!=='build')return;
+    const h=pick(ndc,cam,blocks.filter(b=>!b.userData.used));if(!h.length)return;
+    const b=h[0].object,i=b.userData.idx;
+    if(i!==next){mistakes++;Sfx.bad();shake(b);setTip(`呢個係「${flat(b.userData.label)}」。要先做「${flat(set.steps[next])}」喎！`);return;}
+    b.userData.used=true;Sfx.good();next++;phase='moving';
+    setTip(`✔ ${flat(b.userData.label)}！做得好！`);
+    const to=new THREE.Vector3(X0+i*SW,(i+1)*SH-SH/2,0);
+    hop(b,to,2.2,0.6,()=>{
+      if(i>0){const pil=at(mesh(new THREE.BoxGeometry(SW*0.98,i*SH,1.3),M(pal[i])),to.x,0,0);pil.scale.y=0.001;scene.add(pil);
+        tween(.3,k=>{pil.scale.y=Math.max(0.001,k);pil.position.y=k*i*SH/2;});}
+      later(.35,()=>hop(kid,new THREE.Vector3(to.x,(i+1)*SH,0.3),1.2,0.45,()=>{Sfx.pop();if(next>=4)finalClimb();else phase='build';}));
+    });
+  };
+  g.update=()=>{cloth.rotation.y=Math.sin(T*3)*0.3;};
+  g.resize=()=>fitCam(cam,new THREE.Vector3(0.9,3.2,1.2),9.6,6.0,new THREE.Vector3(0,0.2,1));
+  return g;
+}
+
+/* ======================================================
+   GAME 2 記憶森林: story-chain memory
+   ====================================================== */
+const STORY_SETS=[
+  {items:[{e:'🍎',n:'蘋果'},{e:'🚀',n:'火箭'},{e:'🐱',n:'貓仔'},{e:'☂️',n:'雨遮'},{e:'🎂',n:'蛋糕'}],
+   segs:['有一個紅卜卜嘅大蘋果，','佢跳上一架火箭，嗖一聲飛上天！','火箭降落喺月球，見到一隻貓仔，','貓仔撐住一把好大嘅雨遮，','雨遮一打開，跌咗個生日蛋糕出嚟！']},
+  {items:[{e:'🐘',n:'大笨象'},{e:'🎹',n:'鋼琴'},{e:'🍌',n:'香蕉'},{e:'🚲',n:'單車'},{e:'⭐',n:'星星'}],
+   segs:['有一隻大笨象好鍾意音樂，','佢用長長嘅鼻彈鋼琴，','鋼琴一響，彈咗一條香蕉出嚟，','香蕉跳上單車，踩呀踩，','一直踩上天，變成一粒閃閃嘅星星！']},
+  {items:[{e:'🐟',n:'魚仔'},{e:'👟',n:'波鞋'},{e:'🍦',n:'雪糕'},{e:'🚂',n:'火車'},{e:'🌈',n:'彩虹'}],
+   segs:['有一條魚仔想去旅行，','佢著咗一對新波鞋，','跑去買咗一個好大嘅雪糕，','拎住雪糕跳上火車，','火車嗚嗚聲穿過一條彩虹！']},
+];
+const DISTRACT=[{e:'🐶',n:'狗仔'},{e:'🍉',n:'西瓜'},{e:'🎈',n:'氣球'},{e:'🚗',n:'汽車'},{e:'🦋',n:'蝴蝶'},{e:'🍩',n:'冬甩'},{e:'🎩',n:'魔術帽'}];
+let lastStory=-1;
+function createMemory(){
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xD2F2DC);addLights(scene);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  let si;do{si=randi(STORY_SETS.length);}while(si===lastStory);lastStory=si;const set=STORY_SETS[si];
+  scene.add(at(mesh(new THREE.BoxGeometry(44,1,24),M(0x8FD694)),0,-0.5,-4));
+  for(let i=0;i<16;i++)scene.add(at(makeTree(rand(1.1,1.8),[0x3FA05E,0x4FB36A,0x6FCF7F][i%3]),-16+i*2.1+rand(-.5,.5),0,rand(-9,-6)));
+  const xs=[-6,-4,-2,0,2,4,6];const stumps=xs.map(x=>{const z=-Math.abs(x)*0.18+1;
+    const s=new THREE.Group();s.add(at(mesh(new THREE.CylinderGeometry(0.7,0.82,0.6,14),M(0xA0703F)),0,0.3,0));s.add(at(mesh(new THREE.CylinderGeometry(0.66,0.66,0.04,14),M(0xE8C48E)),0,0.62,0));
+    at(s,x,0,z);scene.add(s);return s.position.clone();});
+  scene.add(at(mesh(new THREE.BoxGeometry(11.5,0.25,1.1),M(0xB5824A)),0,4.35,-1.6));
+  const shelfLabel=makeLabel('📚 記憶架',{size:40,scale:0.01,bg:'#FFFFFF'});at(shelfLabel,-5.3,5.35,-1.6);scene.add(shelfLabel);
+  let items=[],phase='show',next=0,wrong=0,localWrong=0;
+  function makeItem(it){
+    const grp=new THREE.Group();const s=makeEmoji(it.e,1.7);s.position.y=1.0;grp.add(s);
+    const lb=makeLabel(it.n,{size:44,scale:0.0095,bg:'#FFFFFF'});lb.position.y=-0.15;grp.add(lb);
+    const hit=at(mesh(new THREE.SphereGeometry(1,8,6),new THREE.MeshBasicMaterial()),0,0.8,0);hit.visible=false;grp.add(hit);
+    grp.userData.key=it.n;return grp;
+  }
+  const story=set.segs.join('');
+  function showStep(i){
+    if(!g.alive||G!==g)return;
+    if(i>=5){phase='retell';later(0.6,retell);return;}
+    const it=makeItem(set.items[i]);at(it,stumps[i+1].x,0.65,stumps[i+1].z);it.visible=false;scene.add(it);items.push(it);
+    Sfx.pop();popIn(it,0.45);
+    setTip(set.segs[i],false);
+    Voice.say(set.segs[i],()=>{if(G===g)later(0.35,()=>showStep(i+1));});
+  }
+  function retell(){
+    if(G!==g)return;
+    showModal({title:'🗣️ 你都講一次！',body:paras('試吓自己大聲講一次個故事：\n'+story+'\n用眼睇、用耳聽、用口講，記得更牢！準備好就㩒「我記住喇」。'),
+      say:'試吓自己大聲講一次個故事。'+story+'用眼睇、用耳聽、用口講，記得更牢！準備好就㩒「我記住喇」。',
+      buttons:[{label:'🔊 再聽一次故事',cls:'alt',keep:true,onClick:()=>Voice.say(story)},{label:'我記住喇！',cls:'green',onClick:startRecall}]});
+  }
+  function startRecall(){
+    phase='fly';
+    items.forEach((it,i)=>{const y0=it.position.y;tween(0.6,k=>{it.position.y=y0+k*k*9;},()=>scene.remove(it));});
+    later(0.9,()=>{
+      const d=shuffle(DISTRACT.filter(x=>!set.items.some(y=>y.n===x.n))).slice(0,2);
+      const all=shuffle(set.items.concat(d));items=[];
+      all.forEach((it,i)=>{const o=makeItem(it);at(o,stumps[i].x,0.65,stumps[i].z);o.visible=false;scene.add(o);items.push(o);later(i*0.1,()=>{Sfx.pop();popIn(o,0.4);});});
+      later(0.9,()=>{phase='recall';setTip('啲嘢撈亂晒喇！跟住故事嘅次序，㩒返第1樣嘢！');setStatus(`🧠 0 / 5`);});
+    });
+  }
+  g.begin=()=>{g.running=true;setStatus('👀 用眼睇，👂 用耳聽');later(0.6,()=>showStep(0));};
+  g.down=ndc=>{
+    if(phase!=='recall')return;
+    const h=pick(ndc,cam,items.filter(o=>!o.userData.done));if(!h.length)return;
+    const o=findUp(h[0].object,'key');if(!o)return;
+    if(o.userData.key===set.items[next].n){
+      o.userData.done=true;Sfx.good();const idx=next;next++;localWrong=0;
+      const to=new THREE.Vector3(-4.8+idx*2.4,4.5,-1.6),from=o.position.clone();
+      tween(0.5,k=>{o.position.lerpVectors(from,to,easeOut(k));o.position.y+=Math.sin(k*Math.PI)*1.5;o.scale.setScalar(lerp(1,0.8,k));});
+      setStatus(`🧠 ${next} / 5`);
+      if(next>=5){phase='end';setTip(`✔ 全部啱晒！${story}`,true,'全部啱晒！你記住咗成個故事！');
+        later(1.6,()=>finishGame({stars:wrong===0?3:wrong<=2?2:1,line:`你用故事記住咗5樣嘢：${set.items.map(x=>x.n).join('、')}！`}));}
+      else setTip(`✔ 第${next}樣係${o.userData.key}！下一樣係咩呢？`);
+    }else{
+      wrong++;localWrong++;Sfx.bad();shake(o);
+      if(localWrong>=2)setTip(`提你少少：「${set.segs[next]}」`);else setTip(`唔係${o.userData.key}喎，再諗吓個故事，下一樣係咩呢？`);
+    }
+  };
+  g.update=()=>{items.forEach((o,i)=>{if(!o.userData.done&&phase==='recall')o.children[0].position.y=1.0+Math.sin(T*3+i)*0.08;});};
+  g.resize=()=>fitCam(cam,new THREE.Vector3(0,2.2,0),7.8,4.6,new THREE.Vector3(0,0.3,1));
+  return g;
+}
+
+/* ======================================================
+   GAME 3 番茄專注塔: focus & catch, pomodoro
+   ====================================================== */
+function createFocus(){
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xE2F3FF);addLights(scene,0.9);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  let hw=8,hh=7;
+  const clockRing=at(mesh(new THREE.RingGeometry(4.6,5,64),new THREE.MeshBasicMaterial({color:0xFFFFFF,transparent:true,opacity:0.5})),0,0.5,-4);scene.add(clockRing);
+  const tomato=new THREE.Group();
+  const body=mesh(new THREE.SphereGeometry(1,24,16),M(0xFF5A4E));body.scale.set(1.35,0.85,1.1);tomato.add(body);
+  for(let i=0;i<5;i++){const l=at(mesh(new THREE.ConeGeometry(0.16,0.7,5),M(0x3FAE6A)),Math.cos(i*1.256)*0.3,0.82,Math.sin(i*1.256)*0.3);l.rotation.z=Math.PI/2;l.rotation.y=-i*1.256;tomato.add(l);}
+  [-0.35,0.35].forEach(x=>tomato.add(at(mesh(new THREE.SphereGeometry(0.1,10,8),M(0x1F2A5C)),x,0.1,1.05)));
+  const smile=at(mesh(new THREE.TorusGeometry(0.2,0.04,6,14,Math.PI),M(0x1F2A5C)),0,-0.12,1.05);smile.rotation.z=Math.PI;tomato.add(smile);
+  scene.add(tomato);
+  const GOOD=['star','star','star','📚','✏️'],BAD=['📱','🎮','📺','🍭'];
+  let tx=0,items=[],spawnT=0,time=25,score=0,bad=0,phase='ready',restT=5,warned=false;
+  function spawn(){
+    const isBad=Math.random()<0.38;let o;
+    if(isBad)o=makeEmoji(BAD[randi(BAD.length)],1.6);
+    else{const t=GOOD[randi(GOOD.length)];o=t==='star'?starMesh():makeEmoji(t,1.4);}
+    o.userData.bad=isBad;o.userData.v=rand(3.2,4.4)+(25-time)*0.07;
+    at(o,rand(-hw+1.2,hw-1.2),hh+1,0);scene.add(o);items.push(o);
+  }
+  function remove(o){scene.remove(o);items.splice(items.indexOf(o),1);}
+  g.begin=()=>{g.running=true;setStatus('🍅 預備…');setTip('拖住番茄籃，接星星同書本，避開分心怪！預備，開始！');later(2.6,()=>{if(G===g)phase='play';});};
+  const moveTo=ndc=>{tx=clamp(ndc.x*hw,-hw+1.4,hw-1.4);};
+  g.down=moveTo;g.move=moveTo;
+  g.update=dt=>{
+    tomato.position.x+=(tx-tomato.position.x)*Math.min(1,dt*14);
+    tomato.position.y=-hh+2.9+(phase==='rest'?Math.abs(Math.sin(T*5))*0.8:0);
+    tomato.rotation.z=phase==='rest'?Math.sin(T*5)*0.15:0;
+    if(phase==='play'){
+      time-=dt;spawnT-=dt;if(spawnT<=0){spawn();spawnT=rand(.42,.72);}
+      for(let i=items.length-1;i>=0;i--){
+        const o=items[i];o.position.y-=o.userData.v*dt;if(o.isMesh){o.rotation.y+=dt*3;o.rotation.z+=dt;}
+        if(Math.abs(o.position.x-tomato.position.x)<1.55&&Math.abs(o.position.y-(tomato.position.y+0.7))<0.75){
+          if(o.userData.bad){bad++;score=Math.max(0,score-1);Sfx.bad();shake(tomato,.3,.4);
+            if(!warned){warned=true;setTip('哎呀！係分心怪！專心啲，避開手機、遊戲機、電視同糖果！');}}
+          else{score++;Sfx.pop();burst(scene,o.position.clone(),{n:8,colors:[0xFFD23F,0xFFF3A0],speed:3,life:.6});}
+          remove(o);
+        }else if(o.position.y<-hh-1.5)remove(o);
+      }
+      setStatus(`🍅 ${Math.max(0,Math.ceil(time))} 秒　⭐ ${score}　😵 ${bad}`);
+      clockRing.material.opacity=0.25+0.3*(time/25);
+      if(time<=0){phase='rest';items.slice().forEach(o=>{burst(scene,o.position.clone(),{n:6,speed:3,life:.5});remove(o);});
+        Sfx.win();setTip('叮！一個番茄鐘完成！而家休息5秒：深呼吸，伸個懶腰～');}
+    }else if(phase==='rest'){
+      restT-=dt;setStatus(`😌 休息 ${Math.max(0,Math.ceil(restT))} 秒　⭐ ${score}`);
+      if(restT<=0){phase='done';finishGame({stars:score>=16?3:score>=9?2:1,line:`你專心咗25秒，接到${score}粒星，分心怪搞到你${bad}次。`});}
+    }
+  };
+  g.resize=()=>{const d=fitCam(cam,new THREE.Vector3(0,0,0),6.5,7.6,new THREE.Vector3(0,0,1));const t=Math.tan(THREE.MathUtils.degToRad(cam.fov/2));hh=t*d;hw=hh*cam.aspect;};
+  return g;
+}
+
+/* ======================================================
+   GAME 4 專注方格: Schulte grid
+   ====================================================== */
+function createSchulte(n){
+  n=n||3;
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xECE7FF);addLights(scene,0.85);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  const s=1.5,gap=0.2,W=n*(s+gap)-gap;
+  scene.add(at(mesh(new THREE.BoxGeometry(W+1.2,0.4,W+1.2),M(0x1F2A5C)),0,-0.2,0));
+  scene.add(at(mesh(new THREE.BoxGeometry(W+30,0.2,W+30),M(0xD9D1FF)),0,-0.6,0));
+  const nums=shuffle(Array.from({length:n*n},(_,i)=>i+1));const cubes=[];
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++){
+    const num=nums[r*n+c];
+    const top=new THREE.MeshLambertMaterial({map:faceTexture(String(num),{w:256,h:256,bw:10,maxFont:170})});
+    const side=M((r+c)%2?0xFFB3D1:0xB3E0FF);
+    const b=at(mesh(new THREE.BoxGeometry(s,s*0.6,s),[side,side,top,side,side,side]),-W/2+s/2+c*(s+gap),s*0.3,-W/2+s/2+r*(s+gap));
+    b.userData.num=num;b.userData.top=top;scene.add(b);cubes.push(b);
+  }
+  let next=1,t=0,started=false,done=false,errors=0;
+  const status=()=>setStatus(`下一個：<b>${Math.min(next,n*n)}</b>　⏱ ${t.toFixed(1)} 秒`);
+  g.begin=()=>{g.running=true;status();setTip(`由1開始，順序㩒到${n*n}，越快越好！眼睛望住中間，用眼角搵數字。`);};
+  g.down=ndc=>{
+    if(done)return;const h=pick(ndc,cam,cubes);if(!h.length)return;const b=h[0].object,num=b.userData.num;
+    if(num<next)return;
+    if(num===next){
+      started=true;next++;Sfx.pop();b.userData.top.color.setHex(0x9EF0B5);
+      const y0=b.position.y;tween(0.15,k=>{b.position.y=y0-0.22*k;});
+      Voice.say(String(num));
+      if(next>n*n){done=true;status();finish();}
+    }else{errors++;Sfx.bad();shake(b,.15,.35);}
+  };
+  function finish(){
+    const key='schulte'+n,best=Store.data.best[key],tt=Math.round(t*10)/10;const nb=!best||tt<best;
+    if(nb){Store.data.best[key]=tt;Store.save();}
+    const lim={3:[12,20],4:[28,45],5:[50,80]}[n];
+    burst(scene,new THREE.Vector3(0,2,0),{n:60,speed:8});
+    setTip(`完成！你用咗${tt}秒。`);
+    later(1.2,()=>finishGame({stars:tt<=lim[0]?3:tt<=lim[1]?2:1,line:`你用咗${tt}秒完成${n}×${n}方格！`+(nb?'打破咗你嘅最佳紀錄！':`你最快係${best}秒。`)}));
+  }
+  g.update=dt=>{if(started&&!done){t+=dt;status();}};
+  g.resize=()=>fitCam(cam,new THREE.Vector3(0,0,0.25),W/2+0.9,W/2+1.8,new THREE.Vector3(0,1,0.5));
+  return g;
+}
+
+/* ======================================================
+   GAME 5 錯題寶石礦: mistakes become gems
+   ====================================================== */
+const ROCKS=[
+  {q:'7 + 5 = 11 ❌',sayQ:'七加五等於十一，錯咗。',find:'原來數漏咗一個！7 + 5 應該等於 12。',sayFind:'原來數漏咗一個！七加五應該等於十二。',redo:'再做一次：7 + 5 = 12 ✔',sayRedo:'再做一次：七加五等於十二，啱晒！'},
+  {q:'默書：「鳥」字漏咗一點 ❌',sayQ:'默書嘅時候，鳥字漏咗一點。',find:'原來寫得太快，漏咗筆畫。寫字要睇清楚每一筆。',redo:'再寫一次：「鳥」✔ 一筆都冇漏！',sayRedo:'再寫一次鳥字，一筆都冇漏，啱晒！'},
+  {q:'英文：apple 串咗 aple ❌',sayQ:'英文生字 apple，串咗做 A P L E。',find:'原來漏咗一個 p！apple 有兩個 p。',sayFind:'原來漏咗一個 P！apple 有兩個 P。',redo:'再串一次：a-p-p-l-e ✔',sayRedo:'再串一次：A、P、P、L、E，啱晒！'},
+  {q:'應用題：題目問「仲剩幾多」\n我計咗「總共幾多」❌',sayQ:'應用題：題目問仲剩幾多，我計咗總共幾多，錯咗。',find:'原來睇錯題目！做題目前，要圈出關鍵字。',sayFind:'原來睇錯題目！做題目之前，要圈出題目嘅關鍵字。',redo:'再做一次：圈咗「仲剩」，用減數 ✔',sayRedo:'再做一次：圈咗仲剩兩個字，知道要用減數，啱晒！'},
+];
+function createMistake(){
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x3E356B);
+  scene.add(new THREE.HemisphereLight(0xDCD4FF,0x3E356B,0.8));const pl=new THREE.PointLight(0xFFFFFF,0.8,30);pl.position.set(0,6,6);scene.add(pl);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  scene.add(at(mesh(new THREE.BoxGeometry(34,1,18),M(0x5B4E8C)),0,-0.5,-2));
+  const cc=[0x6EF0FF,0xFF7EB6,0x7CE0A3,0xFFE45C,0xB38CFF];
+  for(let i=0;i<16;i++){const h=rand(1,3);const cr=at(mesh(new THREE.ConeGeometry(rand(.3,.6),h,5),M(cc[i%5],{emissive:cc[i%5],emissiveIntensity:0.35,flatShading:true})),-13+i*1.75+rand(-.4,.4),h/2,rand(-8,-5));cr.rotation.z=rand(-.3,.3);scene.add(cr);}
+  const chest=new THREE.Group();chest.add(at(mesh(new THREE.BoxGeometry(2.2,1.1,1.4),M(0xB7773F)),0,0.55,0));
+  const lid=at(mesh(new THREE.BoxGeometry(2.25,0.4,1.45),M(0x9A5F2E)),0,1.3,0);chest.add(lid);chest.add(at(mesh(new THREE.BoxGeometry(0.35,0.5,0.1),M(0xFFD23F)),0,0.9,0.72));
+  at(chest,4.8,0,0.8);scene.add(chest);
+  const chestLabel=makeLabel('寶箱',{size:40,scale:0.009});at(chestLabel,4.8,2.3,0.8);scene.add(chestLabel);
+  const book=makeEmoji('📒',1.8);at(book,-4.8,2.2,0.6);scene.add(book);
+  const bookLabel=makeLabel('錯題本',{size:40,scale:0.009});at(bookLabel,-4.8,0.9,0.6);scene.add(bookLabel);
+  const TOOLS=[{k:0,html:'<b>🔍</b>搵出錯喺邊'},{k:1,html:'<b>✏️</b>抄入錯題本'},{k:2,html:'<b>🔁</b>過幾日再做一次'}];
+  const NAMES=['搵出錯喺邊','抄入錯題本','過幾日再做一次'];
+  let idx=0,step=0,mistakes=0,gems=0,busy=true,rock=null,rockLabel=null;
+  const status=()=>setStatus(`💎 寶石 ${gems} / ${ROCKS.length}`);
+  function newRock(){
+    if(G!==g)return;const d=ROCKS[idx];step=0;busy=true;
+    rock=at(mesh(new THREE.IcosahedronGeometry(1.25,0),M(0x8E8AA3,{flatShading:true,emissive:0x000000})),-11,1.25,0.6);scene.add(rock);
+    rockLabel=makeLabel(d.q,{size:44,scale:0.0105,bg:'#FFFFFF'});at(rockLabel,0,3.7,0.6);rockLabel.visible=false;scene.add(rockLabel);
+    tween(0.9,k=>{rock.position.x=lerp(-11,0,easeOut(k));rock.rotation.z=-(1-easeOut(k))*7;},()=>{
+      popIn(rockLabel,0.4);busy=false;
+      setTip(`第${idx+1}條錯題：${d.q.replace('\n','，')}\n用啱次序㩒工具，將佢變成寶石！`,true,`第${idx+1}條錯題：${d.sayQ}用啱次序㩒下面嘅工具，將佢變成寶石！`);
+      setTools(shuffle(TOOLS).map(t=>({html:t.html,onClick:()=>useTool(t.k)})));
+    });
+  }
+  function useTool(k){
+    if(busy||!g.running)return;const d=ROCKS[idx];
+    if(k!==step){mistakes++;Sfx.bad();shake(rock);setTip(`咪住！而家要先「${NAMES[step]}」。`);return;}
+    Sfx.good();
+    if(step===0){rock.material.color.setHex(0xAAA4CC);rock.material.emissive.setHex(0x1A1040);burst(scene,rock.position.clone(),{n:14,colors:[0xFFFFFF,0xC9C5D6],speed:4,life:.8});
+      setTip('🔍 '+d.find,true,'搵到喇！'+(d.sayFind||d.find));}
+    else if(step===1){rock.material.color.setHex(0xCDB8FF);rock.material.emissive.setHex(0x3A1F7A);
+      const paper=makeEmoji('📄',0.9);paper.position.copy(rock.position);scene.add(paper);
+      hop(paper,book.position.clone(),2,0.7,()=>{scene.remove(paper);Sfx.pop();const s0=book.scale.x;tween(.3,k=>{book.scale.setScalar(s0*(1+Math.sin(k*Math.PI)*0.3));});});
+      setTip('✏️ 抄入錯題本：寫低題目、錯嘅答案，同正確嘅做法。');}
+    else{
+      busy=true;setTip('🔁 '+d.redo,true,d.sayRedo||d.redo);
+      const r=rock;tween(0.35,k=>{r.scale.setScalar(Math.max(0.001,1-k));r.rotation.y+=0.3;},()=>{
+        scene.remove(r);scene.remove(rockLabel);
+        const gem=at(mesh(new THREE.OctahedronGeometry(1,0),M(cc[idx%5],{emissive:cc[idx%5],emissiveIntensity:0.45,flatShading:true})),0,1.6,0.6);gem.visible=false;scene.add(gem);
+        popIn(gem,0.5);burst(scene,gem.position.clone(),{n:40,speed:6});Sfx.win();
+        tween(1.2,k=>{gem.rotation.y=k*8;},()=>{
+          hop(gem,new THREE.Vector3(4.8,1.9,0.8),2.5,0.7,()=>{
+            scene.remove(gem);gems++;status();Sfx.pop();
+            const mini=at(mesh(new THREE.OctahedronGeometry(0.28,0),M(cc[(gems-1)%5],{emissive:cc[(gems-1)%5],emissiveIntensity:0.5,flatShading:true})),4.8-0.75+(gems-1)*0.5,1.75,0.8);scene.add(mini);
+            idx++;
+            if(idx<ROCKS.length)later(1.6,newRock);
+            else{setTools(null);later(1.2,()=>finishGame({stars:mistakes===0?3:mistakes<=2?2:1,line:`你將${ROCKS.length}條錯題變成${ROCKS.length}粒寶石！`}));}
+          });
+        });
+      });
+    }
+    step++;
+  }
+  g.begin=()=>{g.running=true;status();newRock();};
+  g.update=()=>{book.position.y=2.2+Math.sin(T*2)*0.12;};
+  g.resize=()=>fitCam(cam,new THREE.Vector3(0,1.4,0.5),6.6,5.2,new THREE.Vector3(0,0.25,1));
+  return g;
+}
+
+/* ======================================================
+   GAME 6 四象限時間城: sort tasks by importance/urgency
+   ====================================================== */
+const QUADS=[
+  {t:'🔴 重要又緊急',s:'即刻做',c:'#FF9A9A',x:-3.1,z:-4.3},
+  {t:'🟢 重要但唔緊急',s:'計劃好做',c:'#9BE8B2',x:3.1,z:-4.3},
+  {t:'🟡 緊急但唔重要',s:'快快手做',c:'#FFE58A',x:-3.1,z:-0.1},
+  {t:'🔵 唔重要又唔緊急',s:'最後先做',c:'#A9D2FF',x:3.1,z:-0.1},
+];
+const TASKS=[
+  {t:'📘 聽日要交嘅功課',q:0,why:'聽日就要交，又好重要，所以要即刻做！'},
+  {t:'📝 後日測驗，今晚溫書',q:0,why:'測驗好重要，時間又就快到，要即刻溫！'},
+  {t:'🏃 每日做運動',q:1,why:'身體健康好重要，但唔使即刻做，每日計劃好時間做。'},
+  {t:'📖 每日讀一篇課外書',q:1,why:'閱讀好重要，但唔急，可以計劃每日讀少少。'},
+  {t:'🔔 門鐘響，有人送信',q:2,why:'好急，但唔係好重要，快快手做完就返去學習。'},
+  {t:'💬 朋友即刻要你覆訊息',q:2,why:'好似好急，但未必重要，快快手覆，或者做完功課先覆。'},
+  {t:'🎮 打機',q:3,why:'唔重要又唔急，做完正經嘢先玩，仲要限時。'},
+  {t:'📺 睇卡通片',q:3,why:'唔重要又唔急，做完功課同溫習先睇。'},
+];
+function tileTexture(q){
+  const c=document.createElement('canvas');c.width=600;c.height=420;const x=c.getContext('2d');
+  x.fillStyle=q.c;x.fillRect(0,0,600,420);x.lineWidth=12;x.strokeStyle='#1F2A5C';x.strokeRect(6,6,588,408);
+  x.fillStyle='#1F2A5C';x.textAlign='center';x.textBaseline='middle';
+  x.font=`900 58px ${FONT}`;x.fillText(q.t,300,95);x.font=`700 46px ${FONT}`;x.fillText('👉 '+q.s,300,170);
+  return new THREE.CanvasTexture(c);
+}
+function createTime(){
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xDDF1E6);addLights(scene,0.9);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  scene.add(at(mesh(new THREE.BoxGeometry(40,0.2,30),M(0xC8E6D2)),0,-0.45,0));
+  scene.add(at(mesh(new THREE.BoxGeometry(13.2,0.4,9.4),M(0x1F2A5C)),0,-0.2,-2.2));
+  const tiles=QUADS.map((q,i)=>{const t=at(mesh(new THREE.PlaneGeometry(6,4.1),new THREE.MeshLambertMaterial({map:tileTexture(q)})),q.x,0.01,q.z);t.rotation.x=-Math.PI/2;t.userData.q=i;scene.add(t);return t;});
+  const SPAWN=new THREE.Vector3(0,0.8,3.5);
+  const order=shuffle(TASKS);const counts=[0,0,0,0];
+  let ti=0,cube=null,dragging=false,moved=false,downPt=null,selected=false,busy=true,mistakes=0;
+  function makeCube(t){
+    const side=M(0xFFFFFF);
+    const top=new THREE.MeshLambertMaterial({map:faceTexture(t.t,{w:640,h:320,bw:14,maxFont:90})});
+    const front=new THREE.MeshLambertMaterial({map:faceTexture(t.t,{w:640,h:220,bw:12,maxFont:80})});
+    return mesh(new THREE.BoxGeometry(3.2,1.1,1.6),[side,side,top,side,front,side]);
+  }
+  function highlight(on){if(!cube)return;cube.material.forEach(m=>m.emissive&&m.emissive.setHex(on?0x554400:0));}
+  function nextTask(){
+    if(G!==g)return;
+    if(ti>=order.length){busy=true;setTip('全部分好晒！記住：先做重要嘅事！');later(1.4,()=>finishGame({stars:mistakes<=1?3:mistakes<=3?2:1,line:`你將${order.length}件事分得清清楚楚！`}));return;}
+    const t=order[ti];cube=makeCube(t);cube.position.copy(SPAWN);cube.visible=false;scene.add(cube);popIn(cube,0.4);Sfx.pop();
+    selected=false;busy=false;setStatus(`📋 ${ti+1} / ${order.length}`);
+    setTip(`新任務：${t.t}\n將佢拖去啱嘅格仔！`,true,`新任務：${t.t}。佢應該放喺邊一格呢？`);
+  }
+  function quadAt(p){if(p.z>2.2||p.z<-6.6||Math.abs(p.x)>6.4)return -1;return (p.z<-2.2?0:2)+(p.x<0?0:1);}
+  function back(){const c=cube,from=c.position.clone();tween(0.35,k=>{c.position.lerpVectors(from,SPAWN,easeOut(k));},()=>{busy=false;});}
+  function place(q){
+    selected=false;highlight(false);busy=true;const t=order[ti];
+    if(q===t.q){
+      Sfx.good();const n=counts[q]++;const c=cube,from=c.position.clone();
+      const to=new THREE.Vector3(QUADS[q].x+(n%2?1.45:-1.45),0.35,QUADS[q].z+1.05);
+      tween(0.4,k=>{c.position.lerpVectors(from,to,easeOut(k));c.scale.setScalar(lerp(1,0.44,k));},()=>burst(scene,to.clone(),{n:18,speed:4,life:.8}));
+      ti++;const t0=T;
+      setTip('✔ '+t.why,true,'啱喇！'+t.why,()=>{const wait=Math.max(0,1.8-(T-t0));later(wait+0.3,nextTask);});
+    }else{mistakes++;Sfx.bad();shake(cube);setTip(`唔係「${QUADS[q].t.slice(3)}」呢格喎。${t.why}`,true,`唔係${QUADS[q].t.slice(3)}呢格喎。${t.why}`);back();}
+  }
+  g.begin=()=>{g.running=true;later(0.3,nextTask);};
+  g.down=ndc=>{
+    if(busy||!cube)return;
+    if(pick(ndc,cam,[cube]).length){dragging=true;moved=false;downPt={x:ndc.x,y:ndc.y};return;}
+    const th=pick(ndc,cam,tiles,false);
+    if(th.length){const q=th[0].object.userData.q;
+      if(selected){const c=cube,from=c.position.clone(),to=new THREE.Vector3(QUADS[q].x,0.8,QUADS[q].z);busy=true;tween(0.3,k=>{c.position.lerpVectors(from,to,easeOut(k));},()=>place(q));}
+      else Voice.say(`${QUADS[q].t.slice(3)}：${QUADS[q].s}`);}
+  };
+  g.move=ndc=>{
+    if(!dragging)return;
+    if(Math.hypot(ndc.x-downPt.x,ndc.y-downPt.y)>0.025)moved=true;
+    if(moved){const p=planePoint(ndc,cam,0.8);if(p){cube.position.x=clamp(p.x,-6.8,6.8);cube.position.z=clamp(p.z,-7,4.8);}}
+  };
+  g.up=()=>{
+    if(!dragging)return;dragging=false;
+    if(!moved){selected=true;highlight(true);Voice.say(order[ti].t+'。而家㩒一個格仔，放佢入去。');return;}
+    const q=quadAt(cube.position);if(q<0){back();return;}place(q);
+  };
+  g.update=()=>{if(cube&&selected)cube.position.y=0.8+Math.abs(Math.sin(T*5))*0.25;};
+  g.resize=()=>fitCam(cam,new THREE.Vector3(0,0,-0.9),7.4,7.4,new THREE.Vector3(0,1,0.55));
+  return g;
+}
+
+/* ======================================================
+   GAME 7 複習花園: spaced review keeps flowers alive
+   ====================================================== */
+function createReview(){
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0xDFF4FF);addLights(scene,0.85);
+  const cam=new THREE.PerspectiveCamera(50,1,0.1,200);const g={scene,camera:cam,running:false};
+  scene.add(at(mesh(new THREE.BoxGeometry(40,1,20),M(0x9BDB8A)),0,-0.5,-4));
+  for(let i=0;i<14;i++)scene.add(at(makeBush(),-13+i*2,0,-6+rand(-.5,.5)));
+  const SUB=[{n:'乘數表',e:'✖️',c:0xFF7EB6},{n:'英文生字',e:'🔤',c:0xFFB347},{n:'中文生字',e:'✍️',c:0xB38CFF},{n:'常識',e:'🌍',c:0x6EC6FF}];
+  const grey=new THREE.Color(0x9A9A8A),hits=[];
+  const flowers=SUB.map((s,i)=>{
+    const x=-4.8+i*3.2;const f={n:s.n,m:100-i*7,rev:0,dead:false,col:new THREE.Color(s.c),x};
+    scene.add(at(mesh(new THREE.CylinderGeometry(0.75,0.55,1,16),M(0xD9825B)),x,0.5,0));
+    scene.add(at(mesh(new THREE.CylinderGeometry(0.7,0.7,0.05,16),M(0x6B4A2E)),x,1.0,0));
+    const pivot=at(new THREE.Group(),x,1.0,0);scene.add(pivot);
+    pivot.add(at(mesh(new THREE.CylinderGeometry(0.07,0.09,2,8),M(0x3FAE6A)),0,1,0));
+    const leaf=at(mesh(new THREE.SphereGeometry(0.25,10,8),M(0x4FB36A)),0.25,0.8,0);leaf.scale.set(1.4,0.5,0.8);pivot.add(leaf);
+    const head=at(new THREE.Group(),0,2.05,0);pivot.add(head);
+    f.petalMat=M(s.c);
+    for(let p=0;p<8;p++){const a=p/8*Math.PI*2;const pt=at(mesh(new THREE.SphereGeometry(0.3,12,10),f.petalMat),Math.cos(a)*0.48,Math.sin(a)*0.48,0);pt.scale.set(1,0.6,0.35);pt.rotation.z=a;head.add(pt);}
+    head.add(at(mesh(new THREE.SphereGeometry(0.3,14,12),M(0xFFD23F)),0,0,0.08));
+    const lb=makeLabel(`${s.e} ${s.n}`,{size:40,scale:0.0098});at(lb,x,4.5,0);scene.add(lb);
+    scene.add(at(mesh(new THREE.PlaneGeometry(2.2,0.26),new THREE.MeshBasicMaterial({color:0xCCCCCC})),x,3.6,0));
+    const fgGeo=new THREE.PlaneGeometry(2.2,0.26);fgGeo.translate(1.1,0,0);
+    f.bar=at(mesh(fgGeo,new THREE.MeshBasicMaterial({color:0x3FBF6A})),x-1.1,3.6,0.01);scene.add(f.bar);
+    f.dots=at(new THREE.Group(),x,0.55,0.78);scene.add(f.dots);
+    const hit=at(mesh(new THREE.CylinderGeometry(1.2,1.2,4.4,10),new THREE.MeshBasicMaterial()),x,2,0);hit.visible=false;hit.userData.fi=i;scene.add(hit);hits.push(hit);
+    Object.assign(f,{pivot,head});return f;
+  });
+  function drawDots(f){while(f.dots.children.length)f.dots.remove(f.dots.children[0]);const n=Math.min(f.rev,6);
+    for(let k=0;k<n;k++)f.dots.add(at(starMesh(),-0.5+k*0.2,0,0));f.dots.children.forEach(c=>c.scale.setScalar(0.22));}
+  let time=40,running=false,acc=0,totalRev=0,told3=false;
+  g.begin=()=>{g.running=true;setStatus('🌼 預備…');setTip('每朵花係一樣你學過嘅知識，佢哋會慢慢謝。㩒朵花淋水，即係溫習！守住花園40秒！');later(2.5,()=>{if(G===g)running=true;});};
+  g.down=ndc=>{
+    if(!running)return;const h=pick(ndc,cam,hits,false);if(!h.length)return;
+    const f=flowers[h[0].object.userData.fi];
+    f.m=100;f.dead=false;f.rev++;totalRev++;drawDots(f);Sfx.water();
+    const p=new THREE.Vector3();f.head.getWorldPosition(p);burst(scene,p.add(new THREE.Vector3(0,0.8,0)),{n:16,colors:[0x6EC6FF,0xAEE2FF,0xFFFFFF],speed:3,life:.8});
+    if(f.rev===3&&!told3){told3=true;setTip(`睇吓！「${f.n}」溫咗3次，謝得慢咗好多，因為記得越來越牢！`);}
+  };
+  g.update=dt=>{
+    let sum=0;
+    flowers.forEach((f,i)=>{
+      if(running){f.m-=100/(6.5*(1+0.9*f.rev))*dt;
+        if(f.m<=0){f.m=0;if(!f.dead){f.dead=true;f.rev=0;drawDots(f);Sfx.bad();setTip(`哎呀！「${f.n}」謝晒喇，要由頭學過！快啲㩒佢淋水！`);}}}
+      const t=f.m/100;sum+=f.m;
+      f.head.scale.setScalar(0.45+0.65*t);f.petalMat.color.copy(grey).lerp(f.col,t);
+      f.pivot.rotation.z=(1-t)*0.75*(i<2?1:-1);f.head.rotation.x=(1-t)*0.7;
+      f.bar.scale.x=Math.max(0.001,t);f.bar.material.color.setHex(t>0.5?0x3FBF6A:t>0.25?0xFFB020:0xFF5A4E);
+    });
+    const avg=sum/flowers.length;
+    if(running){acc+=avg*dt;time-=dt;setStatus(`⏱ ${Math.max(0,Math.ceil(time))} 秒　🌼 記憶 ${Math.round(avg)}%`);
+      if(time<=0){running=false;const a=Math.round(acc/40);
+        finishGame({stars:a>=60?3:a>=40?2:1,line:`你嘅花園平均記憶力係${a}%，一共溫習咗${totalRev}次！`});}}
+  };
+  g.resize=()=>fitCam(cam,new THREE.Vector3(0,2.1,0),6.8,3.9,new THREE.Vector3(0,0.22,1));
+  return g;
+}
+
+const CREATORS={goal:createGoal,memory:createMemory,focus:createFocus,schulte:createSchulte,mistake:createMistake,time:createTime,review:createReview};
+
+/* ======================================================
+   INPUT, RESIZE, LOOP, START
+   ====================================================== */
+const ptr={down:false,x:0,y:0,dragging:false,yaw0:0};
+function ndcOf(e){const r=canvas.getBoundingClientRect();return new THREE.Vector2(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);}
+canvas.addEventListener('pointerdown',e=>{
+  if(!e.isPrimary)return;Sfx.resume();
+  try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+  ptr.down=true;ptr.x=e.clientX;ptr.y=e.clientY;ptr.dragging=false;ptr.yaw0=World.yaw;
+  if(state==='game'&&G&&G.down&&!modalOpen)G.down(ndcOf(e),e);
+});
+canvas.addEventListener('pointermove',e=>{
+  if(!e.isPrimary)return;
+  if(state==='game'&&G&&G.move&&!modalOpen){if(ptr.down||e.pointerType==='mouse')G.move(ndcOf(e),e);return;}
+  if(state==='world'&&ptr.down){const dx=e.clientX-ptr.x;if(Math.abs(dx)>12||Math.abs(e.clientY-ptr.y)>12)ptr.dragging=true;if(ptr.dragging)World.yaw=ptr.yaw0-dx*0.008;}
+});
+const endPtr=e=>{
+  if(!e.isPrimary||!ptr.down)return;ptr.down=false;
+  if(state==='game'&&G&&G.up&&!modalOpen){G.up(ndcOf(e),e);return;}
+  if(state==='world'&&!ptr.dragging&&!modalOpen)World.tap(ndcOf(e));
+};
+canvas.addEventListener('pointerup',endPtr);canvas.addEventListener('pointercancel',e=>{ptr.down=false;if(state==='game'&&G&&G.up)G.up(ndcOf(e),e);});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+
+function onResize(){
+  const w=innerWidth,h=innerHeight;renderer.setSize(w,h);
+  World.camera.aspect=w/h;World.camera.updateProjectionMatrix();
+  if(G&&G.camera){G.camera.aspect=w/h;G.camera.updateProjectionMatrix();if(G.resize)G.resize();}
+}
+addEventListener('resize',onResize);addEventListener('orientationchange',()=>setTimeout(onResize,300));
+
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=Math.min(0.05,clock.getDelta());T+=dt;
+  updateTweens(dt);updateParticles(dt);
+  if(state==='game'&&G){if(G.update)G.update(dt);renderer.render(G.scene,G.camera);}
+  else{World.update(dt,state);renderer.render(World.scene,World.camera);}
+}
+
+/* HUD buttons */
+$('#badges').addEventListener('click',e=>{
+  const b=e.target.closest('.badge');if(!b)return;Sfx.resume();
+  const st=STATIONS.find(s=>s.id===b.dataset.id);
+  Voice.say(Store.data.badges[st.id]?`${st.name}：${st.lessonTitle}。帶你行過去！`:`${st.name}：仲未攞到徽章，帶你行過去玩！`);
+  World.lastOpened=null;World.goToStation(st);
+});
+$('#bookBtn').onclick=()=>{Sfx.pop();showBook();};
+$('#checkBtn').onclick=()=>{Sfx.pop();showCheckin();};
+$('#helpBtn').onclick=()=>{Sfx.pop();showHelp();};
+function voiceBtnUI(){$('#voiceBtn').innerHTML=(Voice.auto?'🔊':'🔇')+`<span class="lbl"> 自動讀出：${Voice.auto?'開':'關'}</span>`;}
+$('#voiceBtn').onclick=()=>{Voice.auto=!Voice.auto;Store.data.auto=Voice.auto;Store.save();voiceBtnUI();
+  if(Voice.auto)Voice.say('自動讀出已經打開。');else Voice.stop();};
+$('#gBack').onclick=()=>{Sfx.pop();exitGame();};
+$('#titleSpk').onclick=()=>{Sfx.resume();Voice.unlock();Voice.say('學習高手島！跟住《學習高手》嘅秘訣，一齊玩出學習好習慣！準備好就㩒「開始冒險」。');};
+
+function checkVoice(){
+  const w=$('#voiceWarn');
+  if(!Voice.supported){w.innerHTML=`<b>呢個瀏覽器唔支援語音。</b>建議用 iPad 嘅 Safari 或者電腦嘅 Chrome／Edge 開呢個檔案。 <button class="btn icon alt" id="vwClose">知道喇</button>`;}
+  else if(Voice.voicesLoaded&&!Voice.hasCantonese){
+    w.innerHTML=`<b>你部機好似未有廣東話語音。</b><br>iPad：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 粵語（香港）→ 下載。<br>Windows：設定 → 時間與語言 → 語音 → 新增語音 → 中文（香港）。<br>Chrome 瀏覽器一般已經內置「粵語（香港）」語音。<br><button class="btn icon alt" id="vwClose">知道喇</button>`;}
+  else return;
+  w.classList.remove('hidden');$('#vwClose').onclick=()=>w.classList.add('hidden');
+}
+
+$('#startBtn').onclick=()=>{
+  Sfx.init();Sfx.resume();Voice.unlock();Sfx.pop();
+  $('#title').classList.add('hidden');$('#hud').classList.remove('hidden');
+  state='world';World.yaw=0;worldTip(WORLD_TIP);voiceBtnUI();
+  const n=World.badgeCount();
+  if(n>0)owlSay(`歡迎返嚟學習高手島！你已經有${n}個徽章喇。\n繼續去發光嘅學習站玩，集齊七個徽章！`);
+  else showHelp();
+  setTimeout(checkVoice,1800);
+};
+
+/* build after fonts are ready so 3D labels use the right typeface */
+const fontsReady=(document.fonts&&document.fonts.ready)?Promise.race([document.fonts.ready,new Promise(r=>setTimeout(r,1800))]):Promise.resolve();
+fontsReady.then(()=>{
+  try{if(document.fonts&&document.fonts.load)return Promise.race([document.fonts.load('900 40px "Noto Sans HK"','學習'),new Promise(r=>setTimeout(r,1200))]);}catch(e){}
+}).then(()=>{World.build();onResize();loop();});
+})();
+</script>
+</body>
+</html>
