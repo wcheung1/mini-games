@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>校園智慧小偵探 — 拆解人際陷阱大冒險</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2b2340; --paper:#fffbea; --sun:#ffd23f; --grass:#7ee081; --coral:#ff5d73;
+  --teal:#2ec4b6; --sky:#bde7ff; --spy:#7b5cff;
+  --b:4px solid var(--ink);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--sky);color:var(--ink);
+  font-family:"Noto Sans HK","PingFang HK","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none!important}
+button{font-family:inherit;color:var(--ink)}
+button:focus-visible{outline:4px dashed var(--spy);outline-offset:3px}
+
+/* ---------- buttons ---------- */
+.btn{font-weight:900;font-size:clamp(18px,2.3vw,23px);border:var(--b);border-radius:999px;padding:10px 24px;
+  background:#fff;box-shadow:0 5px 0 var(--ink);cursor:pointer;min-height:56px;
+  transition:transform .08s,box-shadow .08s;line-height:1.2}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn.primary{background:var(--sun)}
+.btn.go{background:var(--grass)}
+.btn.spy{background:var(--spy);color:#fff}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.spk{width:54px;height:54px;flex:0 0 54px;border-radius:50%;border:var(--b);background:var(--teal);
+  font-size:25px;box-shadow:0 4px 0 var(--ink);cursor:pointer;display:grid;place-items:center;padding:0;line-height:1}
+.spk:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.spk.sm{width:44px;height:44px;flex-basis:44px;font-size:20px;border-width:3px}
+.spk.playing{background:var(--sun);animation:pulse .6s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.13)}}
+
+/* ---------- screens ---------- */
+.screen{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
+  padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  background:rgba(43,35,64,.28)}
+.panel{background:var(--paper);border:var(--b);border-radius:30px;box-shadow:0 10px 0 var(--ink);
+  width:min(760px,100%);max-height:100%;overflow:auto;padding:26px 26px 30px;position:relative;
+  -webkit-overflow-scrolling:touch}
+.title{margin:0;font-weight:900;font-size:clamp(40px,7vw,70px);line-height:1.05;letter-spacing:.02em;
+  color:var(--sun);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;
+  text-shadow:0 6px 0 var(--ink);text-align:center}
+.subtitle{text-align:center;margin:12px 0 0;font-size:clamp(19px,2.6vw,25px);font-weight:900}
+.badge-strip{display:flex;justify-content:center;gap:10px;margin:18px 0 6px;flex-wrap:wrap}
+.mchip{width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);background:var(--m);
+  display:grid;place-items:center;font-size:18px;position:relative}
+.mchip::before,.mchip::after{content:"";position:absolute;top:13px;width:8px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--ink)}
+.mchip::before{left:8px}.mchip::after{right:8px}
+.intro-row{display:flex;gap:14px;align-items:flex-start;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:14px;margin-top:16px}
+.intro-row p{margin:0;font-size:clamp(18px,2.3vw,21px);line-height:1.6;font-weight:700}
+.voice{margin-top:14px;border-radius:16px;padding:10px 14px;font-weight:700;font-size:16px;line-height:1.55;border:3px dashed var(--ink)}
+.voice.good{background:#dcf9d6}.voice.bad{background:#ffe1e5}
+.voice details{margin-top:6px}.voice summary{cursor:pointer;font-weight:900}
+.voice ol{margin:6px 0 0;padding-left:22px}
+.speed{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;font-weight:900;font-size:18px;flex-wrap:wrap}
+.seg{display:inline-flex;border:3px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:#fff;font-weight:900;font-size:18px;padding:8px 18px;cursor:pointer;min-height:46px}
+.seg button.on{background:var(--sun)}
+.cta{display:flex;justify-content:center;margin-top:20px}
+.cta .btn{font-size:clamp(22px,3vw,28px);padding:14px 40px}
+.fine{text-align:center;margin:14px 0 0;font-size:15px;font-weight:700;opacity:.75}
+
+/* avatar select */
+.pickhead{display:flex;gap:12px;align-items:center;justify-content:center}
+.pickhead h2{margin:0;font-size:clamp(24px,3.4vw,32px);font-weight:900}
+.avgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+@media (max-width:560px){.avgrid{grid-template-columns:repeat(2,1fr)}}
+.avcard{background:#fff;border:var(--b);border-radius:22px;padding:14px 6px 12px;cursor:pointer;box-shadow:0 5px 0 var(--ink);text-align:center;transition:transform .12s}
+.avcard.on{background:var(--sun);transform:translateY(-6px) rotate(-2deg)}
+.avcard b{display:block;margin-top:8px;font-size:21px}
+.av{width:86px;height:112px;position:relative;margin:0 auto}
+.av .body{position:absolute;left:50%;bottom:4px;width:58px;height:50px;transform:translateX(-50%);background:var(--shirt);border:3px solid var(--ink);border-radius:24px 24px 12px 12px}
+.av .head{position:absolute;left:50%;top:8px;width:58px;height:58px;transform:translateX(-50%);background:#ffd7b5;border:3px solid var(--ink);border-radius:50%;z-index:1}
+.av .head::before,.av .head::after{content:"";position:absolute;top:26px;width:8px;height:10px;background:var(--ink);border-radius:50%}
+.av .head::before{left:14px}.av .head::after{right:14px}
+.av .hair{position:absolute;left:50%;top:4px;width:64px;height:28px;transform:translateX(-50%);background:var(--hair);border:3px solid var(--ink);border-radius:34px 34px 10px 10px;z-index:2}
+.av.pony .hair::after{content:"";position:absolute;right:-18px;top:8px;width:20px;height:30px;background:var(--hair);border:3px solid var(--ink);border-radius:50%}
+.av.bob .hair::before,.av.bob .hair::after{content:"";position:absolute;top:14px;width:14px;height:32px;background:var(--hair);border:3px solid var(--ink);border-radius:8px}
+.av.bob .hair::before{left:-6px}.av.bob .hair::after{right:-6px}
+.av.spiky .hair{border-radius:12px 12px 8px 8px;height:24px}
+.av.spiky .hair::after{content:"";position:absolute;left:6px;right:6px;top:-12px;height:14px;background:
+  linear-gradient(135deg,transparent 50%,var(--hair) 50%) 0 0/16px 14px repeat-x}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;z-index:15;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;
+  padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left));pointer-events:none}
+#hud > *{pointer-events:auto}
+.hud-l{background:var(--paper);border:var(--b);border-radius:22px;box-shadow:0 5px 0 var(--ink);padding:8px 14px;display:flex;align-items:center;gap:12px}
+.stars{display:flex;align-items:center;gap:6px;font-weight:900;font-size:26px}
+#dots{display:flex;gap:6px}
+.dot{width:26px;height:26px;border-radius:50%;border:3px solid var(--ink);background:var(--m);display:grid;place-items:center;font-size:13px;font-style:normal}
+.dot.done{background:var(--sun)}
+.dot.done::after{content:"★";font-size:15px;color:var(--ink)}
+@media (max-width:620px){#dots{display:none}}
+.hud-r{display:flex;gap:8px}
+.hbtn{width:74px;border:var(--b);border-radius:18px;background:#fff;box-shadow:0 4px 0 var(--ink);padding:6px 2px 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.hbtn span{font-size:26px;line-height:1.1}
+.hbtn small{font-size:13px;font-weight:900;white-space:nowrap}
+.hbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.hbtn.on{background:var(--spy);color:#fff}
+@media (max-width:520px){.hbtn{width:60px}.hbtn small{font-size:11px}}
+
+#hintbar{position:fixed;z-index:14;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px;background:var(--paper);border:var(--b);border-radius:999px;box-shadow:0 5px 0 var(--ink);
+  padding:6px 20px 6px 8px;font-weight:900;font-size:clamp(16px,2.1vw,20px);max-width:94vw}
+#hintbar p{margin:0;line-height:1.35}
+
+#vision{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0;transition:opacity .5s;
+  background:radial-gradient(ellipse at center,rgba(123,92,255,0) 52%,rgba(123,92,255,.42) 100%)}
+body.glasses #vision{opacity:1}
+
+/* ---------- dialog ---------- */
+#dlg{position:fixed;z-index:20;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));width:min(940px,96vw);
+  transform:translate(-50%,130%);transition:transform .38s cubic-bezier(.2,1.3,.4,1)}
+#dlg.show{transform:translate(-50%,0)}
+.who{display:inline-flex;align-items:center;gap:8px;background:var(--c);color:#fff;border:var(--b);border-bottom:0;
+  border-radius:18px 18px 0 0;padding:4px 18px 4px 8px;margin-left:24px;font-weight:900;font-size:21px}
+.who .face{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:24px;border:3px solid var(--ink)}
+.card{background:var(--paper);border:var(--b);border-radius:26px;box-shadow:0 8px 0 var(--ink);padding:16px 18px 18px;
+  max-height:min(64vh,640px);overflow:auto;-webkit-overflow-scrolling:touch}
+.line{display:flex;gap:14px;align-items:flex-start;animation:pop .3s ease-out}
+.line p{margin:4px 0 0;font-size:clamp(20px,2.7vw,27px);line-height:1.55;font-weight:700;flex:1}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.row{display:flex;justify-content:flex-end;gap:12px;margin-top:14px;flex-wrap:wrap}
+.q{font-weight:900!important}
+.hint{margin-top:12px;background:var(--spy);color:#fff;border:3px solid var(--ink);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;animation:pop .3s}
+.hint p{margin:2px 0 0;font-size:clamp(17px,2.2vw,21px);line-height:1.55;font-weight:700}
+.hint b{color:var(--sun)}
+.choice{display:flex;gap:12px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:10px 12px;margin-top:12px;animation:pop .3s both}
+.choice:nth-child(2){animation-delay:.06s}.choice:nth-child(3){animation-delay:.12s}
+.choice .letter{flex:0 0 38px;height:38px;border-radius:12px;border:3px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:20px;background:var(--sky)}
+.choice .ctext{flex:1;margin:0;font-size:clamp(18px,2.3vw,22px);line-height:1.5;font-weight:700;cursor:pointer}
+.choice .btn{font-size:18px;padding:8px 16px;min-height:50px;white-space:nowrap}
+.choice.tried{opacity:.5}
+.choice.tried .ctext{text-decoration:line-through}
+@media (max-width:600px){.choice{flex-wrap:wrap}.choice .ctext{flex-basis:calc(100% - 120px)}.choice .btn{width:100%}}
+.result{border:3px solid var(--ink);border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;animation:pop .3s}
+.result.wise{background:#d6f7cf}.result.ok{background:#fff1b8}.result.trap{background:#ffd3da}
+.result h3{margin:0 0 4px;font-size:clamp(22px,3vw,28px);font-weight:900}
+.result p{margin:0;font-size:clamp(18px,2.3vw,22px);line-height:1.55;font-weight:700}
+.feel{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.feel button{border:var(--b);border-radius:20px;background:#fff;box-shadow:0 4px 0 var(--ink);cursor:pointer;padding:8px 4px;font-weight:900;font-size:19px}
+.feel button span{display:block;font-size:44px;line-height:1.15}
+.feel button.yes{background:var(--grass)}.feel button.no{background:#ffd3da}
+.tipcard{border:4px solid var(--ink);border-radius:22px;background:var(--sun);padding:14px 16px;display:flex;gap:14px;align-items:flex-start;animation:pop .35s}
+.tipcard h3{margin:0 0 4px;font-size:24px;font-weight:900}
+.tipcard p{margin:0;font-size:clamp(19px,2.5vw,24px);line-height:1.55;font-weight:700}
+
+#toast{position:fixed;z-index:18;left:50%;top:calc(96px + env(safe-area-inset-top));transform:translate(-50%,-20px);opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;width:min(620px,92vw)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast-in{display:flex;gap:12px;align-items:center;background:#fff;border:var(--b);border-radius:22px;box-shadow:0 5px 0 var(--ink);padding:10px 12px}
+.toast-in .tf{flex:0 0 46px;height:46px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;font-size:26px}
+.toast-in div{flex:1}.toast-in b{font-size:17px}.toast-in p{margin:2px 0 0;font-size:19px;font-weight:700;line-height:1.45}
+
+.fly{position:fixed;z-index:30;font-weight:900;font-size:44px;color:var(--sun);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;
+  pointer-events:none;animation:rise 1.6s ease-out forwards;left:50%;top:40%}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,20px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-90px) scale(1)}}
+
+/* book & end */
+.bookhead{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.bookhead h2{margin:0;font-size:clamp(26px,3.6vw,34px);font-weight:900}
+.rules{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+@media (max-width:600px){.rules{grid-template-columns:repeat(2,1fr)}}
+.rule{background:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px;text-align:center}
+.rule .big{font-size:34px;font-weight:900;display:block;line-height:1.2}
+.rule p{margin:4px 0 8px;font-size:15px;font-weight:700;line-height:1.45}
+.rule .spk{margin:0 auto}
+.tips{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+.tip{display:flex;gap:12px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px 12px}
+.tip .m{flex:0 0 44px;height:44px;border-radius:50%;border:3px solid var(--ink);background:var(--m);display:grid;place-items:center;font-weight:900}
+.tip div{flex:1}.tip b{font-size:18px}.tip p{margin:2px 0 0;font-size:17px;font-weight:700;line-height:1.5}
+.tip.locked{background:#eee;color:#888}
+.medal{width:150px;height:150px;margin:6px auto 0;border-radius:50%;border:6px solid var(--ink);display:grid;place-items:center;font-size:74px;box-shadow:0 8px 0 var(--ink);animation:spin 1.2s ease-out}
+@keyframes spin{from{transform:rotate(-200deg) scale(.2)}to{transform:none}}
+.endtxt{display:flex;gap:12px;align-items:flex-start;margin-top:18px;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:14px}
+.endtxt p{margin:0;font-size:clamp(19px,2.5vw,23px);line-height:1.6;font-weight:700}
+.btnrow{display:flex;justify-content:center;gap:14px;margin-top:20px;flex-wrap:wrap}
+.xbtn{width:52px;height:52px;border-radius:50%;border:var(--b);background:#fff;font-size:24px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+#nothree{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:var(--sky);padding:20px;text-align:center;font-size:22px;font-weight:900}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vision"></div>
+
+<div id="hud" class="hidden">
+  <div class="hud-l">
+    <div class="stars"><span>⭐</span><b id="starN">0</b></div>
+    <div id="dots"></div>
+  </div>
+  <div class="hud-r">
+    <button class="hbtn" id="bGlass" aria-label="偵探眼鏡"><span>🕶️</span><small>偵探眼鏡</small></button>
+    <button class="hbtn" id="bBook" aria-label="錦囊簿"><span>📒</span><small>錦囊簿</small></button>
+    <button class="hbtn" id="bAuto" aria-label="自動讀出"><span>🗣️</span><small>自動讀：開</small></button>
+    <button class="hbtn" id="bHelp" aria-label="玩法"><span>❓</span><small>玩法</small></button>
+  </div>
+</div>
+<div id="hintbar" class="hidden"></div>
+<div id="toast"></div>
+<div id="dlg"></div>
+
+<section id="sStart" class="screen"><div class="panel" id="startPanel"></div></section>
+<section id="sPick" class="screen hidden"><div class="panel" id="pickPanel"></div></section>
+<section id="sBook" class="screen hidden"><div class="panel" id="bookPanel"></div></section>
+<section id="sEnd" class="screen hidden"><div class="panel" id="endPanel"></div></section>
+<div id="nothree">載入唔到 3D 遊戲引擎。請確認部機已經連接互聯網，然後重新開啟呢個檔案。</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+var $ = function(s){ return document.querySelector(s); };
+if(!window.THREE){ $('#nothree').style.display='flex'; return; }
+var PI = Math.PI, V3 = THREE.Vector3;
+
+/* =====================================================================
+   角色 / 劇本資料
+   ===================================================================== */
+var PEOPLE = {
+  narr:{name:'旁白',face:'📖',color:'#2b2340',pitch:1.0,rate:0.95},
+  you:{name:'你',face:'🕵️',color:'#3a86ff',pitch:1.2},
+  '阿晴':{face:'👧',color:'#9b5de5',pitch:1.4},
+  '詩詩':{face:'👧',color:'#f15bb5',pitch:1.5},
+  '樂仔':{face:'👦',color:'#06a77d',pitch:1.25},
+  '阿進':{face:'👦',color:'#577590',pitch:1.1},
+  '小志':{face:'🧒',color:'#d99400',pitch:1.3},
+  '美美':{face:'👧',color:'#ff5d8f',pitch:1.5},
+  '阿Sam':{face:'👦',color:'#ef476f',pitch:1.05},
+  '同學':{face:'🧒',color:'#8338ec',pitch:1.35},
+  '阿Ben':{face:'🧑',color:'#0096c7',pitch:1.2},
+  '小美':{face:'👧',color:'#43aa8b',pitch:1.45},
+  '子晴':{face:'👧',color:'#fb5607',pitch:1.4}
+};
+
+var AVATARS = [
+  {name:'阿藍',css:'#3a86ff',hairCss:'#2b2340',shirt:0x3a86ff,hair:0x2b2340,style:'short',pants:0x2b3a67},
+  {name:'阿桃',css:'#ff5d8f',hairCss:'#5a3825',shirt:0xff5d8f,hair:0x5a3825,style:'pony',pants:0x3d3b8e},
+  {name:'阿綠',css:'#2ec4b6',hairCss:'#1b1b1b',shirt:0x2ec4b6,hair:0x1b1b1b,style:'spiky',pants:0x34405a},
+  {name:'阿橙',css:'#ff9f1c',hairCss:'#7a4a2a',shirt:0xff9f1c,hair:0x7a4a2a,style:'bob',pants:0x4a4e69}
+];
+
+var SCENES = [
+{ id:'side', npc:'阿晴', title:'揀邊站陷阱', monster:'揀邊站怪', mcolor:0x9b5de5,
+  pos:[-11,-8], rot:0.8, kid:{shirt:0x9b5de5,hair:0x3b2a1a,style:'pony',pants:0x3d3b8e},
+  intro:[
+    ['narr','小息時間，阿晴同佢班朋友企喺滑梯旁邊，遠遠望住一個人企喺長櫈邊嘅詩詩。'],
+    ['阿晴','喂！我哋今日同詩詩嗌咗交呀。'],
+    ['阿晴','如果你今日同詩詩玩，你就唔好再同我哋玩喇！你揀啦，你幫邊個？']],
+  hint:'揀邊站怪最鍾意逼人揀邊。佢用「唔同你玩」嚟嚇你，想你幫手一齊排擠詩詩。記住：你可以同兩邊都做朋友，唔使揀邊站。',
+  choices:[
+    {g:'wise',t:'我兩邊都想做朋友，唔想揀邊。你哋有咩唔開心，不如大家坐低傾下？',
+     reply:[['阿晴','咁……其實我哋都係為咗一件小事嗌交啫。'],['narr','阿晴諗咗一陣，終於同你一齊行去搵詩詩。大家傾返清楚，又一齊玩過喇！']],
+     why:'你冇俾人逼住揀邊，仲幫大家搵方法傾返清楚。你係解決問題，唔係製造問題！'},
+    {g:'ok',t:'唔出聲，靜靜雞行開。',say:'（你冇出聲，靜靜雞行開咗。）',
+     reply:[['阿晴','哼！咁即係你唔幫我哋啦。'],['narr','你冇加入排擠，但係詩詩仍然一個人企喺度，好孤單。']],
+     why:'行開就唔會幫手排擠人，呢樣係啱嘅。不過詩詩仲係一個人，問題未解決。諗下有冇方法可以幫到大家？'},
+    {g:'trap',t:'好啦好啦，我唔同詩詩玩啦。',
+     reply:[['阿晴','好！咁你先係我哋嘅好朋友！'],['narr','詩詩見到你都唔理佢，忍唔住喊咗出嚟。'],['narr','第二日，阿晴又同你嗌交，今次輪到你被排擠……']],
+     why:'因為怕被人排擠，就跟人一齊排擠人。今日係詩詩，聽日可能就係你。'}],
+  feel:{q:'你估詩詩一個人冇人理，會有咩感覺？',opts:[['😢','傷心'],['😊','開心'],['😰','驚'],['😠','嬲']],ok:[0,2,3],
+    yes:'你好識體諒人！被人排擠會好傷心、好驚，甚至好嬲。所以我哋唔好做排擠人嘅人。',
+    no:'再諗下？如果係你自己一個人冇人理，你會開心咩？'},
+  tip:'朋友唔係用嚟揀邊嘅。唔好因為怕被排擠，就去排擠人。有爭拗，就坐低傾返清楚。',
+  thanks:'多謝你呀！我同詩詩又做返好朋友喇！'},
+
+{ id:'gossip', npc:'樂仔', title:'是非陷阱', monster:'是非雲', mcolor:0x8d99ae,
+  pos:[9,-9], rot:-0.6, kid:{shirt:0x06a77d,hair:0x1b1b1b,style:'spiky',pants:0x34405a},
+  intro:[
+    ['narr','你喺操場行緊，樂仔好神秘咁跑埋嚟，喺你耳邊細細聲講嘢。'],
+    ['樂仔','喂！我聽人講，阿進喺背後話你好蠢呀！'],
+    ['樂仔','你仲唔快啲去鬧返佢？我一定撐你！']],
+  hint:'是非雲專門散播是非。傳話嘅人可能聽錯、講錯，甚至想睇你哋嗌交。未查清楚之前，唔好信住，更加唔好即刻發脾氣。',
+  choices:[
+    {g:'wise',t:'我唔會即刻信。我自己去問下阿進，聽下佢點講先。',
+     reply:[['阿進','吓？我冇話你蠢呀！我係話今日堂功課嗰條數好蠢，好難計咋！'],['narr','原來係一場誤會！你同阿進一齊笑咗出嚟，樂仔都唔好意思咁搔下個頭。']],
+     why:'你冇做傳聲筒，亦冇即刻發脾氣，而係冷靜咁查清楚。好多嗌交，其實都係誤會嚟㗎！'},
+    {g:'ok',t:'唔理佢，當聽唔到。',
+     reply:[['樂仔','咁你唔好怪我冇話你知喎！'],['narr','你冇發脾氣，但係心入面一直覺得怪怪地，見到阿進都唔想同佢講嘢。']],
+     why:'唔即刻發脾氣係好事！不過個誤會一直留喺心入面，會影響你哋嘅友誼。有冇更好嘅方法？'},
+    {g:'trap',t:'佢咁講我？我而家即刻去鬧佢！',
+     reply:[['narr','你衝過去大聲鬧阿進，阿進一臉懵，仲好嬲。'],['阿進','我根本冇講過！你成日信人講是非，我唔同你做朋友喇！']],
+     why:'你未查清楚就信咗是非，仲鬧咗無辜嘅人。是非雲最開心，就係睇住大家嗌交。'}],
+  feel:{q:'如果你係阿進，無端端俾人鬧，你會有咩感覺？',opts:[['😠','嬲'],['😢','委屈'],['😊','開心'],['😕','好奇怪']],ok:[0,1,3],
+    yes:'冇錯！無端端俾人冤枉，會好嬲、好委屈。所以聽到是非，一定要先查清楚。',
+    no:'再諗下？俾人無端端鬧，真係會開心咩？'},
+  tip:'聽到是非，先停一停、查一查。唔好信住，唔好傳開，更加唔好做傳聲筒。',
+  thanks:'我以後唔會亂咁傳話喇，多謝你提醒我！'},
+
+{ id:'copy', npc:'小志', title:'抄功課陷阱', monster:'抄抄鬼', mcolor:0xffbe0b,
+  pos:[-1,-16], rot:0.1, kid:{shirt:0xffbe0b,hair:0x2b2340,style:'short',pants:0x3a506b},
+  intro:[
+    ['narr','朝早返到學校門口，小志一見到你，就即刻行埋嚟。'],
+    ['小志','喂，你中文功課做完未呀？借我抄下啦！'],
+    ['小志','我哋係好朋友嚟㗎嘛！好朋友就一定要幫手㗎！']],
+  hint:'抄抄鬼會用「好朋友」做藉口，令你覺得唔幫就唔夠朋友。但係俾人抄功課，其實係害咗佢，因為佢自己乜都學唔到。',
+  choices:[
+    {g:'wise',t:'唔可以俾你抄呀。不過小息我可以陪你一齊做，邊度唔識我教你！',
+     reply:[['小志','哦……好啦。其實我係唔識做第三題。'],['narr','小息嗰陣，你教識咗小志做第三題。佢好開心咁話：原來我自己都做到！']],
+     why:'你講「唔」講得好有禮貌，仲幫小志真正學識。真朋友係幫人進步，唔係幫人做錯事。'},
+    {g:'ok',t:'唔得！你自己做啦！',
+     reply:[['小志','咁小氣嘅……'],['narr','你冇俾佢抄，呢樣做啱咗！不過小志覺得好冇面，成朝都唔出聲。']],
+     why:'拒絕係啱嘅！不過講法可以溫柔啲，仲可以諗下點樣真正幫到佢。'},
+    {g:'trap',t:'好啦好啦，你快啲抄啦。',
+     reply:[['narr','老師改功課嗰陣，發現你哋兩個嘅答案一模一樣，連錯字都一樣！'],['小志','老師……係我抄佢㗎……'],['narr','結果你同小志都要一齊留堂。']],
+     why:'幫人抄功課，唔單止害咗朋友學唔到嘢，連自己都會惹麻煩。'}],
+  tip:'真朋友會幫你學識，唔會叫你做錯事。講「唔」都可以好有禮貌，再諗下點樣真正幫到佢。',
+  thanks:'多謝你教我！原來我自己都識做！'},
+
+{ id:'blame', npc:'美美', title:'孭黑鑊陷阱', monster:'黑鑊怪', mcolor:0x3d405b,
+  pos:[15,3], rot:-1.4, kid:{shirt:0xff70a6,hair:0x2b2340,style:'bob',pants:0x4a4e69},
+  intro:[
+    ['narr','你見到美美企喺一個爛咗嘅花盆旁邊，個樣好慌張。'],
+    ['美美','頭先……頭先係我唔小心整爛咗老師個花盆。'],
+    ['美美','你同老師講係你整爛嘅啦！如果你唔幫我，我就同全班講你壞話！']],
+  hint:'黑鑊怪想你幫人孭黑鑊，認唔係自己做嘅錯，仲用恐嚇嚟逼你。記住：俾人恐嚇，一定要話俾信任嘅大人知。',
+  choices:[
+    {g:'wise',t:'我唔可以認唔係我做嘅事。不過我可以陪你一齊去同老師講，講真話老師會明白㗎。',
+     reply:[['美美','你……你真係會陪我去？'],['narr','你陪美美去搵老師。老師話：唔小心整爛嘢唔緊要，最緊要係肯誠實認錯。美美終於鬆咗一口氣。']],
+     why:'你冇俾恐嚇嚇親，亦冇孭黑鑊，仲陪朋友一齊面對。誠實同勇氣，一齊用！'},
+    {g:'ok',t:'我唔理喇，你自己搞掂啦。',
+     reply:[['美美','哼！你等住睇啦！'],['narr','你冇孭黑鑊，做得啱！不過美美仲係好驚，又好嬲你，佢真係可能會講你壞話。']],
+     why:'唔孭黑鑊係啱嘅！不過美美講咗恐嚇嘅說話，你應該話俾老師或者屋企人知，仲可以幫美美搵方法面對。'},
+    {g:'trap',t:'好……好啦，我認係我整爛啦。',
+     reply:[['narr','你同老師講係你整爛花盆，老師好失望，罰你執拾課室。'],['narr','美美冇學識要誠實，下次整爛嘢，佢又會搵人幫佢孭黑鑊。']],
+     why:'因為怕俾人恐嚇，就幫人認唔係自己做嘅錯。咁樣唔公平，仲會令恐嚇人嘅人覺得呢招有用。'}],
+  feel:{q:'你估美美整爛咗花盆，心入面係咩感覺？',opts:[['😰','驚'],['😊','開心'],['😢','唔開心'],['😎','好型']],ok:[0,2],
+    yes:'冇錯！美美其實好驚，所以先會諗錯方法。明白佢嘅感受，就可以用更好嘅方法幫佢。',
+    no:'再諗下？整爛咗老師啲嘢，你覺得佢會開心或者覺得自己好型咩？'},
+  tip:'唔好幫人孭黑鑊，亦唔好俾恐嚇嚇親。有人恐嚇你，一定要話俾老師或者屋企人知。',
+  thanks:'多謝你陪我講真話，我以後都會誠實認錯！'},
+
+{ id:'dare', npc:'阿Sam', title:'激將法陷阱', monster:'激將獸', mcolor:0xef476f,
+  pos:[-13,9], rot:1.0, kid:{shirt:0xef476f,hair:0x3b2a1a,style:'spiky',pants:0x2b3a67},
+  intro:[
+    ['narr','阿Sam同幾個同學圍住你，指住操場邊嗰條高高嘅欄杆。'],
+    ['阿Sam','你夠唔夠膽企上嗰條欄杆度行一圈呀？'],
+    ['阿Sam','唔敢就係膽小鬼！大家都睇住你㗎喇！']],
+  hint:'激將獸最鍾意講「唔敢就係膽小鬼」，想用面子逼你做危險嘅事。其實敢講「唔」，先至係真正嘅勇敢。',
+  choices:[
+    {g:'wise',t:'我唔會做危險嘅嘢。勇敢唔使證明俾人睇！不如我哋一齊去踢波？',
+     reply:[['阿Sam','……踢波？好呀！其實我都想踢！'],['narr','大家一齊去踢波，玩得好開心。原來根本冇人真係想睇人跌親。']],
+     why:'你冇為咗面子做危險嘢，仲諗到一個大家都鍾意嘅玩法。敢講「唔」先係真勇敢！'},
+    {g:'ok',t:'我……我要去廁所住。',
+     reply:[['阿Sam','哈！佢唔敢呀！'],['narr','你避開咗危險，做得啱！不過聽日阿Sam可能又會再激你。']],
+     why:'避開危險係啱嘅！不過搵藉口走開，下次可能又會俾人激。試下直接又有禮貌咁講「唔」？'},
+    {g:'trap',t:'邊個話我唔敢呀！睇住！',
+     reply:[['narr','你爬上欄杆，行咗兩步就一腳踩空，跌落嚟擦傷咗膝頭。'],['阿Sam','我……我冇諗過你真係會跌親㗎……']],
+     why:'你為咗唔想俾人叫膽小鬼，做咗好危險嘅事。身體受傷，激你嘅人係唔會幫你痛㗎。'}],
+  tip:'敢講「唔」先係真勇敢。危險嘅事，唔使為咗面子去做。',
+  thanks:'踢波真係好玩過行欄杆好多！多謝你！'},
+
+{ id:'online', npc:'阿Ben', title:'網上欺凌陷阱', monster:'按讚魔', mcolor:0x00bbf9,
+  pos:[4,13], rot:0.5, kid:{shirt:0x00bbf9,hair:0x1b1b1b,style:'short',pants:0x34405a}, tablet:true,
+  intro:[
+    ['narr','午飯時間，阿Ben拎住部平板電腦，笑到停唔到。'],
+    ['阿Ben','你睇下！我影咗小美食飯食到成塊面都係汁，好搞笑呀！'],
+    ['阿Ben','我放咗上班群組喇，你快啲幫我俾個讚啦！']],
+  hint:'按讚魔會令人覺得撳個讚冇乜大不了。但係喺網上笑人，一傳開就收唔返。你撳讚，就等於幫手一齊笑小美。',
+  choices:[
+    {g:'wise',t:'我唔會撳讚。你問過小美未呀？快啲刪咗佢啦。如果你唔刪，我會話俾老師知。',
+     reply:[['阿Ben','我……我只係覺得好玩啫……好啦，我而家刪咗佢。'],['narr','阿Ben同小美講咗對唔住。小美話唔緊要，仲請阿Ben食咗粒糖。']],
+     why:'你冇加入笑人，仲勇敢咁叫阿Ben刪相，保護咗小美。網上都要尊重人！'},
+    {g:'ok',t:'我唔撳讚，我走先喇。',
+     reply:[['阿Ben','咁掃興嘅……'],['narr','你冇加入笑人，做得啱。不過張相仲喺群組度，越嚟越多人撳讚，小美仲未知道發生咩事。']],
+     why:'唔撳讚係啱嘅！不過張相仲喺度，小美仍然會受傷害。見到有人俾人欺負，可以諗下點樣幫佢。'},
+    {g:'trap',t:'哈哈哈，好好笑呀！我俾個讚先！',
+     reply:[['narr','你撳咗讚，其他同學見到都跟住撳，仲有人留言笑小美。'],['narr','小美睇到張相之後，喺廁所度偷偷喊咗好耐。']],
+     why:'你以為只係撳個讚，但係每一個讚，都會令俾人笑嘅人更加傷心。'}],
+  feel:{q:'如果你係小美，見到自己張相俾全班笑，你會有咩感覺？',opts:[['😢','傷心'],['😳','好尷尬'],['😊','好開心'],['😠','好嬲']],ok:[0,1,3],
+    yes:'你好識體諒人！俾人喺網上笑，會好傷心、好尷尬。所以網上都要尊重人。',
+    no:'再諗下？如果全班都笑你張醜樣相，你真係會開心咩？'},
+  tip:'網上都要尊重人。唔影、唔放、唔撳讚、唔轉發笑人嘅相，仲要幫俾人笑嘅同學搵大人幫手。',
+  thanks:'我以後放相之前，一定會先問人哋同唔同意！'},
+
+{ id:'deal', npc:'子晴', title:'交換友誼陷阱', monster:'條件怪', mcolor:0xfb5607,
+  pos:[-5,1], rot:0.9, kid:{shirt:0xfb5607,hair:0x5a3825,style:'pony',pants:0x3d3b8e},
+  intro:[
+    ['narr','你打開本貼紙簿，子晴即刻湊埋嚟，雙眼發光。'],
+    ['子晴','嘩，你啲貼紙好靚呀！你全部俾晒我啦，我就做你最好嘅朋友！'],
+    ['子晴','如果你唔俾，我就唔同你做朋友囉！']],
+  hint:'條件怪會話「你俾嘢我，我先做你朋友」。但係用嘢換返嚟嘅友誼唔係真友誼。真朋友鍾意嘅，係你呢個人。',
+  choices:[
+    {g:'wise',t:'友誼唔係用嘢換嘅。不過我哋可以一齊睇貼紙，一齊玩呀！',
+     reply:[['子晴','一齊玩？……好呀！你睇下呢張獨角獸，好得意！'],['narr','你哋一齊睇貼紙，仲一齊砌咗一頁貼紙故事。子晴話：同你玩，仲開心過攞貼紙！']],
+     why:'你守住咗自己嘅嘢，仲話俾子晴知真友誼係點。一齊分享快樂，先係真朋友。'},
+    {g:'ok',t:'唔俾！我去搵第二個玩。',
+     reply:[['子晴','哼，咁就算啦！'],['narr','你冇俾人用條件逼住，做得啱！不過你同子晴錯過咗一個做朋友嘅機會。']],
+     why:'唔俾係啱嘅！不過子晴可能只係唔識點樣交朋友。諗下點樣可以守住自己嘅嘢，又可以一齊玩？'},
+    {g:'trap',t:'好呀！全部俾晒你！咁我哋就係好朋友喇！',
+     reply:[['narr','子晴攞晒你啲貼紙，開心咗一陣。'],['narr','第二日，子晴又叫你帶文具俾佢。你話冇，佢就即刻走咗去同其他人玩。']],
+     why:'用嘢換返嚟嘅友誼，一冇嘢俾就冇埋。你值得一段真心嘅友誼。'}],
+  tip:'友誼唔係買返嚟嘅。真朋友鍾意嘅係你呢個人，唔係你啲嘢。',
+  thanks:'下次我哋再一齊砌貼紙故事，好唔好？'}
+];
+
+var EXTRAS = [
+  {name:'詩詩',link:'side',pos:[-17.5,-2.2],rot:0.6,kid:{shirt:0xf15bb5,hair:0x2b2340,style:'bob',pants:0x3d3b8e},mood:'sad',
+   before:'冇人同我玩……我好想同大家一齊玩。',after:'多謝你幫我哋和好返！'},
+  {name:'阿進',link:'gossip',pos:[16,-13],rot:-0.7,kid:{shirt:0x577590,hair:0x1b1b1b,style:'short',pants:0x2b3a67},mood:'neutral',
+   before:'今日堂功課有條數好難呀，諗到我頭都痛。',after:'原來係誤會，好彩你肯問清楚！'},
+  {name:'同學',link:'dare',pos:[-10.6,11.4],rot:-2.2,kid:{shirt:0x8338ec,hair:0x3b2a1a,style:'spiky',pants:0x34405a},mood:'happy',
+   before:'快啲啦！快啲啦！睇下你夠唔夠膽！',after:'踢波好好玩呀！下次再一齊踢！'},
+  {name:'小美',link:'online',pos:[9.5,15.6],rot:0.2,kid:{shirt:0x43aa8b,hair:0x5a3825,style:'pony',pants:0x4a4e69},mood:'happy',
+   before:'今日個叉燒飯好好食呀！',after:'多謝你幫我，你真係好朋友！'}
+];
+
+var TUTORIAL = [
+  ['narr','歡迎嚟到開心小學！你係新嚟嘅校園智慧小偵探。'],
+  ['narr','學校入面匿埋咗七隻人際陷阱怪，佢哋會令同學之間嗌交、排擠同埋欺負人。'],
+  ['narr','你嘅任務，就係用智慧睇穿佢哋，拆解陷阱！'],
+  ['narr','撳一下地面，你就會行過去。見到頭頂有黃色感嘆號嘅同學，撳佢就可以同佢傾偈。'],
+  ['narr','右上角有副偵探眼鏡。戴上佢，就可以睇到陷阱怪匿喺邊。'],
+  ['narr','每句說話旁邊都有個小喇叭，撳佢就可以再聽多次。準備好未？出發啦！']
+];
+
+var RULES = [
+  ['停','停一停','唔好即刻跟住做，亦唔好即刻發脾氣。'],
+  ['諗','諗一諗','佢想我做咩？入面有冇陷阱？'],
+  ['講','講出嚟','有禮貌、清楚咁講出自己嘅諗法。'],
+  ['搵','搵幫手','遇到欺凌或者恐嚇，話俾老師或者屋企人知。']
+];
+
+var START_TALK = '歡迎嚟到校園智慧小偵探！喺呢個遊戲入面，你會扮演一個小偵探，幫學校入面嘅同學拆解人際陷阱。每一句說話旁邊都有小喇叭，撳一下就會讀出嚟。揀好語速之後，撳「開始冒險」出發啦！';
+var PICK_TALK = '揀一個你鍾意嘅小偵探。撳一下公仔就可以揀，揀好就撳「就係佢」。';
+var HINT_TALK = '撳地面就可以行路。撳頭頂有黃色感嘆號嘅同學，就可以同佢傾偈。';
+
+/* =====================================================================
+   語音（廣東話 Web Speech）
+   ===================================================================== */
+var EMO;
+try{ EMO = new RegExp('\\p{Extended_Pictographic}|\\uFE0F|\\u200D','gu'); }
+catch(e){ EMO = /[\uD83C-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|\uFE0F|\u200D/g; }
+
+var Speech = {
+  ok: ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window),
+  voice:null, speed:0.9, auto:true, token:0, q:[], cur:null, total:0,
+  init:function(){
+    var self=this;
+    if(!this.ok){ voiceStatus(); return; }
+    var pick=function(){
+      var vs=[]; try{ vs=speechSynthesis.getVoices()||[]; }catch(e){}
+      self.total=vs.length;
+      var hk=vs.filter(function(v){
+        return /zh[-_]hk|yue/i.test(v.lang) || /cantonese|粵|廣東|sin-?ji|hiugaai|hiumaan|wanlung/i.test(v.name);
+      });
+      var sc=function(v){ return (/natural|neural|online|premium|enhanced/i.test(v.name)?4:0)+(/google/i.test(v.name)?2:0)+(/sin-?ji/i.test(v.name)?2:0); };
+      hk.sort(function(a,b){ return sc(b)-sc(a); });
+      self.voice=hk[0]||null;
+      voiceStatus();
+    };
+    pick();
+    if(speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged',pick);
+    else speechSynthesis.onvoiceschanged=pick;
+    [300,1000,2500,5000].forEach(function(ms){ setTimeout(pick,ms); });
+  },
+  clean:function(t){
+    return String(t).replace(EMO,'')
+      .replace(/[（）()「」『』【】]/g,'，').replace(/……|…/g,'，')
+      .replace(/，+/g,'，').replace(/，([。！？])/g,'$1').replace(/([。！？])，/g,'$1')
+      .replace(/^[，\s]+/,'').replace(/[，\s]+$/,'').trim();
+  },
+  mark:function(btn){
+    if(this.cur) this.cur.classList.remove('playing');
+    this.cur=btn||null;
+    if(this.cur) this.cur.classList.add('playing');
+  },
+  speak:function(text, who, btn){
+    if(!this.ok) return;
+    var self=this, s=window.speechSynthesis, p=PEOPLE[who]||PEOPLE.narr, tk=++this.token;
+    var clean=this.clean(text);
+    this.mark(btn);
+    if(!clean){ this.mark(null); return; }
+    var parts=clean.match(/[^。！？!?]+[。！？!?]*/g)||[clean];
+    var go=function(){
+      if(tk!==self.token) return;
+      self.q=parts.map(function(str,i){
+        var u=new SpeechSynthesisUtterance(str);
+        u.lang='zh-HK';
+        if(self.voice) u.voice=self.voice;
+        u.pitch=p.pitch||1;
+        u.rate=Math.min(2,(p.rate||1)*self.speed);
+        u.volume=1;
+        if(i===parts.length-1){ u.onend=u.onerror=function(){ if(tk===self.token) self.mark(null); }; }
+        return u;
+      });
+      try{ s.resume(); }catch(e){}
+      self.q.forEach(function(u){ s.speak(u); });
+    };
+    if(s.speaking||s.pending){ s.cancel(); setTimeout(go,90); } else go();
+  },
+  stop:function(){ this.token++; if(this.ok){ try{ speechSynthesis.cancel(); }catch(e){} } this.mark(null); }
+};
+
+var SAY=[];
+function sayBtn(text, who, cls){
+  var id=SAY.push({text:text,who:who||'narr'})-1;
+  return '<button class="spk '+(cls||'')+'" data-sid="'+id+'" aria-label="讀出嚟">🔊</button>';
+}
+function sidOf(text, who){ return SAY.push({text:text,who:who||'narr'})-1; }
+document.addEventListener('click', function(e){
+  var el=e.target.closest ? e.target.closest('[data-sid]') : null;
+  if(!el) return;
+  var s=SAY[+el.getAttribute('data-sid')]; if(!s) return;
+  var btn = el.classList.contains('spk') ? el : (el.parentElement && el.parentElement.querySelector('.spk'));
+  Speech.speak(s.text, s.who, btn);
+});
+function autoSay(text, who, container){
+  if(!Speech.auto) return;
+  var btn = container ? container.querySelector('.spk') : null;
+  Speech.speak(text, who, btn);
+}
+
+/* =====================================================================
+   音效（Web Audio）
+   ===================================================================== */
+var SFX={ ctx:null,
+  init:function(){ try{ if(!this.ctx) this.ctx=new (window.AudioContext||window.webkitAudioContext)(); if(this.ctx.state==='suspended') this.ctx.resume(); }catch(e){} },
+  tone:function(f,d,type,v,when){
+    if(!this.ctx) return; var t=this.ctx.currentTime+(when||0);
+    var o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v||0.1,t+0.015); g.gain.exponentialRampToValueAtTime(0.0001,t+(d||0.12));
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t+(d||0.12)+0.03);
+  },
+  tap:function(){ this.tone(700,0.07,'triangle',0.06); },
+  good:function(){ var s=this; [523,659,784,1047].forEach(function(f,i){ s.tone(f,0.28,'triangle',0.09,i*0.09); }); },
+  bad:function(){ this.tone(260,0.25,'square',0.035); this.tone(196,0.35,'square',0.035,0.16); },
+  pop:function(){ this.tone(420,0.08,'sine',0.08); this.tone(900,0.12,'sine',0.06,0.05); },
+  star:function(){ var s=this; [880,1175,1568].forEach(function(f,i){ s.tone(f,0.2,'sine',0.07,i*0.07); }); },
+  magic:function(){ var s=this; [392,523,659,784,988].forEach(function(f,i){ s.tone(f,0.18,'sine',0.05,i*0.05); }); }
+};
+
+/* =====================================================================
+   Three.js 場景
+   ===================================================================== */
+var canvas=$('#c');
+var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+var scene=new THREE.Scene();
+scene.background=new THREE.Color(0xbde7ff);
+scene.fog=new THREE.Fog(0xbde7ff,50,95);
+var camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,220);
+camera.position.set(0,16,30);
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x7fae5a,0.72));
+var sun=new THREE.DirectionalLight(0xffffff,0.85);
+sun.position.set(14,26,12); sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+(function(c){ c.left=-30;c.right=30;c.top=30;c.bottom=-30;c.near=1;c.far=80; })(sun.shadow.camera);
+sun.shadow.bias=-0.0008;
+scene.add(sun);
+
+function mat(c,o){ var p={color:c,roughness:0.82,metalness:0}; if(o) for(var k in o) p[k]=o[k]; return new THREE.MeshStandardMaterial(p); }
+function mesh(geo,m,x,y,z,parent,noShadow){
+  var me=new THREE.Mesh(geo,m); me.position.set(x||0,y||0,z||0);
+  if(!noShadow){ me.castShadow=true; me.receiveShadow=true; }
+  (parent||scene).add(me); return me;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+var FONT='"Noto Sans HK","PingFang HK","Microsoft JhengHei",sans-serif';
+function makeLabel(text,o){
+  o=o||{}; var fs=o.size||46, pad=18;
+  var c=document.createElement('canvas'), x=c.getContext('2d');
+  x.font='900 '+fs+'px '+FONT;
+  var w=Math.ceil(x.measureText(text).width)+pad*2+8, h=Math.ceil(fs*1.45)+8;
+  c.width=w; c.height=h;
+  x.font='900 '+fs+'px '+FONT;
+  roundRect(x,4,4,w-8,h-8,(h-8)/2);
+  x.fillStyle=o.bg||'#ffffff'; x.fill();
+  x.lineWidth=6; x.strokeStyle='#2b2340'; x.stroke();
+  x.fillStyle=o.fg||'#2b2340'; x.textAlign='center'; x.textBaseline='middle';
+  x.fillText(text,w/2,h/2+2);
+  var tex=new THREE.CanvasTexture(c); tex.minFilter=THREE.LinearFilter;
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:o.depthTest!==false,depthWrite:false}));
+  var s=(o.scale||0.0105); sp.scale.set(w*s,h*s,1); sp.renderOrder=5;
+  return sp;
+}
+function markerTex(done){
+  var c=document.createElement('canvas'); c.width=c.height=128; var x=c.getContext('2d');
+  x.beginPath(); x.arc(64,64,54,0,PI*2); x.fillStyle=done?'#7ee081':'#ffd23f'; x.fill();
+  x.lineWidth=10; x.strokeStyle='#2b2340'; x.stroke();
+  x.fillStyle='#2b2340'; x.strokeStyle='#2b2340';
+  if(done){ x.beginPath(); x.moveTo(38,66); x.lineTo(56,84); x.lineTo(92,44); x.lineWidth=15; x.lineCap='round'; x.lineJoin='round'; x.stroke(); }
+  else { roundRect(x,55,24,18,50,8); x.fill(); x.beginPath(); x.arc(64,94,10,0,PI*2); x.fill(); }
+  var t=new THREE.CanvasTexture(c); t.minFilter=THREE.LinearFilter; return t;
+}
+var TEX_EXCL=markerTex(false), TEX_DONE=markerTex(true);
+
+/* ---------- 地面、學校、佈景 ---------- */
+var ground=mesh(new THREE.PlaneGeometry(140,140),mat(0x8fd16a),0,0,0,null,true);
+ground.rotation.x=-PI/2; ground.receiveShadow=true; ground.userData.ground=true;
+
+function flat(w,d,color,x,z,y){ var m=mesh(new THREE.PlaneGeometry(w,d),mat(color),x,y||0.02,z,null,true); m.rotation.x=-PI/2; m.receiveShadow=true; return m; }
+flat(3.4,44,0xf2dfb4,0,0);                    // 行人路
+flat(46,4,0xf2dfb4,0,-19.5);                  // 校門前空地
+flat(11,7.5,0xf4a261,7,-1,0.03);              // 籃球場
+(function(){
+  var wm=new THREE.MeshBasicMaterial({color:0xffffff});
+  var l=new THREE.Mesh(new THREE.PlaneGeometry(0.12,7.5),wm); l.rotation.x=-PI/2; l.position.set(7,0.04,-1); scene.add(l);
+  var r=new THREE.Mesh(new THREE.RingGeometry(1.1,1.24,40),wm); r.rotation.x=-PI/2; r.position.set(7,0.04,-1); scene.add(r);
+  var e=new THREE.Mesh(new THREE.RingGeometry(5.3,5.44,40,1,-PI/2,PI),wm); e.rotation.x=-PI/2; e.position.set(7,0.04,-1); scene.add(e);
+})();
+
+// 學校大樓
+(function(){
+  var g=new THREE.Group(); g.position.set(0,0,-25); scene.add(g);
+  mesh(new THREE.BoxGeometry(38,9,6),mat(0xfff1d6),0,4.5,0,g);
+  mesh(new THREE.BoxGeometry(39.5,1,7.4),mat(0xff7a59),0,9.5,0,g);
+  mesh(new THREE.BoxGeometry(9,12.5,6.6),mat(0xffe3b0),0,6.25,0,g);
+  var roof=mesh(new THREE.ConeGeometry(6.8,3.4,4),mat(0xff7a59),0,14.2,0,g); roof.rotation.y=PI/4;
+  var clock=mesh(new THREE.CylinderGeometry(1.25,1.25,0.2,28),mat(0xffffff),0,10.2,3.35,g); clock.rotation.x=PI/2;
+  var h1=mesh(new THREE.BoxGeometry(0.12,0.8,0.05),mat(0x2b2340),0,10.45,3.47,g,true);
+  var h2=mesh(new THREE.BoxGeometry(0.6,0.12,0.05),mat(0x2b2340),0.25,10.2,3.47,g,true);
+  mesh(new THREE.BoxGeometry(3.4,4.2,0.3),mat(0xa0643c),0,2.1,3.2,g);
+  var glassM=mat(0x9ad7ff,{roughness:0.2}), frameM=mat(0xffffff);
+  for(var row=0;row<2;row++){
+    for(var i=-4;i<=4;i++){
+      var x=i*4.1; if(Math.abs(x)<5) continue;
+      var y= row===0?3:6.6;
+      mesh(new THREE.BoxGeometry(2.5,2.1,0.12),frameM,x,y,3.02,g,true);
+      mesh(new THREE.PlaneGeometry(2.1,1.7),glassM,x,y,3.1,g,true);
+    }
+  }
+  // 校名牌
+  var c=document.createElement('canvas'); c.width=512; c.height=128; var cx=c.getContext('2d');
+  roundRect(cx,6,6,500,116,26); cx.fillStyle='#ffd23f'; cx.fill(); cx.lineWidth=10; cx.strokeStyle='#2b2340'; cx.stroke();
+  cx.fillStyle='#2b2340'; cx.font='900 70px '+FONT; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText('開心小學',256,68);
+  var st=new THREE.CanvasTexture(c);
+  mesh(new THREE.PlaneGeometry(6.4,1.6),new THREE.MeshBasicMaterial({map:st,transparent:true}),0,6.1,3.36,g,true);
+})();
+
+// 樹
+function tree(x,z,s){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s||1); scene.add(g);
+  mesh(new THREE.CylinderGeometry(0.25,0.38,2.2,8),mat(0x8b5a2b),0,1.1,0,g);
+  var greens=[0x4caf50,0x5cc15c,0x43a047];
+  var c1=mesh(new THREE.IcosahedronGeometry(1.7,0),mat(greens[Math.floor(Math.random()*3)],{flatShading:true}),0,3.1,0,g);
+  var c2=mesh(new THREE.IcosahedronGeometry(1.15,0),mat(greens[Math.floor(Math.random()*3)],{flatShading:true}),0.3,4.2,0.2,g);
+  c1.rotation.y=Math.random()*PI; c2.rotation.y=Math.random()*PI;
+}
+[[-21,-16],[-21.5,-7],[-21.5,3],[-21,18],[21,-16.5],[21.5,-6],[21.5,9],[20.5,19],[-8,21.5],[3,22],[14,21.5],[-15,20.5],[19.5,-14.5]].forEach(function(p,i){ tree(p[0],p[1],0.9+((i*37)%5)/10); });
+
+// 圍欄（InstancedMesh）
+(function(){
+  var pts=[];
+  for(var x=-24;x<=24;x+=2){ pts.push([x,24]); }
+  for(var z=-21;z<24;z+=2){ pts.push([-24,z]); pts.push([24,z]); }
+  var im=new THREE.InstancedMesh(new THREE.BoxGeometry(0.28,1.2,0.28),mat(0xffffff),pts.length);
+  var m4=new THREE.Matrix4();
+  pts.forEach(function(p,i){ m4.makeTranslation(p[0],0.6,p[1]); im.setMatrixAt(i,m4); });
+  im.castShadow=true; scene.add(im);
+  var rail=mat(0xffffff);
+  mesh(new THREE.BoxGeometry(48,0.16,0.12),rail,0,0.9,24);
+  mesh(new THREE.BoxGeometry(0.12,0.16,45),rail,-24,0.9,1.5);
+  mesh(new THREE.BoxGeometry(0.12,0.16,45),rail,24,0.9,1.5);
+})();
+
+// 花圃
+(function(){
+  var n=70, im=new THREE.InstancedMesh(new THREE.SphereGeometry(0.2,8,6),mat(0xffffff),n);
+  var m4=new THREE.Matrix4(), col=new THREE.Color(), cols=[0xff5d73,0xffd23f,0xff9ff3,0xffffff,0xff8a3d];
+  for(var i=0;i<n;i++){
+    var side=i%2?1:-1, x=side*(4.5+Math.random()*11), z=-21.2+Math.random()*1.2;
+    m4.makeTranslation(x,0.35,z); im.setMatrixAt(i,m4); col.setHex(cols[i%cols.length]); im.setColorAt(i,col);
+  }
+  scene.add(im);
+  mesh(new THREE.BoxGeometry(11.5,0.3,1.8),mat(0x6b8f3a),-10,0.15,-20.6);
+  mesh(new THREE.BoxGeometry(11.5,0.3,1.8),mat(0x6b8f3a),10,0.15,-20.6);
+})();
+
+// 滑梯
+(function(){
+  var g=new THREE.Group(); g.position.set(-15,0,-12.5); g.rotation.y=0.4; scene.add(g);
+  var red=mat(0xff5d73), yel=mat(0xffd23f), blue=mat(0x3a86ff);
+  mesh(new THREE.BoxGeometry(2.2,0.25,2.2),yel,0,2.4,0,g);
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(p){ mesh(new THREE.CylinderGeometry(0.1,0.1,2.4,8),blue,p[0],1.2,p[1],g); });
+  var ramp=mesh(new THREE.BoxGeometry(1.2,0.15,4.2),red,0,1.25,2.9,g); ramp.rotation.x=0.55;
+  for(var i=0;i<5;i++) mesh(new THREE.BoxGeometry(1.2,0.1,0.1),yel,0,0.4+i*0.45,-1.25,g);
+  mesh(new THREE.BoxGeometry(0.1,2.6,0.1),blue,-0.6,1.3,-1.25,g); mesh(new THREE.BoxGeometry(0.1,2.6,0.1),blue,0.6,1.3,-1.25,g);
+})();
+
+// 長櫈
+function bench(x,z,ry){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.rotation.y=ry||0; scene.add(g);
+  var w=mat(0xc68642), d=mat(0x555b6e);
+  mesh(new THREE.BoxGeometry(2.6,0.14,0.7),w,0,0.55,0,g);
+  mesh(new THREE.BoxGeometry(2.6,0.5,0.1),w,0,0.9,-0.32,g);
+  [-1.1,1.1].forEach(function(px){ mesh(new THREE.BoxGeometry(0.12,0.55,0.6),d,px,0.28,0,g); });
+}
+bench(-19,-3.6,0.5); bench(18,-15,-0.6);
+
+// 籃球架
+(function(){
+  var g=new THREE.Group(); g.position.set(12.9,0,-1); scene.add(g);
+  mesh(new THREE.CylinderGeometry(0.14,0.14,3.8,10),mat(0x555b6e),0,1.9,0,g);
+  mesh(new THREE.BoxGeometry(0.12,1.3,1.9),mat(0xffffff),-0.3,3.7,0,g);
+  var ring=mesh(new THREE.TorusGeometry(0.34,0.04,8,20),mat(0xff8a3d),-0.72,3.25,0,g); ring.rotation.x=PI/2;
+})();
+
+// 欄杆（激將法場景）
+(function(){
+  var m=mat(0x8d99ae,{metalness:0.4,roughness:0.4});
+  [7.5,10,12.5,15].forEach(function(z){ mesh(new THREE.CylinderGeometry(0.09,0.09,1.4,8),m,-19,0.7,z); });
+  mesh(new THREE.CylinderGeometry(0.07,0.07,7.5,8),m,-19,1.35,11.25).rotation.x=PI/2;
+  mesh(new THREE.CylinderGeometry(0.06,0.06,7.5,8),m,-19,0.8,11.25).rotation.x=PI/2;
+})();
+
+// 野餐枱
+(function(){
+  var g=new THREE.Group(); g.position.set(9.5,0,17.3); scene.add(g);
+  var w=mat(0xd4a373);
+  mesh(new THREE.BoxGeometry(3.2,0.15,1.5),w,0,0.85,0,g);
+  mesh(new THREE.BoxGeometry(3.2,0.12,0.45),w,0,0.48,1.1,g);
+  mesh(new THREE.BoxGeometry(3.2,0.12,0.45),w,0,0.48,-1.1,g);
+  [[-1.3,0],[1.3,0]].forEach(function(p){ mesh(new THREE.BoxGeometry(0.15,0.85,2.6),w,p[0],0.42,0,g); });
+  mesh(new THREE.CylinderGeometry(0.35,0.25,0.18,14),mat(0xffffff),-0.3,1.0,-0.1,g);
+  mesh(new THREE.CylinderGeometry(0.28,0.28,0.08,14),mat(0xe07a2f),-0.3,1.1,-0.1,g);
+})();
+
+// 爛花盆（黑鑊場景）
+(function(){
+  var g=new THREE.Group(); g.position.set(16.9,0,4.1); scene.add(g);
+  var terra=mat(0xc8553d,{side:THREE.DoubleSide});
+  var a=mesh(new THREE.CylinderGeometry(0.42,0.3,0.6,14,1,true,0,PI),terra,0,0.3,0,g); a.rotation.z=0.25;
+  var b=mesh(new THREE.CylinderGeometry(0.42,0.3,0.6,14,1,true,0,PI*0.9),terra,0.7,0.2,0.4,g); b.rotation.set(1.3,0.6,0);
+  var soil=mesh(new THREE.CircleGeometry(0.7,14),mat(0x5c3d2e),0.3,0.03,0.3,g,true); soil.rotation.x=-PI/2;
+  var st=mesh(new THREE.CylinderGeometry(0.04,0.04,0.8,6),mat(0x2e7d32),0.6,0.12,-0.3,g); st.rotation.z=PI/2.3;
+  mesh(new THREE.SphereGeometry(0.16,10,8),mat(0xff5d73),1.0,0.2,-0.3,g);
+})();
+
+// 雲
+var clouds=[];
+for(var ci=0;ci<7;ci++){
+  var cg=new THREE.Group(), cm=mat(0xffffff,{roughness:1});
+  for(var k=0;k<4;k++){ var sp=new THREE.Mesh(new THREE.SphereGeometry(1.4+Math.random(),12,10),cm); sp.position.set(k*1.5-2,Math.random()*0.6,Math.random()*0.8); cg.add(sp); }
+  cg.position.set(-50+ci*16,20+Math.random()*6,-40+Math.random()*50); cg.userData.v=0.6+Math.random()*0.8;
+  scene.add(cg); clouds.push(cg);
+}
+
+/* ---------- 公仔 ---------- */
+function makeKid(o){
+  var g=new THREE.Group(), P={};
+  var skin=mat(o.skin||0xffd7b5), shirt=mat(o.shirt), pants=mat(o.pants||0x34405a), hairM=mat(o.hair||0x2b2340), shoe=mat(0x2b2340), ink=new THREE.MeshBasicMaterial({color:0x2b2340});
+  function leg(x){
+    var p=new THREE.Group(); p.position.set(x,0.64,0); g.add(p);
+    mesh(new THREE.CylinderGeometry(0.12,0.11,0.52,10),pants,0,-0.26,0,p);
+    mesh(new THREE.BoxGeometry(0.22,0.13,0.32),shoe,0,-0.57,0.05,p);
+    return p;
+  }
+  P.legL=leg(-0.15); P.legR=leg(0.15);
+  mesh(new THREE.CylinderGeometry(0.3,0.39,0.74,16),shirt,0,1.0,0,g);
+  function arm(s){
+    var p=new THREE.Group(); p.position.set(0.4*s,1.28,0); p.rotation.z=0.15*s; g.add(p);
+    mesh(new THREE.CylinderGeometry(0.09,0.08,0.5,8),shirt,0,-0.25,0,p);
+    var h=mesh(new THREE.SphereGeometry(0.1,10,8),skin,0,-0.54,0,p); p.userData.hand=h;
+    return p;
+  }
+  P.armL=arm(-1); P.armR=arm(1);
+  var head=new THREE.Group(); head.position.y=1.74; g.add(head); P.head=head;
+  mesh(new THREE.SphereGeometry(0.42,22,16),skin,0,0,0,head);
+  [-1,1].forEach(function(s){
+    mesh(new THREE.SphereGeometry(0.062,10,8),ink,0.14*s,0.05,0.375,head,true);
+    mesh(new THREE.SphereGeometry(0.022,6,6),new THREE.MeshBasicMaterial({color:0xffffff}),0.14*s+0.02,0.075,0.43,head,true);
+    var ck=mesh(new THREE.SphereGeometry(0.07,10,8),new THREE.MeshBasicMaterial({color:0xff9aa2}),0.25*s,-0.08,0.32,head,true); ck.scale.z=0.4;
+  });
+  P.mouth=mesh(new THREE.TorusGeometry(0.085,0.022,6,14,PI),ink,0,-0.1,0.395,head,true);
+  // 頭髮
+  var cap=mesh(new THREE.SphereGeometry(0.45,22,12,0,PI*2,0,PI*0.5),hairM,0,0.04,-0.02,head);
+  cap.rotation.x=-0.42;
+  if(o.style==='bob'){
+    var bob=mesh(new THREE.CylinderGeometry(0.46,0.49,0.5,20,1,true,PI*0.33,PI*1.34),mat(o.hair,{side:THREE.DoubleSide}),0,-0.1,0,head);
+  } else if(o.style==='pony'){
+    mesh(new THREE.SphereGeometry(0.15,10,8),hairM,0,0.12,-0.46,head);
+    var tail=mesh(new THREE.SphereGeometry(0.14,10,8),hairM,0,-0.14,-0.52,head); tail.scale.y=1.7;
+    mesh(new THREE.TorusGeometry(0.1,0.03,6,12),mat(0xffd23f),0,0.02,-0.5,head).rotation.x=PI/2;
+  } else if(o.style==='spiky'){
+    [[0,0.44,0.05,0],[0.2,0.38,0.05,-0.5],[-0.2,0.38,0.05,0.5],[0,0.36,-0.22,0],[0.1,0.42,-0.1,-0.3]].forEach(function(q){
+      var c=mesh(new THREE.ConeGeometry(0.12,0.3,6),hairM,q[0],q[1],q[2],head); c.rotation.z=q[3]; c.rotation.x=q[2]<0?-0.5:0.2;
+    });
+  }
+  // 隱形點擊範圍
+  var hit=new THREE.Mesh(new THREE.CylinderGeometry(1,1,2.9,10),new THREE.MeshBasicMaterial({visible:false}));
+  hit.position.y=1.45; g.add(hit); P.hit=hit;
+  g.userData.parts=P;
+  g.userData.anim={walking:false,phase:Math.random()*6,seed:Math.random()*10,ry:0,talk:0,cheer:0,mood:'happy'};
+  setMood(g,'happy');
+  return g;
+}
+function setMood(k,m){
+  var P=k.userData.parts, a=k.userData.anim; a.mood=m;
+  if(m==='sad'){ P.mouth.rotation.z=0; P.mouth.position.y=-0.2; P.mouth.scale.set(1,1,1); }
+  else if(m==='neutral'){ P.mouth.rotation.z=PI; P.mouth.position.y=-0.08; P.mouth.scale.set(0.8,0.35,1); }
+  else { P.mouth.rotation.z=PI; P.mouth.position.y=-0.06; P.mouth.scale.set(1,1,1); }
+}
+function faceTo(k,pt){ k.userData.anim.ry=Math.atan2(pt.x-k.position.x, pt.z-k.position.z); }
+function lerpAngle(a,b,t){ var d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
+function animKid(k,dt,t){
+  var P=k.userData.parts, a=k.userData.anim;
+  k.rotation.y=lerpAngle(k.rotation.y,a.ry,Math.min(1,dt*8));
+  if(a.walking){
+    a.phase+=dt*11; var s=Math.sin(a.phase)*0.65;
+    P.legL.rotation.x=s; P.legR.rotation.x=-s; P.armL.rotation.x=-s*0.8; P.armR.rotation.x=a.holding?-1.1:s*0.8;
+    k.position.y=Math.abs(Math.sin(a.phase))*0.06;
+  } else {
+    P.legL.rotation.x*=0.8; P.legR.rotation.x*=0.8; P.armL.rotation.x*=0.8;
+    P.armR.rotation.x = a.holding ? -1.1 : P.armR.rotation.x*0.8;
+    k.position.y=0;
+  }
+  var targetZ=0.15, sad=a.mood==='sad';
+  if(a.cheer>0){
+    a.cheer-=dt; var j=Math.abs(Math.sin(a.cheer*9));
+    k.position.y=j*0.55; P.armL.rotation.z=-2.6; P.armR.rotation.z=2.6;
+  } else {
+    P.armL.rotation.z+=(-targetZ-P.armL.rotation.z)*Math.min(1,dt*8);
+    P.armR.rotation.z+=(targetZ-P.armR.rotation.z)*Math.min(1,dt*8);
+  }
+  var hx = sad?0.3:0;
+  if(a.talk>0){ a.talk-=dt; hx+=Math.sin(t*12)*0.07; }
+  P.head.rotation.x+=(hx-P.head.rotation.x)*Math.min(1,dt*8);
+  P.head.rotation.z=Math.sin(t*1.6+a.seed)*0.05;
+  P.head.position.y=1.74+Math.sin(t*2.2+a.seed)*0.015;
+}
+
+/* ---------- 陷阱怪 ---------- */
+function makeMonster(color,name){
+  var g=new THREE.Group(), mats=[];
+  function M(c,o){ var m=mat(c,o); m.transparent=true; m.opacity=0; m.depthWrite=false; mats.push(m); return m; }
+  var body=mesh(new THREE.SphereGeometry(0.45,20,14),M(color,{emissive:color,emissiveIntensity:0.35,roughness:0.4}),0,0,0,g,true);
+  body.scale.set(1,0.92,1);
+  var white=M(0xffffff), black=M(0x111111);
+  [-1,1].forEach(function(s){
+    mesh(new THREE.SphereGeometry(0.13,12,10),white,0.15*s,0.08,0.34,g,true);
+    mesh(new THREE.SphereGeometry(0.065,10,8),black,0.15*s,0.06,0.45,g,true);
+    var h=mesh(new THREE.ConeGeometry(0.08,0.24,8),M(0x2b2340),0.22*s,0.44,0,g,true); h.rotation.z=-0.4*s;
+    var hand=mesh(new THREE.SphereGeometry(0.11,10,8),M(color,{emissive:color,emissiveIntensity:0.3}),0.48*s,-0.12,0.05,g,true);
+  });
+  var grin=mesh(new THREE.TorusGeometry(0.13,0.03,6,14,PI),black,0,-0.12,0.4,g,true); grin.rotation.z=PI;
+  var hex='#'+('000000'+color.toString(16)).slice(-6);
+  var label=makeLabel(name,{bg:hex,fg:'#ffffff',size:40,scale:0.0095,depthTest:false});
+  label.position.y=0.95; label.material.opacity=0; g.add(label);
+  g.userData={mats:mats,label:label,vis:0,laugh:0,dead:false,dying:0};
+  g.visible=false;
+  return g;
+}
+
+/* ---------- 建立 NPC ---------- */
+var pickables=[ground];
+SCENES.forEach(function(sc){
+  var k=makeKid(sc.kid); k.position.set(sc.pos[0],0,sc.pos[1]); k.rotation.y=sc.rot; k.userData.anim.ry=sc.rot;
+  scene.add(k); sc.kid3d=k;
+  if(sc.tablet){
+    var tab=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.3,0.04),mat(0x2b2340));
+    var scr=new THREE.Mesh(new THREE.PlaneGeometry(0.36,0.24),new THREE.MeshBasicMaterial({color:0x8ee3ff}));
+    scr.position.z=0.025; tab.add(scr);
+    tab.position.set(0,-0.62,0.15); k.userData.parts.armR.add(tab); k.userData.anim.holding=true;
+  }
+  var lab=makeLabel(sc.npc,{bg:PEOPLE[sc.npc].color,fg:'#ffffff',size:40}); lab.position.y=2.55; k.add(lab);
+  var mk=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX_EXCL,depthTest:false,transparent:true})); mk.scale.set(0.75,0.75,1); mk.position.y=3.3; mk.renderOrder=6; k.add(mk);
+  sc.marker=mk;
+  sc.monster3d=makeMonster(sc.mcolor,sc.monster); scene.add(sc.monster3d);
+  k.userData.parts.hit.userData.scene=sc; pickables.push(k.userData.parts.hit);
+  sc.tried=[]; sc.done=false; sc.stars=0;
+  sc.order=[0,1,2].sort(function(){ return Math.random()-0.5; });
+});
+EXTRAS.forEach(function(ex){
+  var k=makeKid(ex.kid); k.position.set(ex.pos[0],0,ex.pos[1]); k.rotation.y=ex.rot; k.userData.anim.ry=ex.rot;
+  setMood(k,ex.mood); scene.add(k); ex.kid3d=k;
+  var lab=makeLabel(ex.name,{bg:'#ffffff',size:36,scale:0.0095}); lab.position.y=2.5; k.add(lab);
+  k.userData.parts.hit.userData.extra=ex; pickables.push(k.userData.parts.hit);
+});
+function kidByName(n){
+  for(var i=0;i<SCENES.length;i++) if(SCENES[i].npc===n) return SCENES[i].kid3d;
+  for(var j=0;j<EXTRAS.length;j++) if(EXTRAS[j].name===n) return EXTRAS[j].kid3d;
+  return null;
+}
+
+/* ---------- 玩家 ---------- */
+var player=null, glassesMesh=null;
+function buildPlayer(av){
+  if(player) scene.remove(player);
+  player=makeKid({shirt:av.shirt,hair:av.hair,style:av.style,pants:av.pants});
+  player.position.set(0,0,6); player.userData.anim.ry=PI; player.rotation.y=PI;
+  var gl=new THREE.Group(), fm=new THREE.MeshBasicMaterial({color:0x2b2340}), lens=new THREE.MeshBasicMaterial({color:0x7b5cff,transparent:true,opacity:0.55});
+  [-1,1].forEach(function(s){
+    var r=new THREE.Mesh(new THREE.TorusGeometry(0.11,0.025,6,18),fm); r.position.set(0.14*s,0.05,0.4); gl.add(r);
+    var l=new THREE.Mesh(new THREE.CircleGeometry(0.1,16),lens); l.position.set(0.14*s,0.05,0.405); gl.add(l);
+  });
+  var br=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.025,0.025),fm); br.position.set(0,0.07,0.42); gl.add(br);
+  gl.visible=state.glasses; player.userData.parts.head.add(gl); glassesMesh=gl;
+  var lab=makeLabel('你',{bg:'#ffd23f',size:40}); lab.position.y=2.5; player.add(lab);
+  scene.add(player);
+  PEOPLE.you.color=av.css;
+}
+
+/* ---------- 特效 ---------- */
+var FX=[], sparkGeo=new THREE.BoxGeometry(0.16,0.16,0.16), confGeo=new THREE.PlaneGeometry(0.22,0.14);
+function burst(pos,color,n){
+  for(var i=0;i<(n||28);i++){
+    var m=new THREE.Mesh(sparkGeo,new THREE.MeshBasicMaterial({color:i%3?color:0xffd23f,transparent:true}));
+    m.position.copy(pos); scene.add(m);
+    FX.push({m:m,v:new V3((Math.random()-0.5)*7,Math.random()*5+2,(Math.random()-0.5)*7),life:1.2,max:1.2,g:9,drag:1});
+  }
+}
+function confetti(center,n){
+  var cols=[0xff5d73,0xffd23f,0x2ec4b6,0x7b5cff,0x3a86ff,0x7ee081];
+  for(var i=0;i<n;i++){
+    var m=new THREE.Mesh(confGeo,new THREE.MeshBasicMaterial({color:cols[i%cols.length],side:THREE.DoubleSide,transparent:true}));
+    m.position.set(center.x+(Math.random()-0.5)*12,center.y+6+Math.random()*6,center.z+(Math.random()-0.5)*10);
+    m.rotation.set(Math.random()*6,Math.random()*6,0); scene.add(m);
+    FX.push({m:m,v:new V3((Math.random()-0.5)*1.5,-1-Math.random()*1.5,(Math.random()-0.5)*1.5),life:5,max:5,g:0.4,drag:0.99,spin:true});
+  }
+}
+var starShape=new THREE.Shape();
+for(var si=0;si<10;si++){ var r=si%2?0.22:0.5, an=si/10*PI*2+PI/2; if(si) starShape.lineTo(Math.cos(an)*r,Math.sin(an)*r); else starShape.moveTo(Math.cos(an)*r,Math.sin(an)*r); }
+var starGeo=new THREE.ExtrudeGeometry(starShape,{depth:0.14,bevelEnabled:true,bevelThickness:0.04,bevelSize:0.04,bevelSegments:1}); starGeo.center();
+var starMat=mat(0xffd23f,{emissive:0xffb400,emissiveIntensity:0.5,metalness:0.3,roughness:0.3});
+var flyers=[];
+function flyStars(from,count){
+  for(var i=0;i<count;i++){
+    var m=new THREE.Mesh(starGeo,starMat); m.position.copy(from); scene.add(m);
+    flyers.push({m:m,from:from.clone(),t:-i*0.18,dur:1.1,side:(i-1)*1.2});
+  }
+}
+var ring=new THREE.Mesh(new THREE.RingGeometry(0.35,0.52,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false}));
+ring.rotation.x=-PI/2; ring.position.y=0.05; scene.add(ring); var ringT=0;
+
+/* =====================================================================
+   遊戲狀態 / UI
+   ===================================================================== */
+var state={started:false,dialog:false,modal:false,glasses:false,stars:0,avatar:0,target:null,pending:null,focus:null,cur:null,firstChoice:true,keys:{}};
+var dlg=$('#dlg');
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function voiceStatus(){
+  var el=$('#voiceBox'); if(!el) return;
+  if(!Speech.ok){ el.className='voice bad'; el.innerHTML='⚠️ 呢個瀏覽器唔支援語音朗讀。建議用 iPad 嘅 Safari、Google Chrome 或者 Microsoft Edge 開啟。'; return; }
+  if(Speech.voice){ el.className='voice good'; el.innerHTML='✅ 已經搵到廣東話語音：'+esc(Speech.voice.name); return; }
+  el.className='voice bad';
+  el.innerHTML='⚠️ 暫時搵唔到廣東話語音，讀出嚟可能唔係廣東話。'+
+    '<details><summary>點樣加入廣東話語音？</summary><ol>'+
+    '<li>iPad／iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 揀「中文（香港）」，下載一個聲音（例如 Sinji）。</li>'+
+    '<li>Windows 電腦：用 Microsoft Edge 開啟效果最好；或者去 設定 → 時間與語言 → 語言與地區 → 新增「中文（香港特別行政區）」並安裝語音。</li>'+
+    '<li>Mac：系統設定 → 輔助使用 → 朗讀內容 → 系統聲音 → 管理聲音 → 加入「中文（香港）」。</li>'+
+    '<li>加完之後，重新開啟呢個檔案就得。</li></ol></details>';
+}
+
+function renderStart(){
+  var chips=SCENES.map(function(s){ return '<span class="mchip" style="--m:#'+('000000'+s.mcolor.toString(16)).slice(-6)+'" title="'+s.monster+'"></span>'; }).join('');
+  $('#startPanel').innerHTML=
+    '<h1 class="title">校園智慧小偵探</h1>'+
+    '<p class="subtitle">🔍 拆解人際陷阱大冒險</p>'+
+    '<div class="badge-strip">'+chips+'</div>'+
+    '<div class="intro-row">'+sayBtn(START_TALK,'narr')+'<p>七隻人際陷阱怪匿埋喺開心小學！扮演小偵探，同同學傾偈、揀你會點講點做，用智慧拆解佢哋。</p></div>'+
+    '<div id="voiceBox" class="voice"></div>'+
+    '<div class="speed">語速：<span class="seg"><button data-speed="0.9" class="on">正常</button><button data-speed="0.72">慢啲</button></span></div>'+
+    '<div class="cta"><button class="btn primary" id="bStart">開始冒險 ▶</button></div>'+
+    '<p class="fine">適合 6 至 12 歲．記得開大聲或者戴耳筒</p>';
+  voiceStatus();
+  Array.prototype.forEach.call(document.querySelectorAll('[data-speed]'),function(b){
+    b.onclick=function(){
+      Array.prototype.forEach.call(document.querySelectorAll('[data-speed]'),function(x){ x.classList.remove('on'); });
+      b.classList.add('on'); Speech.speed=parseFloat(b.getAttribute('data-speed'));
+      Speech.speak(b.textContent==='慢啲'?'好，我會講慢啲。':'好，用正常速度。','narr');
+    };
+  });
+  $('#bStart').onclick=function(){ SFX.init(); SFX.tap(); $('#sStart').classList.add('hidden'); renderPick(); };
+}
+
+function renderPick(){
+  var cards=AVATARS.map(function(a,i){
+    return '<div class="avcard'+(i===state.avatar?' on':'')+'" data-av="'+i+'"><div class="av '+a.style+'" style="--shirt:'+a.css+';--hair:'+a.hairCss+'"><i class="hair"></i><i class="head"></i><i class="body"></i></div><b>'+a.name+'</b></div>';
+  }).join('');
+  $('#pickPanel').innerHTML=
+    '<div class="pickhead">'+sayBtn(PICK_TALK,'narr')+'<h2>揀你嘅小偵探</h2></div>'+
+    '<div class="avgrid">'+cards+'</div>'+
+    '<div class="cta"><button class="btn go" id="bPick">就係佢！▶</button></div>';
+  $('#sPick').classList.remove('hidden');
+  Speech.speak(PICK_TALK,'narr',$('#pickPanel .spk'));
+  Array.prototype.forEach.call(document.querySelectorAll('.avcard'),function(c){
+    c.onclick=function(){
+      state.avatar=+c.getAttribute('data-av');
+      Array.prototype.forEach.call(document.querySelectorAll('.avcard'),function(x){ x.classList.remove('on'); });
+      c.classList.add('on'); SFX.pop();
+      Speech.speak('你揀咗'+AVATARS[state.avatar].name+'！','narr');
+    };
+  });
+  $('#bPick').onclick=function(){
+    SFX.good(); $('#sPick').classList.add('hidden');
+    buildPlayer(AVATARS[state.avatar]);
+    state.started=true;
+    $('#hud').classList.remove('hidden');
+    renderHud();
+    openDialog(null);
+    playLines(TUTORIAL,function(){ closeDialog(); });
+  };
+}
+
+function renderHud(){
+  $('#starN').textContent=state.stars;
+  $('#dots').innerHTML=SCENES.map(function(s){
+    return '<i class="dot'+(s.done?' done':'')+'" style="--m:#'+('000000'+s.mcolor.toString(16)).slice(-6)+'" title="'+s.monster+'"></i>';
+  }).join('');
+}
+function showHintBar(){
+  var left=SCENES.filter(function(s){ return !s.done; }).length;
+  if(!left){ $('#hintbar').classList.add('hidden'); return; }
+  $('#hintbar').innerHTML=sayBtn(HINT_TALK+'仲有'+left+'隻陷阱怪等你拆解！','narr','sm')+'<p>👆 撳地面行路，撳頭頂有「！」嘅同學傾偈．仲有 '+left+' 隻陷阱怪</p>';
+  $('#hintbar').classList.remove('hidden');
+}
+
+/* ---------- 對話框 ---------- */
+function openDialog(sc){
+  state.dialog=true; state.cur=sc; $('#hintbar').classList.add('hidden'); hideToast();
+  if(sc && player){
+    var npc=sc.kid3d.position;
+    state.focus=new V3((player.position.x+npc.x)/2,0.3,(player.position.z+npc.z)/2);
+    faceTo(player,npc); faceTo(sc.kid3d,player.position);
+  } else state.focus=null;
+  dlg.classList.add('show');
+}
+function closeDialog(){
+  state.dialog=false; state.focus=null; state.cur=null;
+  dlg.classList.remove('show'); Speech.stop();
+  var nb=$('#dNext'); if(nb) nb.onclick=null;
+  setTimeout(function(){ if(!state.dialog) dlg.innerHTML=''; },400);
+  showHintBar();
+}
+function whoTag(who){
+  var p=PEOPLE[who]||PEOPLE.narr;
+  return '<div class="who" style="--c:'+p.color+'"><span class="face">'+p.face+'</span><span>'+(p.name||who)+'</span></div>';
+}
+function showLine(line,onNext,label){
+  var who=line[0], text=line[1];
+  dlg.innerHTML=whoTag(who)+'<div class="card"><div class="line">'+sayBtn(text,who)+'<p data-sid="'+sidOf(text,who)+'">'+esc(text)+'</p></div>'+
+    '<div class="row"><button class="btn primary" id="dNext">'+label+'</button></div></div>';
+  $('#dNext').onclick=function(){ SFX.tap(); onNext(); };
+  autoSay(text,who,dlg);
+  var k = who==='you' ? player : kidByName(who);
+  if(k) k.userData.anim.talk=1.6;
+}
+function playLines(lines,done){
+  var i=0;
+  (function step(){
+    if(i>=lines.length){ done(); return; }
+    var l=lines[i++]; showLine(l,step,i>=lines.length?'繼續 ▶':'下一句 ▶');
+  })();
+}
+
+function startScenario(sc){
+  openDialog(sc);
+  SFX.pop();
+  playLines(sc.intro,function(){ showChoices(sc); });
+}
+
+function showChoices(sc){
+  var prompt = state.firstChoice ? '你會點做？每個選擇旁邊都有小喇叭，撳一下就可以聽。唔肯定嘅話，可以先用偵探眼鏡睇穿個陷阱。諗清楚，先撳「揀呢個」！' : '你會點做？諗清楚先揀呀！';
+  state.firstChoice=false;
+  var html=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(prompt,'narr')+'<p class="q">你會點做？</p>'+
+    '<button class="btn spy" id="dHint">🕶️ 睇穿陷阱</button></div><div id="hintBox"></div><div class="choices">';
+  sc.order.forEach(function(ci,k){
+    var c=sc.choices[ci], tried=sc.tried.indexOf(ci)>=0, sid=sidOf(c.t,'you');
+    html+='<div class="choice'+(tried?' tried':'')+'"><span class="letter">'+'ABC'[k]+'</span>'+
+      '<button class="spk sm" data-sid="'+sid+'" aria-label="讀出嚟">🔊</button>'+
+      '<p class="ctext" data-sid="'+sid+'">'+esc(c.t)+'</p>'+
+      '<button class="btn go" data-ci="'+ci+'"'+(tried?' disabled':'')+'>'+(tried?'試過喇':'揀呢個 ✔')+'</button></div>';
+  });
+  html+='</div></div>';
+  dlg.innerHTML=html;
+  autoSay(prompt,'narr',dlg.querySelector('.line'));
+  $('#dHint').onclick=function(){ showHint(sc); };
+  Array.prototype.forEach.call(dlg.querySelectorAll('[data-ci]'),function(b){
+    b.onclick=function(){ SFX.tap(); pickChoice(sc,+b.getAttribute('data-ci')); };
+  });
+  if(state.glasses) showHint(sc,true);
+}
+function showHint(sc,silent){
+  setGlasses(true,true);
+  var text='你睇穿咗！呢度匿埋咗一隻'+sc.monster+'。'+sc.hint;
+  var box=$('#hintBox'); if(!box) return;
+  box.innerHTML='<div class="hint">'+sayBtn(text,'narr','sm')+'<p>🔍 你睇穿咗：<b>'+sc.monster+'</b>！<br>'+esc(sc.hint)+'</p></div>';
+  var hb=$('#dHint'); if(hb) hb.classList.add('hidden');
+  if(!silent){ SFX.magic(); autoSay(text,'narr',box); }
+}
+function pickChoice(sc,ci){
+  var c=sc.choices[ci];
+  if(c.g!=='wise' && sc.tried.indexOf(ci)<0) sc.tried.push(ci);
+  playLines([['you',c.say||c.t]].concat(c.reply),function(){ showResult(sc,c); });
+}
+function showResult(sc,c){
+  var head={wise:'🌟 好有智慧！',ok:'🙂 都唔錯，不過……',trap:'😵 中咗陷阱！'}[c.g];
+  var speakText=head+c.why+(c.g==='wise'?'':(c.g==='ok'?'再試下搵個更聰明嘅方法啦！':'唔緊要，再諗多次！'));
+  var npc=sc.kid3d, mon=sc.monster3d, linked=EXTRAS.filter(function(e){ return e.link===sc.id; });
+  if(c.g==='wise'){
+    SFX.good(); setMood(npc,'happy'); npc.userData.anim.cheer=1.3; player.userData.anim.cheer=1.3;
+    linked.forEach(function(e){ setMood(e.kid3d,'happy'); e.kid3d.userData.anim.cheer=1.3; });
+  } else if(c.g==='trap'){
+    SFX.bad(); mon.userData.laugh=2.2;
+    linked.forEach(function(e){ setMood(e.kid3d,'sad'); });
+    if(sc.id==='dare'||sc.id==='copy'||sc.id==='blame'||sc.id==='deal') setMood(player,'sad');
+  } else { SFX.pop(); mon.userData.laugh=1; }
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="result '+c.g+'">'+sayBtn(speakText,'narr')+
+    '<div><h3>'+head+'</h3><p>'+esc(c.why)+'</p></div></div>'+
+    '<div class="row">'+(c.g==='wise'
+      ? '<button class="btn primary" id="dNext">繼續 ▶</button>'
+      : '<button class="btn primary" id="dNext">🔄 '+(c.g==='ok'?'試下更好嘅方法':'再諗多次')+'</button>')+'</div></div>';
+  autoSay(speakText,'narr',dlg);
+  $('#dNext').onclick=function(){
+    SFX.tap(); setMood(player,'happy');
+    if(c.g==='wise'){ if(sc.feel) showFeel(sc); else showTip(sc); }
+    else { linked.forEach(function(e){ setMood(e.kid3d,e.mood); }); showChoices(sc); }
+  };
+}
+function showFeel(sc){
+  var f=sc.feel, q='換位思考：'+f.q+'撳一個表情。';
+  var html=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(q,'narr')+'<p class="q">💭 換位思考：'+esc(f.q)+'</p></div>'+
+    '<div class="feel">'+f.opts.map(function(o,i){ return '<button data-f="'+i+'"><span>'+o[0]+'</span>'+o[1]+'</button>'; }).join('')+'</div>'+
+    '<div id="feelRes"></div><div class="row"><button class="btn primary hidden" id="dNext">繼續 ▶</button></div></div>';
+  dlg.innerHTML=html;
+  autoSay(q,'narr',dlg);
+  Array.prototype.forEach.call(dlg.querySelectorAll('[data-f]'),function(b){
+    b.onclick=function(){
+      var i=+b.getAttribute('data-f'), good=f.ok.indexOf(i)>=0, msg=f.opts[i][1]+'。'+(good?f.yes:f.no);
+      b.classList.add(good?'yes':'no');
+      if(good){ SFX.good(); } else { SFX.pop(); }
+      $('#feelRes').innerHTML='<div class="result '+(good?'wise':'ok')+'" style="margin-top:12px">'+sayBtn(msg,'narr','sm')+'<div><p>'+esc(good?f.yes:f.no)+'</p></div></div>';
+      autoSay(msg,'narr',$('#feelRes'));
+      if(good){
+        Array.prototype.forEach.call(dlg.querySelectorAll('[data-f]'),function(x){ x.disabled=true; });
+        var n=$('#dNext'); n.classList.remove('hidden'); n.onclick=function(){ SFX.tap(); showTip(sc); };
+      }
+    };
+  });
+}
+function showTip(sc){
+  var text='智慧錦囊：'+sc.tip;
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="tipcard">'+sayBtn(text,'narr')+'<div><h3>🎒 智慧錦囊</h3><p>'+esc(sc.tip)+'</p></div></div>'+
+    '<div class="row"><button class="btn go" id="dNext">收埋錦囊 ✨</button></div></div>';
+  SFX.magic();
+  autoSay(text,'narr',dlg);
+  $('#dNext').onclick=function(){ completeScenario(sc); };
+}
+function completeScenario(sc){
+  var stars=Math.max(1,3-sc.tried.length);
+  sc.done=true; sc.stars=stars; state.stars+=stars;
+  closeDialog();
+  var mon=sc.monster3d; mon.userData.dying=1; mon.userData.dead=true;
+  burst(mon.position,sc.mcolor,34); SFX.star();
+  flyStars(mon.position,stars);
+  sc.marker.material.map=TEX_DONE; sc.marker.material.needsUpdate=true;
+  setMood(sc.kid3d,'happy');
+  EXTRAS.forEach(function(e){ if(e.link===sc.id){ setMood(e.kid3d,'happy'); e.kid3d.userData.anim.cheer=1.5; } });
+  var f=document.createElement('div'); f.className='fly'; f.textContent='+'+stars+' ⭐'; document.body.appendChild(f);
+  setTimeout(function(){ f.remove(); },1700);
+  setTimeout(renderHud,1200);
+  var left=SCENES.filter(function(s){ return !s.done; }).length;
+  setTimeout(function(){
+    if(!left){ showEnd(); return; }
+    toast('narr','你拆解咗'+sc.monster+'，攞到'+stars+'粒智慧星！仲有'+left+'隻陷阱怪，繼續加油！');
+  },1500);
+}
+
+/* ---------- 小提示 toast ---------- */
+var toastTimer=null;
+function toast(who,text){
+  var p=PEOPLE[who]||PEOPLE.narr, el=$('#toast');
+  el.innerHTML='<div class="toast-in"><span class="tf" style="background:'+p.color+'">'+p.face+'</span><div><b>'+(p.name||who)+'</b><p>'+esc(text)+'</p></div>'+sayBtn(text,who,'sm')+'</div>';
+  el.classList.add('show');
+  autoSay(text,who,el);
+  var k=kidByName(who); if(k) k.userData.anim.talk=1.6;
+  clearTimeout(toastTimer); toastTimer=setTimeout(hideToast,Math.max(5000,text.length*260));
+}
+function hideToast(){ $('#toast').classList.remove('show'); }
+
+/* ---------- 眼鏡 / 錦囊簿 / 結局 ---------- */
+function setGlasses(on,quiet){
+  if(state.glasses===on) return;
+  state.glasses=on; document.body.classList.toggle('glasses',on);
+  $('#bGlass').classList.toggle('on',on);
+  if(glassesMesh) glassesMesh.visible=on;
+  if(!quiet){
+    SFX.magic();
+    toast('narr', on ? '戴咗偵探眼鏡！而家你可以睇到陷阱怪匿喺邊，佢哋就喺啲同學身邊。' : '除咗偵探眼鏡。');
+  }
+}
+function renderBook(){
+  var rules=RULES.map(function(r){ return '<div class="rule"><span class="big">'+r[0]+'</span><b>'+r[1]+'</b><p>'+r[2]+'</p>'+sayBtn(r[1]+'：'+r[2],'narr','sm')+'</div>'; }).join('');
+  var tips=SCENES.map(function(s){
+    var hex='#'+('000000'+s.mcolor.toString(16)).slice(-6);
+    if(!s.done) return '<div class="tip locked"><span class="m" style="--m:#ccc">？</span><div><b>未解鎖</b><p>拆解咗陷阱怪之後，錦囊就會出現喺度。</p></div></div>';
+    return '<div class="tip"><span class="m" style="--m:'+hex+';color:#fff">'+'★'.repeat(s.stars)+'</span><div><b>'+s.title+'．'+s.monster+'</b><p>'+esc(s.tip)+'</p></div>'+sayBtn(s.title+'。'+s.tip,'narr','sm')+'</div>';
+  }).join('');
+  var intro='智慧錦囊簿。面對人際陷阱，記住四招：停一停、諗一諗、講出嚟、搵幫手。';
+  $('#bookPanel').innerHTML='<div class="bookhead">'+sayBtn(intro,'narr')+'<h2>📒 智慧錦囊簿</h2><button class="xbtn" id="bClose" aria-label="關閉">✕</button></div>'+
+    '<div class="rules">'+rules+'</div><div class="tips">'+tips+'</div>';
+  $('#bClose').onclick=function(){ SFX.tap(); Speech.stop(); $('#sBook').classList.add('hidden'); state.modal=false; };
+  return intro;
+}
+function openBook(){
+  state.modal=true; var intro=renderBook(); $('#sBook').classList.remove('hidden');
+  autoSay(intro,'narr',$('#bookPanel .bookhead'));
+}
+function showEnd(){
+  var total=SCENES.length*3, s=state.stars;
+  var medal = s>=19 ? ['🥇','金牌智慧小偵探','#ffd23f'] : s>=14 ? ['🥈','銀牌智慧小偵探','#e0e6ef'] : ['🥉','銅牌智慧小偵探','#f0b27a'];
+  var text='恭喜你！你拆解咗全部七隻人際陷阱怪，攞到'+s+'粒智慧星，成為咗'+medal[1]+'！以後遇到人際陷阱，記住四招：停一停、諗一諗、講出嚟、搵幫手。你一定可以好似今日咁，用智慧幫到自己，亦幫到身邊嘅朋友！';
+  state.modal=true;
+  $('#endPanel').innerHTML='<h1 class="title" style="font-size:clamp(34px,6vw,56px)">任務完成！</h1>'+
+    '<div class="medal" style="background:'+medal[2]+'">'+medal[0]+'</div>'+
+    '<p class="subtitle">'+medal[1]+'．⭐ '+s+' / '+total+'</p>'+
+    '<div class="endtxt">'+sayBtn(text,'narr')+'<p>'+esc(text)+'</p></div>'+
+    '<div class="btnrow"><button class="btn" id="eBook">📒 睇錦囊簿</button><button class="btn primary" id="eAgain">🔄 再玩一次</button></div>';
+  $('#sEnd').classList.remove('hidden');
+  if(player) confetti(player.position,160);
+  SFX.good(); setTimeout(function(){ SFX.star(); },500);
+  autoSay(text,'narr',$('#endPanel .endtxt'));
+  $('#eBook').onclick=function(){ SFX.tap(); $('#sEnd').classList.add('hidden'); openBook(); };
+  $('#eAgain').onclick=function(){ SFX.tap(); resetGame(); };
+}
+function resetGame(){
+  Speech.stop();
+  SCENES.forEach(function(sc){
+    sc.done=false; sc.tried=[]; sc.stars=0; sc.order=[0,1,2].sort(function(){ return Math.random()-0.5; });
+    sc.marker.material.map=TEX_EXCL; sc.marker.material.needsUpdate=true;
+    var m=sc.monster3d; m.userData.dead=false; m.userData.dying=0; m.userData.vis=0; m.scale.setScalar(1);
+    setMood(sc.kid3d,'happy');
+  });
+  EXTRAS.forEach(function(e){ setMood(e.kid3d,e.mood); });
+  state.stars=0; state.firstChoice=true; state.modal=false;
+  $('#sEnd').classList.add('hidden'); $('#sBook').classList.add('hidden');
+  setGlasses(false,true);
+  player.position.set(0,0,6); state.target=null; state.pending=null;
+  renderHud(); showHintBar();
+  toast('narr','新一輪冒險開始！陷阱怪又返嚟喇，快啲去搵佢哋！');
+}
+
+/* ---------- HUD 按鈕 ---------- */
+$('#bGlass').onclick=function(){ setGlasses(!state.glasses); };
+$('#bBook').onclick=function(){ if(state.dialog) return; SFX.tap(); openBook(); };
+$('#bAuto').onclick=function(){
+  Speech.auto=!Speech.auto; $('#bAuto small').textContent='自動讀：'+(Speech.auto?'開':'關'); SFX.tap();
+  if(Speech.auto) Speech.speak('自動讀出已經開咗。每句說話都會自動讀出嚟。','narr'); else Speech.speak('自動讀出已經關咗。想聽嘅話，可以撳小喇叭。','narr');
+};
+$('#bHelp').onclick=function(){ if(state.dialog||state.modal) return; SFX.tap(); openDialog(null); playLines(TUTORIAL,closeDialog); };
+
+/* =====================================================================
+   點擊 / 移動
+   ===================================================================== */
+var raycaster=new THREE.Raycaster(), ndc=new THREE.Vector2(), downPt=null;
+canvas.addEventListener('pointerdown',function(e){ downPt={x:e.clientX,y:e.clientY}; });
+canvas.addEventListener('pointerup',function(e){
+  if(!downPt) return; var d=Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y); downPt=null;
+  if(d>14) return; handleTap(e.clientX,e.clientY);
+});
+function handleTap(x,y){
+  if(!state.started||state.dialog||state.modal||!player) return;
+  SFX.init();
+  ndc.set(x/window.innerWidth*2-1,-(y/window.innerHeight)*2+1);
+  raycaster.setFromCamera(ndc,camera);
+  var hits=raycaster.intersectObjects(pickables,false);
+  if(!hits.length) return;
+  var h=hits[0], ud=h.object.userData;
+  if(ud.scene){
+    var sc=ud.scene;
+    if(sc.done){ faceTo(sc.kid3d,player.position); toast(sc.npc,sc.thanks); return; }
+    var np=sc.kid3d.position, side=(player.position.x>=np.x)?1:-1;
+    var tgt=new V3(np.x+side*1.7,0,np.z+0.35);
+    if(Math.abs(tgt.x)>22.5) tgt.x=np.x-side*1.7;
+    moveTo(tgt,sc); SFX.tap(); return;
+  }
+  if(ud.extra){
+    var ex=ud.extra, linked=SCENES.filter(function(s){ return s.id===ex.link; })[0];
+    faceTo(ex.kid3d,player.position);
+    toast(ex.name, linked&&linked.done?ex.after:ex.before); SFX.tap(); return;
+  }
+  if(ud.ground){ moveTo(h.point.clone(),null); ring.position.set(h.point.x,0.05,h.point.z); ringT=0.6; SFX.tap(); }
+}
+function clampPos(p){ p.x=Math.max(-22.5,Math.min(22.5,p.x)); p.z=Math.max(-18.5,Math.min(22.5,p.z)); p.y=0; return p; }
+function moveTo(p,sc){ state.target=clampPos(p); state.pending=sc; }
+
+window.addEventListener('keydown',function(e){
+  state.keys[e.key.toLowerCase()]=true;
+  if((e.key==='Enter'||e.key===' ') && state.dialog){ var n=$('#dNext'); if(n && !n.classList.contains('hidden')){ e.preventDefault(); n.click(); } }
+});
+window.addEventListener('keyup',function(e){ state.keys[e.key.toLowerCase()]=false; });
+
+/* =====================================================================
+   主迴圈
+   ===================================================================== */
+var camPos=new V3(0,16,30), camLook=new V3(0,1,-2), clock=new THREE.Clock(), tmp=new V3();
+function update(dt,t){
+  // 玩家移動
+  if(player && state.started){
+    var a=player.userData.anim, K=state.keys, kx=0, kz=0;
+    if(!state.dialog && !state.modal){
+      if(K['arrowleft']||K['a']) kx-=1; if(K['arrowright']||K['d']) kx+=1;
+      if(K['arrowup']||K['w']) kz-=1; if(K['arrowdown']||K['s']) kz+=1;
+    }
+    if(kx||kz){
+      state.target=null; state.pending=null;
+      var len=Math.hypot(kx,kz); player.position.x+=kx/len*5.5*dt; player.position.z+=kz/len*5.5*dt; clampPos(player.position);
+      a.ry=Math.atan2(kx,kz); a.walking=true;
+    } else if(state.target){
+      var dx=state.target.x-player.position.x, dz=state.target.z-player.position.z, dist=Math.hypot(dx,dz);
+      if(dist>0.08){
+        var step=Math.min(dist,5.5*dt); player.position.x+=dx/dist*step; player.position.z+=dz/dist*step;
+        a.ry=Math.atan2(dx,dz); a.walking=true;
+      } else {
+        state.target=null; a.walking=false;
+        if(state.pending){ var sc=state.pending; state.pending=null; startScenario(sc); }
+      }
+    } else a.walking=false;
+    animKid(player,dt,t);
+  }
+  SCENES.forEach(function(sc){
+    var k=sc.kid3d; animKid(k,dt,t);
+    sc.marker.position.y=3.3+Math.sin(t*3+k.userData.anim.seed)*0.12;
+    // 陷阱怪
+    var m=sc.monster3d, u=m.userData;
+    if(u.dying>0){
+      u.dying-=dt*1.6; var s=Math.max(0,u.dying);
+      m.scale.setScalar(s*1.3); m.rotation.y+=dt*14;
+      if(u.dying<=0) m.visible=false;
+      return;
+    }
+    if(u.dead){ m.visible=false; return; }
+    var want=state.glasses?1:0;
+    u.vis+=(want-u.vis)*Math.min(1,dt*4);
+    m.visible=u.vis>0.02;
+    if(!m.visible) return;
+    u.mats.forEach(function(mm){ mm.opacity=u.vis*0.92; });
+    u.label.material.opacity=u.vis;
+    var lx=k.position.x+0.95, lz=k.position.z-0.5;
+    var bob=Math.sin(t*2.4+k.userData.anim.seed)*0.15;
+    var sc2=1;
+    if(u.laugh>0){ u.laugh-=dt; sc2=1.35+Math.sin(t*20)*0.12; bob+=Math.abs(Math.sin(t*14))*0.3; }
+    m.scale.setScalar(m.scale.x+(sc2-m.scale.x)*Math.min(1,dt*6));
+    m.position.set(lx,2.25+bob,lz);
+    if(player){ tmp.copy(player.position); m.rotation.y=Math.atan2(tmp.x-m.position.x,tmp.z-m.position.z); }
+  });
+  EXTRAS.forEach(function(ex){ animKid(ex.kid3d,dt,t); });
+
+  // 特效
+  for(var i=FX.length-1;i>=0;i--){
+    var f=FX[i]; f.life-=dt;
+    f.v.y-=f.g*dt; f.v.multiplyScalar(f.drag); f.m.position.addScaledVector(f.v,dt);
+    f.m.rotation.x+=dt*(f.spin?4:6); f.m.rotation.y+=dt*3;
+    f.m.material.opacity=Math.min(1,f.life/f.max*2);
+    if(f.life<=0){ scene.remove(f.m); f.m.material.dispose(); FX.splice(i,1); }
+  }
+  for(var j=flyers.length-1;j>=0;j--){
+    var fl=flyers[j]; fl.t+=dt;
+    if(fl.t<0){ fl.m.visible=false; continue; } fl.m.visible=true;
+    var p=Math.min(1,fl.t/fl.dur), to=player?player.position.clone().add(new V3(0,1.8,0)):fl.from;
+    var mid=fl.from.clone().lerp(to,0.5).add(new V3(fl.side,3,0));
+    var q=1-p; fl.m.position.set(
+      q*q*fl.from.x+2*q*p*mid.x+p*p*to.x, q*q*fl.from.y+2*q*p*mid.y+p*p*to.y, q*q*fl.from.z+2*q*p*mid.z+p*p*to.z);
+    fl.m.rotation.y+=dt*10; fl.m.scale.setScalar(1-p*0.5);
+    if(p>=1){ scene.remove(fl.m); flyers.splice(j,1); SFX.tone(1320,0.1,'sine',0.05); }
+  }
+  if(ringT>0){ ringT-=dt; var rs=1+(0.6-ringT)*1.8; ring.scale.set(rs,rs,rs); ring.material.opacity=Math.max(0,ringT/0.6); }
+  clouds.forEach(function(c){ c.position.x+=c.userData.v*dt; if(c.position.x>60) c.position.x=-60; });
+
+  // 鏡頭
+  var look,pos,port=camera.aspect<0.85;
+  if(!state.started){ var ang=t*0.07; look=new V3(0,1,-2); pos=new V3(Math.sin(ang)*30,15,Math.cos(ang)*30); }
+  else if(state.focus){ look=state.focus.clone(); pos=look.clone().add(new V3(0,port?4.9:3.7,port?11.8:8.4)); }
+  else { look=player.position.clone().add(new V3(0,1,0)); pos=look.clone().add(port?new V3(0,15,16):new V3(0,11,12.5)); }
+  var kk=1-Math.exp(-dt*(state.started?3.2:1.2));
+  camPos.lerp(pos,kk); camLook.lerp(look,kk);
+  camera.position.copy(camPos); camera.lookAt(camLook);
+}
+function loop(){
+  requestAnimationFrame(loop);
+  var dt=Math.min(0.05,clock.getDelta()), t=clock.elapsedTime;
+  update(dt,t);
+  renderer.render(scene,camera);
+}
+function onResize(){
+  camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth,window.innerHeight);
+}
+window.addEventListener('resize',onResize);
+window.addEventListener('orientationchange',function(){ setTimeout(onResize,300); });
+document.addEventListener('visibilitychange',function(){ if(document.hidden) Speech.stop(); });
+
+renderStart();
+Speech.init();
+loop();
+})();
+</script>
+</body>
+</html>
