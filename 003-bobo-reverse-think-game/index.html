@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#58B4FF">
+<title>波波倒帶大冒險:逆向思維遊戲</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Noto+Sans+HK:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --line:#23255C; --text:#23255C; --muted:#50548F;
+  --panel:#FFFFFF; --panel-2:#EEF6FF; --bg:#A9DBFF;
+  --tang:#FF7A2F; --mint:#10A98F; --sun:#FFC93C; --pink:#FF5D8F; --sky:#3E9BFF; --grape:#7B61FF;
+  --lock:#D3D6EE; --slot:#FFE9A8;
+  --font:"Noto Sans HK","PingFang HK","Heiti TC","Microsoft JhengHei",sans-serif;
+  --num:"Baloo 2","Arial Rounded MT Bold","Noto Sans HK",sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --line:#0B0C2A; --text:#F4F3FF; --muted:#C5C7F2;
+    --panel:#2B2E6B; --panel-2:#222560; --bg:#191B47; --lock:#454A86; --slot:#5A4A1E;
+  }
+}
+:root[data-theme="dark"]{
+  --line:#0B0C2A; --text:#F4F3FF; --muted:#C5C7F2;
+  --panel:#2B2E6B; --panel-2:#222560; --bg:#191B47; --lock:#454A86; --slot:#5A4A1E;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;margin:0;}
+*,*::before,*::after{box-sizing:inherit;}
+body{
+  background:var(--bg); color:var(--text); font-family:var(--font);
+  overflow:hidden; -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; overscroll-behavior:none;
+}
+button{font-family:inherit;color:inherit;touch-action:manipulation;cursor:pointer;-webkit-appearance:none;appearance:none;}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px;}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+
+/* ---------- shared pieces ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.35em;
+  min-height:58px;padding:0 20px;border:3px solid var(--line);border-radius:16px;
+  background:var(--sun);color:#23255C;font-weight:900;font-size:20px;line-height:1.1;
+  box-shadow:0 5px 0 var(--line);transition:transform .06s,box-shadow .06s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line);}
+.btn.go{background:var(--tang);color:#fff;}
+.btn.ghost{background:var(--panel);color:var(--text);}
+.btn.small{min-height:48px;font-size:17px;padding:0 14px;border-radius:14px;box-shadow:0 4px 0 var(--line);}
+.btn.big{min-height:74px;font-size:28px;border-radius:22px;box-shadow:0 7px 0 var(--line);}
+.spk{
+  flex:none;width:54px;height:54px;border-radius:50%;border:3px solid var(--line);
+  background:var(--mint);color:#fff;display:grid;place-items:center;padding:0;position:relative;
+  box-shadow:0 4px 0 var(--line);
+}
+.spk svg{width:28px;height:28px;}
+.spk:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line);}
+.spk.small{width:46px;height:46px;} .spk.small svg{width:23px;height:23px;}
+.spk.talking{background:var(--pink);}
+.spk.talking::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:3px solid var(--pink);animation:ring 1s ease-out infinite;}
+@keyframes ring{from{transform:scale(.8);opacity:1}to{transform:scale(1.35);opacity:0}}
+.say-card{
+  display:flex;gap:14px;align-items:flex-start;background:var(--panel);
+  border:3px solid var(--line);border-radius:22px;padding:12px 16px 12px 12px;
+  box-shadow:0 6px 0 var(--line);font-size:18px;line-height:1.65;font-weight:500;
+}
+.say-card p{margin:2px 0 0;}
+.lbl{font-weight:900;font-size:15px;color:var(--muted);white-space:nowrap;}
+
+#autoBtn{
+  position:fixed;top:0;right:12px;z-index:15;margin-top:calc(env(safe-area-inset-top,0px) + 10px);
+  min-height:52px;font-size:17px;padding:0 14px;background:var(--panel);color:var(--text);
+}
+#autoBtn .dot{width:16px;height:16px;border-radius:50%;background:var(--mint);border:2.5px solid var(--line);}
+#autoBtn .dot.off{background:var(--lock);}
+
+/* ---------- screens ---------- */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;z-index:5;}
+.screen.on{display:flex;}
+
+#home{
+  justify-content:space-between;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 74px) 20px calc(env(safe-area-inset-bottom,0px) + 26px);
+}
+.title{text-align:center;transform:rotate(-3deg);}
+.title .t1,.title .t2{
+  display:block;font-weight:900;line-height:1.08;letter-spacing:.05em;
+  text-shadow:
+    3px 3px 0 var(--line),-3px 3px 0 var(--line),3px -3px 0 var(--line),-3px -3px 0 var(--line),
+    0 4px 0 var(--line),4px 0 0 var(--line),-4px 0 0 var(--line),0 -4px 0 var(--line),
+    0 10px 0 var(--line);
+}
+.title .t1{font-size:clamp(34px,6vw,58px);color:#fff;}
+.title .t2{font-size:clamp(44px,9vw,86px);color:var(--sun);}
+.rew{
+  display:inline-grid;place-items:center;width:1.05em;height:1.05em;vertical-align:-.1em;margin-right:.18em;
+  background:var(--tang);border:4px solid var(--line);border-radius:50%;box-shadow:0 5px 0 var(--line);
+}
+.rew svg{width:62%;height:62%;}
+.tagline{
+  margin-top:18px;display:inline-block;background:var(--panel);border:3px solid var(--line);
+  border-radius:999px;padding:6px 18px;font-weight:700;font-size:clamp(15px,2.2vw,19px);transform:rotate(2deg);
+}
+.home-bottom{width:min(700px,100%);display:flex;flex-direction:column;gap:18px;align-items:stretch;}
+.vnote{display:none;font-size:15px;line-height:1.55;background:#FFF3C4;color:#23255C;border:3px dashed var(--line);border-radius:16px;padding:10px 14px;}
+.vnote.on{display:block;}
+
+#map{
+  overflow-y:auto;-webkit-overflow-scrolling:touch;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 16px calc(env(safe-area-inset-bottom,0px) + 28px);
+  background:linear-gradient(to bottom, rgba(169,219,255,.0), rgba(169,219,255,.35));
+}
+.map-head{width:min(1040px,100%);display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-right:176px;min-height:56px;}
+.map-head h1{margin:0;font-size:28px;font-weight:900;background:var(--panel);border:3px solid var(--line);border-radius:999px;padding:4px 18px;box-shadow:0 4px 0 var(--line);white-space:nowrap;}
+.startotal{font:800 22px var(--num);background:var(--sun);color:#23255C;border:3px solid var(--line);border-radius:999px;padding:4px 14px;box-shadow:0 4px 0 var(--line);white-space:nowrap;}
+.worlds{width:min(1040px,100%);display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:22px;}
+.world{background:var(--panel);border:3px solid var(--line);border-radius:26px;box-shadow:0 8px 0 var(--line);overflow:hidden;}
+.world:nth-child(1){transform:rotate(-1deg);} .world:nth-child(2){transform:rotate(.7deg);} .world:nth-child(3){transform:rotate(-.5deg);}
+.world .band{background:var(--wc);color:#fff;padding:10px 12px 10px 14px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--line);}
+.world .ico{font-size:34px;line-height:1;}
+.world h2{margin:0;font-size:22px;font-weight:900;flex:1;text-shadow:0 2px 0 rgba(35,37,92,.5);}
+.world p{margin:14px 16px 10px;font-size:17px;line-height:1.65;}
+.lvls{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:6px 10px 18px;}
+.lvl{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;padding:4px 0;}
+.lvl .num{width:62px;height:62px;border-radius:50%;border:3px solid var(--line);background:var(--wc);color:#fff;font:800 30px var(--num);display:grid;place-items:center;box-shadow:0 4px 0 var(--line);}
+.lvl:active .num{transform:translateY(3px);box-shadow:0 1px 0 var(--line);}
+.lvl.locked .num{background:var(--lock);color:var(--muted);}
+.lvl .num svg{width:26px;height:26px;}
+.lvl .st{font-size:15px;letter-spacing:1px;line-height:1;}
+.lvl .lname{font-size:13px;font-weight:700;color:var(--muted);text-align:center;line-height:1.25;}
+.s-on{color:#F5A800;} .s-off{color:var(--lock);}
+
+/* ---------- in-level HUD ---------- */
+#hud{position:fixed;inset:0;pointer-events:none;display:none;z-index:6;}
+#hud.on{display:block;}
+#topbar{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 176px 0 12px;display:flex;align-items:center;gap:10px;}
+#topbar > *{pointer-events:auto;}
+#lvlTitle{font-weight:900;font-size:19px;background:var(--panel);border:3px solid var(--line);border-radius:999px;padding:9px 16px;box-shadow:0 4px 0 var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+#card{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);width:min(820px,calc(100% - 24px));pointer-events:auto;font-size:16.5px;line-height:1.6;padding:10px 14px 10px 10px;}
+#panel{position:absolute;left:50%;transform:translateX(-50%);bottom:0;width:min(960px,100%);padding:0 12px calc(env(safe-area-inset-bottom,0px) + 12px);display:flex;flex-direction:column;gap:12px;}
+#panel > *{pointer-events:auto;}
+#bubble{display:flex;gap:12px;align-items:center;background:var(--panel);border:3px solid var(--line);border-radius:20px;padding:8px 10px 8px 12px;box-shadow:0 5px 0 var(--line);font-size:18px;font-weight:700;line-height:1.5;min-height:66px;}
+#bubble .face{width:44px;height:44px;flex:none;}
+#bubbleText{flex:1;min-width:0;}
+#bubble.bump{animation:bump .35s ease;}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.025)}100%{transform:scale(1)}}
+#ctrl{background:var(--panel-2);border:3px solid var(--line);border-radius:22px;padding:12px;box-shadow:0 6px 0 var(--line);}
+#ctrl.locked button:not(.spk){opacity:.5;pointer-events:none;}
+
+/* path world */
+.rec{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0;}
+.chip{display:inline-flex;align-items:center;gap:3px;background:var(--panel);border:2.5px solid var(--line);border-radius:12px;padding:0 8px 0 6px;height:42px;color:var(--tang);}
+.chip i{font:800 15px var(--num);font-style:normal;color:var(--muted);}
+.chip svg{width:26px;height:26px;}
+.chip.flash{animation:flash .45s ease 3;}
+@keyframes flash{50%{background:var(--sun);transform:translateY(-4px);}}
+.play{display:flex;gap:14px;align-items:center;}
+.dpad{display:grid;grid-template-columns:repeat(3,60px);grid-template-rows:repeat(2,60px);gap:6px;flex:none;}
+.dpad button{border:3px solid var(--line);border-radius:15px;background:var(--sky);color:#fff;box-shadow:0 4px 0 var(--line);display:grid;place-items:center;padding:0;}
+.dpad button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line);}
+.dpad button svg{width:34px;height:34px;}
+.dpad [data-d=U]{grid-column:2;grid-row:1;} .dpad [data-d=L]{grid-column:1;grid-row:2;}
+.dpad [data-d=D]{grid-column:2;grid-row:2;} .dpad [data-d=R]{grid-column:3;grid-row:2;}
+.planbox{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;}
+.planhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.planhead .lbl{flex:1;}
+.slots{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px;}
+.slot{width:48px;height:48px;border-radius:12px;border:3px dashed var(--muted);display:grid;place-items:center;background:var(--panel);position:relative;color:var(--tang);}
+.slot svg{width:30px;height:30px;}
+.slot.filled{border-style:solid;border-color:var(--line);background:var(--slot);}
+.slot.next{border-color:var(--tang);border-style:solid;box-shadow:0 0 0 4px rgba(255,122,47,.3);}
+.slot.run{background:var(--tang);color:#fff;}
+.slot i{position:absolute;top:-9px;left:-7px;font:800 12px var(--num);background:var(--line);color:#fff;border-radius:8px;padding:0 5px;font-style:normal;line-height:18px;}
+.acts{display:flex;flex-direction:column;gap:12px;flex:none;}
+
+/* machine world */
+.eqrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.eqlog{display:flex;gap:8px;flex-wrap:wrap;flex:1;min-width:0;align-items:center;min-height:42px;}
+.eq{font:800 20px var(--num);background:var(--panel);border:2.5px solid var(--line);border-radius:12px;padding:2px 12px;line-height:34px;}
+.eq.ok{background:#C9F5E7;color:#23255C;}
+.eq.empty{font:700 15px var(--font);color:var(--muted);border-style:dashed;}
+.optrow{display:flex;gap:12px;align-items:stretch;}
+.opts{display:flex;gap:12px;flex:1;}
+.opt{flex:1;min-height:76px;font:800 38px var(--num);padding:0 8px;}
+.opt.wrong{animation:shake .4s;background:var(--lock);}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.optrow .btn.small{min-height:76px;}
+
+/* maze world */
+.mazerow{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap;}
+.doors{display:flex;gap:12px;flex:3;min-width:260px;}
+.door{flex:1;min-height:76px;font-size:24px;color:#fff;}
+.mtools{display:flex;gap:10px;flex:2;min-width:220px;}
+.mtools .btn{flex:1;min-height:76px;}
+
+/* modal */
+#modal{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(20,22,60,.5);padding:20px;}
+#modal.on{display:grid;}
+.sheet{width:min(560px,100%);background:var(--panel);border:4px solid var(--line);border-radius:30px;box-shadow:0 10px 0 var(--line);padding:22px 22px 26px;text-align:center;animation:pop .4s cubic-bezier(.2,1.6,.4,1);}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+.bigstars{font-size:66px;letter-spacing:8px;line-height:1.1;}
+.bigstars .s-on{text-shadow:0 4px 0 var(--line);}
+.sheet h2{font-size:36px;margin:6px 0 12px;font-weight:900;}
+.sheet .say-card{box-shadow:none;text-align:left;}
+.sheet .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+
+#nothree{position:fixed;inset:0;display:none;place-items:center;padding:30px;text-align:center;font-size:20px;line-height:1.6;z-index:30;background:var(--bg);}
+
+@media (max-width:700px){
+  .play{flex-wrap:wrap;justify-content:center;}
+  .acts{flex-direction:row;width:100%;} .acts .btn{flex:1;}
+  #autoBtn .txt{display:none;}
+  #topbar{padding-right:84px;} .map-head{padding-right:84px;}
+  .opt{font-size:30px;}
+}
+@media (max-height:720px) and (min-width:701px){
+  #card{font-size:15px;line-height:1.5;}
+  .say-card .spk{width:46px;height:46px;}
+}
+@media (prefers-reduced-motion: reduce){
+  .spk.talking::after,.chip.flash,#bubble.bump,.sheet,.opt.wrong{animation:none;}
+}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="遊戲畫面"></canvas>
+
+<button id="autoBtn" class="btn ghost small" type="button" aria-pressed="true"></button>
+
+<section id="home" class="screen" aria-label="主頁">
+  <div class="title">
+    <span class="t1">機械人波波</span>
+    <span class="t2"><span class="rew" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M11 6 3 12l8 6zM21 6l-8 6 8 6z" fill="#fff" stroke="#23255C" stroke-width="1.6" stroke-linejoin="round"/></svg></span>倒帶大冒險</span>
+    <div class="tagline">由結果開始,倒轉諗返轉頭</div>
+  </div>
+  <div class="home-bottom">
+    <div class="say-card" id="introCard"><p id="introText"></p></div>
+    <div class="vnote" id="vnote"></div>
+    <button class="btn big go" id="btnStart" type="button">▶ 開始冒險</button>
+  </div>
+</section>
+
+<section id="map" class="screen" aria-label="揀關卡">
+  <div class="map-head">
+    <button class="btn ghost small" id="btnMapHome" type="button">🏠 主頁</button>
+    <h1>揀關卡</h1>
+    <span class="startotal" id="starTotal"></span>
+    <span id="mapSpk"></span>
+  </div>
+  <div class="worlds" id="worlds"></div>
+</section>
+
+<div id="hud">
+  <div id="topbar">
+    <button class="btn ghost small" id="btnBack" type="button">🗺 地圖</button>
+    <button class="btn ghost small" id="btnRetry" type="button" aria-label="重新開始呢一關">↻</button>
+    <div id="lvlTitle"></div>
+  </div>
+  <div id="card" class="say-card"><p id="cardText"></p></div>
+  <div id="panel">
+    <div id="bubble">
+      <svg class="face" viewBox="0 0 40 40" aria-hidden="true"><line x1="20" y1="10" x2="20" y2="4.5" stroke="#23255C" stroke-width="3"/><circle cx="20" cy="4.5" r="3.2" fill="#FF5D8F" stroke="#23255C" stroke-width="2"/><rect x="4" y="10" width="32" height="24" rx="7" fill="#10A98F" stroke="#23255C" stroke-width="3"/><rect x="9" y="15" width="22" height="14" rx="4" fill="#23255C"/><circle cx="15" cy="21" r="2.7" fill="#9FF7FF"/><circle cx="25" cy="21" r="2.7" fill="#9FF7FF"/><path d="M16.5 25.2q3.5 2.6 7 0" stroke="#FF5D8F" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <div id="bubbleText"></div>
+    </div>
+    <div id="ctrl"></div>
+  </div>
+</div>
+
+<div id="modal" role="dialog" aria-modal="true"></div>
+<div id="nothree">遊戲載入唔到 3D 引擎,請檢查網絡之後重新整理頁面。</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+if(typeof THREE==='undefined'){ document.getElementById('nothree').style.display='grid'; return; }
+
+/* =========================================================
+   Helpers
+   ========================================================= */
+const $=s=>document.querySelector(s);
+function h(tag,attrs){
+  const e=document.createElement(tag); attrs=attrs||{};
+  for(const k in attrs){ const v=attrs[k];
+    if(k==='class') e.className=v; else if(k==='html') e.innerHTML=v; else if(k==='style') e.setAttribute('style',v);
+    else if(k.slice(0,2)==='on') e.addEventListener(k.slice(2),v);
+    else if(v!==false&&v!=null) e.setAttribute(k,v===true?'':v); }
+  for(let i=2;i<arguments.length;i++){ const kid=arguments[i]; const list=Array.isArray(kid)?kid:[kid];
+    list.forEach(kd=>{ if(kd==null||kd===false) return; e.append(kd.nodeType?kd:document.createTextNode(String(kd))); }); }
+  return e;
+}
+const shuffle=a=>{ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=a[i]; a[i]=a[j]; a[j]=t; } return a; };
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+const SPK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>';
+const LOCK_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2.5" fill="currentColor"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" fill="none" stroke="currentColor" stroke-width="2.6"/></svg>';
+const ROT={U:0,R:90,D:180,L:270};
+const arrowSvg=d=>'<svg viewBox="0 0 24 24" style="transform:rotate('+ROT[d]+'deg)" aria-hidden="true"><path d="M12 3.5 20.5 12.5H15.2V20.5H8.8V12.5H3.5Z" fill="currentColor" stroke="#23255C" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+const starsHtml=(n,total)=>{ total=total||3; let s=''; for(let i=0;i<total;i++) s+='<span class="'+(i<n?'s-on':'s-off')+'">★</span>'; return s; };
+
+/* =========================================================
+   Save data
+   ========================================================= */
+const SAVE='bobo-rewind-v1';
+const prog={stars:{path:[0,0,0,0],machine:[0,0,0,0],maze:[0,0,0,0]},auto:true};
+try{
+  const s=JSON.parse(localStorage.getItem(SAVE)||'null');
+  if(s&&s.stars){ for(const k in prog.stars){ if(Array.isArray(s.stars[k])) prog.stars[k]=prog.stars[k].map((v,i)=>Math.min(3,Math.max(0,+s.stars[k][i]||0))); } }
+  if(s&&typeof s.auto==='boolean') prog.auto=s.auto;
+}catch(e){}
+function save(){ try{ localStorage.setItem(SAVE,JSON.stringify(prog)); }catch(e){} }
+
+/* =========================================================
+   Cantonese speech (Web Speech API, zh-HK)
+   ========================================================= */
+const Speech=(function(){
+  const synth=window.speechSynthesis||null;
+  let voice=null, kind='none', talking=false, unlocked=false, gen=0, delayUntil=0, cb=function(){};
+  function pick(){
+    if(!synth) return;
+    const vs=synth.getVoices()||[];
+    const L=v=>(v.lang||'').toLowerCase().replace(/_/g,'-');
+    let v=vs.find(v=>L(v)==='zh-hk')||vs.find(v=>L(v).indexOf('yue')===0)||vs.find(v=>/cantonese|粵|粤|hong ?kong|香港/i.test(v.name));
+    if(v){ voice=v; kind='yue'; }
+    else { v=vs.find(v=>L(v)==='zh-tw')||vs.find(v=>L(v).indexOf('zh')===0)||vs.find(v=>L(v).indexOf('cmn')===0); voice=v||null; kind=v?'zh':'none'; }
+    cb();
+  }
+  function clearMarks(){ document.querySelectorAll('.spk.talking').forEach(b=>b.classList.remove('talking')); }
+  function split(t){ return (String(t).match(/[^。!?!?;;]+[。!?!?;;]*/g)||[String(t)]).map(s=>s.trim()).filter(Boolean); }
+  function speak(text,btn,opt){
+    opt=opt||{};
+    if(!synth||!text) return false;
+    const my=opt.queue?gen:++gen;
+    const go=()=>{
+      if(my!==gen) return;
+      const parts=split(text);
+      parts.forEach((p,i)=>{
+        const u=new SpeechSynthesisUtterance(p);
+        u.lang=voice?voice.lang:'zh-HK'; if(voice) u.voice=voice;
+        u.rate=0.9; u.pitch=1.08; u.volume=1;
+        u.onstart=()=>{ talking=true; if(i===0){ clearMarks(); if(btn) btn.classList.add('talking'); } };
+        u.onend=u.onerror=()=>{ if(i===parts.length-1){ talking=false; if(btn) btn.classList.remove('talking'); } };
+        synth.speak(u);
+      });
+    };
+    if(!opt.queue&&(synth.speaking||synth.pending)){
+      synth.cancel(); clearMarks(); talking=false; delayUntil=performance.now()+100; setTimeout(go,100);
+    } else {
+      const d=delayUntil-performance.now(); if(d>0) setTimeout(go,d+30); else go();
+    }
+    return true;
+  }
+  function stop(){ gen++; if(synth) synth.cancel(); clearMarks(); talking=false; }
+  function unlock(){
+    if(unlocked||!synth) return; unlocked=true;
+    try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; u.lang='zh-HK'; synth.speak(u); }catch(e){}
+  }
+  if(synth){ pick(); try{ synth.addEventListener('voiceschanged',pick); }catch(e){ synth.onvoiceschanged=pick; } [300,900,2000,4000].forEach(t=>setTimeout(pick,t)); }
+  return { speak, stop, unlock, onChange(f){ cb=f; }, get kind(){ return synth?kind:'nosynth'; }, get talking(){ return talking; } };
+})();
+
+/* =========================================================
+   Sound effects (WebAudio)
+   ========================================================= */
+const Sfx={
+  ctx:null,
+  init(){ try{ if(!this.ctx){ const AC=window.AudioContext||window.webkitAudioContext; if(AC) this.ctx=new AC(); } if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); }catch(e){} },
+  tone(f,d,type,v,delay,f2){
+    const c=this.ctx; if(!c) return; const t=c.currentTime+(delay||0);
+    const o=c.createOscillator(), g=c.createGain(); o.type=type||'triangle';
+    o.frequency.setValueAtTime(f,t); if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+d);
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(v||.1,t+.015); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+d+.05);
+  },
+  noise(d,v,lp){
+    const c=this.ctx; if(!c) return; const len=Math.floor(c.sampleRate*d); const b=c.createBuffer(1,len,c.sampleRate); const ch=b.getChannelData(0);
+    for(let i=0;i<len;i++) ch[i]=(Math.random()*2-1)*(1-i/len);
+    const s=c.createBufferSource(); s.buffer=b; const f=c.createBiquadFilter(); f.type='lowpass'; f.frequency.value=lp||1000;
+    const g=c.createGain(); g.gain.value=v||.2; s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+  },
+  tap(p){ this.tone(620+(p||0)*40,.07,'triangle',.08); },
+  step(){ this.tone(480+Math.random()*90,.06,'square',.025); },
+  ok(){ [523,659,784].forEach((f,i)=>this.tone(f,.16,'triangle',.12,i*.08)); },
+  bad(){ this.tone(250,.25,'sawtooth',.05,0,170); },
+  splash(){ this.noise(.5,.25,900); this.tone(300,.3,'sine',.08,0,90); },
+  win(){ [523,659,784,1047,784,1047].forEach((f,i)=>this.tone(f,.22,'triangle',.11,i*.11)); },
+  pop(){ this.tone(380,.12,'sine',.1,0,900); },
+  whir(){ this.tone(160,.55,'sawtooth',.03,0,460); },
+  bump(){ this.tone(130,.16,'square',.06); }
+};
+document.addEventListener('pointerdown',()=>{ Speech.unlock(); Sfx.init(); },true);
+
+/* =========================================================
+   Three.js setup
+   ========================================================= */
+const canvas=$('#c');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(40,1,.1,200);
+const V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+
+function canvasTex(w,hgt,draw){
+  const c=document.createElement('canvas'); c.width=w; c.height=hgt; const x=c.getContext('2d'); draw(x,w,hgt);
+  const t=new THREE.CanvasTexture(c); t._ctx=x; return t;
+}
+const darkMQ=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+function applySky(){
+  const dark=!!(darkMQ&&darkMQ.matches);
+  const old=scene.background;
+  scene.background=canvasTex(4,256,(x,w,hh)=>{ const g=x.createLinearGradient(0,0,0,hh);
+    if(dark){ g.addColorStop(0,'#15173F'); g.addColorStop(.55,'#35398A'); g.addColorStop(1,'#8C7BD6'); }
+    else { g.addColorStop(0,'#4FA9FF'); g.addColorStop(.55,'#A9DBFF'); g.addColorStop(1,'#FFF0C4'); }
+    x.fillStyle=g; x.fillRect(0,0,w,hh); });
+  if(old&&old.dispose) old.dispose();
+}
+applySky();
+if(darkMQ){ if(darkMQ.addEventListener) darkMQ.addEventListener('change',applySky); else if(darkMQ.addListener) darkMQ.addListener(applySky); }
+
+scene.add(new THREE.HemisphereLight(0xffffff,0x8a9f7a,.62));
+const sun=new THREE.DirectionalLight(0xfff2dc,.55);
+sun.position.set(5,12,7); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+Object.assign(sun.shadow.camera,{left:-11,right:11,top:11,bottom:-11,near:1,far:40}); sun.shadow.bias=-0.0008;
+scene.add(sun); scene.add(sun.target);
+
+const gradMap=(function(){
+  const isGL2=renderer.capabilities.isWebGL2;
+  const t=new THREE.DataTexture(new Uint8Array([105,175,225]),3,1,THREE.LuminanceFormat);
+  t.minFilter=THREE.NearestFilter; t.magFilter=THREE.NearestFilter; t.generateMipmaps=false; t.needsUpdate=true; return t;
+})();
+function toon(color,extra){ return new THREE.MeshToonMaterial(Object.assign({color:color,gradientMap:gradMap},extra||{})); }
+function mesh(geo,mat){ const m=new THREE.Mesh(geo,mat); m.castShadow=true; m.receiveShadow=true; return m; }
+
+/* ---------- clouds (persistent) ---------- */
+const sky=new THREE.Group(); scene.add(sky);
+const cloudMat=toon(0xffffff);
+for(let i=0;i<7;i++){
+  const c=new THREE.Group();
+  for(let j=0;j<4;j++){ const s=new THREE.Mesh(new THREE.SphereGeometry(.7+Math.random()*.6,14,10),cloudMat); s.position.set(j*.9-1.3,Math.random()*.3,Math.random()*.4); c.add(s); }
+  c.position.set(-24+i*8+Math.random()*3,3.5+Math.random()*4,-16-Math.random()*10); c.scale.setScalar(.8+Math.random()*.7);
+  c.userData.v=.25+Math.random()*.35; sky.add(c);
+}
+
+/* ---------- stage & animation plumbing ---------- */
+let stage=new THREE.Group(); scene.add(stage);
+let robots=[], parts=[], pickables=[], idlers=[];
+const tweens=[];
+const ease={
+  io:p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2,
+  lin:p=>p,
+  out:p=>1-Math.pow(1-p,3),
+  back:p=>{ const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2); }
+};
+function tween(dur,fn,e){ return new Promise(res=>tweens.push({t:0,dur:Math.max(.001,dur),fn:fn,e:e||ease.io,res:res})); }
+const wait=s=>tween(s,function(){});
+function updateTweens(dt){
+  const list=tweens.slice();
+  for(const tw of list){
+    if(tweens.indexOf(tw)<0) continue;
+    tw.t+=dt; const p=Math.min(1,tw.t/tw.dur); tw.fn(tw.e(p));
+    if(p>=1){ const i=tweens.indexOf(tw); if(i>=0) tweens.splice(i,1); tw.res(); }
+  }
+}
+function disposeObj(root){
+  root.traverse(o=>{
+    if(o.geometry&&!(o.geometry.userData&&o.geometry.userData.keep)) o.geometry.dispose();
+    if(o.material){ (Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{ if(m.map) m.map.dispose(); m.dispose(); }); }
+  });
+}
+function clearStage(){
+  tweens.length=0; parts.length=0; robots=[]; pickables=[]; idlers=[];
+  disposeObj(stage); scene.remove(stage); stage=new THREE.Group(); scene.add(stage);
+}
+
+/* ---------- particles ---------- */
+const PGEO={conf:new THREE.PlaneGeometry(.13,.22),drop:new THREE.SphereGeometry(.07,8,6),star:new THREE.OctahedronGeometry(.1)};
+Object.keys(PGEO).forEach(k=>{ PGEO[k].userData.keep=true; });
+function burst(pos,n,kind){
+  const splash=kind==='splash';
+  const cols=splash?[0xffffff,0xbfe6ff,0x6cc4ff]:[0xFF7A2F,0xFFC93C,0xFF5D8F,0x10A98F,0x3E9BFF,0x7B61FF];
+  for(let i=0;i<n;i++){
+    const m=new THREE.Mesh(splash?PGEO.drop:(i%3?PGEO.conf:PGEO.star),new THREE.MeshBasicMaterial({color:cols[i%cols.length],transparent:true,side:THREE.DoubleSide}));
+    m.position.copy(pos); stage.add(m);
+    const a=Math.random()*Math.PI*2, sp=splash?.6+Math.random()*1.2:1+Math.random()*2.6;
+    parts.push({m:m,v:V3(Math.cos(a)*sp,splash?2+Math.random()*2:3+Math.random()*3.5,Math.sin(a)*sp),g:splash?9:5.5,life:splash?.9:2.4,spin:splash?0:Math.random()*10-5});
+  }
+}
+function updateParts(dt){
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i]; p.life-=dt; p.v.y-=p.g*dt; p.m.position.addScaledVector(p.v,dt);
+    if(p.spin){ p.m.rotation.x+=p.spin*dt; p.m.rotation.y+=p.spin*.7*dt; p.v.x*=.985; p.v.z*=.985; if(p.v.y<-1.4) p.v.y=-1.4; }
+    if(p.life<=0){ if(p.m.parent) p.m.parent.remove(p.m); p.m.material.dispose(); parts.splice(i,1); }
+    else if(p.life<.35) p.m.material.opacity=p.life/.35;
+  }
+}
+
+/* ---------- labels ---------- */
+const NUMFONT='"Baloo 2","Arial Rounded MT Bold","Helvetica Neue",Arial,sans-serif';
+function drawCircle(x,w,hh,text,bg,fg){
+  x.clearRect(0,0,w,hh); x.beginPath(); x.arc(w/2,hh/2,w/2-10,0,Math.PI*2); x.fillStyle=bg; x.fill();
+  x.lineWidth=12; x.strokeStyle='#23255C'; x.stroke();
+  const s=String(text); const fs=s.length<=1?150:s.length===2?120:s.length===3?92:70;
+  x.font='800 '+fs+'px '+NUMFONT; x.fillStyle=fg; x.textAlign='center'; x.textBaseline='middle'; x.fillText(s,w/2,hh/2+fs*.07);
+}
+function tagSprite(text,bg,fg,size){
+  const tex=canvasTex(256,256,(x,w,hh)=>drawCircle(x,w,hh,text,bg,fg));
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false}));
+  s.scale.set(size,size,1);
+  s.userData.set=(t,b,f)=>{ drawCircle(tex._ctx,256,256,t,b||bg,f||fg); tex.needsUpdate=true; };
+  return s;
+}
+function rr(x,X,Y,W,H,R){ x.beginPath(); x.moveTo(X+R,Y); x.lineTo(X+W-R,Y); x.quadraticCurveTo(X+W,Y,X+W,Y+R); x.lineTo(X+W,Y+H-R); x.quadraticCurveTo(X+W,Y+H,X+W-R,Y+H); x.lineTo(X+R,Y+H); x.quadraticCurveTo(X,Y+H,X,Y+H-R); x.lineTo(X,Y+R); x.quadraticCurveTo(X,Y,X+R,Y); x.closePath(); }
+function plate(text,bg,fg,w,hgt){
+  const cw=256, ch=Math.round(256*hgt/w);
+  const tex=canvasTex(cw,ch,(x)=>{ rr(x,8,8,cw-16,ch-16,26); x.fillStyle=bg; x.fill(); x.lineWidth=10; x.strokeStyle='#23255C'; x.stroke();
+    x.font='800 '+Math.round(ch*.62)+'px '+NUMFONT; x.fillStyle=fg; x.textAlign='center'; x.textBaseline='middle'; x.fillText(text,cw/2,ch/2+ch*.05); });
+  return new THREE.Mesh(new THREE.PlaneGeometry(w,hgt),new THREE.MeshBasicMaterial({map:tex,transparent:true}));
+}
+
+/* =========================================================
+   Models
+   ========================================================= */
+function makeRobot(opt){
+  opt=opt||{}; const ghost=!!opt.ghost;
+  const M=c=>ghost?new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.38,depthWrite:false}):toon(c);
+  const g=new THREE.Group(), inner=new THREE.Group(); g.add(inner);
+  const wheel=mesh(new THREE.SphereGeometry(.2,20,14),M(0x3A3D78)); wheel.scale.y=.8; wheel.position.y=.16;
+  const body=mesh(new THREE.CylinderGeometry(.27,.33,.44,24),M(0xFF7A2F)); body.position.y=.5;
+  const belly=mesh(new THREE.CircleGeometry(.11,24),M(0xFFC93C)); belly.position.set(0,.5,.312);
+  const head=new THREE.Group(); head.position.y=.96;
+  const skull=mesh(new THREE.BoxGeometry(.72,.5,.52),M(0x10A98F));
+  const face=mesh(new THREE.BoxGeometry(.58,.33,.04),M(0x23255C)); face.position.z=.26;
+  const eyeM=ghost?M(0xffffff):new THREE.MeshBasicMaterial({color:0x9FF7FF});
+  const eyeL=new THREE.Mesh(new THREE.SphereGeometry(.065,16,12),eyeM); eyeL.position.set(-.13,.03,.285);
+  const eyeR=eyeL.clone(); eyeR.position.x=.13;
+  const mouth=new THREE.Mesh(new THREE.TorusGeometry(.065,.017,8,16,Math.PI),ghost?M(0xFF5D8F):new THREE.MeshBasicMaterial({color:0xFF5D8F}));
+  mouth.rotation.z=Math.PI; mouth.position.set(0,-.06,.285);
+  const earGeo=new THREE.CylinderGeometry(.085,.085,.09,16); earGeo.rotateZ(Math.PI/2);
+  const earL=mesh(earGeo,M(0xFFC93C)); earL.position.x=-.4; const earR=mesh(earGeo,M(0xFFC93C)); earR.position.x=.4;
+  const stick=mesh(new THREE.CylinderGeometry(.02,.02,.22,8),M(0x23255C)); stick.position.y=.36;
+  const ballM=ghost?new THREE.MeshBasicMaterial({color:0xFF5D8F,transparent:true,opacity:.5}):new THREE.MeshBasicMaterial({color:0xFF5D8F});
+  const ball=new THREE.Mesh(new THREE.SphereGeometry(.08,14,10),ballM); ball.position.y=.5;
+  head.add(skull,face,eyeL,eyeR,mouth,earL,earR,stick,ball);
+  const arm=s=>{ const p=new THREE.Group(); p.position.set(s*.34,.67,0);
+    const a=mesh(new THREE.CylinderGeometry(.05,.05,.28,10),M(0x3A3D78)); a.position.y=-.14;
+    const hnd=mesh(new THREE.SphereGeometry(.085,12,10),M(0xFFC93C)); hnd.position.y=-.31; p.add(a,hnd); p.rotation.z=s*.22; return p; };
+  const armL=arm(-1), armR=arm(1);
+  inner.add(wheel,body,belly,head,armL,armR);
+  g.userData={inner:inner,head:head,ball:ball,eyes:[eyeL,eyeR],mouth:mouth,armL:armL,armR:armR,ph:Math.random()*6,main:!!opt.main,ghost:ghost};
+  robots.push(g);
+  return g;
+}
+function animRobot(r,t){
+  const u=r.userData; if(!u.inner) return;
+  if(!u.moving) u.inner.position.y=Math.sin(t*2.6+u.ph)*.025;
+  const s=1+.18*Math.sin(t*5+u.ph); u.ball.scale.setScalar(s);
+  const blink=((t+u.ph)%3.3)<.12?.12:1; u.eyes[0].scale.y=blink; u.eyes[1].scale.y=blink;
+  if(u.main&&Speech.talking){ u.head.rotation.z=Math.sin(t*11)*.07; u.mouth.scale.set(1,1+.9*Math.abs(Math.sin(t*15)),1); }
+  else { u.head.rotation.z*=.9; u.mouth.scale.set(1,1,1); }
+  if(u.wave){ u.armR.rotation.z=2.5+Math.sin(t*8)*.35; }
+  else if(u.cheer){ u.armR.rotation.z=2.7+Math.sin(t*10)*.25; u.armL.rotation.z=-2.7-Math.sin(t*10)*.25; }
+  else { u.armR.rotation.z+=(.22-u.armR.rotation.z)*.2; u.armL.rotation.z+=(-.22-u.armL.rotation.z)*.2; }
+}
+function island(radius){
+  const g=new THREE.Group();
+  const top=mesh(new THREE.CylinderGeometry(radius,radius*.97,.5,56),toon(0x8BD66B)); top.position.y=-.25;
+  const dirt=mesh(new THREE.CylinderGeometry(radius*.97,radius*.45,1.9,56),toon(0xC98B5A)); dirt.position.y=-1.45;
+  const rock=mesh(new THREE.ConeGeometry(radius*.45,1.4,40),toon(0xA9714A)); rock.rotation.x=Math.PI; rock.position.y=-3.1;
+  g.add(top,dirt,rock); return g;
+}
+function makeHouse(){
+  const g=new THREE.Group();
+  const base=mesh(new THREE.BoxGeometry(.8,.62,.8),toon(0xFFF3D6)); base.position.y=.31;
+  const roof=mesh(new THREE.ConeGeometry(.68,.52,4),toon(0xFF5D8F)); roof.position.y=.88; roof.rotation.y=Math.PI/4;
+  const door=mesh(new THREE.BoxGeometry(.24,.38,.04),toon(0x8A5634)); door.position.set(0,.19,.41);
+  const win=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,.04),new THREE.MeshBasicMaterial({color:0xFFE680})); win.position.set(.24,.42,.41);
+  const chim=mesh(new THREE.BoxGeometry(.12,.3,.12),toon(0xB85C3C)); chim.position.set(.2,1.0,-.12);
+  g.add(base,roof,door,win,chim); return g;
+}
+function makeChest(){
+  const g=new THREE.Group();
+  const b=mesh(new THREE.BoxGeometry(.6,.34,.42),toon(0xB8692E)); b.position.y=.17;
+  const lid=mesh(new THREE.CylinderGeometry(.21,.21,.6,18,1,false,0,Math.PI),toon(0xD9823B)); lid.rotation.z=Math.PI/2; lid.position.y=.34;
+  const band=mesh(new THREE.BoxGeometry(.64,.06,.46),toon(0xFFC93C)); band.position.y=.3;
+  const lock=mesh(new THREE.BoxGeometry(.1,.12,.04),toon(0xFFC93C)); lock.position.set(0,.26,.22);
+  const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.17),new THREE.MeshToonMaterial({color:0x6FE3FF,emissive:0x2277aa,gradientMap:gradMap}));
+  gem.position.y=.95; g.add(b,lid,band,lock,gem); g.userData.gem=gem;
+  idlers.push(t=>{ gem.rotation.y=t*1.6; gem.position.y=.95+Math.sin(t*2.2)*.08; });
+  return g;
+}
+function makeTree(rnd,scale){
+  const g=new THREE.Group(); const k=Math.floor(rnd()*3);
+  const trunk=mesh(new THREE.CylinderGeometry(.06,.08,.3,8),toon(0x8A5A3B)); trunk.position.y=.15; g.add(trunk);
+  const col=[0x3FAE5A,0x2E9B63,0x5CC06B][k];
+  if(rnd()<.55){ const c=mesh(new THREE.ConeGeometry(.3,.62,10),toon(col)); c.position.y=.58; g.add(c); }
+  else { const c=mesh(new THREE.SphereGeometry(.3,14,10),toon(col)); c.position.y=.52; g.add(c); }
+  g.scale.setScalar(scale); g.rotation.y=rnd()*6; return g;
+}
+function makeFlower(rnd){
+  const g=new THREE.Group(); const col=[0xFF5D8F,0xFFC93C,0xffffff,0x7B61FF][Math.floor(rnd()*4)];
+  const f=new THREE.Mesh(new THREE.SphereGeometry(.06,8,6),toon(col)); f.position.y=.08;
+  const f2=f.clone(); f2.position.set(.12,.07,.05); g.add(f,f2); return g;
+}
+
+/* =========================================================
+   Camera framing (keeps the scene inside the free space between UI panels)
+   ========================================================= */
+let frame={c:V3(0,0,0),rx:4,ry:3,near:1,elev:.8,az:0};
+let regionFn=()=>({top:0,bot:0});
+/* rx: half width to fit, ry: half height (as seen on screen), near: how far the scene reaches toward the camera */
+function setFrame(c,rx,ry,near,elev,az){ frame={c:c.clone(),rx:rx,ry:ry,near:near,elev:elev,az:az||0}; reframe(); }
+function reframe(){
+  const w=window.innerWidth, hh=window.innerHeight;
+  renderer.setSize(w,hh,false);
+  const reg=regionFn(); let top=Math.max(0,reg.top)+10, bot=Math.max(0,reg.bot)+10;
+  let free=hh-top-bot; if(free<170){ const k=(170-free)/2; top-=k; bot-=k; free=170; }
+  camera.aspect=w/hh;
+  const half=THREE.MathUtils.degToRad(camera.fov)/2;
+  const tv=Math.tan(half)*free/hh, th=Math.tan(half)*(w-24)/hh;
+  const dist=Math.max(frame.rx/th,frame.ry/tv)+frame.near;
+  const dir=V3(Math.sin(frame.az)*Math.cos(frame.elev),Math.sin(frame.elev),Math.cos(frame.az)*Math.cos(frame.elev));
+  camera.position.copy(frame.c).addScaledVector(dir,dist); camera.lookAt(frame.c);
+  camera.setViewOffset(w,hh,0,-(top-bot)/2,w,hh); camera.updateProjectionMatrix();
+}
+let rfPending=false;
+function reframeSoon(){ if(rfPending) return; rfPending=true; requestAnimationFrame(()=>{ rfPending=false; reframe(); }); }
+window.addEventListener('resize',reframeSoon);
+window.addEventListener('orientationchange',()=>setTimeout(reframe,250));
+if(window.ResizeObserver){ const ro=new ResizeObserver(reframeSoon); ['#card','#panel','.home-bottom','.title'].forEach(s=>{ const e=$(s); if(e) ro.observe(e); }); }
+
+/* ---------- movement animations ---------- */
+function faceAngle(dx,dz){ return Math.atan2(dx,dz); }
+async function hop(obj,to,dur,height){
+  dur=dur||.34; height=height==null?.35:height;
+  const from=obj.position.clone(); const dx=to.x-from.x, dz=to.z-from.z;
+  const a0=obj.rotation.y; const a1=(Math.abs(dx)+Math.abs(dz)>.01)?faceAngle(dx,dz):a0;
+  const da=((a1-a0)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
+  obj.userData.moving=true;
+  await tween(dur,p=>{ obj.position.x=from.x+dx*p; obj.position.z=from.z+dz*p; obj.position.y=from.y+(to.y-from.y)*p+Math.sin(p*Math.PI)*height; obj.rotation.y=a0+da*Math.min(1,p*2.5); },ease.lin);
+  obj.userData.moving=false; Sfx.step();
+}
+async function turnTo(obj,angle,dur){
+  const a0=obj.rotation.y; const da=((angle-a0)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
+  await tween(dur||.25,p=>{ obj.rotation.y=a0+da*p; });
+}
+async function jumpCheer(r,times){
+  r.userData.cheer=true;
+  for(let i=0;i<(times||2);i++){ const y0=r.position.y; await tween(.36,p=>{ r.position.y=y0+Math.sin(p*Math.PI)*.55; },ease.lin); }
+  r.userData.cheer=false;
+}
+function showQ(r,txt){
+  const q=tagSprite(txt||'?','#FFFFFF','#FF5D8F',.62); q.position.y=1.85; r.add(q);
+  return ()=>{ r.remove(q); q.material.map.dispose(); q.material.dispose(); };
+}
+async function poof(r){ await tween(.22,p=>r.scale.setScalar(Math.max(.01,1-p))); }
+async function unpoof(r){ r.scale.setScalar(.01); await tween(.3,p=>r.scale.setScalar(.01+.99*p),ease.back); }
+
+/* ---------- render loop ---------- */
+let lastT=performance.now(), T=0;
+function loop(now){
+  const dt=Math.min(.05,Math.max(0,(now-lastT)/1000)); lastT=now; T+=dt;
+  updateTweens(dt); updateParts(dt);
+  for(const f of idlers) f(T,dt);
+  for(const r of robots) animRobot(r,T);
+  sky.children.forEach(c=>{ c.position.x+=c.userData.v*dt; if(c.position.x>30) c.position.x=-30; });
+  renderer.render(scene,camera);
+  requestAnimationFrame(loop);
+}
+
+/* =========================================================
+   Game content
+   ========================================================= */
+const DIRS={U:{dx:0,dz:-1,word:'向上'},D:{dx:0,dz:1,word:'向下'},L:{dx:-1,dz:0,word:'向左'},R:{dx:1,dz:0,word:'向右'}};
+const OPP={U:'D',D:'U',L:'R',R:'L'};
+const OPS={
+  '+':{sym:'+',word:'加',inv:'-',col:0x10A98F,css:'#10A98F',f:(a,n)=>a+n},
+  '-':{sym:'−',word:'減',inv:'+',col:0xFF5D8F,css:'#FF5D8F',f:(a,n)=>a-n},
+  'x':{sym:'×',word:'乘',inv:'/',col:0xFFC93C,css:'#FFC93C',f:(a,n)=>a*n},
+  '/':{sym:'÷',word:'除',inv:'x',col:0x3E9BFF,css:'#3E9BFF',f:(a,n)=>a/n}
+};
+const opTxt=o=>OPS[o[0]].sym+o[1];
+const opWord=o=>OPS[o[0]].word+o[1];
+
+const WORLDS=[
+  { id:'path', short:'世界一', name:'波波返屋企', icon:'🏠', color:'#FF7A2F',
+    desc:'波波行咗好遠去搵寶藏,依家要返屋企。將佢行過嘅路倒轉:由最後一步開始,方向仲要調轉!',
+    tip:'記住:倒轉一條路,要由最後一步開始,而且每一步嘅方向都要調轉。',
+    levels:[
+      {name:'三步返屋企',moves:['U','U','R'],hidden:false},
+      {name:'彎彎曲曲',moves:['R','U','U','L','U'],hidden:false},
+      {name:'隱形石仔路',moves:['U','R','R','U','U','L'],hidden:true},
+      {name:'長長隱形路',moves:['R','R','U','U','L','L','U','U'],hidden:true}
+    ]},
+  { id:'machine', short:'世界二', name:'魔法數字機', icon:'🔢', color:'#7B61FF',
+    desc:'神秘數字經過魔法機器之後變咗樣。由答案開始倒轉計:加變減,乘變除,搵返最初嘅數字!',
+    tip:'記住:倒轉計數,要由最後一部機開始,每部機都用相反嘅計法。',
+    levels:[
+      {name:'加加機',start:5,ops:[['+',3]]},
+      {name:'兩部機',start:4,ops:[['+',5],['-',2]]},
+      {name:'乘法機',start:6,ops:[['x',2],['+',4]]},
+      {name:'三機大挑戰',start:3,ops:[['+',2],['x',3],['-',5]]}
+    ]},
+  { id:'maze', short:'世界三', name:'寶藏迷宮', icon:'💎', color:'#10A98F',
+    desc:'三道門,得一道行得到寶藏。由門口行好易蕩失路,由寶藏倒轉追返落嚟就容易好多!',
+    tip:'記住:由終點開始倒轉追,好多時會快過由起點慢慢試。',
+    levels:[
+      {name:'小迷宮',map:["..T......",".##......",".#.#.#...",".#.#.####",".#.#....#",".#.##...#","##..#..##",".##.##.#.",".A..B..C."]},
+      {name:'轉彎迷宮',map:[".....T#..","#..#..#..","##.##.#..","#..#..##.","#..#...#.","#..##..##","###.#..#.",".#..#..##",".A..B..C."]},
+      {name:'大迷宮',map:[".....T.....",".....#.....",".#...#....#",".##..#...##","..##.#...#.","..#..#...#.","..#.##...#.","###..#...#.","#...##.#.##","##...#.###.",".A...B...C."]},
+      {name:'超級迷宮',map:["........T..","......#.#..",".#....#.#..","##....#.##.","#.#..##..#.","####.#...#.","#....#..##.","#.######.#.","##.....#.#.",".#...###.##",".A...B...C."]}
+    ]}
+];
+
+const HOME_TEXT='歡迎嚟到波波倒帶大冒險!我係機械人波波。今日一齊學「逆向思維」:即係由結果開始,倒轉諗返轉頭,好似睇片撳倒帶咁。例如你唔見咗枝筆,由最後用過佢嘅地方開始諗返轉頭,就最快搵到喇!撳「開始冒險」一齊玩啦!';
+const MAP_TEXT='呢度有三個世界,每個世界有四關。撳關卡嘅數字就可以開始玩。完成一關,下一關就會打開。每關最多有三粒星,錯得越少,星星越多!想聽每個世界講乜,就撳佢隔籬嘅小喇叭。';
+
+/* =========================================================
+   UI helpers
+   ========================================================= */
+function spk(getText,label,cls){
+  const b=h('button',{class:'spk'+(cls?' '+cls:''),type:'button','aria-label':label||'讀出嚟',html:SPK_SVG});
+  b.addEventListener('click',e=>{ e.stopPropagation(); Sfx.init(); Speech.speak(typeof getText==='function'?getText():getText,b); });
+  return b;
+}
+function say(text,opt){
+  opt=opt||{};
+  const bt=$('#bubbleText'); bt.textContent=text;
+  const b=$('#bubble'); b.classList.remove('bump'); void b.offsetWidth; b.classList.add('bump');
+  if(prog.auto&&opt.speak!==false) Speech.speak(text,$('#bubbleSpk'),{queue:!!opt.queue});
+}
+function lock(on){ $('#ctrl').classList.toggle('locked',!!on); }
+
+/* bubble speaker + intro speakers */
+$('#bubble').appendChild((function(){ const b=spk(()=>$('#bubbleText').textContent,'再聽一次'); b.id='bubbleSpk'; return b; })());
+$('#card').insertBefore(spk(()=>S.instr||'','聽遊戲講解'),$('#cardText'));
+$('#introText').textContent=HOME_TEXT;
+$('#introCard').insertBefore(spk(HOME_TEXT,'聽介紹'),$('#introText'));
+$('#mapSpk').appendChild(spk(MAP_TEXT,'聽點樣揀關卡'));
+
+function renderAuto(){
+  const b=$('#autoBtn');
+  b.innerHTML='<span class="dot'+(prog.auto?'':' off')+'"></span><span class="txt">自動讀:'+(prog.auto?'開':'關')+'</span>';
+  b.setAttribute('aria-pressed',String(prog.auto)); b.setAttribute('aria-label','自動讀出:'+(prog.auto?'開':'關'));
+}
+renderAuto();
+$('#autoBtn').addEventListener('click',()=>{
+  prog.auto=!prog.auto; save(); renderAuto(); Sfx.tap();
+  Speech.speak(prog.auto?'自動讀出已經打開。我會自己讀出所有提示。':'自動讀出已經關咗。想聽嘅時候,撳個小喇叭就得。',null);
+});
+
+/* voice availability note */
+let voiceChecked=false;
+function updateVoiceNote(){
+  const n=$('#vnote'); const k=Speech.kind;
+  if(!voiceChecked||k==='yue'){ n.classList.remove('on'); return; }
+  n.textContent=k==='nosynth'
+    ?'呢個瀏覽器唔支援語音。建議用 iPad 嘅 Safari 開呢個遊戲。'
+    :'呢部機搵唔到廣東話語音,可能會用其他口音讀。iPad 可以去「設定 > 輔助使用 > 朗讀內容 > 語音 > 中文」,下載「中文(香港)」語音。';
+  n.classList.add('on');
+}
+Speech.onChange(updateVoiceNote);
+setTimeout(()=>{ voiceChecked=true; updateVoiceNote(); },2600);
+
+/* =========================================================
+   Screens & navigation
+   ========================================================= */
+let S={}; // current level state
+let stageKind='';
+const homeRegion=()=>{ const t=$('.title').getBoundingClientRect(), b=$('.home-bottom').getBoundingClientRect(); return {top:t.bottom,bot:window.innerHeight-b.top}; };
+const hudRegion=()=>{ const c=$('#card').getBoundingClientRect(), p=$('#panel').getBoundingClientRect(); return {top:c.bottom,bot:window.innerHeight-p.top}; };
+function show(which){
+  $('#home').classList.toggle('on',which==='home');
+  $('#map').classList.toggle('on',which==='map');
+  $('#hud').classList.toggle('on',which==='hud');
+  $('#modal').classList.remove('on');
+  regionFn=which==='home'?homeRegion:which==='hud'?hudRegion:(()=>({top:Math.min($('#worlds').getBoundingClientRect().bottom,window.innerHeight-220),bot:0}));
+  reframeSoon();
+}
+function buildHome(){
+  clearStage(); stageKind='home'; S={};
+  stage.add(island(2.8));
+  const r=makeRobot({main:true}); r.userData.wave=true; r.position.set(0,0,.3); stage.add(r);
+  const house=makeHouse(); house.position.set(-1.55,0,-.7); house.rotation.y=.5; stage.add(house);
+  const chest=makeChest(); chest.position.set(1.6,0,-.5); chest.rotation.y=-.5; stage.add(chest);
+  const rnd=mulberry32(7);
+  [[-2,.9],[2.1,.8],[-.6,-1.9],[.9,-2],[-2.2,-1.1]].forEach(p=>{ const t=makeTree(rnd,.9+rnd()*.4); t.position.set(p[0],0,p[1]); stage.add(t); });
+  idlers.push(t=>{ r.rotation.y=Math.sin(t*.6)*.35; });
+  setFrame(V3(0,.7,0),2.9,1.5,1.2,.32,0);
+}
+function goHome(){ Speech.stop(); if(stageKind!=='home') buildHome(); show('home'); }
+let mapSpoken=false;
+function goMap(){
+  Speech.stop(); if(stageKind!=='home') buildHome(); renderMap(); show('map');
+  if(!mapSpoken&&prog.auto){ mapSpoken=true; Speech.speak(MAP_TEXT,$('#mapSpk .spk')); }
+}
+function renderMap(){
+  const wrap=$('#worlds'); wrap.innerHTML='';
+  let total=0; WORLDS.forEach(W=>prog.stars[W.id].forEach(v=>total+=v));
+  $('#starTotal').textContent='★ '+total+' / 36';
+  WORLDS.forEach((W,wi)=>{
+    const arr=prog.stars[W.id]; const got=arr.reduce((a,b)=>a+b,0);
+    const lv=h('div',{class:'lvls'},W.levels.map((L,li)=>{
+      const open=li===0||arr[li-1]>0;
+      return h('button',{class:'lvl'+(open?'':' locked'),type:'button','aria-label':'第'+(li+1)+'關:'+L.name+(open?'':'(未開放)'),
+        onclick:()=>{ Sfx.tap(); if(!open){ Speech.speak('呢一關仲鎖住。完成咗上一關,先可以玩呢一關喎!',null); return; } startLevel(wi,li); }},
+        h('span',{class:'num',html:open?String(li+1):LOCK_SVG}),
+        h('span',{class:'st',html:starsHtml(arr[li])}),
+        h('span',{class:'lname'},L.name));
+    }));
+    wrap.append(h('section',{class:'world',style:'--wc:'+W.color},
+      h('div',{class:'band'},h('span',{class:'ico'},W.icon),h('h2',{},W.short+':'+W.name),
+        spk(()=>W.short+':'+W.name+'。'+W.desc+'呢個世界有四關,你已經攞咗'+got+'粒星。','聽'+W.name+'介紹')),
+      h('p',{},W.desc),lv));
+  });
+}
+$('#btnStart').addEventListener('click',()=>{ Sfx.tap(); goMap(); });
+$('#btnMapHome').addEventListener('click',()=>{ Sfx.tap(); goHome(); });
+$('#btnBack').addEventListener('click',()=>{ Sfx.tap(); goMap(); });
+$('#btnRetry').addEventListener('click',()=>{ Sfx.tap(); if(S.wi!=null) startLevel(S.wi,S.li); });
+
+function startLevel(wi,li){
+  Speech.stop();
+  const W=WORLDS[wi], L=W.levels[li];
+  show('hud');
+  $('#lvlTitle').textContent=W.short+' 第'+(li+1)+'關:'+L.name;
+  $('#ctrl').innerHTML=''; lock(false);
+  stageKind='level';
+  if(W.id==='path') startPath(wi,li);
+  else if(W.id==='machine') startMachine(wi,li);
+  else startMaze(wi,li);
+  $('#cardText').textContent=S.instr;
+  reframeSoon();
+  if(prog.auto) Speech.speak(S.instr,$('#card .spk'));
+  if(S.after) S.after();
+}
+function finishLevel(){
+  const st=S.mistakes===0?3:S.mistakes<=2?2:1;
+  const W=WORLDS[S.wi]; const arr=prog.stars[W.id];
+  arr[S.li]=Math.max(arr[S.li],st); save();
+  const hasNext=S.li+1<W.levels.length;
+  const worldDone=arr.every(v=>v>0);
+  let all=true; WORLDS.forEach(w=>prog.stars[w.id].forEach(v=>{ if(!v) all=false; }));
+  let txt='過關!你攞到'+st+'粒星。'+(st===3?'完全冇錯,真係逆向思維小高手!':st===2?'好叻!只係錯咗少少。':'完成咗!再玩多次,試下攞三粒星。')+W.tip;
+  if(hasNext) txt+='撳「下一關」繼續挑戰!';
+  else if(all) txt+='你完成晒全部十二關,係倒帶大英雄!';
+  else if(worldDone) txt+='你完成咗成個'+W.name+'世界!撳「返地圖」,去玩其他世界啦。';
+  else txt+='撳「返地圖」揀其他關卡。';
+  const m=$('#modal'); m.innerHTML='';
+  const sayCard=h('div',{class:'say-card'},h('p',{},txt)); const sb=spk(txt,'聽結果'); sayCard.insertBefore(sb,sayCard.firstChild);
+  const row=h('div',{class:'row'},
+    h('button',{class:'btn ghost',type:'button',onclick:()=>{ Sfx.tap(); goMap(); }},'🗺 返地圖'),
+    h('button',{class:'btn ghost',type:'button',onclick:()=>{ Sfx.tap(); startLevel(S.wi,S.li); }},'↻ 再玩'),
+    hasNext?h('button',{class:'btn go',type:'button',onclick:()=>{ Sfx.tap(); startLevel(S.wi,S.li+1); }},'下一關 ▶'):null);
+  m.append(h('div',{class:'sheet'},h('div',{class:'bigstars',html:starsHtml(st)}),h('h2',{},'過關!'),sayCard,row));
+  m.classList.add('on');
+  if(prog.auto) Speech.speak(txt,sb,{queue:true});
+}
+
+/* =========================================================
+   World 1: 波波返屋企 (reverse a path)
+   ========================================================= */
+function startPath(wi,li){
+  clearStage();
+  const L=WORLDS[wi].levels[li];
+  const cells=[[0,0]]; L.moves.forEach(m=>{ const d=DIRS[m], p=cells[cells.length-1]; cells.push([p[0]+d.dx,p[1]+d.dz]); });
+  const n=L.moves.length, first=DIRS[L.moves[0]], last=DIRS[L.moves[n-1]];
+  const houseCell=[-first.dx,-first.dz], end=cells[n], chestCell=[end[0]+last.dx,end[1]+last.dz];
+  const all=cells.concat([houseCell,chestCell]);
+  const xs=all.map(c=>c[0]), zs=all.map(c=>c[1]);
+  const cx=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2, cz=(Math.min.apply(null,zs)+Math.max.apply(null,zs))/2, SP=1.2;
+  const P=(c,y)=>V3((c[0]-cx)*SP,y||0,(c[1]-cz)*SP);
+  let R=0; all.forEach(c=>{ R=Math.max(R,P(c).length()); }); R+=.95;
+  stage.add(island(R+.75));
+  const water=new THREE.Mesh(new THREE.CylinderGeometry(R,R,.12,64),new THREE.MeshPhongMaterial({color:0x49B3EE,shininess:90,specular:0xffffff,transparent:true,opacity:.9}));
+  water.position.y=-.02; water.receiveShadow=true; stage.add(water);
+  const key=c=>c[0]+','+c[1]; const used=new Set(all.map(key));
+  const rnd=mulberry32(li*31+5);
+  for(let i=0;i<9;i++){ const a=rnd()*Math.PI*2, d=rnd()*(R-.5); const x=Math.cos(a)*d, z=Math.sin(a)*d;
+    const gc=[Math.round(x/SP+cx),Math.round(z/SP+cz)]; if(used.has(key(gc))) continue;
+    const pad=new THREE.Mesh(new THREE.CircleGeometry(.2+rnd()*.1,18,.3,Math.PI*1.8),toon(0x4FBF63)); pad.rotation.x=-Math.PI/2; pad.position.set(x,.05,z); stage.add(pad); }
+  for(let i=0;i<8;i++){ const a=i/8*Math.PI*2+rnd(); const t=makeTree(rnd,.8+rnd()*.4); t.position.set(Math.cos(a)*(R+.4),0,Math.sin(a)*(R+.4)); stage.add(t); }
+  const stones=cells.map((c,i)=>{
+    const s=mesh(new THREE.CylinderGeometry(.44,.5,.3,20),toon(i===0?0xF3DDAA:i===n?0xFFD66B:0xB9BECB));
+    s.position.copy(P(c,.05)); stage.add(s); if(L.hidden&&i>0&&i<n) s.visible=false; return s; });
+  const islet=c=>{ const m=mesh(new THREE.CylinderGeometry(.62,.66,.34,24),toon(0x8BD66B)); m.position.copy(P(c,0)); stage.add(m); };
+  islet(houseCell); islet(chestCell);
+  const house=makeHouse(); house.position.copy(P(houseCell,.17)); house.rotation.y=faceAngle(first.dx,first.dz); stage.add(house);
+  const chest=makeChest(); chest.position.copy(P(chestCell,.17)); chest.rotation.y=faceAngle(-last.dx,-last.dz); stage.add(chest);
+  const robot=makeRobot({main:true}); robot.position.copy(P(end,.2)); stage.add(robot);
+  S={kind:'path',wi:wi,li:li,L:L,n:n,cells:cells,P:P,stones:stones,robot:robot,houseCell:houseCell,chestCell:chestCell,
+     plan:[],correct:L.moves.slice().reverse().map(m=>OPP[m]),mistakes:0,hinted:false,wrongAt:{},busy:false};
+  S.instr='第'+(li+1)+'關:'+L.name+'。波波由屋企出發,跟住足跡紀錄行咗'+n+'步,去到寶藏度。依家佢要返屋企!'
+    +(L.hidden?'小心,今次啲石頭隱形咗,睇唔到條路,只可以靠足跡紀錄㗎!':'')
+    +'用逆向思維:由最後一步開始倒轉排,每一步嘅方向都要調轉,向上變向下,向左變向右。撳箭嘴排好返屋企嘅路,排好就撳「出發」。';
+  setFrame(V3(0,.2,.1),R+.45,(R+.45)*Math.sin(.92)+.3,(R+.45)*Math.cos(.92)*.5,.92,0);
+  pathUI();
+  say('撳箭嘴排好返屋企嘅路,排好就撳「出發」。唔識就撳「提示」或者「睇去程」。',{speak:false});
+}
+function recordText(){ return '波波去寶藏嘅足跡:'+S.L.moves.map((m,i)=>'第'+(i+1)+'步'+DIRS[m].word).join(',')+'。'; }
+function planText(){
+  if(!S.plan.length) return '你仲未排返屋企嘅路。撳箭嘴就可以排。';
+  const rem=S.n-S.plan.length;
+  return '你排咗返屋企嘅路:'+S.plan.map((m,i)=>'第'+(i+1)+'步'+DIRS[m].word).join(',')+'。'+(rem?'仲有'+rem+'格未排。':'全部排好喇,可以撳「出發」。');
+}
+function pathUI(){
+  const ctrl=$('#ctrl');
+  const chips=h('div',{class:'chips',id:'chips'},S.L.moves.map((m,i)=>h('span',{class:'chip','data-i':i+1,'aria-label':'第'+(i+1)+'步'+DIRS[m].word,html:'<i>'+(i+1)+'</i>'+arrowSvg(m)})));
+  const rec=h('div',{class:'rec'},h('span',{class:'lbl'},'波波去寶藏嘅足跡'),chips,spk(recordText,'聽足跡紀錄','small'),
+    h('button',{class:'btn ghost small',type:'button',onclick:pathReplay},'👀 睇去程'));
+  const dpad=h('div',{class:'dpad'},['U','L','D','R'].map(d=>h('button',{type:'button','data-d':d,'aria-label':DIRS[d].word,html:arrowSvg(d),onclick:()=>addStep(d)})));
+  const plan=h('div',{class:'planbox'},
+    h('div',{class:'planhead'},h('span',{class:'lbl'},'返屋企嘅路'),
+      h('button',{class:'btn ghost small',type:'button',onclick:delStep},'⌫ 刪除'),spk(planText,'聽我排咗嘅路','small')),
+    h('div',{class:'slots',id:'slots'}));
+  const acts=h('div',{class:'acts'},h('button',{class:'btn small',type:'button',onclick:pathHint},'💡 提示'),h('button',{class:'btn go',type:'button',onclick:runPlan},'▶ 出發'));
+  ctrl.append(rec,h('div',{class:'play'},dpad,plan,acts));
+  renderSlots();
+}
+function renderSlots(runIdx){
+  const box=$('#slots'); if(!box) return; box.innerHTML='';
+  for(let i=0;i<S.n;i++){
+    const m=S.plan[i];
+    box.append(h('span',{class:'slot'+(m?' filled':'')+(i===S.plan.length?' next':'')+(i===runIdx?' run':''),html:'<i>'+(i+1)+'</i>'+(m?arrowSvg(m):'')}));
+  }
+}
+function flashChip(i){ const c=document.querySelector('.chip[data-i="'+i+'"]'); if(!c) return; c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash'); }
+function addStep(d){
+  if(S.busy) return;
+  if(S.plan.length>=S.n){ Sfx.bad(); say('格仔已經滿咗。想改就撳「刪除」,排好就撳「出發」。'); return; }
+  S.plan.push(d); Sfx.tap(S.plan.length); renderSlots();
+  if(prog.auto) Speech.speak(DIRS[d].word,null);
+}
+function delStep(){ if(S.busy||!S.plan.length) return; S.plan.pop(); Sfx.tap(-3); renderSlots(); if(prog.auto) Speech.speak('刪除咗',null); }
+function pathHint(){
+  if(S.busy) return;
+  let i=0; while(i<S.plan.length&&S.plan[i]===S.correct[i]) i++;
+  if(i>=S.n){ say('你排嘅路全部啱晒喇!撳「出發」,帶波波返屋企啦。'); return; }
+  if(!S.hinted){ S.hinted=true; S.mistakes++; }
+  const m=S.n-i, rec=S.L.moves[m-1];
+  flashChip(m);
+  let t='倒帶提示:返屋企嘅第'+(i+1)+'步,要睇波波足跡嘅第'+m+'步。第'+m+'步係「'+DIRS[rec].word+'」,調轉就係「'+DIRS[OPP[rec]].word+'」。';
+  if(i<S.plan.length) t+='你第'+(i+1)+'格排咗「'+DIRS[S.plan[i]].word+'」,要撳「刪除」改返佢。';
+  say(t);
+}
+async function pathReplay(){
+  if(S.busy) return; S.busy=true; lock(true);
+  const my=S;
+  say('睇下波波點樣由屋企行去寶藏。'+recordText().replace('波波去寶藏嘅足跡:',''));
+  const g=makeRobot({ghost:true}); g.position.copy(S.P(S.cells[0],.2)); stage.add(g);
+  await wait(.5);
+  for(let i=0;i<S.n;i++){ if(S!==my) return; flashChip(i+1); await hop(g,S.P(S.cells[i+1],.2),.55,.3); await wait(.15); }
+  if(S!==my) return;
+  await tween(.3,p=>g.scale.setScalar(Math.max(.01,1-p)));
+  stage.remove(g); disposeObj(g); robots=robots.filter(x=>x!==g);
+  say('睇完喇!依家到你:由最後一步開始倒轉,方向又要調轉,幫波波行返屋企。',{queue:true});
+  S.busy=false; lock(false);
+}
+async function resetPathRobot(){
+  const r=S.robot; await poof(r);
+  r.position.copy(S.P(S.cells[S.n],.2)); r.rotation.set(0,0,0); r.userData.inner.rotation.set(0,0,0); r.userData.inner.position.set(0,0,0);
+  if(S.L.hidden) S.stones.forEach((s,i)=>{ if(i>0&&i<S.n) s.visible=false; });
+  await unpoof(r);
+}
+async function runPlan(){
+  if(S.busy) return;
+  if(!S.plan.length){ Sfx.bad(); say('你仲未排路喎!先撳箭嘴排好返屋企嘅路。'); return; }
+  S.busy=true; lock(true); const my=S; const r=S.robot;
+  say('出發!',{speak:true});
+  let k=S.n;
+  for(let i=0;i<S.plan.length;i++){
+    renderSlots(i);
+    const d=DIRS[S.plan[i]], cur=S.cells[k], nx=[cur[0]+d.dx,cur[1]+d.dz];
+    const target=S.P(nx,.2);
+    const same=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+    if(k>0&&same(nx,S.cells[k-1])){
+      const st=S.stones[k-1];
+      if(!st.visible){ st.visible=true; st.scale.setScalar(.01); tween(.25,p=>st.scale.setScalar(.01+.99*p),ease.back); }
+      await hop(r,target); if(S!==my) return; k--;
+      if(k===0){ await pathWin(); return; }
+      continue;
+    }
+    // mistake on step i
+    S.mistakes++;
+    const m=S.n-i, rec=S.L.moves[m-1];
+    const times=S.wrongAt[i]=(S.wrongAt[i]||0)+1;
+    const reveal=times>=2?'波波嘅第'+m+'步係「'+DIRS[rec].word+'」,調轉就係「'+DIRS[OPP[rec]].word+'」。':'諗下:返屋企嘅第'+(i+1)+'步,要倒轉波波足跡嘅第'+m+'步。';
+    const onPath=S.cells.findIndex(c=>same(c,nx));
+    if(onPath>=0){
+      const st=S.stones[onPath]; if(!st.visible){ st.visible=true; }
+      await hop(r,target); if(S!==my) return; Sfx.bad();
+      const hideQ=showQ(r); say('咦?返屋企嘅第'+(i+1)+'步,波波行返去寶藏嗰邊喎!'+reveal+'撳「刪除」改好佢,再撳「出發」。');
+      await wait(1.6); hideQ();
+    } else if(same(nx,S.chestCell)||same(nx,S.houseCell)){
+      const from=r.position.clone(), mid=from.clone().lerp(target,.35);
+      await turnTo(r,faceAngle(d.dx,d.dz),.15); await tween(.15,p=>r.position.lerpVectors(from,mid,p)); Sfx.bump();
+      await tween(.2,p=>r.position.lerpVectors(mid,from,p)); if(S!==my) return;
+      const hideQ=showQ(r,'!'); say('哎呀,第'+(i+1)+'步撞到嘢喇!'+reveal+'撳「刪除」改好佢,再撳「出發」。');
+      await wait(1.5); hideQ();
+    } else {
+      await hop(r,S.P(nx,.04),.36,.35); if(S!==my) return;
+      Sfx.splash(); burst(S.P(nx,.1),20,'splash');
+      r.userData.moving=true; await tween(.5,p=>{ r.userData.inner.position.y=-p*.95; r.userData.inner.rotation.z=p*.5; }); r.userData.moving=false;
+      say('哎呀,撲通!返屋企嘅第'+(i+1)+'步行錯咗,波波跌咗落水。'+reveal+'撳「刪除」改好佢,再撳「出發」。');
+      await wait(1.1);
+    }
+    if(S!==my) return;
+    await resetPathRobot(); renderSlots(); S.busy=false; lock(false); return;
+  }
+  // plan finished but not home yet
+  S.mistakes++;
+  const hideQ=showQ(r);
+  say('波波行咗'+S.plan.length+'步,仲未返到屋企,仲差'+k+'步。繼續撳箭嘴排多啲步啦!');
+  await wait(1.6); if(S!==my) return; hideQ();
+  await resetPathRobot(); renderSlots(); S.busy=false; lock(false);
+}
+async function pathWin(){
+  const r=S.robot; renderSlots();
+  const f=DIRS[S.L.moves[0]];
+  await turnTo(r,faceAngle(-f.dx,-f.dz),.2);
+  Sfx.win(); burst(r.position.clone().add(V3(0,1.2,0)),60,'conf');
+  say('好嘢!波波返到屋企喇!你將成條路倒轉晒,方向又調轉晒,真係叻!');
+  await turnTo(r,0,.25); await jumpCheer(r,3); await wait(.8);
+  finishLevel();
+}
+
+/* =========================================================
+   World 2: 魔法數字機 (undo operations)
+   ========================================================= */
+function startMachine(wi,li){
+  clearStage();
+  const L=WORLDS[wi].levels[li]; const k=L.ops.length; const gap=3.1;
+  const x0=-(k*gap)/2; const SX=j=>x0+j*gap, MX=i=>x0+(i+.5)*gap;
+  const vals=[L.start]; L.ops.forEach(o=>vals.push(OPS[o[0]].f(vals[vals.length-1],o[1]))); const out=vals[k];
+  const Wd=k*gap+3.4;
+  stage.add(island(Wd/2+1.2));
+  const deck=mesh(new THREE.BoxGeometry(Wd,.3,3.2),toon(0xC9BCFF)); deck.position.y=.15; stage.add(deck);
+  const stripe=mesh(new THREE.BoxGeometry(Wd-.3,.32,.5),toon(0x9F8CF5)); stripe.position.y=.15; stage.add(stripe);
+  const ped=(j,col)=>{ const m=mesh(new THREE.CylinderGeometry(.46,.54,.72,24),toon(col)); m.position.set(SX(j),.66,0); stage.add(m);
+    const t=mesh(new THREE.CylinderGeometry(.5,.5,.08,24),toon(0xffffff)); t.position.set(SX(j),1.04,0); stage.add(t); };
+  for(let j=0;j<=k;j++) ped(j,j===0?0x10A98F:j===k?0xFF7A2F:0x9EA3D8);
+  const glass=new THREE.MeshPhongMaterial({color:0xCFF3FF,transparent:true,opacity:.35,depthWrite:false,shininess:100});
+  const pipe=(a,b)=>{ const len=b-a; if(len<=0) return; const g=new THREE.CylinderGeometry(.19,.19,len,18,1,true); g.rotateZ(Math.PI/2); const m=new THREE.Mesh(g,glass.clone()); m.position.set((a+b)/2,1.4,0); stage.add(m); };
+  const machines=[];
+  for(let i=0;i<k;i++){
+    pipe(SX(i)+.4,MX(i)-.7); pipe(MX(i)+.7,SX(i+1)-.4);
+    const op=L.ops[i], O=OPS[op[0]];
+    const g=new THREE.Group(); g.position.set(MX(i),.3,0);
+    const body=mesh(new THREE.BoxGeometry(1.4,1.7,1.3),toon(O.col)); body.position.y=.85;
+    const trim=mesh(new THREE.BoxGeometry(1.5,.16,1.4),toon(0x23255C)); trim.position.y=1.72;
+    const chim=mesh(new THREE.CylinderGeometry(.13,.17,.5,12),toon(0x5A5E98)); chim.position.set(.38,2.02,-.15);
+    const lab=plate(opTxt(op),'#FFFFFF','#23255C',1.12,.74); lab.position.set(0,.95,.66);
+    const gearGeo=new THREE.CylinderGeometry(.17,.17,.08,8); gearGeo.rotateX(Math.PI/2);
+    const gA=mesh(gearGeo,toon(0xFFFFFF)); gA.position.set(-.45,1.5,.68);
+    const gB=mesh(gearGeo.clone(),toon(0xFFFFFF)); gB.position.set(.45,1.5,.68);
+    g.add(body,trim,chim,lab,gA,gB);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(1.0,1.18,48),new THREE.MeshBasicMaterial({color:0xFFE14D,transparent:true,opacity:.9,side:THREE.DoubleSide}));
+    ring.rotation.x=-Math.PI/2; ring.position.set(MX(i),.32,0); ring.visible=false; stage.add(ring);
+    stage.add(g);
+    machines.push({g:g,ring:ring,gears:[gA,gB],i:i});
+  }
+  idlers.push(t=>{ machines.forEach(m=>{ m.gears[0].rotation.z=t*.8; m.gears[1].rotation.z=-t*.8; if(m.ring.visible){ const s=1+.06*Math.sin(t*5); m.ring.scale.set(s,s,s); } }); });
+  const ball=new THREE.Group();
+  const orb=mesh(new THREE.SphereGeometry(.3,24,16),new THREE.MeshToonMaterial({color:0xFFC93C,emissive:0x553300,gradientMap:gradMap}));
+  const ballTag=tagSprite(String(out),'#FFFFFF','#23255C',.95); ballTag.position.y=.72;
+  ball.add(orb,ballTag); ball.position.set(SX(k),1.4,0); stage.add(ball);
+  const qTag=tagSprite('?','#FFC93C','#23255C',1.05); qTag.position.set(SX(0),2.35,0); stage.add(qTag);
+  idlers.push(t=>{ qTag.position.y=2.35+Math.sin(t*2.5)*.08; });
+  const robot=makeRobot({main:true}); robot.position.set(SX(0)-1.15,.3,.85); robot.rotation.y=.35; stage.add(robot);
+  S={kind:'machine',wi:wi,li:li,L:L,k:k,vals:vals,out:out,cur:out,step:k-1,machines:machines,ball:ball,ballTag:ballTag,qTag:qTag,SX:SX,MX:MX,robot:robot,
+     mistakes:0,wrong:0,hinted:false,busy:false,log:[]};
+  S.instr='第'+(li+1)+'關:'+L.name+'。波波將一個神秘數字放咗入魔法機,經過'+k+'部機器之後,變成咗'+out+'。用逆向思維,由'+out+'開始,由最後一部機器倒轉行返去,搵返最初嘅數字!每部機都要用相反嘅計法:加變減,減變加,乘變除,除變乘。';
+  setFrame(V3(0,1.3,0),Wd/2+.1,1.75,1.3,.36,0);
+  machineUI();
+  S.after=()=>machineAsk(true);
+}
+function eqText(){ if(!S.log.length) return '仲未有倒轉計數紀錄。答啱一題,呢度就會記低。'; return '倒轉計數紀錄:'+S.log.map(e=>e.say).join(',')+'。'; }
+function machineUI(){
+  $('#ctrl').append(
+    h('div',{class:'eqrow'},h('span',{class:'lbl'},'倒轉計數紀錄'),h('div',{class:'eqlog',id:'eqlog'}),spk(eqText,'聽計數紀錄','small')),
+    h('div',{class:'optrow'},h('div',{class:'opts',id:'opts'}),h('button',{class:'btn small',type:'button',onclick:machineHint},'💡 提示')));
+  renderEq();
+}
+function renderEq(){
+  const box=$('#eqlog'); box.innerHTML='';
+  if(!S.log.length){ box.append(h('span',{class:'eq empty'},'答啱就會記喺度')); return; }
+  S.log.forEach(e=>box.append(h('span',{class:'eq'+(e.ok?' ok':'')},e.txt)));
+}
+function machineAsk(queue){
+  const i=S.step, op=S.L.ops[i];
+  S.machines.forEach((m,j)=>{ m.ring.visible=(j===i); });
+  S.wrong=0;
+  const inv=[OPS[op[0]].inv,op[1]];
+  const other=[{'+':'/','-':'x','x':'-','/':'+'}[op[0]],op[1]];
+  S.inv=inv; S.opts=shuffle([inv,op.slice(),other]);
+  const box=$('#opts'); box.innerHTML='';
+  S.opts.forEach(o=>box.append(h('button',{class:'btn opt',type:'button','aria-label':opWord(o),style:'background:'+OPS[o[0]].css+';color:'+(o[0]==='x'?'#23255C':'#fff'),onclick:e=>chooseOp(o,e.currentTarget)},opTxt(o))));
+  const q='依家個數係'+S.cur+'。佢啱啱經過咗「'+opWord(op)+'」機。要倒轉呢部機,應該用邊個計法?答案有:'+S.opts.map(opWord).join('、')+'。撳你揀嘅答案。';
+  say(q,{queue:!!queue});
+}
+async function ballThrough(i,back,newVal){
+  const m=S.machines[i]; const ball=S.ball;
+  const from=ball.position.clone(), mid=V3(S.MX(i),1.4,0), to=V3(S.SX(back?i:i+1),1.4,0);
+  await tween(.45,p=>ball.position.lerpVectors(from,mid,p));
+  ball.visible=false; Sfx.whir();
+  await tween(.65,p=>{ const s=Math.sin(p*Math.PI*6); m.g.scale.set(1+.07*s,1-.06*s,1+.07*s); m.gears[0].rotation.z+=.35; m.gears[1].rotation.z-=.35; },ease.lin);
+  m.g.scale.set(1,1,1);
+  S.ballTag.userData.set(String(newVal)); ball.visible=true; Sfx.pop();
+  await tween(.45,p=>ball.position.lerpVectors(mid,to,p));
+}
+async function chooseOp(o,btn){
+  if(S.busy) return; const my=S;
+  const i=S.step, op=S.L.ops[i];
+  if(o[0]===S.inv[0]&&o[1]===S.inv[1]){
+    S.busy=true; lock(true); Sfx.ok();
+    const nv=OPS[S.inv[0]].f(S.cur,S.inv[1]);
+    say('啱喇!'+S.cur+opWord(S.inv)+'等於'+nv+'。');
+    await ballThrough(i,true,nv); if(S!==my) return;
+    S.log.push({txt:S.cur+' '+OPS[S.inv[0]].sym+' '+S.inv[1]+' = '+nv,say:S.cur+opWord(S.inv)+'等於'+nv}); renderEq();
+    const t=tagSprite(opTxt(S.inv),'#C9F5E7','#23255C',.7); t.position.set(S.MX(i),2.75,0); stage.add(t);
+    t.scale.setScalar(.01); tween(.3,p=>t.scale.setScalar(.01+.69*p),ease.back);
+    S.cur=nv; S.machines[i].ring.visible=false; S.step--;
+    S.busy=false; lock(false);
+    if(S.step>=0) machineAsk(true); else machineFound();
+  } else {
+    S.mistakes++; S.wrong++; Sfx.bad();
+    if(btn){ btn.classList.remove('wrong'); void btn.offsetWidth; btn.classList.add('wrong'); }
+    const m=S.machines[i]; tween(.4,p=>{ m.g.rotation.z=Math.sin(p*Math.PI*5)*.06*(1-p); },ease.lin);
+    if(S.wrong>=2) say('唔緊要!「'+opWord(op)+'」嘅相反係「'+opWord(S.inv)+'」,試下揀佢啦!');
+    else say('唔係喎!「'+opWord(op)+'」嘅相反唔係「'+opWord(o)+'」。諗下:加嘅相反係減,乘嘅相反係除。再試下!');
+  }
+}
+function machineHint(){
+  if(S.busy||S.step<0) return;
+  if(!S.hinted){ S.hinted=true; S.mistakes++; }
+  const op=S.L.ops[S.step];
+  say('倒帶提示:每部機都要做相反嘅嘢。加嘅相反係減,減嘅相反係加,乘嘅相反係除,除嘅相反係乘。所以「'+opWord(op)+'」要倒轉,就要用「'+opWord(S.inv)+'」。');
+}
+async function machineFound(){
+  const my=S; S.busy=true; lock(true);
+  $('#opts').innerHTML=''; $('#opts').append(h('span',{class:'eq ok',style:'font-size:26px;line-height:60px;flex:1;text-align:center'},'最初嘅數字:'+S.cur));
+  S.qTag.userData.set(String(S.cur),'#10A98F','#FFFFFF'); Sfx.win();
+  burst(S.qTag.position.clone(),30,'conf');
+  say('你搵到喇!最初嘅神秘數字係'+S.cur+'!我哋順住行一次,檢查下啱唔啱。',{queue:true});
+  await wait(1.4);
+  for(let i=0;i<S.k;i++){ if(S!==my) return; S.machines[i].ring.visible=true; await ballThrough(i,false,S.vals[i+1]); S.machines[i].ring.visible=false; }
+  if(S!==my) return;
+  S.log.push({txt:S.L.start+' ▶ '+S.out+' ✔',say:S.L.start+'順住計,真係變返'+S.out,ok:true}); renderEq();
+  Sfx.win(); burst(S.ball.position.clone(),60,'conf');
+  say(S.L.start+'經過晒所有機器,真係變成'+S.out+'!答案正確!',{queue:true});
+  await jumpCheer(S.robot,3); await wait(1.2);
+  if(S!==my) return;
+  finishLevel();
+}
+
+/* =========================================================
+   World 3: 寶藏迷宮 (work backwards from the goal)
+   ========================================================= */
+function gridBfs(map,start){
+  const H=map.length,W=map[0].length,k=(r,c)=>r+','+c;
+  const prev={}, seen=new Set([k(start[0],start[1])]), q=[start], order=[];
+  while(q.length){ const cur=q.shift(); order.push(cur); const r=cur[0],c=cur[1];
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(n=>{ const a=n[0],b=n[1]; if(a<0||b<0||a>=H||b>=W||map[a][b]==='.'||seen.has(k(a,b))) return; seen.add(k(a,b)); prev[k(a,b)]=cur; q.push(n); }); }
+  return {seen:seen,prev:prev,order:order,
+    path:goal=>{ const out=[goal]; let cur=goal; while(!(cur[0]===start[0]&&cur[1]===start[1])){ cur=prev[k(cur[0],cur[1])]; if(!cur) return null; out.push(cur); } return out.reverse(); }};
+}
+function startMaze(wi,li){
+  clearStage();
+  const L=WORLDS[wi].levels[li], map=L.map, H=map.length, W=map[0].length;
+  const P=(r,c,y)=>V3(c-(W-1)/2,y||0,r-(H-1)/2);
+  const ground=mesh(new THREE.BoxGeometry(W+1.4,.5,H+1.4),toon(0x8BD66B)); ground.position.y=-.25; stage.add(ground);
+  const dirt=mesh(new THREE.BoxGeometry(W+1.1,1.6,H+1.1),toon(0xC98B5A)); dirt.position.y=-1.3; stage.add(dirt);
+  const rnd=mulberry32(101+li*17);
+  const tiles={}, doors={}; let T=null;
+  const DOORCOL={A:0xFF5D8F,B:0xFFC93C,C:0x3E9BFF}, DOORCSS={A:'#FF5D8F',B:'#FFC93C',C:'#3E9BFF'};
+  for(let r=0;r<H;r++) for(let c=0;c<W;c++){
+    const ch=map[r][c];
+    if(ch==='.'){ const x=rnd(); if(x<.34){ const t=makeTree(rnd,.7+rnd()*.3); t.position.copy(P(r,c)); stage.add(t); } else if(x<.5){ const f=makeFlower(rnd); f.position.copy(P(r,c)); stage.add(f); } continue; }
+    const tile=mesh(new THREE.BoxGeometry(.94,.14,.94),toon(0xF3D9A4)); tile.position.copy(P(r,c,.07)); tile.userData.cell=[r,c];
+    stage.add(tile); pickables.push(tile); tiles[r+','+c]=tile;
+    if(ch==='T') T=[r,c];
+    if('ABC'.indexOf(ch)>=0) doors[ch]=[r,c];
+  }
+  const chest=makeChest(); chest.position.copy(P(T[0],T[1],.14)); stage.add(chest);
+  Object.keys(doors).forEach(D=>{
+    const d=doors[D], g=new THREE.Group(); g.position.copy(P(d[0],d[1],.14)); g.position.z+=.36;
+    const m=toon(DOORCOL[D]);
+    const p1=mesh(new THREE.BoxGeometry(.12,.8,.12),m); p1.position.set(-.42,.4,0);
+    const p2=mesh(new THREE.BoxGeometry(.12,.8,.12),m.clone()); p2.position.set(.42,.4,0);
+    const top=mesh(new THREE.BoxGeometry(1.02,.16,.16),m.clone()); top.position.y=.84;
+    const lab=tagSprite(D,DOORCSS[D],D==='B'?'#23255C':'#FFFFFF',.7); lab.position.y=1.35;
+    g.add(p1,p2,top,lab); stage.add(g);
+  });
+  const res=gridBfs(map,T);
+  const answer=Object.keys(doors).find(D=>res.seen.has(doors[D][0]+','+doors[D][1]));
+  const robot=makeRobot({main:true}); robot.visible=false; stage.add(robot);
+  S={kind:'maze',wi:wi,li:li,L:L,map:map,H:H,W:W,P:P,tiles:tiles,doors:doors,T:T,answer:answer,goodPath:res.path(doors[answer]),
+     lit:new Set([T[0]+','+T[1]]),robot:robot,mistakes:0,hinted:false,busy:false,tried:{}};
+  lightTile(T[0],T[1],true);
+  S.instr='第'+(li+1)+'關:'+L.name+'。寶藏喺最上面!下面有三道門:A、B、C,只有一道門行得到寶藏。由門口向上行有好多分岔路,好易蕩失路。用逆向思維:由寶藏開始,倒轉行落嚟!你可以用手指由寶藏隔籬開始,一格一格撳條路,將佢點亮。估到係邊道門,就撳下面嘅門。';
+  setFrame(V3(0,0,.3),W/2+.75,(H/2+.75)*Math.sin(1.08)+.55,(H/2+.75)*Math.cos(1.08)*.55,1.08,0);
+  mazeUI();
+  say('由寶藏隔籬開始,一格一格撳條路,睇下條路去到邊道門。',{speak:false});
+}
+function lightTile(r,c,quiet){
+  const t=S.tiles[r+','+c]; if(!t) return;
+  S.lit.add(r+','+c);
+  t.material.color.set(0xFFD84D); t.material.emissive=new THREE.Color(0x5a3c00);
+  if(!quiet){ const y0=.07; tween(.3,p=>{ t.position.y=y0+Math.sin(p*Math.PI)*.12; }); }
+}
+function unlightAll(){
+  Object.keys(S.tiles).forEach(k=>{ const t=S.tiles[k]; t.material.color.set(0xF3D9A4); t.material.emissive=new THREE.Color(0x000000); });
+  S.lit=new Set(); lightTile(S.T[0],S.T[1],true);
+}
+function mazeUI(){
+  const DOORCSS={A:'#FF5D8F',B:'#FFC93C',C:'#3E9BFF'};
+  $('#ctrl').append(h('div',{class:'mazerow'},
+    h('div',{class:'doors'},['A','B','C'].map(D=>h('button',{class:'btn door',type:'button','aria-label':D+'門',style:'background:'+DOORCSS[D]+(D==='B'?';color:#23255C':''),onclick:()=>chooseDoor(D)},'🚪 '+D+' 門'))),
+    h('div',{class:'mtools'},h('button',{class:'btn small',type:'button',onclick:mazeHint},'💡 倒帶提示'),h('button',{class:'btn ghost small',type:'button',onclick:()=>{ if(S.busy) return; Sfx.tap(); unlightAll(); say('已經清除咗發光嘅路。可以由寶藏重新開始撳。'); }},'↺ 清除'))));
+}
+function mazeTap(cell){
+  const r=cell[0], c=cell[1], key=r+','+c;
+  if(S.lit.has(key)) return;
+  const adj=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]].some(n=>S.lit.has(n[0]+','+n[1]));
+  if(!adj){ Sfx.bad(); say('要由發光嘅格仔隔籬撳起喎,一格接一格咁行。'); return; }
+  lightTile(r,c); Sfx.tap(S.lit.size%8);
+  const ch=S.map[r][c];
+  if('ABC'.indexOf(ch)>=0) say('條發光嘅路連到'+ch+'門喇!撳下面嘅「'+ch+'門」,睇下波波行唔行到寶藏。');
+  else {
+    const open=[[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(n=>S.tiles[n[0]+','+n[1]]&&!S.lit.has(n[0]+','+n[1]));
+    if(!open.length) say('呢度係死路!試下由其他發光格仔隔籬繼續撳。');
+  }
+}
+function mazeHint(){
+  if(S.busy) return;
+  if(!S.hinted){ S.hinted=true; S.mistakes++; }
+  const p=S.goodPath.slice().reverse(); // from treasure down to the door
+  let j=0; while(j<p.length&&S.lit.has(p[j][0]+','+p[j][1])) j++;
+  if(j>=p.length){ say('條路已經點亮晒,睇下佢去到邊道門,就撳嗰道門啦!'); return; }
+  let n=0; for(;j<p.length&&n<3;j++){ if(!S.lit.has(p[j][0]+','+p[j][1])){ lightTile(p[j][0],p[j][1]); n++; } }
+  Sfx.pop();
+  say('倒帶提示:我由寶藏開始,幫你倒轉點亮多'+n+'格。跟住條光路,繼續一格一格撳落去啦!');
+}
+async function chooseDoor(D){
+  if(S.busy) return; const my=S;
+  S.busy=true; lock(true);
+  const d=S.doors[D], r=S.robot, P=S.P;
+  r.visible=true; r.position.copy(P(d[0],d[1],.14)); r.rotation.set(0,Math.PI,0); Sfx.pop(); await unpoof(r);
+  if(S!==my) return;
+  const res=gridBfs(S.map,d);
+  if(D===S.answer){
+    say(D+'門,出發!');
+    const path=res.path(S.T);
+    for(let i=1;i<path.length-1;i++){ if(S!==my) return; lightTile(path[i][0],path[i][1],true); await hop(r,P(path[i][0],path[i][1],.14),.22,.16); }
+    if(S!==my) return;
+    Sfx.win(); burst(P(S.T[0],S.T[1],1.2),60,'conf');
+    say('好嘢!'+D+'門真係行得到寶藏!由終點倒轉諗,係咪快好多呢?');
+    await turnTo(r,0,.2); await jumpCheer(r,3); await wait(.8);
+    if(S!==my) return;
+    finishLevel();
+  } else {
+    S.mistakes++;
+    const far=res.order[res.order.length-1]; const path=res.path(far);
+    for(let i=1;i<path.length;i++){ if(S!==my) return; await hop(r,P(path[i][0],path[i][1],.14),.2,.14); }
+    if(S!==my) return;
+    Sfx.bad(); const hideQ=showQ(r);
+    say(D+'門行上去係死路!波波行唔到寶藏。試下由寶藏開始,倒轉追返落嚟啦。');
+    await wait(1.8); if(S!==my) return; hideQ(); await poof(r); r.visible=false; r.scale.setScalar(1);
+    S.busy=false; lock(false);
+  }
+}
+
+/* ---------- canvas taps (maze tracing) ---------- */
+const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(); let downAt=null;
+canvas.addEventListener('pointerdown',e=>{ downAt=[e.clientX,e.clientY]; });
+canvas.addEventListener('pointerup',e=>{
+  if(!downAt) return; const moved=Math.hypot(e.clientX-downAt[0],e.clientY-downAt[1]); downAt=null;
+  if(moved>14||S.kind!=='maze'||S.busy||!pickables.length) return;
+  ndc.set(e.clientX/window.innerWidth*2-1,-(e.clientY/window.innerHeight)*2+1);
+  ray.setFromCamera(ndc,camera);
+  const hit=ray.intersectObjects(pickables,false)[0];
+  if(hit) mazeTap(hit.object.userData.cell);
+});
+document.addEventListener('gesturestart',e=>e.preventDefault());
+
+/* ---------- boot ---------- */
+buildHome(); show('home');
+requestAnimationFrame(loop);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(reframeSoon);
+window.__bobo={startLevel:startLevel,goMap:goMap,getS:()=>S};
+})();
+</script>
+</body>
+</html>
