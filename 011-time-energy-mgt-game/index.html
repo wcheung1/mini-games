@@ -109,10 +109,17 @@ button:focus-visible,.act:focus-visible,.card:focus-visible{outline:4px solid va
 .act small{font-size:13px;font-weight:700;opacity:.8}
 .act .spk{position:absolute;right:5px;top:5px;width:38px;height:38px;min-width:38px;font-size:18px}
 .act.bad{background:#ffecec}
+.act.mini{width:108px;padding:6px 6px 4px}
+.act.mini .em{font-size:26px}
+.act.mini b{font-size:16px;line-height:1.2}
+.act.mini .spk{width:34px;height:34px;min-width:34px;font-size:16px;right:4px;top:4px}
+.act.sel{background:var(--sun);transform:translateY(-5px);box-shadow:3px 8px 0 var(--ink)}
+.act.used{background:#eef7f1}
+.reqtag{color:#d63b2c;font-weight:900!important;opacity:1!important}
+.checks{list-style:none;padding:0;margin:.3em 0}
+.checks li{margin:.35em 0;line-height:1.45}
+.sched{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:4px 12px;font-size:17px;background:#f1f5ff;border-radius:14px;padding:8px 12px}
 .act.dim{opacity:.45}
-.arrow{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 18px);width:96px;height:96px;border-radius:50%;font-size:46px;
-  border:4px solid var(--ink);background:rgba(255,255,255,.88);box-shadow:var(--shadow);pointer-events:auto}
-.arrow.l{left:18px}.arrow.r{right:18px}
 #toast{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-size:34px;font-weight:900;color:#fff;
   -webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:3px 4px 0 var(--ink);opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;white-space:nowrap}
 #toast.show{opacity:1}
@@ -126,7 +133,6 @@ button:focus-visible,.act:focus-visible,.card:focus-visible{outline:4px solid va
   .card{width:44vw;padding:10px}
   .card b{font-size:18px}.card small{font-size:13px}
   .act{width:30vw}
-  .arrow{width:78px;height:78px;font-size:38px}
   .dlg-body{font-size:19px}
 }
 @media (max-height:620px){
@@ -638,7 +644,7 @@ function makeIslandStage(){
     scene: sc, camera: cam, paused:false,
     onResize(w,h){ R = w/h < 1 ? 22 : 15; },
     idle(dt,t){ this.update(dt,t); },
-    statusText(){ return $('#tips').classList.contains('show') ? '呢度係叮叮錦囊。每過一關，就會解鎖一張錦囊卡。每張卡都有小喇叭，揿一下就會讀出嚟。揿左上角屋仔，返去地圖。' : '呢度係冒險地圖。總共有三關：大石頭玻璃樽、精力電池一日、專注跑跑跑。揿一張卡就可以開始玩。每張卡都有小喇叭，可以聽佢講咩。'; },
+    statusText(){ return $('#tips').classList.contains('show') ? '呢度係叮叮錦囊。每過一關，就會解鎖一張錦囊卡。每張卡都有小喇叭，揿一下就會讀出嚟。揿左上角屋仔，返去地圖。' : '呢度係冒險地圖。總共有三關：大石頭玻璃樽、精力電池一日、自己砌時間表。揿一張卡就可以開始玩。每張卡都有小喇叭，可以聽佢講咩。'; },
     update(dt,t){
       const a = Math.sin(t*.12)*.5;
       cam.position.set(Math.sin(a)*R, 6 + (R>15?2:0), Math.cos(a)*R);
@@ -655,7 +661,7 @@ function makeIslandStage(){
 const LEVELS = [
   {id:1, emoji:'🫙', name:'大石頭玻璃樽', sub:'將所有嘢放入時間樽', say:'第一關：大石頭玻璃樽。學識先做最重要嘅事。'},
   {id:2, emoji:'🔋', name:'精力電池一日', sub:'幫叮叮安排放學後嘅時間', say:'第二關：精力電池一日。幫叮叮安排放學後嘅時間，學識點樣幫自己充電。'},
-  {id:3, emoji:'🍅', name:'專注跑跑跑', sub:'避開分心嘢，記得休息', say:'第三關：專注跑跑跑。一路跑一路執專注星，避開分心嘅嘢，仲要記得入休息站充電。'}
+  {id:3, emoji:'🗓️', name:'自己砌時間表', sub:'砌一個放學後嘅時間表', say:'第三關：自己砌時間表。自己揀卡，砌一個放學後嘅時間表，再睇下叮叮跟住過一日會點。'}
 ];
 function buildMapCards(){
   const box = $('#cards'); box.innerHTML = '';
@@ -698,6 +704,7 @@ const TIPS = [
   {lv:1, emoji:'🪨', name:'要事第一', text:'時間好似一個玻璃樽。先放大石頭（最重要嘅事），再放細石仔，最後先放沙（玩樂）。先做重要嘅事，玩嘅時間都仲有！', life:'每朝問自己：「今日我嘅三粒大石頭係乜嘢？」'},
   {lv:2, emoji:'🔋', name:'精力好似電池', text:'精力高嘅時候，做最難嘅事，又快又好。真休息：飲水、食生果、郁下身、深呼吸。假休息：玩手機、睇電視，好似休息，其實更攰。糖果令你好快有精神，但好快又會好攰。', life:'做功課之前，先飲杯水、跳十下！'},
   {lv:2, emoji:'🌙', name:'瞓覺係最大嘅充電', text:'六至十二歲嘅小朋友，每晚要瞓九至十二個鐘，精力電池先會充滿。瞓覺前一個鐘，唔好玩手機同平板。', life:'今晚定個瞓覺時間，準時上床！'},
+  {lv:3, emoji:'🗓️', name:'先計劃，再行動', text:'做嘢之前，先砌個時間表：難嘅功課放喺精力高、晚飯前嘅時間；做完一樣功課就小休一陣；瞓覺前唔好對住螢幕；記得留時間玩。有計劃，就唔使手忙腳亂！', life:'今晚同爸爸媽媽一齊，寫低聽日放學後嘅時間表。'},
   {lv:3, emoji:'🍅', name:'專注，然後休息', text:'專注做一段時間，再休息一陣。六至八歲大約專注十五分鐘，九至十二歲大約二十至二十五分鐘，然後休息五分鐘。做嘢嘅時候，將手機、電視呢啲分心嘢收埋。', life:'用計時器：專注完就去飲水、伸展、望遠啲。'}
 ];
 function goTips(){
@@ -1134,7 +1141,7 @@ function makeLevel2(){
         <p>玩手機同食糖果係 <b>假休息</b>，之後會更攰。</p>
         <p>最後，晚上瞓夠九至十二個鐘，精力電池先會充滿 🌙。</p>
         <p class="life">🌟 生活挑戰：今日做功課之前，先飲杯水、跳十下，睇下係咪精神啲！</p>`,
-      say: msgs.join('') + `功課做晒！你攞到${n2c(stars)}粒星！叮叮喺${timeSay(S.time)}做晒功課，仲有時間玩同準備瞓覺。` + (stars < 3 ? '八點前做完就有三粒星。' : '') + '你學識咗：精力高嘅時候做難嘅事，做得又快又好。精力低就要真休息：飲水、食生果、郁下身、深呼吸。玩手機同食糖果係假休息，之後會更攰。最後，晚上瞓夠九至十二個鐘，精力電池先會充滿。生活挑戰：今日做功課之前，先飲杯水、跳十下，睇下係咪精神啲！揿下一關，去玩專注跑跑跑。',
+      say: msgs.join('') + `功課做晒！你攞到${n2c(stars)}粒星！叮叮喺${timeSay(S.time)}做晒功課，仲有時間玩同準備瞓覺。` + (stars < 3 ? '八點前做完就有三粒星。' : '') + '你學識咗：精力高嘅時候做難嘅事，做得又快又好。精力低就要真休息：飲水、食生果、郁下身、深呼吸。玩手機同食糖果係假休息，之後會更攰。最後，晚上瞓夠九至十二個鐘，精力電池先會充滿。生活挑戰：今日做功課之前，先飲杯水、跳十下，睇下係咪精神啲！揿下一關，去自己砌時間表。',
       buttons:[{label:'▶ 下一關', cls:'go', onClick:() => startLevel(3)}, {label:'🔄 再玩', cls:'white', onClick:() => startLevel(2, true)}, {label:'🏠 地圖', cls:'white', onClick:goMap}]
     }));
   }
@@ -1209,222 +1216,335 @@ function makeLevel2(){
 }
 
 /* =========================================================
-   第三關：專注跑跑跑
+   第三關：自己砌時間表
    ========================================================= */
+const L3_BLOCKS = [
+  {id:'math', emoji:'🔢', name:'數學功課', cat:'hard', req:true, e:-22, say:'數學功課。必做！係難嘅功課，會用好多精力，精力減二十二。最好喺精力高嘅時候做。'},
+  {id:'chi', emoji:'📝', name:'中文功課', cat:'hard', req:true, e:-22, say:'中文功課。必做！係難嘅功課，會用好多精力，精力減二十二。最好喺精力高嘅時候做。'},
+  {id:'dict', emoji:'📖', name:'溫默書', cat:'mid', req:true, e:-12, say:'溫默書。必做！要用中等精力，精力減十二。'},
+  {id:'bag', emoji:'🎒', name:'執書包', cat:'easy', req:true, e:-5, say:'執書包。必做！好容易，精力只係減五，攰攰哋都做得到。'},
+  {id:'piano', emoji:'🎹', name:'練琴', cat:'mid', e:-12, say:'練琴。可以自己揀要唔要。要用中等精力，精力減十二。'},
+  {id:'move', emoji:'🤸', name:'郁下身', cat:'rest', e:18, say:'郁下身。係充電嘅真休息，精力加十八。'},
+  {id:'fruit', emoji:'🍎', name:'食生果飲水', cat:'rest', e:15, say:'食生果飲水。係充電嘅真休息，精力加十五。'},
+  {id:'play', emoji:'⚽', name:'落街玩', cat:'fun', e:8, say:'落街玩。又好玩又郁到身，精力加八。'},
+  {id:'game', emoji:'🎮', name:'打機', cat:'fun', screen:true, e:-6, say:'打機。好玩，但係對住螢幕眼會攰，精力減六。'},
+  {id:'tv', emoji:'📺', name:'睇電視', cat:'fun', screen:true, e:-4, say:'睇電視。好玩，但係對住螢幕眼會攰，精力減四。'}
+];
+const L3_BY = {}; L3_BLOCKS.forEach(b => L3_BY[b.id] = b);
+const L3_CAT = {
+  hard:{c:0xff6b5b, css:'#ff6b5b', label:'難'}, mid:{c:0xffa23d, css:'#ffa23d', label:'中'}, easy:{c:0x5b8def, css:'#5b8def', label:'易'},
+  rest:{c:0x34c98b, css:'#34c98b', label:'充電'}, fun:{c:0xb07cf0, css:'#b07cf0', label:'玩'}, fixed:{c:0xffc83d, css:'#ffc83d', label:'固定'}
+};
+const L3_FIXED = {
+  5:{id:'dinner', emoji:'🍚', name:'食晚飯', cat:'fixed', e:25},
+  9:{id:'bath', emoji:'🛁', name:'沖涼準備瞓覺', cat:'fixed', e:0}
+};
+const L3_EMPTY = {id:'free', emoji:'☁️', name:'空閒', cat:'free', e:5};
+const L3_N = 10, L3_START_E = 55;
+const slotShort = i => `${4 + Math.floor(i/2)}:${i%2 ? '30' : '00'}`;
+const slotSay = i => timeSay(i*30);
+const isFocus = d => d && (d.cat === 'hard' || d.cat === 'mid');
+
 function makeLevel3(){
-  const sc = new THREE.Scene(); const SKY = 0xbfe8ff;
-  sc.background = new THREE.Color(SKY); sc.fog = new THREE.Fog(SKY, 22, 75);
-  const cam = new THREE.PerspectiveCamera(55, 1, .1, 120);
-  addLights(sc, 1.05);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(120,160), mat(0x8fd16a,{roughness:1})); ground.rotation.x = -Math.PI/2; ground.position.z = -50; sc.add(ground);
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(7.2,160), mat(0x7c7fa6,{roughness:.9})); road.rotation.x = -Math.PI/2; road.position.set(0,.01,-50); sc.add(road);
-  [-3.7,3.7].forEach(x => { const e = new THREE.Mesh(new THREE.BoxGeometry(.25,.2,160), mat(0xffffff)); e.position.set(x,.1,-50); sc.add(e); });
-  const dashes = [];
-  for(let i=0;i<22;i++){ [-1.2,1.2].forEach(x => { const d = new THREE.Mesh(new THREE.BoxGeometry(.14,.02,1.6), mat(0xffffff)); d.position.set(x,.03,5 - i*4); sc.add(d); dashes.push(d); }); }
-  const deco = [];
-  for(let i=0;i<24;i++){
+  const sc = new THREE.Scene(); sc.background = new THREE.Color(0xd9f1ff);
+  const cam = new THREE.PerspectiveCamera(45, 1, .1, 120);
+  addLights(sc);
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(40,48), mat(0xa8e08a,{roughness:1})); ground.rotation.x = -Math.PI/2; ground.position.y = -.5; sc.add(ground);
+  for(let i=0;i<14;i++){
     const tr = new THREE.Group();
     const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.15,.2,.9,8), mat(0x8a5a36)); trunk.position.y = .45; tr.add(trunk);
-    const leaf = new THREE.Mesh(i%3 ? new THREE.ConeGeometry(.8,1.8,10) : new THREE.SphereGeometry(.9,12,10), mat([0x3fae5a,0x58c46b,0x2e9a55][i%3])); leaf.position.y = 1.6; tr.add(leaf);
-    tr.position.set((i%2 ? 1 : -1)*rand(5.5,10), 0, 6 - i*3.6); sc.add(tr); deco.push(tr);
+    const leaf = new THREE.Mesh(new THREE.ConeGeometry(.8,1.8,10), mat([0x3fae5a,0x58c46b][i%2])); leaf.position.y = 1.6; tr.add(leaf);
+    const a = rand(0, Math.PI*2); tr.position.set(Math.cos(a)*rand(14,24), -.5, -Math.abs(Math.sin(a))*rand(8,20) - 4); sc.add(tr);
   }
-  const LANES = [-2.4, 0, 2.4];
-  const dd = makeDingDing(); dd.rotation.y = Math.PI; dd.scale.setScalar(.85); sc.add(dd);
-  // 物件材質
-  const TEX = {
-    star: emojiTexture('⭐', '#ffc83d', 'rgba(255,255,255,.85)'),
-    d: ['📱','📺','🎮','💬','🍭'].map(e => ({e, tex: emojiTexture(e, '#ff5b4a', 'rgba(255,225,225,.95)')}))
-  };
-  const DNAME = {'📱':'手機','📺':'電視','🎮':'遊戲機','💬':'傾偈','🍭':'零食'};
-  const objs = [];
-  function spawn(kind, lane){
-    let g;
-    if(kind === 'rest'){
-      g = new THREE.Group();
-      const pad = new THREE.Mesh(new THREE.BoxGeometry(2,.12,3.4), mat(0x34c98b,{emissive:0x34c98b, emissiveIntensity:.5})); pad.position.y = .08; g.add(pad);
-      const arch = new THREE.Mesh(new THREE.TorusGeometry(1.1,.14,10,24,Math.PI), mat(0x34c98b,{emissive:0x1d7a50})); arch.position.y = .1; g.add(arch);
-      const icon = makeEmoji('🔋', 1.2, '#34c98b', 'rgba(255,255,255,.95)'); icon.position.y = 2.2; g.add(icon);
-      const lbl = makeLabel('休息站', {scale:.5, bg:'#34c98b', color:'#fff'}); lbl.position.y = 3.2; g.add(lbl);
-    } else if(kind === 'star'){
-      g = new THREE.Sprite(new THREE.SpriteMaterial({map:TEX.star, transparent:true, depthWrite:false})); g.scale.set(1.3,1.3,1);
-    } else {
-      const d = TEX.d[Math.floor(Math.random()*TEX.d.length)];
-      g = new THREE.Sprite(new THREE.SpriteMaterial({map:d.tex, transparent:true, depthWrite:false})); g.scale.set(1.5,1.5,1); g.userData.e = d.e;
-    }
-    g.position.set(LANES[lane], kind === 'rest' ? 0 : 1.1, -72);
-    sc.add(g);
-    const o = {g, kind, lane, alive:true};
-    objs.push(o); return o;
-  }
-  function removeObj(o){ o.alive = false; sc.remove(o.g); if(o.g.isSprite) o.g.material.dispose(); else o.g.traverse(x => { if(x.geometry) x.geometry.dispose(); if(x.material){ if(x.material.map) x.material.map.dispose(); x.material.dispose(); } }); }
+  const sunEm = makeEmoji('☀️', 1.5); sc.add(sunEm);
+  const moonEm = makeEmoji('🌙', 1.3); sc.add(moonEm);
+  const sign = makeLabel('🗓️ 叮叮放學後時間表', {scale:.62}); sc.add(sign);
 
-  const BLOCK = 25, ROUNDS = 3;
-  const G = {phase:'ready', readyT:0, lane:1, x:0, energy:100, stars:0, starsSpawned:0, hits:0, rests:0, round:1, blockT:0,
-             spawnT:0, restTries:0, restObj:null, restT:0, speed:15, over:false, lastHitSay:0, lowSaid:false, dist:0};
+  // 時間格
+  const tiles = [], tlabels = [], blocks = new Array(L3_N).fill(null), slots = new Array(L3_N).fill(null);
+  for(let i=0;i<L3_N;i++){
+    const t = new THREE.Mesh(new THREE.BoxGeometry(1.6,.4,1.6), mat(L3_FIXED[i] ? 0xfff0b3 : (i < 5 ? 0xffffff : 0xe8eeff)));
+    t.userData.slot = i; sc.add(t); tiles.push(t);
+    const l = makeLabel(slotShort(i), {scale:.4, bg: i < 5 ? '#ffffff' : '#dfe6ff'}); sc.add(l); tlabels.push(l);
+  }
+  const dd = makeDingDing(); dd.scale.setScalar(.55); sc.add(dd);
   let portrait = false;
 
-  function move(dir){ if(G.over) return; G.lane = clamp(G.lane + dir, 0, 2); }
-  function startRestPhase(){
-    G.phase = 'toRest'; G.restTries = 0;
-    Voice.say('第' + n2c(G.round) + '輪專注完成！休息站嚟緊，行入綠色嘅休息站充電！');
-    toast('🔋 休息站嚟喇！');
-    wait(1.2, () => { if(G.phase === 'toRest') G.restObj = spawn('rest', Math.floor(Math.random()*3)); });
+  function slotPos(i){
+    const row = i < 5 ? 0 : 1;
+    return new THREE.Vector3(-3.6 + (i%5)*1.8, 0, row ? 2.6 : -1.3);
   }
-  function nextRound(){
-    G.round++; G.blockT = 0; G.phase = 'focus'; G.speed += 2; G.lowSaid = false;
-    toast(`🍅 第 ${G.round} 輪專注！`);
+  function startPos(){ const p = slotPos(0); return new THREE.Vector3(p.x, 0, p.z - 1.75); }
+
+  function makeBlock(d){
+    const g = new THREE.Group();
+    const box = new THREE.Mesh(new THREE.BoxGeometry(1.3,.8,1.3), mat(L3_CAT[d.cat].c, {roughness:.45}));
+    box.position.y = .4; g.add(box);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(1.36,.08,1.36), mat(0xffffff, {roughness:.4})); top.position.y = .82; g.add(top);
+    const em = makeEmoji(d.emoji, 1.0); em.position.y = 1.45; g.add(em);
+    const nm = makeLabel(d.name, {scale:.27}); nm.position.set(0, .42, .72); g.add(nm);
+    g.userData.em = em;
+    return g;
+  }
+  function disposeObj(o){ o.traverse(x => { if(x.geometry) x.geometry.dispose(); if(x.material){ if(x.material.map) x.material.map.dispose(); x.material.dispose(); } }); }
+  function putBlock(i, d, animate){
+    const g = makeBlock(d); g.userData.slot = i;
+    const p = slotPos(i); g.position.set(p.x, .2, p.z); sc.add(g); blocks[i] = g;
+    if(animate){
+      tween(.45, k => { g.position.y = .2 + (1-easeOut(k))*4; g.scale.set(1, k < .85 ? 1 : 1 - Math.sin((k-.85)/.15*Math.PI)*.2, 1); }, () => { g.scale.set(1,1,1); });
+      wait(.35, () => Sound.thud());
+    }
+  }
+  Object.keys(L3_FIXED).forEach(k => putBlock(+k, L3_FIXED[k], false));
+
+  function layout(){
+    for(let i=0;i<L3_N;i++){
+      const p = slotPos(i);
+      tiles[i].position.set(p.x, 0, p.z);
+      tlabels[i].position.set(p.x, -.1, p.z + 1.05);
+      if(blocks[i]) blocks[i].position.set(p.x, .2, p.z);
+    }
+    const a = slotPos(0), b = slotPos(L3_N-1);
+    sunEm.position.set(-5.0, 1.6, -1.3); moonEm.position.set(5.0, 1.6, 2.6);
+    sign.position.set(0, 2.9, -2.8); sign.visible = portrait;
+    if(mode === 'build') dd.position.copy(startPos());
+    // 鏡頭：令成條時間軌道入晒畫面
+    const aspect = camera ? camera.aspect : (window.innerWidth/window.innerHeight);
+    const halfW = 5.6;
+    const d = portrait ? Math.max(14, halfW / (Math.tan(THREE.MathUtils.degToRad(cam.fov/2)) * aspect)) : 16;
+    const el = portrait ? .85 : .8;
+    const target = portrait ? new THREE.Vector3(0, -.6, .5) : new THREE.Vector3(0, -1.0, 1.5);
+    cam.position.set(target.x, target.y + Math.sin(el)*d, target.z + Math.cos(el)*d);
+    cam.lookAt(target);
+  }
+
+  let mode = 'build', selId = null, energy = L3_START_E, curStep = -1;
+  const defAt = i => L3_FIXED[i] || (slots[i] ? L3_BY[slots[i]] : null);
+
+  function selectCard(id){
+    if(mode !== 'build') return;
+    const d = L3_BY[id];
+    if(selId === id){
+      const i = slots.findIndex((s,k) => !s && !L3_FIXED[k]);
+      if(i < 0){ Voice.speak('時間表已經滿晒喇！揿上面一格，就可以拎走嗰樣嘢。'); Sound.buzz(); return; }
+      placeAt(i, id); return;
+    }
+    selId = id; Sound.ding();
+    Voice.speak(d.say + '而家揿上面時間表其中一格，就可以放佢入去。再揿多一下呢張卡，就會放入第一個空格。');
+    renderHud();
+  }
+  function placeAt(i, id){
+    const d = L3_BY[id];
+    if(d.req){ const j = slots.indexOf(id); if(j >= 0 && j !== i) removeAt(j, true); }
+    if(slots[i]) removeAt(i, true);
+    slots[i] = id; putBlock(i, d, true);
+    Voice.speak(`${slotSay(i)}：${d.name}。`);
+    if(d.req) selId = null;
+    renderHud();
+  }
+  function removeAt(i, silent){
+    const b = blocks[i], id = slots[i];
+    if(b){ blocks[i] = null; tween(.25, k => b.scale.setScalar(Math.max(.01, 1-k)), () => { sc.remove(b); disposeObj(b); }); }
+    slots[i] = null;
+    if(!silent && id){ Voice.speak(`拎走咗${slotSay(i)}嘅${L3_BY[id].name}。`); Sound.tone(320,.12,'sine',.1); }
+    renderHud();
+  }
+  function clearAll(){
+    for(let i=0;i<L3_N;i++) if(slots[i]) removeAt(i, true);
+    selId = null; renderHud();
+    Voice.speak('清空咗成個時間表，由頭砌過啦！');
+  }
+
+  // 計算：精力同五個秘訣
+  function evaluate(){
+    let e = L3_START_E; const before = [];
+    for(let i=0;i<L3_N;i++){ const d = defAt(i) || L3_EMPTY; before.push(e); e = clamp(e + d.e, 0, 100); }
+    const checks = [];
+    const hardIdx = []; for(let i=0;i<L3_N;i++){ const d = defAt(i); if(d && d.cat === 'hard') hardIdx.push(i); }
+    // 1 大石頭先做
+    const late = hardIdx.filter(i => i >= 5);
+    checks.push(late.length === 0
+      ? {ok:true, t:'🪨 大石頭先做：難嘅功課喺晚飯前做完。'}
+      : {ok:false, t:`🪨 ${late.map(i => defAt(i).name).join('同')}放得太夜。大石頭要早啲放，晚飯前做完佢！`});
+    // 2 精力高做難嘢
+    const tired = hardIdx.filter(i => before[i] < 40);
+    checks.push(tired.length === 0
+      ? {ok:true, t:'🔋 精力高做難嘢：做難功課嗰陣，精力都夠。'}
+      : {ok:false, t:`🔋 做${defAt(tired[0]).name}嗰陣，精力得${Math.round(before[tired[0]])}，太攰喇！之前先放一格充電。`});
+    // 3 專注完要休息
+    let row = -1; for(let i=1;i<L3_N;i++){ if(isFocus(defAt(i)) && isFocus(defAt(i-1))){ row = i-1; break; } }
+    checks.push(row < 0
+      ? {ok:true, t:'🍅 專注完有休息：功課之間有小休。'}
+      : {ok:false, t:`🍅 由${slotShort(row)}開始，連續做兩格功課冇休息，會專心唔到。中間加一格郁下身或者食生果飲水。`});
+    // 4 瞓覺前冇螢幕
+    const lateScreen = [8].filter(i => defAt(i) && defAt(i).screen);
+    checks.push(lateScreen.length === 0
+      ? {ok:true, t:'🌙 瞓覺前冇螢幕：八點之後冇打機、冇睇電視。'}
+      : {ok:false, t:`🌙 八點仲${defAt(8).name}，眼同腦袋太興奮，會瞓唔著。螢幕時間放早啲！`});
+    // 5 有玩樂
+    const fun = slots.some(id => id && L3_BY[id].cat === 'fun');
+    checks.push(fun
+      ? {ok:true, t:'😊 有玩樂時間：做完正經嘢都有得玩，生活好平衡！'}
+      : {ok:false, t:'😊 冇玩樂時間！做完正經嘢，都要留時間玩吓，先會開心有動力。'});
+    return {before, checks};
+  }
+
+  function startDay(){
+    if(mode !== 'build') return;
+    const missing = L3_BLOCKS.filter(d => d.req && !slots.includes(d.id));
+    if(missing.length){
+      Sound.buzz(); toast('仲差：' + missing.map(d => d.emoji).join(' '), 1800);
+      Voice.speak('仲未放晒必做嘅嘢：' + missing.map(d => d.name).join('、') + '。放晒先可以開始。');
+      return;
+    }
+    mode = 'sim'; selId = null; energy = L3_START_E; curStep = -1;
+    renderHud();
+    Voice.say('出發！睇下叮叮跟你嘅時間表過一日會點。');
+    wait(1.2, () => runStep(0));
+  }
+  function runStep(i){
+    if(mode !== 'sim') return;
+    if(i >= L3_N) return finish();
+    curStep = i;
+    const d = defAt(i) || L3_EMPTY;
+    const from = dd.position.clone(), p = slotPos(i);
+    const to = new THREE.Vector3(p.x, defAt(i) ? 1.05 : .2, p.z);
+    tween(.55, k => { dd.position.lerpVectors(from, to, k); dd.position.y += Math.sin(k*Math.PI)*1.3; }, () => {
+      Sound.tone(480 + i*45, .12, 'triangle', .1);
+      let problem = null;
+      if(d.cat === 'hard' && energy < 40) problem = `好攰呀！精力得${n2c(energy)}，${d.name}做得好慢。`;
+      if(isFocus(d) && i > 0 && isFocus(defAt(i-1))) problem = (problem || '') + '連續做兩格功課冇休息，專心唔到！';
+      if(d.screen && i >= 8) problem = '八點仲對住螢幕，會瞓唔著㗎！';
+      const e0 = energy;
+      energy = clamp(energy + d.e, 0, 100);
+      const de = Math.round(energy - e0);
+      if(blocks[i]){ const b = blocks[i]; tween(.3, k => b.userData.em.scale.setScalar(1 + Math.sin(k*Math.PI)*.4)); }
+      floatText(sc, `⚡ ${de >= 0 ? '+' : ''}${de}`, new THREE.Vector3(p.x, 2.4, p.z + .3), de >= 0 ? '#1b8a5a' : '#ff5b4a');
+      toast(`${slotShort(i)} ${d.emoji} ${d.name}`, 1000);
+      renderHud();
+      if(problem){
+        flash(); Sound.buzz(); Voice.say(problem);
+        const warn = makeEmoji('⚠️', .9); warn.position.set(p.x + .6, 2.1, p.z); sc.add(warn);
+        wait(2.6, () => { sc.remove(warn); disposeObj(warn); runStep(i+1); });
+      } else wait(1.0, () => runStep(i+1));
+    });
   }
   function finish(){
-    G.over = true; G.phase = 'end';
-    const ratio = G.starsSpawned ? G.stars / G.starsSpawned : 0;
-    let stars = 1;
-    if(ratio >= .35) stars = 2;
-    if(ratio >= .55 && G.rests >= 2) stars = 3;
-    Save.setStars(3, stars); Sound.win();
+    const {checks} = evaluate();
+    const n = checks.filter(c => c.ok).length;
+    const stars = n === 5 ? 3 : (n >= 3 ? 2 : 1);
+    Save.setStars(3, stars);
+    if(stars === 3) Sound.win(); else Sound.ding();
+    mode = 'done'; renderHud();
+    const sched = [];
+    for(let i=0;i<L3_N;i++){ const d = defAt(i) || L3_EMPTY; sched.push({i, d}); }
     const html = `<div class="bigstars">${starsText(stars)}</div>
-      <p>⭐ 專注星：<b>${G.stars}</b> 粒　📱 分心：<b>${G.hits}</b> 次　🔋 休息：<b>${G.rests}</b> 次</p>
-      ${G.rests < 2 ? '<p>你錯過咗休息站，所以後面好攰、個頭矇矇哋，好難睇清楚。</p>' : '<p>你每輪專注完都有休息，所以一直都好有精神！</p>'}
-      <p>你學識咗：<b>專注一段時間，然後休息一陣</b>。遊戲入面 25 秒，就好似現實入面專心做 15 至 25 分鐘。</p>
-      <p>做嘢嘅時候，將 📱 手機、📺 電視呢啲 <b>分心嘢收埋</b>，會專心好多。</p>
-      <p class="life">🌟 生活挑戰：做功課時用計時器，6 至 8 歲專注 15 分鐘，9 至 12 歲專注 20 至 25 分鐘，之後休息 5 分鐘：飲水、伸展、望遠啲。</p>`;
-    const say = `完成！你攞到${n2c(stars)}粒星！你執到${n2c(G.stars)}粒專注星，分心咗${n2c(G.hits)}次，休息咗${n2c(G.rests)}次。` +
-      (G.rests < 2 ? '你錯過咗休息站，所以後面好攰，個頭矇矇哋，好難睇清楚。' : '你每輪專注完都有休息，所以一直都好有精神！') +
-      '你學識咗：專注一段時間，然後休息一陣。遊戲入面二十五秒，就好似現實入面專心做十五至二十五分鐘。做嘢嘅時候，將手機、電視呢啲分心嘢收埋，會專心好多。生活挑戰：做功課時用計時器，六至八歲專注十五分鐘，九至十二歲專注二十至二十五分鐘，之後休息五分鐘：飲水、伸展、望遠啲。' +
-      (stars < 3 ? '想攞三粒星，就要執多啲專注星，同埋每次都入休息站。' : '');
-    wait(1, () => showDialog({ title:'跑完喇！', html: html + (stars < 3 ? '<p>想攞三粒星：執多啲 ⭐，每次都入休息站！</p>' : ''), say,
-      buttons:[{label:'🎁 睇錦囊', cls:'go', onClick:goTips}, {label:'🔄 再玩', cls:'white', onClick:() => startLevel(3, true)}, {label:'🏠 地圖', cls:'white', onClick:goMap}] }));
+      <p>你嘅時間表攞到 <b>${n} / 5</b> 個好秘訣！</p>
+      <ul class="checks">${checks.map(c => `<li>${c.ok ? '✅' : '⚠️'} ${c.t}</li>`).join('')}</ul>
+      <p style="margin-top:.6em"><b>你嘅時間表：</b></p>
+      <div class="sched">${sched.map(s => `<span>${slotShort(s.i)} ${s.d.emoji} ${s.d.name}</span>`).join('')}</div>
+      <p class="life">🌟 生活挑戰：同爸爸媽媽一齊，將呢個時間表抄落紙，貼喺書枱度，聽日放學試下跟住做！</p>
+      ${stars < 3 ? '<p>揿「✏️ 改時間表」，改好 ⚠️ 嗰啲地方，再試多次！</p>' : ''}`;
+    const say = `過完一日喇！你攞到${n2c(stars)}粒星。你嘅時間表攞到五個秘訣入面嘅${n2c(n)}個。` +
+      checks.map(c => (c.ok ? '做得好：' : '要改善：') + c.t).join('') +
+      '你嘅時間表係：' + sched.map(s => `${slotSay(s.i)}，${s.d.name}`).join('；') + '。' +
+      '生活挑戰：同爸爸媽媽一齊，將呢個時間表抄落紙，貼喺書枱度，聽日放學試下跟住做！' +
+      (stars < 3 ? '揿綠色嘅改時間表掣，改好有問題嘅地方，再試多次！' : '你已經解鎖咗錦囊，揿綠色嘅睇錦囊掣去睇吓！');
+    const edit = {label:'✏️ 改時間表', cls: stars < 3 ? 'go' : 'white', onClick: backToBuild};
+    const tips = {label:'🎁 睇錦囊', cls: stars < 3 ? 'white' : 'go', onClick: goTips};
+    wait(.6, () => showDialog({ title:'過完一日喇！', html, say,
+      buttons: stars < 3 ? [edit, tips, {label:'🏠 地圖', cls:'white', onClick:goMap}] : [tips, edit, {label:'🏠 地圖', cls:'white', onClick:goMap}] }));
+  }
+  function backToBuild(){
+    mode = 'build'; energy = L3_START_E; curStep = -1;
+    dd.position.copy(startPos());
+    renderHud();
+    Voice.say('改一改時間表，再試多次！');
   }
 
   function renderHud(){
-    $('#hud').innerHTML = `
-      <div class="statusbar">
-        <div class="panel pill" id="r3round">🍅 第 1/3 輪</div>
-        <div class="panel pill">⏱ <div class="meter"><i id="r3time" style="width:0%;background:#ff5b4a"></i></div></div>
-        <div class="panel pill">⚡ <div class="meter"><i id="r3energy" style="width:100%"></i></div></div>
-        <div class="panel pill" id="r3stars">⭐ 0</div>
-      </div>
-      <button class="arrow l" id="leftBtn" aria-label="向左">◀</button>
-      <button class="arrow r" id="rightBtn" aria-label="向右">▶</button>`;
-    const L = $('#leftBtn'), R = $('#rightBtn');
-    L.addEventListener('pointerdown', e => { e.preventDefault(); Sound.unlock(); if(!st.paused) move(-1); });
-    R.addEventListener('pointerdown', e => { e.preventDefault(); Sound.unlock(); if(!st.paused) move(1); });
+    const hud = $('#hud');
+    if(mode === 'build'){
+      const filled = slots.filter((s,i) => s && !L3_FIXED[i]).length;
+      const reqs = L3_BLOCKS.filter(d => d.req);
+      const reqHtml = reqs.map(d => `<span style="opacity:${slots.includes(d.id) ? 1 : .35}">${d.emoji}${slots.includes(d.id) ? '✓' : ''}</span>`).join(' ');
+      const missing = reqs.filter(d => !slots.includes(d.id));
+      const reqSay = missing.length ? '必做嘅嘢仲差：' + missing.map(d => d.name).join('、') + '。' : '必做嘅四樣嘢已經放晒入去，好叻！';
+      const cards = L3_BLOCKS.map(d => {
+        const used = d.req && slots.includes(d.id);
+        return `<div class="act mini ${selId === d.id ? 'sel' : ''} ${used ? 'used' : ''}" data-id="${d.id}" tabindex="0" style="border-bottom:7px solid ${L3_CAT[d.cat].css}">
+          <span class="em">${d.emoji}</span><b>${d.name}</b><small>${L3_CAT[d.cat].label} ⚡${d.e > 0 ? '+' : ''}${d.e}</small>
+          ${d.req ? `<small class="reqtag">${used ? '必做 ✓' : '必做'}</small>` : ''}${spk(d.say)}</div>`;
+      }).join('');
+      hud.innerHTML = `
+        <div class="statusbar">
+          <div class="panel pill">🗓️ 已放 ${filled} / 8 格</div>
+          <div class="panel pill">必做：${reqHtml} ${spk(reqSay)}</div>
+          <button class="btn white small" id="hint3">💡 提示</button>
+        </div>
+        <div class="bottomdock"><div class="acts">${cards}</div>
+          <div class="row"><button class="btn go" id="goDay">▶ 試下過呢一日</button><button class="btn white small" id="clr3">🧹 清空</button></div></div>`;
+      hud.querySelectorAll('.act').forEach(el => el.addEventListener('click', () => { Sound.unlock(); selectCard(el.dataset.id); }));
+      $('#goDay').addEventListener('click', () => { Sound.unlock(); startDay(); });
+      $('#clr3').addEventListener('click', clearAll);
+      $('#hint3').addEventListener('click', () => {
+        Voice.speak('提示：好嘅時間表有五個秘訣。第一，難嘅功課晚飯前做完。第二，做難功課之前，精力要夠，唔夠就先充電。第三，做完一格功課，下一格放充電或者玩，唔好連續做兩格。第四，八點之後唔好打機同睇電視。第五，記得留時間玩！');
+        toast('💡 聽下五個秘訣！');
+      });
+    } else {
+      const col = energy >= 60 ? 'var(--mint)' : (energy >= 30 ? 'var(--sun)' : 'var(--tomato)');
+      const d = curStep >= 0 ? (defAt(curStep) || L3_EMPTY) : null;
+      hud.innerHTML = `
+        <div class="statusbar">
+          <div class="panel pill">🕓 ${curStep >= 0 ? timeStr(curStep*30) : '準備出發'}${d ? ' ' + d.emoji + ' ' + d.name : ''}</div>
+          <div class="panel pill">⚡ 精力 <div class="meter"><i style="width:${energy}%;background:${col}"></i></div> ${Math.round(energy)}</div>
+        </div>`;
+    }
   }
-  let hudT = 0;
-  function updateHud(){
-    const rd = $('#r3round'); if(!rd) return;
-    rd.textContent = G.phase === 'rest' ? '🔋 休息緊…' : (G.phase === 'toRest' ? '🔋 搵休息站！' : `🍅 第 ${G.round}/${ROUNDS} 輪`);
-    $('#r3time').style.width = (G.phase === 'focus' ? G.blockT/BLOCK*100 : 100) + '%';
-    const e = $('#r3energy'); e.style.width = G.energy + '%';
-    e.style.background = G.energy >= 60 ? 'var(--mint)' : (G.energy >= 30 ? 'var(--sun)' : 'var(--tomato)');
-    $('#r3stars').textContent = '⭐ ' + G.stars;
-  }
-  function onKey(e){
-    if(st.paused) return;
-    if(e.key === 'ArrowLeft' || e.key === 'a'){ move(-1); e.preventDefault(); }
-    if(e.key === 'ArrowRight' || e.key === 'd'){ move(1); e.preventDefault(); }
-  }
-  window.addEventListener('keydown', onKey);
 
   const st = {
     scene: sc, camera: cam, paused:false,
-    dispose(){ window.removeEventListener('keydown', onKey); },
-    onResize(w,h){
-      portrait = w/h < 1;
-      if(portrait){ cam.position.set(0, 6.2, 9.5); cam.lookAt(0, 0.6, -8); cam.fov = 62; }
-      else { cam.position.set(0, 4.2, 6.8); cam.lookAt(0, 1, -8); cam.fov = 55; }
-      cam.updateProjectionMatrix();
+    onResize(w,h){ portrait = w/h < 1; layout(); },
+    onTap(ndc){
+      if(mode !== 'build') return;
+      const targets = tiles.concat(blocks.filter(Boolean));
+      let o = pick(ndc, targets);
+      while(o && o.userData.slot === undefined) o = o.parent;
+      if(!o) return;
+      const i = o.userData.slot;
+      if(L3_FIXED[i]){
+        Voice.speak(`${slotSay(i)}係${L3_FIXED[i].name}時間，已經固定咗，唔可以改。`);
+        const b = blocks[i]; if(b) tween(.4, k => b.position.y = .2 + Math.sin(k*Math.PI)*.4);
+        return;
+      }
+      if(selId) placeAt(i, selId);
+      else if(slots[i]) removeAt(i);
+      else Voice.speak(`${slotSay(i)}呢格係空嘅。先喺下面揀一張卡，再揿呢一格。`);
     },
-    onSwipe(dir){ move(dir); },
-    onTap(ndc){ move(ndc.x < 0 ? -1 : 1); },
     update(dt,t){
-      const u = dd.userData;
-      // 狀態機
-      if(G.phase === 'ready'){
-        G.readyT += dt;
-        const n = 3 - Math.floor(G.readyT/.8);
-        if(n > 0 && $('#toast').textContent !== String(n)) { toast(String(n), 700); Sound.tone(600,.12,'sine',.1); }
-        if(G.readyT >= 2.4){ G.phase = 'focus'; toast('🍅 開始專注！'); Voice.say('開始專注！'); Sound.tone(900,.2,'triangle',.12); }
-      }
-      const low = G.energy < 30;
-      let speed = G.phase === 'ready' ? 0 : G.speed * (low ? .65 : 1) * (G.phase === 'rest' ? .35 : 1);
-      if(G.phase === 'end') speed = lerp(speed, 0, .5);
-      if(G.phase === 'focus'){
-        G.blockT += dt;
-        G.energy = Math.max(0, G.energy - dt*2.6);
-        if(low && !G.lowSaid){ G.lowSaid = true; Voice.say('好攰呀，眼都矇埋喇！要搵休息站充電。'); toast('😵 好攰呀…'); }
-        G.spawnT -= dt;
-        if(G.spawnT <= 0 && G.blockT < BLOCK - 1.5){
-          G.spawnT = rand(.55, .85) * (15/G.speed);
-          const lane = Math.floor(Math.random()*3);
-          const kind = Math.random() < .62 ? 'star' : 'd';
-          spawn(kind, lane); if(kind === 'star') G.starsSpawned++;
-          if(Math.random() < .25){ const l2 = (lane + 1 + Math.floor(Math.random()*2)) % 3; spawn('d', l2); }
-        }
-        if(G.blockT >= BLOCK){ if(G.round >= ROUNDS){ G.phase = 'endwait'; wait(1.5, finish); } else startRestPhase(); }
-      } else if(G.phase === 'toRest'){
-        G.energy = Math.max(0, G.energy - dt*1.2);
-      } else if(G.phase === 'rest'){
-        G.restT += dt; G.energy = Math.min(100, G.energy + dt*45);
-        u.arms[0].rotation.z = -2.6; u.arms[1].rotation.z = 2.6;
-        if(G.restT >= 2.6){ G.energy = 100; nextRound(); Voice.say('充滿電！第' + n2c(G.round) + '輪，再專注！'); }
-      }
-      // 霧：攰就睇唔清
-      const targetNear = low ? 4 : 22, targetFar = low ? 22 : 75;
-      sc.fog.near = lerp(sc.fog.near, targetNear, dt*1.5); sc.fog.far = lerp(sc.fog.far, targetFar, dt*1.5);
-      // 移動世界
-      G.dist += speed*dt;
-      dashes.forEach(d => { d.position.z += speed*dt; if(d.position.z > 8) d.position.z -= 88; });
-      deco.forEach(d => { d.position.z += speed*dt; if(d.position.z > 10) d.position.z -= 86.4; });
-      // 叮叮
-      G.x = lerp(G.x, LANES[G.lane], Math.min(1, dt*12));
-      dd.position.x = G.x;
-      if(speed > .1){
-        const f = t * (low ? 8 : 14);
-        u.legs[0].rotation.x = Math.sin(f)*.8; u.legs[1].rotation.x = -Math.sin(f)*.8;
-        if(G.phase !== 'rest'){ u.arms[0].rotation.z = -.5; u.arms[1].rotation.z = .5; u.arms[0].rotation.x = -Math.sin(f)*.7; u.arms[1].rotation.x = Math.sin(f)*.7; }
-        u.body.position.y = 1.15 + Math.abs(Math.sin(f))*.12;
-      }
-      dd.rotation.z = (G.x - LANES[G.lane]) * .15;
-      u.eyes.forEach(e => e.scale.y = low ? .4 : 1);
-      // 物件
-      for(let i = objs.length-1; i >= 0; i--){
-        const o = objs[i]; if(!o.alive){ objs.splice(i,1); continue; }
-        const pz = o.g.position.z; o.g.position.z += speed*dt;
-        const z = o.g.position.z;
-        if(o.kind === 'star') o.g.material.rotation = Math.sin(t*4 + i)*.25;
-        const hitZ = o.kind === 'rest' ? 1.2 : .6;
-        if(pz < hitZ && z >= -hitZ && Math.abs(LANES[o.lane] - G.x) < 1.1 && !o.used){
-          o.used = true;
-          if(o.kind === 'star'){ G.stars++; Sound.ding(); removeObj(o); continue; }
-          if(o.kind === 'd'){
-            G.hits++; G.energy = Math.max(0, G.energy - 8); G.stars = Math.max(0, G.stars - 1);
-            Sound.buzz(); flash();
-            toast(`${o.g.userData.e} 分心咗！`, 900);
-            if(t - G.lastHitSay > 3){ G.lastHitSay = t; Voice.say(`哎呀，${DNAME[o.g.userData.e] || ''}令你分心咗！`); }
-            removeObj(o); continue;
-          }
-          if(o.kind === 'rest' && G.phase === 'toRest'){
-            G.rests++; G.phase = 'rest'; G.restT = 0; G.restObj = null;
-            Sound.power(); toast('🔋 充電中！');
-            Voice.say('入咗休息站！飲啖水，伸伸懶腰，精力充返滿。');
-          }
-        }
-        if(z > 8){
-          if(o.kind === 'rest' && G.phase === 'toRest' && G.restObj === o){
-            G.restTries++; G.restObj = null;
-            if(G.restTries < 3){ Voice.say('錯過咗休息站！再嚟一個，今次要行入去！'); toast('再嚟一個休息站！'); wait(.8, () => { if(G.phase === 'toRest') G.restObj = spawn('rest', Math.floor(Math.random()*3)); }); }
-            else { Voice.say('冇休息到，叮叮會好攰㗎！'); toast('😵 冇休息到…'); nextRound(); }
-          }
-          removeObj(o);
-        }
-      }
-      hudT += dt; if(hudT > .15){ hudT = 0; updateHud(); }
+      ddIdle(dd, t, 1);
+      if(mode !== 'build'){ const low = energy < 30; dd.userData.eyes.forEach(e => e.scale.y = low ? .4 : e.scale.y); }
+      else dd.rotation.y = Math.sin(t*.8)*.3;
+      sunEm.material.rotation = Math.sin(t)*.1;
+      tiles.forEach((tl,i) => {
+        const glow = mode === 'build' && selId && !L3_FIXED[i] && !slots[i];
+        tl.position.y = glow ? Math.sin(t*5 + i*.6)*.06 : 0;
+        tl.material.emissive.setHex(glow ? 0x3a6fd8 : 0x000000); tl.material.emissiveIntensity = glow ? .15 + Math.sin(t*5)*.1 : 0;
+      });
     },
     statusText(){
-      return `第三關，專注跑跑跑。而家係第${n2c(G.round)}輪，總共三輪。你執咗${n2c(G.stars)}粒專注星，精力有${n2c(G.energy)}分。揿左邊或者右邊，叮叮就會轉線。執星星，避開紅色圈嘅分心嘢。每輪完咗，要行入綠色休息站充電。`;
+      if(mode === 'build'){
+        const filled = slots.filter((s,i) => s && !L3_FIXED[i]).length;
+        const missing = L3_BLOCKS.filter(d => d.req && !slots.includes(d.id));
+        return `第三關，自己砌時間表。由下晝四點到夜晚九點，每一格係半個鐘。六點半食晚飯，八點半沖涼準備瞓覺，已經固定咗。你已經放咗${n2c(filled)}格，總共可以放八格。` +
+          (missing.length ? '必做嘅仲差：' + missing.map(d => d.name).join('、') + '。' : '必做嘅已經放晒！可以揿試下過呢一日。') +
+          '揀下面一張卡，再揿上面一格就放得入去；揿已經放咗嘅格仔，就可以拎走。';
+      }
+      const d = curStep >= 0 ? (defAt(curStep) || L3_EMPTY) : null;
+      return d ? `而家係${slotSay(curStep)}，叮叮做緊${d.name}。精力有${n2c(energy)}分。` : '叮叮準備出發，跟你嘅時間表過一日。';
     }
   };
-  renderHud(); updateHud();
+  renderHud();
   return st;
 }
 
@@ -1442,11 +1562,12 @@ const INTROS = {
       <p>⚡ 精力 70 或以上做功課：一次 <b>+25</b>，好快！<br>😩 精力低做功課：一次得 <b>+3 至 +15</b>，好慢！<br>😴 精力跌到 0，叮叮會瞓著咗。</p>
       <p>👇 揀下面嘅卡幫叮叮安排時間。每張卡都有 🔊，可以聽佢有咩用。</p>`,
       say:'第二關：精力電池一日。下晝四點放學返屋企，叮叮有啲攰，精力得五十。夜晚九點要瞓覺，之前要做晒功課！精力七十或以上做功課，一次加二十五，好快！精力低做功課，一次得三至十五，好慢！精力跌到零，叮叮會瞓著咗。揀下面嘅卡幫叮叮安排時間。每張卡都有小喇叭，可以聽佢有咩用。右上角電池會話你知叮叮有幾多精力。準備好就揿綠色嘅開始掣。'},
-  3: {title:'第三關：專注跑跑跑', html:`<p>叮叮專心做功課，就好似跑步咁！</p>
-      <p>⭐ 執 <b>專注星</b><br>🔴 避開紅色圈嘅 <b>分心嘢</b>：📱 📺 🎮 💬 🍭</p>
-      <p>👈👉 揿畫面 <b>左邊 / 右邊</b>（或者 ◀ ▶ 掣）轉線。</p>
-      <p>🍅 每輪專注 25 秒。精力會慢慢減少，好攰就會 <b>睇唔清楚</b>！<br>🔋 每輪完咗，要行入綠色 <b>休息站</b> 充電。總共三輪。</p>`,
-      say:'第三關：專注跑跑跑。叮叮專心做功課，就好似跑步咁！執黃色嘅專注星，避開紅色圈嘅分心嘢，例如手機、電視、遊戲機、傾偈同零食。揿畫面左邊或者右邊，或者揿左右箭咀掣，叮叮就會轉線。每輪專注二十五秒，精力會慢慢減少，好攰就會睇唔清楚！每輪完咗，要行入綠色嘅休息站充電。總共三輪。準備好就揿綠色嘅開始掣。'}
+  3: {title:'第三關：自己砌時間表', html:`<p>輪到你做主！幫叮叮砌一個 <b>放學後嘅時間表</b>。</p>
+      <p>🗓️ 上面有 10 格，由下晝 4:00 到夜晚 9:00，<b>每格半個鐘</b>。🍚 6:30 食晚飯、🛁 8:30 沖涼準備瞓覺，已經固定咗。</p>
+      <p>📌 有四樣係 <b>必做</b>：🔢 數學功課、📝 中文功課、📖 溫默書、🎒 執書包。其他可以自己揀。</p>
+      <p>👆 揀下面一張卡，再揿上面一格就放得入去；揿已經放咗嘅格仔就可以拎走。</p>
+      <p>▶ 砌好就揿「試下過呢一日」，睇下叮叮跟住你嘅時間表過得好唔好。好嘅時間表有 <b>五個秘訣</b>，睇下你攞到幾多個！</p>`,
+      say:'第三關：自己砌時間表。輪到你做主！幫叮叮砌一個放學後嘅時間表。上面有十格，由下晝四點到夜晚九點，每格半個鐘。六點半食晚飯、八點半沖涼準備瞓覺，已經固定咗。有四樣係必做：數學功課、中文功課、溫默書、執書包。其他可以自己揀，例如練琴、郁下身、食生果飲水、落街玩、打機、睇電視。揀下面一張卡，再揿上面一格就放得入去；揿已經放咗嘅格仔就可以拎走。砌好就揿試下過呢一日，睇下叮叮跟住你嘅時間表過得好唔好。好嘅時間表有五個秘訣，睇下你攞到幾多個！唔識就揿提示掣。準備好就揿綠色嘅開始掣。'}
 };
 function startLevel(n, skipIntro){
   Voice.stop();
@@ -1457,7 +1578,7 @@ function startLevel(n, skipIntro){
   const I = INTROS[n];
   if(skipIntro){
     s.paused = false;
-    Voice.say(n === 1 ? '重新嚟過！記住，重要嘅嘢先放。' : (n === 2 ? '重新嚟過！記住，精力高先做功課。' : '重新嚟過！準備跑！'));
+    Voice.say(n === 1 ? '重新嚟過！記住，重要嘅嘢先放。' : (n === 2 ? '重新嚟過！記住，精力高先做功課。' : '重新嚟過！再砌一次時間表。'));
   } else {
     showDialog({ title:I.title, html:I.html, say:I.say, buttons:[{label:'▶ 開始', cls:'go'}, {label:'🏠 返地圖', cls:'white', onClick:goMap}] });
   }
