@@ -1241,7 +1241,7 @@ function mazeTap(cell){
 function mazeHint(){
   if(S.busy) return;
   if(!S.hinted){ S.hinted=true; S.mistakes++; }
-  const p=S.goodPath.slice().reverse(); // from treasure down to the door
+  const p=S.goodPath; // already ordered from the treasure down to the door
   let j=0; while(j<p.length&&S.lit.has(p[j][0]+','+p[j][1])) j++;
   if(j>=p.length){ say('條路已經點亮晒,睇下佢去到邊道門,就撳嗰道門啦!'); return; }
   let n=0; for(;j<p.length&&n<3;j++){ if(!S.lit.has(p[j][0]+','+p[j][1])){ lightTile(p[j][0],p[j][1]); n++; } }
