@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4FAEEA">
+<title>Ollie 英式發音大冒險 | Ollie's Sound Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Lilita+One&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2A4A; --red:#E63946; --gold:#FFC83D; --gold-d:#E0A100;
+  --blue:#2F7DE1; --green:#35B25A; --mist:#EAF6FD;
+  --ok:#1F9D55; --okbg:#D5F5E0; --midbg:#FFE9B8; --badbg:#FFD3D6;
+  --zh:"PingFang HK","PingFang TC","Noto Sans HK","Microsoft JhengHei","Heiti TC",system-ui,sans-serif;
+  --en:"Andika","Comic Sans MS",var(--zh);
+  --logo:"Lilita One","Arial Rounded MT Bold",var(--zh);
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;background:linear-gradient(#4FAEEA,#E6F7FF);color:var(--navy);
+  font-family:var(--zh);font-size:17px;line-height:1.55;-webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;touch-action:manipulation}
+button:focus-visible,textarea:focus-visible,select:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+#scene{position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;display:block;touch-action:none}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;border:3px solid var(--navy);border-radius:999px;
+  padding:.5em 1.2em;background:#fff;font-weight:800;box-shadow:0 5px 0 var(--navy);cursor:pointer;min-height:50px;
+  transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--navy)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.btn-red{background:var(--red);color:#fff}
+.btn-blue{background:var(--blue);color:#fff}
+.btn-xl{font-size:1.35rem;padding:.55em 1.9em;min-height:64px}
+.btn-sm{min-height:42px;padding:.3em .95em;font-size:.95rem;box-shadow:0 3px 0 var(--navy)}
+.btn-sm:active{transform:translateY(2px);box-shadow:0 1px 0 var(--navy)}
+
+/* Cantonese speaker button: blue circle + gold 粵 badge */
+.spk{position:relative;flex:none;width:48px;height:48px;border-radius:50%;border:3px solid var(--navy);background:var(--blue);color:#fff;
+  display:grid;place-items:center;box-shadow:0 4px 0 var(--navy);cursor:pointer;padding:0}
+.spk:active{transform:translateY(3px);box-shadow:0 1px 0 var(--navy)}
+.spk svg{width:24px;height:24px}
+.spk::after{content:"粵";position:absolute;right:-8px;top:-8px;width:22px;height:22px;border-radius:50%;background:var(--gold);
+  color:var(--navy);border:2px solid var(--navy);font-size:11px;font-weight:900;display:grid;place-items:center;line-height:1}
+.spk.playing{background:var(--gold);color:var(--navy);animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.1)}}
+@keyframes bump{40%{transform:scale(1.25)}}
+
+/* ---------- HUD ---------- */
+.hud{position:fixed;z-index:30;top:calc(10px + var(--sat));left:calc(12px + var(--sal));right:calc(12px + var(--sar));
+  display:flex;align-items:center;gap:10px;pointer-events:none}
+.hud>*{pointer-events:auto}
+.brand{display:flex;align-items:baseline;gap:8px;background:#fff;border:3px solid var(--navy);border-radius:18px;padding:5px 14px 6px;box-shadow:0 4px 0 var(--navy)}
+.brand b{font-family:var(--logo);font-weight:400;font-size:1.3rem;color:var(--red);letter-spacing:.3px}
+.brand small{font-weight:800;font-size:.82rem}
+.grow{flex:1}
+.pill{height:48px;display:flex;align-items:center;gap:6px;padding:0 16px;border:3px solid var(--navy);border-radius:999px;background:#fff;
+  box-shadow:0 4px 0 var(--navy);font-family:var(--logo);font-size:1.3rem}
+.pill.bump{animation:bump .45s}
+.iconbtn{height:48px;min-width:48px;border-radius:14px;border:3px solid var(--navy);background:#fff;box-shadow:0 4px 0 var(--navy);
+  font-size:22px;display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:0 10px;font-weight:800}
+.iconbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--navy)}
+.helpbtn{background:var(--blue);color:#fff;font-size:1rem}
+.helpbtn svg{width:22px;height:22px}
+body.mode-start .hud{display:none}
+@media (max-width:560px){.brand small{display:none}.brand b{font-size:1.05rem}}
+
+/* ---------- map ---------- */
+#labels{position:fixed;inset:0;z-index:15;pointer-events:none}
+.ilabel{position:absolute;left:0;top:0;pointer-events:auto;background:#fff;border:3px solid var(--navy);border-radius:16px;
+  padding:6px 12px 7px;box-shadow:0 4px 0 var(--navy);text-align:center;cursor:pointer;min-width:118px;display:flex;flex-direction:column;
+  align-items:center;line-height:1.25;will-change:transform}
+.ilabel::after{content:"";position:absolute;left:50%;bottom:-11px;width:14px;height:14px;background:inherit;border-right:3px solid var(--navy);
+  border-bottom:3px solid var(--navy);transform:translateX(-50%) rotate(45deg)}
+.ilabel .ic{font-size:24px}
+.ilabel .nm{font-weight:900;font-size:15px}
+.ilabel .en{font-family:var(--en);font-size:12.5px}
+.ilabel .st{font-size:12.5px;font-weight:800;margin-top:2px}
+.ilabel.done{background:var(--gold)}
+.ilabel.custom{background:var(--red);color:#fff}
+.ilabel:active{transform-origin:center}
+.no3d #labels{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:22px;padding:150px 20px 30px;overflow:auto;pointer-events:auto}
+.no3d .ilabel{position:relative;transform:none!important}
+.no3d #scene{display:none}
+
+.mapbubble{position:fixed;z-index:25;left:50%;transform:translateX(-50%);top:calc(74px + var(--sat));display:flex;gap:10px;align-items:center;
+  background:#fff;border:3px solid var(--navy);border-radius:22px;padding:8px 12px 8px 14px;box-shadow:0 5px 0 var(--navy);width:max-content;max-width:min(580px,92vw)}
+.mapbubble p{margin:0;font-weight:700;font-size:.98rem}
+.owl{font-size:30px;line-height:1}
+
+/* ---------- start ---------- */
+.start{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;padding:20px 16px calc(24px + var(--sab))}
+.start-card{background:#fff;border:3px solid var(--navy);border-radius:30px;box-shadow:0 8px 0 var(--navy);padding:22px 22px 24px;max-width:540px;width:100%;text-align:center}
+.start h1{margin:0}
+.logo-en{display:block;font-family:var(--logo);font-weight:400;font-size:clamp(38px,8vw,60px);line-height:1.05;color:var(--red);
+  text-shadow:0 3px 0 var(--navy),0 6px 0 var(--navy);letter-spacing:.5px}
+.logo-zh{display:block;font-size:clamp(20px,4vw,26px);font-weight:900;margin-top:12px}
+.start-sub{margin:8px auto 14px;max-width:32em}
+.say-row{display:flex;align-items:center;justify-content:center;gap:12px;margin:0 0 18px;font-weight:700}
+#deviceCheck{font-size:.86rem;margin:16px 0 0;line-height:1.5}
+
+/* ---------- panel ---------- */
+.panel{position:fixed;z-index:20;background:#fff;border:3px solid var(--navy);display:flex;flex-direction:column;overflow:hidden;
+  left:0;right:0;bottom:0;height:62vh;height:62dvh;border-radius:28px 28px 0 0;border-bottom:0;box-shadow:0 -4px 0 rgba(27,42,74,.25)}
+@media (orientation:landscape) and (min-width:700px){
+  .panel{left:auto;top:calc(76px + var(--sat));right:calc(14px + var(--sar));bottom:calc(14px + var(--sab));height:auto;width:min(480px,47vw);
+    border-radius:28px;border-bottom:3px solid var(--navy);box-shadow:0 8px 0 var(--navy)}
+}
+.panel-top{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:3px solid var(--navy);background:var(--gold)}
+.ptitle{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.ptitle b{display:block;font-size:1.08rem;line-height:1.2}
+.ptitle small{display:block;font-family:var(--en);font-size:.85rem;line-height:1.2}
+.pic{font-size:30px}
+.streak{background:var(--red);color:#fff;border:2px solid var(--navy);border-radius:999px;padding:1px 10px;font-weight:900;font-size:.9rem;white-space:nowrap}
+.panel-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px calc(24px + var(--sab))}
+.bubble{display:flex;gap:10px;align-items:center;background:var(--mist);border-radius:18px;padding:10px 10px 10px 12px;margin-bottom:12px}
+.bubble p{margin:0;flex:1;font-size:.97rem}
+
+.dots{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+.dot{width:32px;height:32px;border-radius:50%;border:2.5px solid var(--navy);background:#fff;font-size:12px;font-weight:900;display:grid;place-items:center;cursor:pointer;padding:0}
+.dot.s1{background:#FFE9B8}.dot.s2{background:#FFD76A}.dot.s3{background:var(--gold)}
+.dot.cur{outline:3px solid var(--blue);outline-offset:2px}
+
+.wcard{display:flex;align-items:center;gap:12px;background:var(--mist);border:3px solid var(--navy);border-radius:24px;padding:14px 14px}
+.wc-emoji{font-size:52px;line-height:1;flex:none;width:66px;text-align:center}
+.wc-main{min-width:0;flex:1}
+.wc-word{font-family:var(--en);font-weight:700;font-size:clamp(38px,8vw,58px);line-height:1.12;display:flex;flex-wrap:wrap;gap:0 .26em}
+.wc-word.long{font-size:clamp(22px,4.6vw,30px);line-height:1.35}
+.w{background:none;border:0;padding:0;font:inherit;cursor:pointer;border-bottom:3px dotted rgba(27,42,74,.25)}
+.w.say{color:var(--blue);border-bottom-color:var(--blue)}
+.wc-meta{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px;font-size:1rem}
+.ipa{font-family:"Charis SIL","Doulos SIL","Lucida Sans Unicode","Arial Unicode MS",serif}
+.tip{display:flex;gap:10px;align-items:center;margin:12px 0;padding:10px 12px;border-radius:16px;background:#FFF6D8;border:2px dashed var(--gold-d)}
+.tip p{margin:0;flex:1;font-size:.95rem}
+.tip-ico{font-size:22px}
+
+.controls{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;margin:16px 0 6px}
+.ctl{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:3px solid var(--navy);border-radius:20px;padding:8px 6px;
+  box-shadow:0 5px 0 var(--navy);cursor:pointer;min-height:80px;font-weight:800}
+.ctl:active{transform:translateY(4px);box-shadow:0 1px 0 var(--navy)}
+.ctl .ico{font-size:28px;line-height:1.1}
+.ctl small{font-size:.8rem;font-weight:800}
+.ctl-blue{background:var(--blue);color:#fff}
+.ctl-green{background:var(--green);color:#fff}
+.ctl.playing{background:var(--gold);color:var(--navy)}
+.mic{width:106px;height:106px;border-radius:50%;border:4px solid var(--navy);background:var(--red);color:#fff;box-shadow:0 7px 0 var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer;padding:0}
+.mic:active{transform:translateY(5px);box-shadow:0 2px 0 var(--navy)}
+.mic small{font-weight:900;font-size:.78rem}
+.mic svg{width:42px;height:42px}
+.mic.rec{background:#fff;color:var(--red)}
+.mic.rec::before,.mic.rec::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:4px solid var(--red);animation:ring 1.4s infinite;pointer-events:none}
+.mic.rec::after{animation-delay:.7s}
+@keyframes ring{from{transform:scale(.9);opacity:.9}to{transform:scale(1.35);opacity:0}}
+.live{min-height:1.6em;text-align:center;font-family:var(--en);font-size:1.05rem;margin:8px 0;color:#3a4a6a}
+
+.result{margin-top:10px;border:3px solid var(--navy);border-radius:24px;padding:14px;background:#fff}
+.res-head{display:flex;align-items:center;gap:12px}
+.res-mid{flex:1;min-width:0}
+.res-mid p{margin:2px 0 0;font-weight:800}
+.score{font-family:var(--logo);font-size:46px;line-height:1;width:90px;height:90px;border-radius:50%;display:grid;place-items:center;
+  border:4px solid var(--navy);background:#E6E9F0;flex:none}
+.score.b1{background:#FFE9B8}.score.b2{background:#9BE3B0}.score.b3{background:var(--gold)}
+.stars{font-size:28px;letter-spacing:2px;line-height:1.2}
+.stars .off{opacity:.18;filter:grayscale(1)}
+.heard{margin:12px 0 0;font-size:.95rem}
+.heard span{font-family:var(--en);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{font-family:var(--en);font-weight:700;font-size:1.1rem;border:2px solid var(--navy);border-radius:12px;padding:3px 10px;background:#fff;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.chip.ok{background:var(--okbg)}.chip.close{background:var(--midbg)}.chip.bad{background:var(--badbg)}
+.chip small{font-size:.72rem;font-weight:400;opacity:.85}
+.legend{font-size:.8rem;display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:0 0 8px;opacity:.9}
+.lg{display:inline-block;width:14px;height:14px;border-radius:4px;border:2px solid var(--navy);margin-left:6px}
+.lg.ok{background:var(--okbg)}.lg.close{background:var(--midbg)}.lg.bad{background:var(--badbg)}
+.fb{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.fb li{display:flex;gap:10px;align-items:flex-start;background:var(--mist);border-radius:16px;padding:10px}
+.fb .fi{font-size:26px;line-height:1.2;flex:none}
+.fb .ft{flex:1;min-width:0}
+.fb h4{margin:0 0 2px;font-size:1rem}
+.fb p{margin:0;font-size:.93rem}
+.res-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:8px}
+#navInfo{font-size:.88rem;font-weight:800;text-align:center}
+h4.sub{margin:12px 0 0}
+
+/* custom */
+textarea{width:100%;min-height:190px;border:3px solid var(--navy);border-radius:18px;padding:12px 14px;font-family:var(--en);font-size:1.12rem;
+  line-height:1.6;resize:vertical;-webkit-user-select:text;user-select:text;background:#fff;color:var(--navy)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.row.two>.btn{flex:1;min-height:58px;font-size:1.1rem}
+.muted{font-size:.86rem;opacity:.78}
+.passage{font-family:var(--en);font-size:1.28rem;line-height:1.95;background:var(--mist);border:3px solid var(--navy);border-radius:20px;
+  padding:12px 14px;max-height:36vh;overflow:auto}
+.pw{cursor:pointer;border-radius:6px;padding:0 1px}
+.sent.hl{background:#FFF1B8;border-radius:6px;box-shadow:0 0 0 3px #FFF1B8}
+.pw.ok{color:var(--ok)}
+.pw.close{background:var(--midbg)}
+.pw.bad{background:var(--badbg);text-decoration:underline wavy var(--red);text-underline-offset:4px}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(27,42,74,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+.mcard{background:#fff;border:3px solid var(--navy);border-radius:28px;box-shadow:0 8px 0 var(--navy);max-width:540px;width:100%;max-height:88vh;overflow:auto;padding:20px}
+.mhead{display:flex;align-items:center;gap:12px}
+.mhead h2{flex:1;margin:0}
+.field{display:grid;gap:6px;margin:14px 0;font-weight:800}
+select{font:inherit;padding:10px;border:3px solid var(--navy);border-radius:12px;background:#fff;color:var(--navy);width:100%}
+input[type=range]{width:100%;accent-color:var(--red)}
+.toggle{display:flex;gap:10px;align-items:center;margin:12px 0;font-weight:800}
+.toggle input{width:26px;height:26px;accent-color:var(--red)}
+.warn{background:#FFE3E5;border-radius:12px;padding:8px 12px;font-size:.88rem;margin:0}
+.diag{font-size:.86rem;background:var(--mist);border-radius:12px;padding:10px 12px;margin:14px 0}
+.cele{text-align:center}
+.cele .big{font-size:84px;line-height:1}
+.cele h2{margin:8px 0}
+.center{justify-content:center}
+
+.toast{position:fixed;z-index:60;left:50%;top:calc(80px + var(--sat));transform:translate(-50%,-20px);opacity:0;background:var(--navy);color:#fff;
+  padding:10px 18px;border-radius:999px;font-weight:800;transition:.25s;pointer-events:none;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.flystar{position:fixed;z-index:70;font-size:40px;pointer-events:none;transition:transform .9s cubic-bezier(.5,-0.3,.7,1),opacity .9s}
+
+@media (prefers-reduced-motion:reduce){
+  .mic.rec::before,.mic.rec::after,.spk.playing,.pill.bump{animation:none}
+  .flystar{transition:none}
+}
+</style>
+</head>
+<body class="mode-start">
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="labels" hidden></div>
+
+<header class="hud">
+  <div class="brand"><b>Ollie's Sound Quest</b><small>英式發音大冒險</small></div>
+  <div class="grow"></div>
+  <div class="pill" id="hudStars" aria-label="星星總數">⭐ <span id="starCount">0</span></div>
+  <button class="iconbtn helpbtn" id="btnHelp" type="button" aria-label="用廣東話讀出玩法"><span class="svgspk"></span>玩法</button>
+  <button class="iconbtn" id="btnSet" type="button" aria-label="設定">⚙️</button>
+</header>
+
+<div class="mapbubble" id="mapBubble" hidden>
+  <span class="owl">🦉</span>
+  <p>撳島上面嘅名牌開始練習。獎盃島可以貼你自己嘅朗誦稿！</p>
+  <button class="spk" type="button" data-say="map" aria-label="用廣東話讀出"></button>
+</div>
+
+<div class="start" id="start">
+  <div class="start-card">
+    <h1><span class="logo-en">Ollie's Sound Quest</span><span class="logo-zh">Ollie 英式發音大冒險</span></h1>
+    <p class="start-sub">聽英國口音、大聲跟住讀，Ollie 會幫你評分，仲會話你知點樣讀得更好。</p>
+    <div class="say-row"><button class="spk" type="button" data-say="welcome" aria-label="用廣東話讀出玩法"></button>撳藍色小喇叭，聽廣東話玩法介紹</div>
+    <button class="btn btn-red btn-xl" id="btnStart" type="button">開始冒險</button>
+    <p id="deviceCheck"></p>
+  </div>
+</div>
+
+<aside class="panel" id="panel" hidden>
+  <div class="panel-top">
+    <button class="btn btn-sm" id="btnBack" type="button">‹ 地圖</button>
+    <div class="ptitle"><span class="pic" id="pIcon"></span><div><b id="pName"></b><small id="pEn"></small></div></div>
+    <span class="streak" id="streak" hidden></span>
+    <button class="spk" id="spkIntro" type="button" aria-label="用廣東話讀出關卡介紹"></button>
+  </div>
+  <div class="panel-body" id="panelBody">
+
+    <section id="vPractice">
+      <div class="dots" id="dots"></div>
+      <div class="wcard">
+        <div class="wc-emoji" id="wEmoji"></div>
+        <div class="wc-main">
+          <div class="wc-word" id="wWord"></div>
+          <div class="wc-meta" id="wMeta"><span class="ipa" id="wIpa"></span><span id="wZh"></span></div>
+        </div>
+      </div>
+      <div class="tip"><span class="tip-ico">💡</span><p id="wTip"></p><button class="spk" id="spkTip" type="button" aria-label="用廣東話讀出小貼士"></button></div>
+      <div class="controls">
+        <button class="ctl ctl-blue" id="btnListen" type="button"><span class="ico">🔊</span><small>聽英式讀音</small></button>
+        <button class="mic" id="btnMic" type="button" aria-label="開始跟讀"><span class="micico"></span><small class="mictxt">撳我跟讀</small></button>
+        <button class="ctl ctl-green" id="btnSlow" type="button"><span class="ico">🐢</span><small>慢速再聽</small></button>
+      </div>
+      <p class="live" id="live" aria-live="polite"></p>
+      <div class="result" id="result" hidden>
+        <div class="res-head">
+          <div class="score" id="rScore">0</div>
+          <div class="res-mid"><div class="stars" id="rStars"></div><p id="rMsg"></p></div>
+          <button class="spk" id="spkResult" type="button" aria-label="用廣東話讀出評語"></button>
+        </div>
+        <p class="heard">Ollie 聽到你讀：<span id="rHeard"></span></p>
+        <div class="chips" id="rChips"></div>
+        <p class="legend"><i class="lg ok"></i>讀得好<i class="lg close"></i>差少少<i class="lg bad"></i>要再練　撳個字可以聽讀音</p>
+        <ul class="fb" id="rFb"></ul>
+        <div class="res-actions">
+          <button class="btn" id="btnAgain" type="button">🔁 再試一次</button>
+          <button class="btn btn-red" id="btnNext2" type="button">下一個</button>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn btn-sm" id="btnPrev" type="button">‹ 上一個</button>
+        <span id="navInfo"></span>
+        <button class="btn btn-sm" id="btnNext" type="button">下一個 ›</button>
+      </div>
+    </section>
+
+    <section id="vInput" hidden>
+      <div class="bubble"><span class="owl">🦉</span><p>爸爸媽媽或者老師，可以將朗誦節要讀嘅英文文章貼喺下面。</p><button class="spk" type="button" data-say="custom" aria-label="用廣東話讀出說明"></button></div>
+      <textarea id="txt" placeholder="Paste your English passage here…" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+      <div class="row">
+        <button class="btn btn-sm" id="btnSample" type="button">試用範例</button>
+        <button class="btn btn-sm" id="btnPaste" type="button">📋 貼上</button>
+        <button class="btn btn-sm" id="btnClear" type="button">清除</button>
+        <span class="muted" id="txtInfo"></span>
+      </div>
+      <div class="row two">
+        <button class="btn btn-blue" id="btnSent" type="button">逐句練習</button>
+        <button class="btn btn-red" id="btnFull" type="button">全篇朗誦</button>
+      </div>
+      <p class="muted" id="lastFull"></p>
+    </section>
+
+    <section id="vFull" hidden>
+      <div class="bubble"><span class="owl">🦉</span><p>先聽 Ollie 讀一次，再撳咪高峰由頭讀到尾，讀完撳「讀完喇」。</p><button class="spk" type="button" data-say="customFull" aria-label="用廣東話讀出說明"></button></div>
+      <div class="passage" id="passage"></div>
+      <div class="controls">
+        <button class="ctl ctl-blue" id="fListen" type="button"><span class="ico">🔊</span><small>聽全篇</small></button>
+        <button class="mic" id="fMic" type="button" aria-label="開始朗誦"><span class="micico"></span><small class="mictxt">開始朗誦</small></button>
+        <button class="ctl ctl-green" id="fSlow" type="button"><span class="ico">🐢</span><small>慢速聽</small></button>
+      </div>
+      <p class="live" id="fLive" aria-live="polite"></p>
+      <div class="result" id="fResult" hidden>
+        <div class="res-head">
+          <div class="score" id="fScore">0</div>
+          <div class="res-mid"><div class="stars" id="fStars"></div><p id="fMsg"></p></div>
+          <button class="spk" id="spkF" type="button" aria-label="用廣東話讀出評語"></button>
+        </div>
+        <p class="legend"><i class="lg ok"></i>讀得好<i class="lg close"></i>差少少<i class="lg bad"></i>要再練　撳文章入面嘅字可以聽讀音</p>
+        <h4 class="sub" id="fTroubleH">要再練嘅字</h4>
+        <div class="chips" id="fChips"></div>
+        <ul class="fb" id="fFb"></ul>
+        <div class="res-actions">
+          <button class="btn btn-blue" id="btnDrill" type="button">🎯 練習難字</button>
+          <button class="btn" id="btnFullAgain" type="button">🔁 再朗誦一次</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</aside>
+
+<div class="modal" id="mSettings" hidden>
+  <div class="mcard" role="dialog" aria-labelledby="setTitle">
+    <div class="mhead"><h2 id="setTitle">設定</h2><button class="spk" type="button" data-say="settings" aria-label="用廣東話讀出設定說明"></button><button class="iconbtn" type="button" data-close aria-label="關閉">✕</button></div>
+    <label class="field"><span>英國口音聲音</span><select id="selEn"></select></label>
+    <p class="warn" id="warnEn" hidden>搵唔到英國口音（en-GB）嘅聲音，而家用緊其他英文聲音。iPad 可以喺「設定 › 輔助使用 › 語音內容 › 聲音 › 英文」下載英國口音（例如 Daniel、Kate）。</p>
+    <label class="field"><span>廣東話聲音</span><select id="selYue"></select></label>
+    <p class="warn" id="warnYue" hidden>搵唔到廣東話聲音。iPad：設定 › 輔助使用 › 語音內容 › 聲音 › 中文 › 下載「中文（香港）」。Windows：設定 › 時間與語言 › 語音 › 新增語音「中文（香港特別行政區）」。Chrome 瀏覽器通常已經有「Google 粵語（香港）」。</p>
+    <label class="field"><span>英文讀音速度：<b id="rateVal"></b></span><input type="range" id="rate" min="0.6" max="1.1" step="0.05"></label>
+    <label class="toggle"><input type="checkbox" id="autoRead"> 自動用廣東話讀出說明同評語</label>
+    <label class="toggle"><input type="checkbox" id="sfx"> 遊戲音效</label>
+    <div class="row">
+      <button class="btn btn-sm" id="testEn" type="button">試聽英文</button>
+      <button class="btn btn-sm" id="testYue" type="button">試聽廣東話</button>
+    </div>
+    <div class="diag" id="diag"></div>
+    <button class="btn btn-sm" id="btnReset" type="button">清除所有星星紀錄</button>
+  </div>
+</div>
+
+<div class="modal" id="mCele" hidden>
+  <div class="mcard cele" role="dialog" aria-labelledby="celeTitle">
+    <div class="big">🏆</div>
+    <h2 id="celeTitle"></h2>
+    <p id="celeText"></p>
+    <div class="row center"><button class="spk" id="spkCele" type="button" aria-label="用廣東話讀出"></button><button class="btn btn-red" id="celeOk" type="button">返去地圖</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+<noscript><p style="position:fixed;inset:auto 0 0 0;background:#fff;padding:20px;text-align:center">請開啟 JavaScript 先可以玩呢個遊戲。</p></noscript>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ================= CORE: content + scoring (no DOM) ================= */
+(function(root){
+'use strict';
+
+const LEVELS=[
+ {id:'th',name:'咬舌 TH 島',en:'TH Island',icon:'🦷',landmark:'phonebox',grass:0x7CD05C,
+  intro:'歡迎嚟到咬舌 TH 島！呢度會練 TH 音。讀 TH 嘅時候，要將舌尖輕輕伸出嚟，放喺上下門牙中間，然後吹氣。好多香港小朋友會將 TH 讀成 F、S 或者 D，例如將 three 讀成 free。我哋一齊努力改正佢！',
+  items:[
+   {t:'three',e:'3️⃣',ipa:'/θriː/',zh:'三',tip:'three 開頭係無聲嘅 TH，舌尖咬住，輕輕吹氣，再接 R 音。唔好讀成 free 或者 tree。後面係長長嘅衣音。'},
+   {t:'think',e:'🤔',ipa:'/θɪŋk/',zh:'諗',tip:'think 開頭要咬舌吹氣，唔好讀成 sink 或者 fink。最尾嘅 K 音要輕輕讀出嚟。'},
+   {t:'thank you',e:'🙏',ipa:'/ˈθæŋk juː/',zh:'多謝',tip:'thank 嘅 TH 要咬舌，A 係開大口嘅音。thank 同 you 要連埋讀，聽落似 thank-kyou。'},
+   {t:'mother',e:'👩',ipa:'/ˈmʌðə/',zh:'媽媽',tip:'mother 中間係有聲嘅 TH，咬住舌尖，喉嚨要震。英式讀法最尾係輕輕嘅「呃」音，唔使捲舌。'},
+   {t:'this',e:'👉',ipa:'/ðɪs/',zh:'呢個',tip:'this 開頭係有聲 TH，舌尖咬住然後出聲，唔好讀成 dis。最尾 S 要有嘶嘶聲。'},
+   {t:'bath',e:'🛁',ipa:'/bɑːθ/',zh:'浴缸',tip:'英式讀 bath，A 係長長嘅「啊」音，最尾要咬舌吹氣。唔好讀成 bus 或者 baff。'}
+  ]},
+ {id:'end',name:'尾音巴士站',en:'Ending Sounds',icon:'🚌',landmark:'bus',grass:0x86D86A,
+  intro:'上車喇！呢度係尾音巴士站。廣東話好多字嘅尾音好短，所以香港小朋友讀英文好容易食咗個尾音，例如將 cat 讀成 ca。英文嘅尾音好重要，唔讀出嚟，人哋可能聽唔明你講乜嘢㗎。',
+  items:[
+   {t:'cat',e:'🐱',ipa:'/kæt/',zh:'貓',tip:'cat 嘅 A 要開大口讀，最尾嘅 T 要輕輕彈出嚟。英式讀法個 T 好清脆㗎。'},
+   {t:'dog',e:'🐶',ipa:'/dɒɡ/',zh:'狗',tip:'英式讀 dog，O 係短短嘅「柯」音，口要圓。最尾嘅 G 要有少少聲，唔好讀成 dock。'},
+   {t:'book',e:'📚',ipa:'/bʊk/',zh:'書',tip:'book 嘅 OO 係短音，唔好拉長。最尾嘅 K 要讀出嚟。'},
+   {t:'bed',e:'🛏️',ipa:'/bed/',zh:'床',tip:'bed 最尾係 D，要有少少聲，唔好讀成 bet。'},
+   {t:'milk',e:'🥛',ipa:'/mɪlk/',zh:'牛奶',tip:'milk 最尾有 L 同 K 兩個音。舌尖頂住上牙讀 L，再讀 K。唔好讀成 mi-ko。'},
+   {t:'fish',e:'🐟',ipa:'/fɪʃ/',zh:'魚',tip:'fish 最尾係 SH，嘴唇嘟起，好似叫人靜啲咁「噓」。唔好讀成 fi-see。'},
+   {t:'clock',e:'⏰',ipa:'/klɒk/',zh:'時鐘',tip:'clock 開頭 C 同 L 要連埋讀，中間唔好加音。最尾嘅 K 要收得乾淨。'}
+  ]},
+ {id:'vw',name:'V 同 W 郵筒',en:'V & W',icon:'📮',landmark:'postbox',grass:0x7CD05C,
+  intro:'呢個郵筒島練 V 同 W。讀 V 嘅時候，上面門牙要輕輕咬住下嘴唇，然後出聲，嘴唇會覺得痕痕哋。讀 W 就唔使咬唇，要將嘴唇嘟圓，再打開。好多小朋友將 very 讀成 wery，我哋一齊練習！',
+  items:[
+   {t:'van',e:'🚐',ipa:'/væn/',zh:'客貨車',tip:'van 開頭係 V，上牙咬下唇再出聲，唔好讀成 wan。'},
+   {t:'very',e:'👍',ipa:'/ˈveri/',zh:'非常',tip:'very 開頭要咬唇。英式讀法 R 輕輕帶過，好似 ve-ri。'},
+   {t:'violin',e:'🎻',ipa:'/ˌvaɪəˈlɪn/',zh:'小提琴',tip:'violin 開頭咬唇讀 V，重音喺最後 lin 嗰度。'},
+   {t:'vest',e:'🦺',ipa:'/vest/',zh:'背心',tip:'vest 開頭咬唇，最尾 S 同 T 兩個音都要讀出嚟。唔好讀成 best。'},
+   {t:'window',e:'🪟',ipa:'/ˈwɪndəʊ/',zh:'窗',tip:'window 開頭係 W，嘴唇嘟圓，唔使咬唇。英式讀法最尾係「歐」音。'},
+   {t:'wet',e:'💦',ipa:'/wet/',zh:'濕',tip:'wet 開頭嘟嘴讀 W，最尾嘅 T 要輕輕讀出嚟。'}
+  ]},
+ {id:'lrn',name:'L R N 鐘樓',en:'L, R & N',icon:'🕰️',landmark:'clocktower',grass:0x86D86A,
+  intro:'呢個鐘樓島練 L、R 同 N。有啲人講廣東話會將 N 同 L 混埋一齊，例如將「你」讀成「理」，所以讀英文都好容易混淆。讀 L，舌尖頂住上牙後面；讀 N，係鼻音，聲音由鼻出；讀 R，舌頭唔好掂到上顎，嘴唇嘟起少少。',
+  items:[
+   {t:'light',e:'💡',ipa:'/laɪt/',zh:'燈',tip:'light 開頭係 L，舌尖頂住上牙後面。唔好讀成 night 或者 right。最尾 T 要輕輕讀。'},
+   {t:'night',e:'🌙',ipa:'/naɪt/',zh:'夜晚',tip:'night 開頭係 N，係鼻音。用手指摸住鼻讀，應該會覺得震。唔好讀成 light。'},
+   {t:'right',e:'✅',ipa:'/raɪt/',zh:'啱',tip:'right 開頭係 R，舌頭向後縮，唔好掂到上顎，嘴唇嘟起少少。唔好讀成 light。'},
+   {t:'lion',e:'🦁',ipa:'/ˈlaɪən/',zh:'獅子',tip:'lion 開頭係 L，唔好讀成 nion。後面係 lai-en 兩個音節。'},
+   {t:'rabbit',e:'🐰',ipa:'/ˈræbɪt/',zh:'兔仔',tip:'rabbit 開頭係 R，嘴唇嘟起。最尾嘅 T 要輕輕讀出嚟。'},
+   {t:'lemon',e:'🍋',ipa:'/ˈlemən/',zh:'檸檬',tip:'lemon 開頭係 L，重音喺前面 LE。最尾係 N 鼻音。'}
+  ]},
+ {id:'uk',name:'英式茶壺島',en:'Posh British Sounds',icon:'🫖',landmark:'teapot',grass:0x7CD05C,
+  intro:'歡迎嚟到英式茶壺島！呢度教你英國人獨有嘅讀法。第一，英式英語字尾嘅 R 通常唔讀出嚟，例如 car 讀成「卡」，唔使捲舌。第二，好多字嘅 A 讀長長嘅「啊」音，例如 bath 同 dance。第三，英式嘅 T 要讀得清清楚楚，例如 water。',
+  items:[
+   {t:'car',e:'🚗',ipa:'/kɑː/',zh:'車',tip:'car 係英式長「啊」音，最尾嘅 R 唔讀出嚟，唔好捲舌。'},
+   {t:'water',e:'💧',ipa:'/ˈwɔːtə/',zh:'水',tip:'water 英式讀法係 wor-ta，中間嘅 T 要清楚，最尾唔捲舌。美國人先會讀成 wa-der。'},
+   {t:'tomato',e:'🍅',ipa:'/təˈmɑːtəʊ/',zh:'番茄',tip:'tomato 英式讀法中間係長「啊」音，好似 to-mah-toh，重音喺中間。'},
+   {t:'banana',e:'🍌',ipa:'/bəˈnɑːnə/',zh:'香蕉',tip:'banana 中間係長「啊」音，重音喺中間 NA。頭尾兩個 A 讀得好輕。'},
+   {t:'dance',e:'💃',ipa:'/dɑːns/',zh:'跳舞',tip:'dance 英式讀長「啊」音。最尾係 N 同 S，要有嘶嘶聲。'},
+   {t:'tea',e:'☕',ipa:'/tiː/',zh:'茶',tip:'tea 係長長嘅「衣」音，T 要清楚。英國人最鍾意飲茶㗎！'},
+   {t:'garden',e:'🌷',ipa:'/ˈɡɑːdn/',zh:'花園',tip:'garden 英式讀法 R 唔讀出嚟，係長「啊」音，好似 gaa-den。'}
+  ]},
+ {id:'sent',name:'句子城堡',en:'Sentence Castle',icon:'🏰',landmark:'castle',grass:0x86D86A,
+  intro:'你好勁呀，嚟到句子城堡喇！呢度要讀成句英文。讀句子嘅時候，除咗每個字要讀啱，仲要讀得順，字同字之間要連埋。句尾見到問號，聲音要向上揚；見到句號，聲音就向下。',
+  items:[
+   {t:'Good morning!',e:'🌞',ipa:'',zh:'早晨',tip:'Good morning 兩個字要連住讀。good 最尾嘅 D 好輕，morning 英式讀法 R 唔讀出嚟。語氣要開心啲！'},
+   {t:'Thank you very much.',e:'🙏',ipa:'',zh:'非常多謝',tip:'thank 要咬舌，very 要咬唇。四個字要讀得順，重音喺 very 同 much。'},
+   {t:'Would you like a cup of tea?',e:'☕',ipa:'',zh:'你想唔想飲杯茶？',tip:'呢句係問題，句尾聲音要揚高。would you 連讀好似 wood-ju，cup of 連讀好似 cu-pof。'},
+   {t:"I think it's three o'clock.",e:'⏰',ipa:'',zh:'我諗而家三點',tip:'呢句有兩個 TH：think 同 three，都要咬舌吹氣。o’clock 嘅 C 同 L 要連埋讀。'},
+   {t:'The weather is lovely today.',e:'🌦️',ipa:'',zh:'今日天氣好好',tip:'the 同 weather 都有 TH 音。weather 英式讀法尾音唔捲舌。lovely 開頭係 L，中間有 V 要咬唇。'},
+   {t:'My brother has a red van.',e:'🚐',ipa:'',zh:'我哥哥有架紅色客貨車',tip:'brother 有 TH，開頭 B 同 R 要連讀；red 開頭係 R；van 開頭要咬唇讀 V。red 同 van 嘅尾音都要讀出嚟。'}
+  ]},
+ {id:'custom',name:'朗誦節專區',en:'My Speech',icon:'🏆',landmark:'trophy',grass:0xF6C85F,
+  intro:'呢度係朗誦節專區！爸爸媽媽或者老師可以將你要朗誦嘅英文文章貼喺呢度。之後你可以一句一句咁練習，或者由頭到尾讀晒成篇文章，Ollie 會幫你評分，同埋話你知邊個字要再練。',
+  items:[]}
+];
+
+const SAY={
+ welcome:'哈囉！我係貓頭鷹 Ollie，歡迎嚟到英式發音大冒險！呢個遊戲會教你讀英國口音嘅英文。玩法好簡單：第一，撳「聽英式讀音」，聽下英國人點讀；第二，撳紅色嘅咪高峰，大聲跟住讀；第三，Ollie 會幫你評分，同埋話你知邊度要改善。讀得好就可以儲星星㗎！見到有個「粵」字嘅藍色小喇叭，撳落去就會有廣東話講解。準備好就撳「開始冒險」啦。',
+ map:'呢度係冒險地圖。每個浮島都係一個關卡，撳島上面嘅名牌就可以入去玩。一共有六個練習島，最後嗰個獎盃島係朗誦節專區，可以貼你自己嘅英文文章嚟練習。每個字最多可以攞三粒星，攞齊一個島所有字嘅星星，島嘅名牌就會變金色。',
+ howto:'撳藍色嘅「聽英式讀音」，可以聽標準英國口音；撳綠色烏龜，就會讀慢啲。準備好就撳紅色咪高峰，大聲讀一次，讀完停一停，Ollie 就會自動評分。你亦可以撳上面個英文字，單獨聽嗰個字。唔滿意可以再試，最高分會記錄落嚟。',
+ custom:'將你要朗誦嘅英文文章貼喺個框入面。可以撳「試用範例」睇下點玩。貼好之後，揀「逐句練習」就可以一句一句咁練；揀「全篇朗誦」就可以由頭讀到尾，好似真係比賽咁。',
+ customSent:'而家係逐句練習。先撳「聽英式讀音」聽一次，再撳咪高峰跟住讀。撳句子入面任何一個字，都可以單獨聽嗰個字點讀。',
+ customFull:'而家係全篇朗誦。你可以先撳「聽全篇」，聽 Ollie 由頭讀到尾，讀緊嗰句會變黃色。準備好就撳咪高峰開始讀，讀完成篇就撳「讀完喇」。讀得唔清楚嘅字會用紅色或者橙色標示，撳一下就可以聽正確讀音，仲可以撳「練習難字」逐個練。',
+ settings:'喺度可以揀英國口音嘅聲音同廣東話嘅聲音，仲可以調較英文讀音嘅速度。如果聽唔到廣東話，iPad 可以去設定、輔助使用、語音內容、聲音、中文，下載中文香港嘅聲音。',
+ nomic:'你而家用緊嘅瀏覽器唔支援語音評分。請用 iPad 嘅 Safari，或者電腦嘅 Chrome 嚟玩。你仍然可以撳小喇叭聽讀音。',
+ denied:'你未俾權限用咪高峰。請喺瀏覽器設定入面，容許呢個網頁使用咪高峰，然後再試。',
+ network:'語音評分需要上網，請檢查一下網絡連線，然後再試。',
+ nospeech:'我聽唔到你把聲呀。請你靠近部機，等咪高峰閃紅色之後，大聲啲再讀一次。',
+ emptyText:'個框入面仲未有英文文章。請先貼上文章，或者撳「試用範例」。'
+};
+
+const ISSUES={
+ NOTHING:{i:'🙉',h:'聽唔到你把聲',t:()=>'Ollie 聽唔到你讀嘢。請你靠近部機，等咪高峰閃紅色之後，大聲啲再讀一次。'},
+ TH:{i:'🦷',h:'TH 要咬舌',t:w=>w+' 入面嘅 TH 音，聽落好似 F、S 或者 D。讀 TH 要將舌尖輕輕伸出嚟，放喺上下門牙中間，然後吹氣。可以照下鏡，睇下見唔見到自己個舌尖。'},
+ V:{i:'👄',h:'V 要咬唇',t:w=>w+' 嘅 V 音，聽落好似 W 或者 B。讀 V 要用上面門牙輕輕咬住下嘴唇，然後出聲，嘴唇會覺得痕痕哋。'},
+ W:{i:'😗',h:'W 唔使咬唇',t:w=>w+' 嘅 W 音，聽落好似 V。讀 W 唔使咬唇，要將嘴唇嘟圓，好似吹蠟燭咁，然後打開。'},
+ R:{i:'👅',h:'R 音要嘟嘴',t:w=>w+' 嘅 R 音，聽落好似 L 或者 W。讀 R 嘅時候，舌頭向後縮少少，唔好掂到上顎，嘴唇嘟起少少。'},
+ L:{i:'👅',h:'L 音舌尖頂上牙',t:w=>w+' 嘅 L 音，聽落好似 N 或者 R。讀 L 要將舌尖頂住上面門牙後面，然後放開。'},
+ N:{i:'👃',h:'N 係鼻音',t:w=>w+' 嘅 N 音，聽落好似 L。N 係鼻音，聲音由鼻出。讀嘅時候用手指輕輕摸住鼻，應該會覺得震震哋。'},
+ FINAL:{i:'🔚',h:'尾音唔好食咗',t:w=>w+' 嘅尾音唔夠清楚，好似食咗個尾咁。英文嘅尾音好重要，每個字最後嗰個音都要輕輕讀出嚟。'},
+ S_END:{i:'🐍',h:'S 尾音',t:w=>w+' 最尾嘅 S 聲唔見咗。字尾有 S，記住要讀出嘶嘶聲，好似蛇仔咁。'},
+ ED:{i:'⏪',h:'ED 尾音',t:w=>w+' 最尾嘅 ED 唔夠清楚。過去式嘅 ED，要讀返個 T 或者 D 音出嚟。'},
+ CLUSTER:{i:'🔗',h:'兩個子音連讀',t:w=>w+' 開頭有兩個子音連埋一齊，兩個音都要讀出嚟，而且中間唔好加多個音。'},
+ MISSING:{i:'🔍',h:'漏咗字',t:w=>'你好似漏咗 '+w+'。唔使急，慢慢讀，一個字一個字讀清楚。'},
+ UNCLEAR:{i:'🎧',h:'要讀清楚啲',t:(w,p)=>(p||w)+' 讀得未夠清楚。撳一下上面嘅字，聽清楚標準讀音，留意嘴形，然後慢慢再讀。'},
+ EXTRA:{i:'➕',h:'多咗字',t:()=>'Ollie 聽到多咗啲字，可能係背景有聲，或者重複讀咗。試下喺靜啲嘅地方再讀一次。'},
+ FAST:{i:'🐇',h:'讀慢少少',t:()=>'你讀得有啲快。朗誦嘅時候要慢慢讀，每個字都讀清楚，見到逗號同句號要停一停。'},
+ SLOW:{i:'🐢',h:'讀順啲',t:()=>'你讀得有啲慢，好似停咗好多次。試下多聽幾次，熟咗之後讀得順啲、連貫啲。'},
+ CLARITY:{i:'📢',h:'大聲清楚啲',t:()=>'字讀啱咗，不過 Ollie 未係好肯定。試下讀大聲啲、嘴形張大啲，每個音都清清楚楚。'}
+};
+const ORDER=['NOTHING','TH','V','W','R','L','N','FINAL','S_END','ED','CLUSTER','MISSING','UNCLEAR','EXTRA','FAST','SLOW','CLARITY'];
+
+const pickOne=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function starsOf(s){return s>=85?3:s>=65?2:s>=40?1:0}
+function praise(s){
+ if(s>=85) return pickOne(['嘩，好勁呀！','好叻呀，讀得好標準！','Excellent！你係發音小明星！','正呀！英國人都話你讀得好！']);
+ if(s>=65) return pickOne(['幾好呀，就快滿分喇！','唔錯喎，再努力少少！']);
+ if(s>=40) return pickOne(['有進步，繼續加油！','差少少啫，再試多次！']);
+ return pickOne(['唔緊要，我哋慢慢嚟。','冇問題，先聽多次再讀啦。']);
+}
+
+/* ---------- text normalisation ---------- */
+const ONES=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS=['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+const ORD={1:'first',2:'second',3:'third',4:'fourth',5:'fifth',6:'sixth',7:'seventh',8:'eighth',9:'ninth',10:'tenth',11:'eleventh',12:'twelfth'};
+function num2w(n){
+ n=Math.floor(Number(n));
+ if(!isFinite(n)||n<0||n>999999) return String(n);
+ if(n<20) return ONES[n];
+ if(n<100) return TENS[Math.floor(n/10)]+(n%10?' '+ONES[n%10]:'');
+ if(n<1000) return ONES[Math.floor(n/100)]+' hundred'+(n%100?' and '+num2w(n%100):'');
+ const r=n%1000;
+ return num2w(Math.floor(n/1000))+' thousand'+(r?(r<100?' and ':' ')+num2w(r):'');
+}
+const CONTRACT={"it's":'it is',"i'm":'i am',"you're":'you are',"we're":'we are',"they're":'they are',"he's":'he is',"she's":'she is',
+ "that's":'that is',"what's":'what is',"there's":'there is',"here's":'here is',"where's":'where is',"who's":'who is',"let's":'let us',
+ "don't":'do not',"doesn't":'does not',"didn't":'did not',"can't":'can not',"cannot":'can not',"won't":'will not',"isn't":'is not',
+ "aren't":'are not',"wasn't":'was not',"weren't":'were not',"i'll":'i will',"you'll":'you will',"we'll":'we will',"they'll":'they will',
+ "he'll":'he will',"she'll":'she will',"it'll":'it will',"i've":'i have',"you've":'you have',"we've":'we have',"they've":'they have',
+ "i'd":'i would',"you'd":'you would',"he'd":'he would',"she'd":'she would',"we'd":'we would',"they'd":'they would',
+ "shouldn't":'should not',"couldn't":'could not',"wouldn't":'would not',"haven't":'have not',"hasn't":'has not',"hadn't":'had not',
+ "mustn't":'must not',"needn't":'need not',"shan't":'shall not'};
+function normChunk(w){
+ w=String(w).toLowerCase().replace(/[’‘`´]/g,"'").replace(/[“”"«»]/g,'');
+ w=w.replace(/\b(\d{1,2}):00\b/g,"$1 o'clock").replace(/(\d),(\d{3})/g,'$1$2').replace(/&/g,' and ').replace(/%/g,' percent ');
+ const out=[];
+ w.split(/[\s\-–—\/_]+/).forEach(p=>{
+  p=p.replace(/^[^a-z0-9']+|[^a-z0-9']+$/g,'').replace(/^'+|'+$/g,'');
+  if(!p) return;
+  let m;
+  if(/^\d+$/.test(p)){ num2w(p).split(' ').forEach(x=>out.push(x)); return; }
+  if((m=p.match(/^(\d+)(st|nd|rd|th)$/)) && ORD[+m[1]]){ out.push(ORD[+m[1]]); return; }
+  if(CONTRACT[p]){ CONTRACT[p].split(' ').forEach(x=>out.push(x)); return; }
+  p=p.replace(/[^a-z0-9]/g,'');
+  if(p) out.push(p);
+ });
+ return out;
+}
+function normText(t){ const o=[]; String(t||'').split(/\s+/).forEach(c=>normChunk(c).forEach(x=>o.push(x))); return o; }
+function tokenizeWithMap(text){
+ const display=String(text||'').replace(/\s+/g,' ').trim().split(' ').filter(Boolean);
+ const tokens=[],map=[];
+ display.forEach((d,di)=>normChunk(d).forEach(tk=>{tokens.push(tk);map.push(di);}));
+ return {display,tokens,map};
+}
+function cleanWord(w){ return String(w).replace(/^[^A-Za-z0-9’']+|[^A-Za-z0-9’']+$/g,''); }
+
+/* ---------- word matching ---------- */
+const BR={color:'colour',favorite:'favourite',neighbor:'neighbour',honor:'honour',humor:'humour',center:'centre',theater:'theatre',
+ meter:'metre',gray:'grey',mom:'mum',mommy:'mummy',realize:'realise',organize:'organise',traveling:'travelling',traveled:'travelled',
+ program:'programme',jewelry:'jewellery',tire:'tyre',aluminum:'aluminium',defense:'defence',license:'licence',practice:'practise',
+ labor:'labour',behavior:'behaviour',flavor:'flavour',harbor:'harbour',rumor:'rumour',catalog:'catalogue',dialog:'dialogue',
+ ok:'okay',mr:'mister',mrs:'missus',dr:'doctor',colors:'colours',favorites:'favourites',neighbors:'neighbours'};
+const canon=w=>BR[w]||w;
+const HOMO_GROUPS=[['right','write','rite','wright'],['night','knight','nite'],['tea','tee','t'],['sea','see','c'],['two','to','too'],
+ ['four','for','fore'],['one','won'],['eight','ate'],['hear','here'],['there','their'],['know','no'],['new','knew'],['by','buy','bye'],
+ ['be','bee','b'],['i','eye'],['you','u'],['are','r'],['why','y'],['flower','flour'],['sun','son'],['meet','meat'],['week','weak'],
+ ['blue','blew'],['whole','hole'],['wood','would'],['red','read'],['pair','pear'],['bare','bear'],['tail','tale'],['mail','male'],
+ ['road','rode'],['sale','sail'],['wait','weight'],['light','lite'],['where','wear'],['dear','deer'],['hi','high'],['so','sew'],
+ ['oclock','clock'],['grey','gray'],['mum','mom'],['okay','ok']];
+const HOMO={}; HOMO_GROUPS.forEach((g,i)=>g.forEach(w=>{ if(HOMO[w]===undefined) HOMO[w]=i; }));
+function wordsEqual(a,b){ return a===b||canon(a)===canon(b)||(HOMO[a]!==undefined&&HOMO[a]===HOMO[b]); }
+function lev(a,b){
+ if(a===b) return 0; const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+ let prev=new Array(n+1); for(let j=0;j<=n;j++) prev[j]=j;
+ for(let i=1;i<=m;i++){ const cur=[i]; for(let j=1;j<=n;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); } prev=cur; }
+ return prev[n];
+}
+function sim(a,b){ if(wordsEqual(a,b)) return 1; return Math.max(0,1-lev(a,b)/Math.max(a.length,b.length)); }
+
+function align(T,H){
+ const n=T.length,m=H.length,memo=new Map();
+ const S=(i,j)=>{ const k=T[i]+'|'+H[j]; let v=memo.get(k); if(v===undefined){ v=sim(T[i],H[j]); memo.set(k,v);} return v; };
+ const subC=s=>s>=1?0:1-0.8*s, DEL=1, INS=0.8;
+ const D=[]; for(let i=0;i<=n;i++) D.push(new Float64Array(m+1));
+ for(let i=1;i<=n;i++) D[i][0]=i*DEL; for(let j=1;j<=m;j++) D[0][j]=j*INS;
+ for(let i=1;i<=n;i++) for(let j=1;j<=m;j++){
+  D[i][j]=Math.min(D[i-1][j-1]+subC(S(i-1,j-1)),D[i-1][j]+DEL,D[i][j-1]+INS);
+ }
+ const per=new Array(n), extras=[]; let i=n,j=m;
+ while(i>0||j>0){
+  if(i>0&&j>0){ const s=S(i-1,j-1);
+   if(Math.abs(D[i][j]-(D[i-1][j-1]+subC(s)))<1e-9){ per[i-1]=s>=1?{type:'ok',h:H[j-1],s:1}:{type:'sub',h:H[j-1],s}; i--; j--; continue; } }
+  if(i>0&&(j===0||Math.abs(D[i][j]-(D[i-1][j]+DEL))<1e-9)){ per[i-1]={type:'miss',s:0}; i--; continue; }
+  extras.push(H[j-1]); j--;
+ }
+ return {per,extras:extras.reverse()};
+}
+function credit(p){ if(p.type==='ok') return 1; if(p.type==='sub') return p.s>=0.8?0.75:p.s>=0.6?0.5:p.s>=0.4?0.25:0; return 0; }
+
+function finalSound(w){
+ if(/gh$/.test(w)) return '';
+ const v=w.replace(/([^aeiou])e$/,'$1');
+ const c=v[v.length-1]; if(!c) return '';
+ if('aeiouyrw'.includes(c)) return '';
+ return c;
+}
+function detectIssues(t,h){
+ const out=[]; if(!h) return out;
+ const t0=t[0], h0=h[0];
+ if(t.includes('th')&&!h.includes('th')) out.push('TH');
+ if(t0==='v'&&'wbf'.includes(h0)) out.push('V');
+ else if(t0==='w'&&t[1]!=='r'&&h0==='v') out.push('W');
+ const tr=t.startsWith('wr')?'r':t0;
+ if(tr==='r'&&'lw'.includes(h0)) out.push('R');
+ if(t0==='l'&&'nr'.includes(h0)) out.push('L');
+ if((t0==='n'||t.startsWith('kn'))&&h0==='l') out.push('N');
+ const cl=t.match(/^(str|spr|scr|spl|bl|br|cl|cr|dr|fl|fr|gl|gr|pl|pr|sl|sm|sn|sp|st|sw|tr|sk|sc|tw)/);
+ if(cl&&!h.startsWith(cl[0])&&(h0===cl[0][0]||h0===cl[0][1])&&!out.includes('R')&&!out.includes('L')) out.push('CLUSTER');
+ if(/[^e]ed$/.test(t)&&t.length>4&&!/(ed|d|t)$/.test(h)) out.push('ED');
+ else if(/[^su']s$/.test(t)&&t.length>3&&!/[sz]$/.test(h)&&h.slice(0,2)===t.slice(0,2)) out.push('S_END');
+ else { const tf=finalSound(t),hf=finalSound(h); if(tf&&tf!==hf&&h[0]===t[0]&&h.length<=t.length+1) out.push('FINAL'); }
+ if(!out.length) out.push('UNCLEAR');
+ return out;
+}
+
+const FUNC_LIGHT=new Set(['a','an','the','of','to','and','in','on','at','is','it','for','or']);
+
+function evaluate(targetText,rec,opts){
+ opts=opts||{};
+ const tm=tokenizeWithMap(targetText), T=tm.tokens;
+ const weights=T.map(w=>(FUNC_LIGHT.has(w)&&T.length>1)?0.5:1);
+ let cands=[];
+ if(rec.alts&&rec.alts.length&&!opts.continuous) cands=rec.alts.filter(a=>a.t&&a.t.trim());
+ if(!cands.length&&rec.transcript) cands=[{t:rec.transcript,c:rec.confidence||0}];
+ if(!cands.length||!T.length){
+  return {empty:true,score:0,stars:0,tm,status:tm.display.map(()=>'bad'),heardBy:{},issues:[{code:'NOTHING',words:[],pairs:[]}],heard:'',conf:0};
+ }
+ let best=null;
+ cands.slice(0,5).forEach((cd,idx)=>{
+  const H=normText(cd.t); const al=align(T,H);
+  let got=0,tot=0; al.per.forEach((p,i)=>{ tot+=weights[i]; got+=weights[i]*credit(p); });
+  let acc=tot?got/tot:0;
+  const extras=al.extras.filter(x=>!FUNC_LIGHT.has(x)).length;
+  acc-=Math.min(0.15,extras*0.04);
+  if(idx>0) acc*=0.92;
+  acc=clamp(acc,0,1);
+  if(!best||acc>best.acc) best={acc,al,H,idx,c:cd.c||0,t:cd.t,extras};
+ });
+ const conf=rec.confidence||best.c||0;
+ const cf=conf>0?0.9+0.1*clamp(conf/0.85,0,1):1;
+ let score=Math.round(best.acc*100*cf);
+ let pace=null;
+ if(T.length>=5&&rec.duration>0.8){ const wps=T.length/rec.duration; if(wps>3.8) pace='FAST'; else if(wps<0.9) pace='SLOW'; }
+ if(pace) score-=4;
+ score=clamp(score,0,100);
+
+ const bucket=new Map();
+ const add=(code,w,pair)=>{ if(!bucket.has(code)) bucket.set(code,{code,words:[],pairs:[]}); const b=bucket.get(code);
+  if(w&&!b.words.includes(w)) b.words.push(w); if(pair&&!b.pairs.some(q=>q[0]===pair[0])) b.pairs.push(pair); };
+ best.al.per.forEach((p,i)=>{
+  const t=T[i];
+  if(p.type==='miss'){ if(weights[i]===1) add('MISSING',t); }
+  else if(p.type==='sub'){
+   if(p.s<0.3) add('UNCLEAR',t,[t,p.h]);
+   else detectIssues(t,p.h).forEach(code=>add(code,t,code==='UNCLEAR'?[t,p.h]:null));
+  }
+ });
+ if(best.extras>=2&&T.length>1) add('EXTRA');
+ if(pace) add(pace);
+ if(score>=80&&!bucket.size&&conf>0&&conf<0.55) add('CLARITY');
+ const issues=[...bucket.values()].sort((a,b)=>ORDER.indexOf(a.code)-ORDER.indexOf(b.code));
+
+ const rank={ok:0,close:1,bad:2}; const status=tm.display.map(()=>null); const heardBy={};
+ best.al.per.forEach((p,i)=>{
+  const st=p.type==='ok'?'ok':(p.type==='sub'&&p.s>=0.6?'close':'bad');
+  const di=tm.map[i];
+  if(status[di]===null||rank[st]>rank[status[di]]) status[di]=st;
+  if(p.type==='sub') heardBy[di]=(heardBy[di]?heardBy[di]+' ':'')+p.h;
+ });
+ return {empty:false,score,stars:starsOf(score),issues,status,heardBy,tm,heard:best.t,conf};
+}
+
+function issueText(iss){
+ const I=ISSUES[iss.code]; const w=iss.words.slice(0,4).join('、');
+ if(iss.code==='UNCLEAR'){
+  const p=iss.pairs.slice(0,3).map(q=>q[0]+'（Ollie 聽到似 '+q[1]+'）').join('、');
+  return I.t(w,p);
+ }
+ return I.t(w);
+}
+function feedbackSpeech(ev,msg){
+ let s=msg+' ';
+ if(ev.issues.length){
+  s+='以下地方可以改善。';
+  ev.issues.slice(0,3).forEach(iss=>{ s+=ISSUES[iss.code].h+'：'+issueText(iss)+' '; });
+ } else s+='每個字都讀得好清楚，繼續保持！';
+ return s;
+}
+
+/* ---------- custom text ---------- */
+function splitSentences(text){
+ const ABBR=/\b(Mr|Mrs|Ms|Dr|St|Mt|Prof|Jr|Sr|vs|etc)\./g;
+ const lines=String(text||'').replace(/\r/g,'').split(/\n+/).map(l=>l.trim()).filter(Boolean);
+ const pieces=[];
+ lines.forEach(line=>{
+  const safe=line.replace(ABBR,m=>m.slice(0,-1)+'§');
+  const parts=safe.match(/[^.!?]+[.!?]+["'”’)\]]*|[^.!?]+$/g)||[safe];
+  parts.forEach(p=>{ p=p.replace(/§/g,'.').trim(); if(p&&/[A-Za-z0-9]/.test(p)) pieces.push(p); });
+ });
+ const out=[];
+ pieces.forEach(p=>{
+  if(p.split(/\s+/).length<=22){ out.push(p); return; }
+  const chunks=(p.match(/[^,;:]+[,;:]*/g)||[p]).map(s=>s.trim()).filter(Boolean);
+  let buf='';
+  chunks.forEach(c=>{ const cand=buf?buf+' '+c:c; if(buf&&cand.split(/\s+/).length>18){ out.push(buf); buf=c; } else buf=cand; });
+  if(buf) out.push(buf);
+ });
+ return out;
+}
+const TIP_SKIP=new Set(['the','a','an','of','to','and','or','for','her','your','our','their','there','where','here','were','are','more','or','nor','after','over','never','ever','other','that','this','with','they','them','then','than','these','those','though','through','both','bath','would','could','should','and','half','calm','walk','talk']);
+function tipForText(s){
+ const ws=[...new Set(tokenizeWithMap(s).tokens)];
+ const found=[];
+ const add=(w,why)=>{ if(found.length<5&&!found.some(f=>f.w===w)) found.push({w,why}); };
+ ws.forEach(w=>{ if(w.includes('th')) add(w,'咬舌 TH 音'); });
+ ws.forEach(w=>{ if(w.includes('v')) add(w,'咬唇 V 音'); });
+ ws.forEach(w=>{ if(/[^e]ed$/.test(w)&&w.length>4) add(w,'ED 尾音'); });
+ ws.forEach(w=>{ if(/(er|ar|or|our|ure|ear)$/.test(w)&&w.length>3&&!TIP_SKIP.has(w)) add(w,'英式尾音唔捲舌'); });
+ ws.forEach(w=>{ if(/(st|sk|ld|nd|nk|lk|ks|ts|pt|ct|ft|mp)$/.test(w)&&!TIP_SKIP.has(w)) add(w,'尾音兩個子音都要讀'); });
+ ws.forEach(w=>{ if(/^(n|l|r)/.test(w)&&w.length>2&&!TIP_SKIP.has(w)) add(w,w[0]==='n'?'N 鼻音':w[0]==='l'?'L 舌尖頂上牙':'R 嘟嘴'); });
+ const q=/\?\s*["'”’)]*$/.test(String(s).trim())?'呢句係問題，句尾聲音要揚高。':'';
+ if(!found.length) return '呢句冇特別難嘅音。記住每個字嘅尾音都要讀出嚟，見到句號要停一停。'+q;
+ return '呢句要留意：'+found.map(f=>f.w+'（'+f.why+'）').join('、')+'。'+q;
+}
+
+const SAMPLE='The Little Red Bus\nEvery morning, the little red bus goes round the town. It stops at the bakery, the library and the park. Children wave and say, "Good morning!" The driver smiles and rings the bell. When it rains, the bus still comes, bright and cheerful. I think the little red bus is the best bus in London.';
+
+root.Core={LEVELS,SAY,ISSUES,ORDER,SAMPLE,praise,starsOf,num2w,normChunk,normText,tokenizeWithMap,cleanWord,wordsEqual,lev,sim,align,credit,detectIssues,evaluate,issueText,feedbackSpeech,splitSentences,tipForText};
+})(typeof window!=='undefined'?window:globalThis);
+</script>
+<script>
+/* ================= 3D WORLD ================= */
+(function(root){
+'use strict';
+const rand=(a,b)=>a+Math.random()*(b-a);
+const ease=p=>p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+
+const World={
+ ok:false,t:0,last:0,mode:'start',cur:-1,perch:-1,flying:false,state:'idle',stateT:0,happy:1,
+ islands:[],labels:[],tweens:[],spinners:[],hands:[],steam:[],conf:[],clouds:[],view:{x:0,y:0},
+ reduced:false,onIsland:null,onOllie:null,isTalking:()=>false,
+
+ init(opts){
+  Object.assign(this,opts||{});
+  this.reduced=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if(!window.THREE){ document.body.classList.add('no3d'); return; }
+  try{ this._init(); }catch(e){ console.error(e); this.ok=false; document.body.classList.add('no3d'); }
+ },
+
+ _init(){
+  const T=THREE; this.ok=true;
+  const canvas=document.getElementById('scene');
+  const R=this.renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+  R.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  R.setSize(innerWidth,innerHeight,false);
+  const scene=this.scene=new T.Scene();
+  const bg=document.createElement('canvas'); bg.width=4; bg.height=256;
+  const bx=bg.getContext('2d'); const gr=bx.createLinearGradient(0,0,0,256);
+  gr.addColorStop(0,'#3FA2E6'); gr.addColorStop(.55,'#9FD8F6'); gr.addColorStop(1,'#E6F7FF');
+  bx.fillStyle=gr; bx.fillRect(0,0,4,256);
+  scene.background=new T.CanvasTexture(bg);
+  scene.fog=new T.Fog(0xCFEFFF,55,120);
+  this.camera=new T.PerspectiveCamera(45,innerWidth/innerHeight,0.1,300);
+  this.camera.position.set(0,6,14);
+  this.camGoal=new T.Vector3(0,6,14); this.look=new T.Vector3(0,1,0); this.lookGoal=new T.Vector3(0,1,0);
+  scene.add(new T.HemisphereLight(0xffffff,0x8fbf6a,0.8));
+  const sun=new T.DirectionalLight(0xffffff,0.7); sun.position.set(6,14,9); scene.add(sun);
+
+  const isGL2=R.capabilities.isWebGL2;
+  const gm=new T.DataTexture(new Uint8Array([120,190,255]),3,1,isGL2?T.RedFormat:T.LuminanceFormat);
+  gm.minFilter=gm.magFilter=T.NearestFilter; gm.generateMipmaps=false; gm.needsUpdate=true;
+  const cache={};
+  this.M=c=>cache[c]||(cache[c]=new T.MeshToonMaterial({color:c,gradientMap:gm}));
+  this.outlineMat=new T.MeshBasicMaterial({color:0x1B2A4A,side:T.BackSide});
+
+  // sea of clouds far below
+  const floor=new T.Mesh(new T.CircleGeometry(140,40),new T.MeshBasicMaterial({color:0xF4FBFF}));
+  floor.rotation.x=-Math.PI/2; floor.position.y=-9; scene.add(floor);
+
+  // home island
+  this.home=this.makeIsland(3,0x7CD05C,99);
+  this.home.position.set(0,-0.6,0); this.home.userData={baseY:-0.6};
+  [[-1.8,-1.1,1],[1.9,-0.9,.85],[-0.6,-2.1,.75],[1.1,-2,.9]].forEach(a=>this.tree(this.home,a[0],a[1],a[2]));
+  scene.add(this.home);
+
+  // level islands in a ring
+  const Rr=10.5, heights=[0.4,-0.2,0.6,0.1,-0.3,0.5,0.1];
+  this.levels.forEach((L,i)=>{
+   const th=(115.7+i*360/7)*Math.PI/180; const x=Rr*Math.cos(th), z=Rr*Math.sin(th);
+   const g=this.makeIsland(2.2,L.grass,i+1);
+   g.position.set(x,heights[i],z); g.rotation.y=Math.atan2(x,z);
+   g.userData={li:i,baseY:heights[i]};
+   const lm=this['lm_'+L.landmark](); lm.position.set(-0.6,0,-0.55); g.add(lm);
+   scene.add(g); this.islands.push(g);
+  });
+
+  this.makeClouds(); this.makeOllie(); this.makeConfetti(); this.makeEmoji();
+
+  addEventListener('resize',()=>this.resize());
+  addEventListener('orientationchange',()=>setTimeout(()=>this.resize(),300));
+  this.bindPointer(canvas);
+  this.last=performance.now();
+  const loop=()=>{ requestAnimationFrame(loop); this.frame(); };
+  loop();
+ },
+
+ resize(){
+  if(!this.ok) return;
+  this.renderer.setSize(innerWidth,innerHeight,false);
+  this.camera.aspect=innerWidth/innerHeight; this.camera.updateProjectionMatrix();
+ },
+
+ /* ---------- builders ---------- */
+ box(w,h,d,c,x,y,z,parent){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),this.M(c)); m.position.set(x,y,z); parent.add(m); return m; },
+ cyl(rt,rb,h,c,x,y,z,parent,seg){ const m=new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg||20),this.M(c)); m.position.set(x,y,z); parent.add(m); return m; },
+ makeIsland(r,top,seed){
+  const T=THREE,g=new T.Group(),rnd=rng(seed*977);
+  this.cyl(r,r*0.97,0.5,top,0,-0.25,0,g,32);
+  this.cyl(r*0.97,r*0.4,1.3,0xB9814F,0,-1.15,0,g,32);
+  const rock=new T.Mesh(new T.ConeGeometry(r*0.4,1.8,14),this.M(0x8C5E3C)); rock.rotation.x=Math.PI; rock.position.y=-2.7; g.add(rock);
+  const fl=[0xFF6B8B,0xFFFFFF,0xFFC83D,0xB57CFF];
+  for(let k=0;k<7;k++){
+   const a=rnd()*Math.PI*2, d=r*(0.55+rnd()*0.38);
+   const x=Math.cos(a)*d, z=Math.sin(a)*d;
+   if(k<4){ const f=new T.Mesh(new T.SphereGeometry(0.09,8,6),this.M(fl[k%4])); f.position.set(x,0.08,z); g.add(f); }
+   else { const gr=new T.Mesh(new T.ConeGeometry(0.08,0.28,5),this.M(0x4FA83A)); gr.position.set(x,0.14,z); g.add(gr); }
+  }
+  return g;
+ },
+ tree(parent,x,z,s){
+  const g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s); parent.add(g);
+  this.cyl(0.12,0.16,0.8,0x8C5E3C,0,0.4,0,g,8);
+  const c=new THREE.Mesh(new THREE.SphereGeometry(0.6,14,10),this.M(0x3E9E4A)); c.position.y=1.15; g.add(c);
+  const c2=new THREE.Mesh(new THREE.SphereGeometry(0.42,12,8),this.M(0x52B45A)); c2.position.set(0.25,1.5,0.1); g.add(c2);
+ },
+ lm_phonebox(){
+  const g=new THREE.Group(), R=0xD62828, glass=0xBFE7FF;
+  this.box(0.9,0.12,0.9,0x1B2A4A,0,0.06,0,g);
+  this.box(0.9,1.9,0.9,R,0,1.07,0,g);
+  this.box(0.64,1.08,0.93,glass,0,1.0,0,g); this.box(0.93,1.08,0.64,glass,0,1.0,0,g);
+  [0.72,1.0,1.28].forEach(y=>{ this.box(0.66,0.05,0.95,R,0,y,0,g); this.box(0.95,0.05,0.66,R,0,y,0,g); });
+  this.box(0.05,1.1,0.95,R,0,1.0,0,g); this.box(0.95,1.1,0.05,R,0,1.0,0,g);
+  this.box(0.72,0.14,0.94,0xFFF4D6,0,1.72,0,g); this.box(0.94,0.14,0.72,0xFFF4D6,0,1.72,0,g);
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.66,0.3,4),this.M(R)); roof.rotation.y=Math.PI/4; roof.position.y=2.17; g.add(roof);
+  const crown=new THREE.Mesh(new THREE.SphereGeometry(0.1,10,8),this.M(0xFFC83D)); crown.position.y=2.35; g.add(crown);
+  return g;
+ },
+ lm_bus(){
+  const g=new THREE.Group(); g.rotation.y=0.35;
+  this.box(2.4,1.55,1.0,0xD62828,0,0.98,0,g);
+  this.box(2.3,0.36,1.03,0x9FD7F5,0,1.42,0,g);
+  this.box(2.0,0.34,1.03,0x9FD7F5,0.1,0.86,0,g);
+  this.box(2.42,0.08,1.04,0xFFF4D6,0,1.16,0,g);
+  this.box(0.3,0.5,1.04,0x9FD7F5,1.05,0.8,0,g);
+  const wg=new THREE.CylinderGeometry(0.27,0.27,0.18,16);
+  [[-0.75,0.5],[0.75,0.5],[-0.75,-0.5],[0.75,-0.5]].forEach(p=>{ const w=new THREE.Mesh(wg,this.M(0x1B2A4A)); w.rotation.x=Math.PI/2; w.position.set(p[0],0.27,p[1]); g.add(w); });
+  [0.3,-0.3].forEach(z=>{ const l=new THREE.Mesh(new THREE.SphereGeometry(0.08,8,6),this.M(0xFFE066)); l.position.set(1.21,0.5,z); g.add(l); });
+  return g;
+ },
+ lm_postbox(){
+  const g=new THREE.Group();
+  this.cyl(0.46,0.48,0.12,0x1B2A4A,0,0.06,0,g);
+  this.cyl(0.4,0.42,1.3,0xD62828,0,0.77,0,g);
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(0.42,20,10,0,Math.PI*2,0,Math.PI/2),this.M(0xD62828)); dome.position.y=1.42; g.add(dome);
+  this.cyl(0.43,0.43,0.1,0xB71C1C,0,1.42,0,g);
+  this.box(0.36,0.06,0.08,0x1B2A4A,0,1.18,0.39,g);
+  this.box(0.22,0.18,0.05,0xFFC83D,0,0.9,0.41,g);
+  const env=new THREE.Group(); env.position.set(0.55,0.2,0.35); env.rotation.set(-0.3,0.4,0.2); g.add(env);
+  this.box(0.5,0.02,0.34,0xFFFFFF,0,0,0,env);
+  this.spinners.push({o:env,bob:true});
+  return g;
+ },
+ lm_clocktower(){
+  const g=new THREE.Group(), stone=0xE9C98B;
+  this.box(0.9,3.1,0.9,stone,0,1.55,0,g);
+  [0.6,1.3,2.0,2.7].forEach(y=>this.box(0.94,0.06,0.94,0xD1AE6B,0,y,0,g));
+  this.box(1.12,1.0,1.12,0xD9B26F,0,3.6,0,g);
+  const faceG=new THREE.CylinderGeometry(0.38,0.38,0.05,28);
+  [[0,0.57,0],[0.57,0,Math.PI/2]].forEach(f=>{
+   const face=new THREE.Mesh(faceG,this.M(0xFFFDF0));
+   if(f[2]){ face.rotation.z=Math.PI/2; face.position.set(0.57,3.6,0); } else { face.rotation.x=Math.PI/2; face.position.set(0,3.6,0.57); }
+   g.add(face);
+  });
+  const mkHand=(len,w,speed)=>{ const p=new THREE.Group(); p.position.set(0,3.6,0.61); g.add(p);
+   const h=new THREE.Mesh(new THREE.BoxGeometry(w,len,0.03),new THREE.MeshBasicMaterial({color:0x1B2A4A})); h.position.y=len/2; p.add(h);
+   this.hands.push({p,speed}); };
+  mkHand(0.32,0.05,0.6); mkHand(0.22,0.07,0.05);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(0.82,1.5,4),this.M(0x3D6B5A)); roof.rotation.y=Math.PI/4; roof.position.y=4.85; g.add(roof);
+  const spire=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.6,6),this.M(0xFFC83D)); spire.position.y=5.9; g.add(spire);
+  g.scale.setScalar(0.85);
+  return g;
+ },
+ lm_teapot(){
+  const g=new THREE.Group(), china=0x7FB8E6;
+  const body=new THREE.Mesh(new THREE.SphereGeometry(0.75,24,16),this.M(china)); body.scale.y=0.82; body.position.y=0.64; g.add(body);
+  this.cyl(0.5,0.62,0.12,0xFFFFFF,0,0.66,0,g,24);
+  const lid=new THREE.Mesh(new THREE.SphereGeometry(0.36,16,8,0,Math.PI*2,0,Math.PI/2),this.M(china)); lid.position.y=1.2; g.add(lid);
+  const knob=new THREE.Mesh(new THREE.SphereGeometry(0.1,10,8),this.M(0xFFC83D)); knob.position.y=1.57; g.add(knob);
+  const sp=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.15,0.9,12),this.M(china)); sp.position.set(0.85,0.85,0); sp.rotation.z=-0.9; g.add(sp);
+  const hd=new THREE.Mesh(new THREE.TorusGeometry(0.3,0.07,8,20),this.M(china)); hd.position.set(-0.78,0.72,0); g.add(hd);
+  for(let k=0;k<3;k++){ const s=new THREE.Mesh(new THREE.SphereGeometry(0.1+k*0.03,10,8),this.M(0xFFFFFF)); s.position.set(1.22,1.3,0); g.add(s); this.steam.push({o:s,k}); }
+  const cup=new THREE.Group(); cup.position.set(0.7,0,0.8); g.add(cup);
+  this.cyl(0.24,0.17,0.3,0xFFFFFF,0,0.15,0,cup,16); this.cyl(0.21,0.21,0.02,0x9C5A2B,0,0.29,0,cup,16);
+  return g;
+ },
+ lm_castle(){
+  const g=new THREE.Group(), st=0xD8D2C4;
+  this.box(1.9,1.2,1.3,st,0,0.6,0,g);
+  for(let k=0;k<5;k++) this.box(0.24,0.24,0.24,st,-0.76+k*0.38,1.32,0.53,g);
+  this.box(0.46,0.66,0.06,0x1B2A4A,0,0.33,0.66,g);
+  [-1.05,1.05].forEach(x=>{
+   this.cyl(0.42,0.46,2.0,st,x,1.0,0,g,16);
+   const c=new THREE.Mesh(new THREE.ConeGeometry(0.55,0.9,16),this.M(0xD62828)); c.position.set(x,2.45,0); g.add(c);
+  });
+  this.cyl(0.025,0.025,0.8,0x1B2A4A,1.05,3.2,0,g,6);
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.3),new THREE.MeshBasicMaterial({color:0x2F7DE1,side:THREE.DoubleSide}));
+  flag.position.set(1.3,3.45,0); g.add(flag); this.spinners.push({o:flag,flag:true});
+  return g;
+ },
+ lm_trophy(){
+  const g=new THREE.Group(), gold=0xFFC83D;
+  this.cyl(1.25,1.3,0.25,0x1B2A4A,0,0.12,0,g,28);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(1.25,0.05,8,40),this.M(gold)); rim.rotation.x=Math.PI/2; rim.position.y=0.25; g.add(rim);
+  this.box(0.7,0.22,0.7,0x8C5E3C,0,0.36,0,g);
+  this.cyl(0.08,0.12,0.4,gold,0,0.66,0,g,12);
+  this.cyl(0.58,0.24,0.8,gold,0,1.25,0,g,24);
+  [-1,1].forEach(s=>{ const h=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.05,8,16),this.M(gold)); h.position.set(s*0.6,1.3,0); g.add(h); });
+  const sh=new THREE.Shape();
+  for(let k=0;k<10;k++){ const r=k%2?0.14:0.32, a=k/10*Math.PI*2+Math.PI/2; const px=Math.cos(a)*r, py=Math.sin(a)*r; if(k) sh.lineTo(px,py); else sh.moveTo(px,py); }
+  sh.closePath();
+  const sg=new THREE.ExtrudeGeometry(sh,{depth:0.1,bevelEnabled:false}); sg.center();
+  const star=new THREE.Mesh(sg,this.M(gold)); star.position.y=2.05; g.add(star); this.spinners.push({o:star,spin:1.5});
+  // microphone stand
+  this.cyl(0.03,0.03,1.4,0x1B2A4A,0.85,0.95,0.35,g,6);
+  const mic=new THREE.Mesh(new THREE.SphereGeometry(0.12,12,10),this.M(0xAAB4C8)); mic.position.set(0.85,1.7,0.35); g.add(mic);
+  return g;
+ },
+ makeClouds(){
+  const T=THREE, geo=new T.SphereGeometry(1,14,10), mat=this.M(0xFFFFFF), r=rng(42);
+  for(let k=0;k<10;k++){
+   const c=new T.Group(); const n=3+Math.floor(r()*3);
+   for(let p=0;p<n;p++){ const s=new T.Mesh(geo,mat); s.scale.setScalar(0.8+r()*0.9); s.position.set((p-n/2)*1.15,r()*0.4,r()*0.6); c.add(s); }
+   c.userData={a:r()*Math.PI*2,rad:17+r()*14,y:2+r()*7,sp:0.012+r()*0.02};
+   this.scene.add(c); this.clouds.push(c);
+  }
+ },
+
+ /* ---------- Ollie the owl ---------- */
+ makeOllie(){
+  const T=THREE, rootG=new T.Group(), inner=new T.Group(); rootG.add(inner);
+  const brown=this.M(0x9A6A43), dark=this.M(0x74492B), cream=this.M(0xFFE7C2), white=this.M(0xFFFFFF),
+   navy=new T.MeshBasicMaterial({color:0x1B2A4A}), orange=this.M(0xFFA630), gold=this.M(0xFFC83D), red=this.M(0xE63946);
+  const sph=new T.SphereGeometry(1,24,18);
+  const part=(geo,mat,pos,scale,rot,outline,parent)=>{
+   parent=parent||inner; const m=new T.Mesh(geo,mat); m.position.set(pos[0],pos[1],pos[2]);
+   if(scale) m.scale.set(scale[0],scale[1],scale[2]); if(rot) m.rotation.set(rot[0],rot[1],rot[2]); parent.add(m);
+   if(outline){ const o=new T.Mesh(geo,this.outlineMat); o.position.copy(m.position); o.rotation.copy(m.rotation); o.scale.copy(m.scale).multiplyScalar(1+outline); parent.add(o); }
+   return m;
+  };
+  part(sph,brown,[0,1.15,0],[0.95,1.1,0.9],null,0.05);
+  part(sph,cream,[0,0.95,0.4],[0.66,0.74,0.52]);
+  for(let k=0;k<3;k++) part(new T.ConeGeometry(0.07,0.12,4),dark,[-0.22+k*0.22,0.85-(k%2)*0.12,0.9],null,[1.6,0,0]);
+  const eyes=new T.Group(); eyes.position.set(0,1.58,0.6); inner.add(eyes);
+  [-1,1].forEach(s=>{
+   part(sph,white,[s*0.36,0,0],[0.34,0.34,0.2],null,0.12,eyes);
+   part(sph,navy,[s*0.33,-0.02,0.12],[0.16,0.18,0.12],null,0,eyes);
+   part(sph,white,[s*0.33+0.06,0.06,0.22],[0.05,0.05,0.03],null,0,eyes);
+  });
+  const beakUp=part(new T.ConeGeometry(0.13,0.32,4),orange,[0,1.3,0.86],null,[1.92,0,0]);
+  const beakLow=part(new T.ConeGeometry(0.09,0.18,4),orange,[0,1.2,0.82],null,[2.2,0,0]);
+  const tufts=[];
+  [-1,1].forEach(s=>tufts.push(part(new T.ConeGeometry(0.2,0.55,8),dark,[s*0.55,2.1,0.05],null,[0,0,-s*0.45],0.08)));
+  const wings=[];
+  [-1,1].forEach(s=>{ const p=new T.Group(); p.position.set(s*0.85,1.45,0); inner.add(p); part(sph,dark,[s*0.12,-0.45,0],[0.28,0.62,0.55],null,0.08,p); wings.push(p); });
+  [-1,1].forEach(s=>part(sph,orange,[s*0.32,0.08,0.35],[0.22,0.1,0.3]));
+  const crown=new T.Group(); crown.position.set(0,2.2,0); crown.rotation.z=0.12; inner.add(crown);
+  part(new T.CylinderGeometry(0.33,0.36,0.22,10),gold,[0,0,0],null,null,0.08,crown);
+  for(let k=0;k<5;k++){ const a=k/5*Math.PI*2; part(new T.ConeGeometry(0.07,0.2,6),gold,[Math.sin(a)*0.3,0.2,Math.cos(a)*0.3],null,null,0,crown); }
+  part(sph,red,[0,0,0.35],[0.07,0.07,0.04],null,0,crown);
+  const shadow=new T.Mesh(new T.CircleGeometry(0.85,24),new T.MeshBasicMaterial({color:0x1B2A4A,transparent:true,opacity:0.18,depthWrite:false}));
+  shadow.rotation.x=-Math.PI/2; shadow.position.y=0.02; rootG.add(shadow);
+  rootG.scale.setScalar(0.9);
+  this.scene.add(rootG);
+  this.o={root:rootG,inner,eyes,wings,beakUp,beakLow,tufts,shadow,crown};
+  this.blinkIn=2;
+  this.o.root.position.copy(this.perchPos());
+ },
+ makeConfetti(){
+  const T=THREE, g=new T.PlaneGeometry(0.14,0.24), cols=[0xE63946,0xFFC83D,0x2F7DE1,0x35B25A,0xFFFFFF,0xFF7EB6];
+  for(let k=0;k<110;k++){ const m=new T.Mesh(g,new T.MeshBasicMaterial({color:cols[k%6],side:T.DoubleSide})); m.visible=false; this.scene.add(m); this.conf.push({m,v:new T.Vector3(),s:new T.Vector3(),life:0}); }
+ },
+ makeEmoji(){
+  const c=document.createElement('canvas'); c.width=c.height=256; this.eCanvas=c;
+  this.eTex=new THREE.CanvasTexture(c);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:this.eTex,transparent:true,depthTest:false}));
+  sp.scale.set(1.5,1.5,1); sp.renderOrder=10; sp.visible=false; this.scene.add(sp); this.emoji=sp;
+ },
+ setEmoji(e){
+  if(!this.ok) return;
+  const x=this.eCanvas.getContext('2d'); x.clearRect(0,0,256,256);
+  x.fillStyle='#fff'; x.strokeStyle='#1B2A4A'; x.lineWidth=10;
+  x.beginPath(); x.arc(128,118,100,0,Math.PI*2); x.fill(); x.stroke();
+  x.beginPath(); x.moveTo(70,190); x.lineTo(46,240); x.lineTo(110,208); x.closePath(); x.fill(); x.stroke();
+  x.fillStyle='#fff'; x.beginPath(); x.arc(128,118,95,0,Math.PI*2); x.fill();
+  x.font='118px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='#1B2A4A'; x.fillText(e||'🎤',128,126);
+  this.eTex.needsUpdate=true;
+  this.emojiPop=0;
+ },
+
+ /* ---------- positions ---------- */
+ islandFrame(i){
+  const g=this.islands[i], phi=g.rotation.y;
+  return {P:g.position,out:new THREE.Vector3(Math.sin(phi),0,Math.cos(phi)),side:new THREE.Vector3(Math.cos(phi),0,-Math.sin(phi))};
+ },
+ perchPos(){
+  const v=new THREE.Vector3();
+  if(this.perch<0){ v.copy(this.home.position); v.z+=0.9; return v; }
+  const f=this.islandFrame(this.perch);
+  return v.copy(f.P).addScaledVector(f.side,0.6).addScaledVector(f.out,0.75);
+ },
+
+ /* ---------- public API ---------- */
+ setMode(mode,idx){
+  if(!this.ok) return;
+  this.mode=mode;
+  if(mode==='level'){ this.cur=idx; this.flyTo(idx); }
+  else if(mode==='map'||mode==='start'){ this.emoji.visible=false; if(this.perch!==-1) this.flyTo(-1); }
+ },
+ flyTo(target){
+  if(this.perch===target&&!this.flying) return;
+  const from=this.o.root.position.clone(); this.flying=true; this.perch=target;
+  const dur=this.reduced?0.3:1.3;
+  this.tween(dur,p=>{ const to=this.perchPos(); const e=ease(p); this.o.root.position.lerpVectors(from,to,e); this.o.root.position.y+=Math.sin(p*Math.PI)*3.2; },
+   ()=>{ this.flying=false; });
+ },
+ tween(dur,fn,done){ this.tweens.push({t:0,dur,fn,done}); },
+ listen(on){ this.setState(on?'listen':'idle'); },
+ celebrate(stars){ this.happy=stars; this.setState('happy'); if(!this.ok) return;
+  const p=this.o.root.position.clone(); p.y+=2.2; this.burst(p,stars>=3?60:stars*18+8); },
+ sad(){ this.setState('sad'); },
+ party(){ if(!this.ok) return; this.happy=3; this.setState('happy');
+  for(let k=0;k<4;k++) setTimeout(()=>{ const p=this.o.root.position.clone(); p.x+=rand(-2,2); p.y+=rand(2,4); p.z+=rand(-1,1); this.burst(p,28); },k*350); },
+ setState(s){ this.state=s; this.stateT=0; },
+ burst(pos,n){
+  if(this.reduced) n=Math.min(n,12);
+  let c=0; for(const p of this.conf){ if(c>=n) break; if(p.life>0) continue; c++;
+   p.m.visible=true; p.m.position.copy(pos); p.v.set(rand(-3.2,3.2),rand(3.5,8),rand(-3.2,3.2)); p.s.set(rand(-9,9),rand(-9,9),rand(-9,9)); p.life=rand(1.6,2.4); }
+ },
+ panelOffset(){
+  const W=innerWidth,H=innerHeight; let x=0,y=0;
+  if(this.mode==='level'){ const el=document.getElementById('panel'); if(el&&!el.hidden){ const r=el.getBoundingClientRect(); if(r.left>W*0.3) x=(W-r.left)/2; else y=(H-r.top)/2; } }
+  else if(this.mode==='start'){ const el=document.querySelector('#start .start-card'); const st=document.getElementById('start'); if(el&&st&&!st.hidden){ const r=el.getBoundingClientRect(); y=(H-r.top)/2+20; } }
+  return {x,y};
+ },
+ setGoals(){
+  const asp=innerWidth/innerHeight;
+  if(this.mode==='start'){
+   const p=this.o.root.position; const d=asp<0.8?8.5:6.8;
+   this.camGoal.set(p.x+1.2,p.y+2.2,p.z+d); this.lookGoal.set(p.x,p.y+1.3,p.z);
+  } else if(this.mode==='map'){
+   const hf=2*Math.atan(Math.tan(22.5*Math.PI/180)*asp);
+   const dist=Math.max(25,14.5/Math.tan(hf/2));
+   this.camGoal.set(0,dist*0.72,dist*0.7); this.lookGoal.set(0,-1.2,-0.5);
+  } else if(this.mode==='level'&&this.cur>=0){
+   const f=this.islandFrame(this.cur); const d=asp<1?11.5:8.5;
+   this.camGoal.copy(f.P).addScaledVector(f.out,d); this.camGoal.y+=3.2;
+   this.lookGoal.copy(f.P).addScaledVector(f.out,0.4); this.lookGoal.y+=1.5;
+  }
+ },
+
+ /* ---------- input ---------- */
+ bindPointer(canvas){
+  let down=null; const ray=new THREE.Raycaster(), v=new THREE.Vector2();
+  canvas.addEventListener('pointerdown',e=>{ down={x:e.clientX,y:e.clientY}; });
+  canvas.addEventListener('pointerup',e=>{
+   if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>12) return; down=null;
+   v.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);
+   ray.setFromCamera(v,this.camera);
+   if(ray.intersectObject(this.o.root,true).length){ this.hop(); this.onOllie&&this.onOllie(); return; }
+   if(this.mode!=='map') return;
+   const hits=ray.intersectObjects(this.islands,true);
+   if(hits.length){ let o=hits[0].object; while(o&&(!o.userData||o.userData.li===undefined)) o=o.parent; if(o&&this.onIsland) this.onIsland(o.userData.li); }
+  });
+ },
+ hop(){ this.happy=1; this.setState('happy'); },
+
+ /* ---------- frame ---------- */
+ frame(){
+  const now=performance.now(); const dt=Math.min(0.05,(now-this.last)/1000); this.last=now;
+  if(document.hidden) return;
+  this.t+=dt; const t=this.t, T=THREE;
+  this.home.position.y=this.home.userData.baseY+Math.sin(t*0.6)*0.12;
+  this.islands.forEach((g,i)=>{ g.position.y=g.userData.baseY+Math.sin(t*0.7+i*1.3)*0.18; });
+  this.clouds.forEach(c=>{ const u=c.userData; u.a+=u.sp*dt; c.position.set(Math.cos(u.a)*u.rad,u.y,Math.sin(u.a)*u.rad); });
+  this.hands.forEach(h=>{ h.p.rotation.z=-t*h.speed; });
+  this.steam.forEach(s=>{ const ph=(t*0.6+s.k/3)%1; s.o.position.y=1.3+ph*0.9; s.o.position.x=1.22+Math.sin(ph*6)*0.08; s.o.scale.setScalar(0.4+ph*0.9); });
+  this.spinners.forEach(s=>{ if(s.spin) s.o.rotation.y+=dt*s.spin; if(s.flag) s.o.rotation.y=Math.sin(t*3)*0.35; if(s.bob) s.o.position.y=0.2+Math.sin(t*2)*0.05; });
+  for(let k=this.tweens.length-1;k>=0;k--){ const tw=this.tweens[k]; tw.t+=dt; const p=Math.min(1,tw.t/tw.dur); tw.fn(p); if(p>=1){ this.tweens.splice(k,1); tw.done&&tw.done(); } }
+  if(!this.flying) this.o.root.position.copy(this.perchPos());
+  this.animOllie(dt);
+  // emoji sprite
+  if(this.mode==='level'&&!this.flying&&this.cur>=0){
+   const f=this.islandFrame(this.cur);
+   this.emoji.visible=true;
+   this.emoji.position.copy(this.o.root.position).addScaledVector(f.side,1.45); this.emoji.position.y+=2.75+Math.sin(t*2)*0.08;
+   this.emojiPop=Math.min(1,(this.emojiPop||0)+dt*4); const sc=1.5*(0.6+0.4*ease(this.emojiPop)); this.emoji.scale.set(sc,sc,1);
+  } else this.emoji.visible=false;
+  // confetti
+  this.conf.forEach(p=>{ if(p.life<=0) return; p.life-=dt; p.v.y-=7.5*dt; p.v.multiplyScalar(1-0.8*dt); p.m.position.addScaledVector(p.v,dt);
+   p.m.rotation.x+=p.s.x*dt; p.m.rotation.y+=p.s.y*dt; p.m.rotation.z+=p.s.z*dt; if(p.life<=0) p.m.visible=false; });
+  // camera
+  this.setGoals();
+  const k=1-Math.exp(-dt*(this.reduced?8:2.6));
+  this.camera.position.lerp(this.camGoal,k); this.look.lerp(this.lookGoal,k); this.camera.lookAt(this.look);
+  const off=this.panelOffset(); this.view.x+=(off.x-this.view.x)*Math.min(1,k*1.6); this.view.y+=(off.y-this.view.y)*Math.min(1,k*1.6);
+  const W=innerWidth,H=innerHeight;
+  if(Math.abs(this.view.x)>0.5||Math.abs(this.view.y)>0.5) this.camera.setViewOffset(W,H,this.view.x,this.view.y,W,H); else this.camera.clearViewOffset();
+  this.updateLabels();
+  this.renderer.render(this.scene,this.camera);
+ },
+ animOllie(dt){
+  const o=this.o, t=this.t; this.stateT+=dt;
+  let jump=0,spin=0,shake=0,lean=0,tilt=0,flap=0.12*Math.sin(t*2),tuft=0;
+  const bob=Math.sin(t*2.2)*0.04;
+  if(this.state==='happy'){
+   const d=1.4, p=this.stateT/d;
+   if(p>=1) this.setState('idle');
+   else { jump=Math.abs(Math.sin(p*Math.PI*2))*(0.35+0.3*this.happy); if(this.happy>=3&&!this.reduced) spin=ease(p)*Math.PI*2; flap=Math.sin(t*30)*0.8; }
+  } else if(this.state==='sad'){
+   const p=this.stateT/1.3; if(p>=1) this.setState('idle'); else { shake=Math.sin(this.stateT*16)*0.35*(1-p); lean=0.12; tuft=0.35; }
+  } else if(this.state==='listen'){
+   lean=0.16; tilt=Math.sin(t*1.6)*0.14; flap=0.5+Math.sin(t*6)*0.05; tuft=-0.15+Math.sin(t*8)*0.08;
+  }
+  if(this.flying) flap=Math.sin(t*28)*1.0;
+  o.inner.position.y=jump+bob;
+  o.inner.rotation.set(lean,spin+shake,tilt);
+  o.wings[0].rotation.z=-flap-0.08; o.wings[1].rotation.z=flap+0.08;
+  o.tufts[0].rotation.z=0.45+tuft; o.tufts[1].rotation.z=-0.45-tuft;
+  o.beakLow.rotation.x=2.2+(this.isTalking()?0.35*Math.abs(Math.sin(t*16)):0);
+  this.blinkIn-=dt; let es=1; if(this.blinkIn<0){ es=0.12; if(this.blinkIn<-0.12) this.blinkIn=2+Math.random()*3; }
+  o.eyes.scale.y=es;
+  o.shadow.scale.setScalar(1-Math.min(0.5,jump*0.4));
+  o.shadow.position.y=0.02-(jump+bob)*0;
+  // face camera (slightly)
+  const cp=this.camera.position, rp=o.root.position;
+  const want=Math.atan2(cp.x-rp.x,cp.z-rp.z); let d=want-o.root.rotation.y; d=Math.atan2(Math.sin(d),Math.cos(d));
+  o.root.rotation.y+=d*Math.min(1,dt*4);
+ },
+ updateLabels(){
+  const vis=this.mode==='map';
+  const W=innerWidth,H=innerHeight, v=new THREE.Vector3();
+  this.labels.forEach((el,i)=>{
+   if(!el) return; if(!vis) return;
+   const g=this.islands[i]; v.copy(g.position); v.y+=(this.levels[i].landmark==='clocktower'?5.4:3.3);
+   v.project(this.camera);
+   if(v.z>1){ el.style.visibility='hidden'; return; }
+   el.style.visibility='visible';
+   el.style.transform='translate('+((v.x+1)/2*W).toFixed(1)+'px,'+((1-v.y)/2*H).toFixed(1)+'px) translate(-50%,-100%)';
+  });
+ }
+};
+root.World=World;
+})(window);
+</script>
+<script>
+/* ================= APP ================= */
+(function(){
+'use strict';
+const C=window.Core, World=window.World;
+const {LEVELS,SAY,ISSUES}=C;
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SPK_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.8 5.8a9 9 0 0 1 0 12.4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+const MIC_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M8.5 21h7" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>';
+const STOP_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2.5" fill="currentColor"/></svg>';
+
+/* ---------- storage ---------- */
+const Store={key:'ollie-sound-quest-v1',
+ d:{best:{},done:{},custom:'',fullBest:null,settings:{rate:0.9,autoRead:true,sfx:true,enVoice:'',yueVoice:''}},
+ load(){ try{ const s=JSON.parse(localStorage.getItem(this.key)||'null'); if(s){ const st=Object.assign({},this.d.settings,s.settings||{}); Object.assign(this.d,s); this.d.settings=st; } }catch(e){} },
+ save(){ try{ localStorage.setItem(this.key,JSON.stringify(this.d)); }catch(e){} }
+};
+Store.load();
+const S=()=>Store.d.settings;
+
+/* ---------- toast ---------- */
+let toastT=0;
+function toast(msg,ms){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),ms||2600); }
+
+/* ---------- sound effects ---------- */
+const Sfx={ctx:null,
+ unlock(){ try{ if(!this.ctx){ const A=window.AudioContext||window.webkitAudioContext; if(A) this.ctx=new A(); } if(this.ctx&&this.ctx.state==='suspended') this.ctx.resume(); }catch(e){} },
+ notes(seq,type,vol){
+  if(!S().sfx||!this.ctx) return; const c=this.ctx; if(c.state==='suspended') c.resume();
+  let t=c.currentTime+0.03;
+  seq.forEach(n=>{ const o=c.createOscillator(), g=c.createGain(); o.type=type||'triangle'; o.frequency.value=n[0];
+   g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.16,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+n[1]);
+   o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+n[1]+0.05); t+=n[1]*0.75; });
+ },
+ win(stars){ this.notes([[523,.14],[659,.14],[784,.14],[1047,.32]].slice(0,Math.max(2,stars+1))); },
+ oops(){ this.notes([[392,.18],[311,.32]],'sine',0.12); },
+ star(){ this.notes([[1319,.1],[1760,.22]],'sine',0.1); },
+ fanfare(){ this.notes([[523,.12],[523,.12],[784,.18],[659,.12],[784,.14],[1047,.45]]); }
+};
+
+/* ---------- speech synthesis ---------- */
+const EN_PREF=['Google UK English Female','Libby','Sonia','Maisie','Serena','Kate','Stephanie','Martha','Daniel','Arthur','Google UK English Male','Hazel','Ryan','George','Susan'];
+const YUE_PREF=['Google 粵語','HiuGaai','HiuMaan','WanLung','Tracy','Danny','Sinji','Aasing','Sin-ji'];
+function prefer(list,names){ for(const n of names){ const v=list.find(v=>v.name.indexOf(n)>=0); if(v) return v; } return list.find(v=>v.localService)||list[0]||null; }
+const isGB=v=>/^en[-_]GB/i.test(v.lang), isEn=v=>/^en/i.test(v.lang);
+const isYue=v=>/^(zh[-_]HK|yue|zh[-_]yue)/i.test(v.lang)||/粵|Cantonese/i.test(v.name);
+const Speech={list:[],en:null,yue:null,speaking:false,token:0,btn:null,none:!('speechSynthesis' in window),
+ init(){ if(this.none) return; const load=()=>{ this.list=speechSynthesis.getVoices()||[]; this.pick(); refreshVoiceUI(); };
+  load(); speechSynthesis.onvoiceschanged=load; setTimeout(load,700); setTimeout(load,2500); },
+ pick(){ const s=S(), vs=this.list;
+  this.en=vs.find(v=>v.name===s.enVoice)||prefer(vs.filter(isGB),EN_PREF)||prefer(vs.filter(isEn),[])||null;
+  this.yue=vs.find(v=>v.name===s.yueVoice)||prefer(vs.filter(isYue),YUE_PREF)||null; },
+ setBtn(b){ if(this.btn) this.btn.classList.remove('playing'); this.btn=b; if(b) b.classList.add('playing'); },
+ stop(){ this.token++; if(!this.none) speechSynthesis.cancel(); this.speaking=false; this.setBtn(null); },
+ mk(p){ const u=new SpeechSynthesisUtterance(p.t);
+  if(p.lang==='en'){ u.lang='en-GB'; if(this.en){ u.voice=this.en; u.lang=this.en.lang; } u.rate=p.rate||S().rate; }
+  else { u.lang='zh-HK'; if(this.yue){ u.voice=this.yue; u.lang=this.yue.lang; } u.rate=p.rate||0.95; }
+  u.pitch=1; u.volume=1; return u; },
+ play(items,opt){
+  opt=opt||{};
+  if(this.none){ toast('呢部機唔支援語音播放'); return Promise.resolve(); }
+  if(opt.btn&&opt.btn===this.btn&&this.speaking){ this.stop(); return Promise.resolve(); }
+  if(Rec.active) Rec.stop();
+  const busy=speechSynthesis.speaking||speechSynthesis.pending;
+  this.stop(); const tk=this.token;
+  const parts=[];
+  items.forEach(it=>{ if(!it||!it.t) return;
+   if(it.lang==='yue'){ (it.t.match(/[^。！？!?]+[。！？!?]*/g)||[it.t]).forEach((p,k)=>{ p=p.trim(); if(p) parts.push({t:p,lang:'yue',rate:it.rate,onstart:k===0?it.onstart:null}); }); }
+   else parts.push(it); });
+  this.setBtn(opt.btn||null); this.speaking=true;
+  return new Promise(res=>{
+   let i=0;
+   const next=()=>{
+    if(tk!==this.token){ res(); return; }
+    if(i>=parts.length){ this.speaking=false; this.setBtn(null); if(opt.onend) opt.onend(); res(); return; }
+    const p=parts[i++], u=this.mk(p); let ended=false;
+    const est=(p.lang==='yue'?p.t.length*0.32:p.t.split(/\s+/).length*0.65/(u.rate||1))+4;
+    const wd=setTimeout(()=>go(),est*1000);
+    const go=()=>{ if(ended) return; ended=true; clearTimeout(wd); next(); };
+    u.onstart=()=>{ if(p.onstart) p.onstart(); };
+    u.onend=go; u.onerror=go; this.cur=u;
+    speechSynthesis.speak(u);
+   };
+   if(busy) setTimeout(next,90); else next();
+  });
+ },
+ yue(text,btn){ return this.play([{t:text,lang:'yue'}],{btn}); },
+ en(text,opt){ opt=opt||{}; return this.play([{t:text,lang:'en',rate:opt.rate}],{btn:opt.btn}); }
+};
+World.isTalking=()=>Speech.speaking;
+
+/* ---------- speech recognition ---------- */
+const SRC=window.SpeechRecognition||window.webkitSpeechRecognition;
+const Rec={supported:!!SRC,active:null,
+ start(o){ return new Promise(resolve=>{
+  const cont=!!o.continuous;
+  const st={segs:[],cur:'',curConfs:[],confs:[],alts:[],t0:performance.now(),tFirst:0,tLast:0,err:'',stopped:false,done:false};
+  let r=null,silT=0,maxT=0,safeT=0;
+  const finish=()=>{
+   if(st.done) return; st.done=true; clearTimeout(silT); clearTimeout(maxT); clearTimeout(safeT); Rec.active=null;
+   if(st.cur){ st.segs.push(st.cur); st.confs.push.apply(st.confs,st.curConfs); st.cur=''; }
+   const confs=st.confs.filter(c=>c>0); const transcript=st.segs.join(' ').replace(/\s+/g,' ').trim();
+   resolve({transcript,alts:st.segs.length===1?st.alts:[],confidence:confs.length?confs.reduce((a,b)=>a+b,0)/confs.length:0,
+    duration:st.tFirst?Math.max(0.5,(st.tLast-st.t0)/1000-0.4):0,error:transcript?'':st.err});
+  };
+  const stop=()=>{ st.stopped=true; try{ r.stop(); }catch(e){} clearTimeout(safeT); safeT=setTimeout(()=>{ try{ r.abort(); }catch(e){} finish(); },2500); };
+  const armSil=()=>{ clearTimeout(silT); silT=setTimeout(stop,o.silenceMs||1600); };
+  const make=()=>{
+   r=new SRC(); r.lang='en-GB'; r.continuous=cont; r.interimResults=true; r.maxAlternatives=5;
+   r.onresult=e=>{
+    const now=performance.now(); if(!st.tFirst) st.tFirst=now; st.tLast=now;
+    let txt=''; const cf=[];
+    for(let i=0;i<e.results.length;i++){ const res=e.results[i]; txt+=res[0].transcript+' '; if(res.isFinal) cf.push(res[0].confidence||0); }
+    st.cur=txt.replace(/\s+/g,' ').trim(); st.curConfs=cf;
+    if(e.results.length===1){ const res=e.results[0], a=[]; for(let k=0;k<res.length;k++) a.push({t:res[k].transcript,c:res[k].confidence||0}); st.alts=a; }
+    if(o.onInterim) o.onInterim(st.segs.concat(st.cur).join(' '));
+    armSil();
+   };
+   r.onerror=e=>{ st.err=e.error||'error'; };
+   r.onend=()=>{
+    if(st.cur){ st.segs.push(st.cur); st.confs.push.apply(st.confs,st.curConfs); st.cur=''; st.curConfs=[]; }
+    const fatal=['not-allowed','service-not-allowed','audio-capture','network'].indexOf(st.err)>=0;
+    if(cont&&!st.stopped&&!fatal&&performance.now()-st.t0<o.maxMs){ st.err=''; try{ make(); r.start(); return; }catch(err){} }
+    finish();
+   };
+  };
+  make();
+  maxT=setTimeout(stop,o.maxMs||8000);
+  Rec.active={stop};
+  try{ r.start(); }catch(e){ st.err='start-failed'; finish(); }
+ }); },
+ stop(){ if(this.active) this.active.stop(); }
+};
+
+/* ---------- helpers ---------- */
+const keyOf=(li,i)=>LEVELS[li].id+':'+i;
+function bestOf(li,i){ return Store.d.best[keyOf(li,i)]||0; }
+function levelStars(li){ return LEVELS[li].items.reduce((a,_,i)=>a+C.starsOf(bestOf(li,i)),0); }
+function totalStars(){ return LEVELS.reduce((a,_,li)=>a+levelStars(li),0); }
+function levelComplete(li){ const L=LEVELS[li]; return L.items.length>0&&L.items.every((_,i)=>C.starsOf(bestOf(li,i))>=1); }
+function starsHtml(n){ let h=''; for(let k=0;k<3;k++) h+=k<n?'⭐':'<span class="off">⭐</span>'; return h; }
+function updateHud(bump){ $('#starCount').textContent=totalStars(); if(bump){ const p=$('#hudStars'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); } }
+function refreshLabels(){
+ World.labels.forEach((el,li)=>{
+  const L=LEVELS[li], st=$('.st',el);
+  if(L.id==='custom'){ st.textContent=Store.d.fullBest!=null?'最佳朗誦 '+Store.d.fullBest+' 分':'貼上你嘅朗誦稿'; return; }
+  st.textContent='⭐ '+levelStars(li)+' / '+L.items.length*3;
+  el.classList.toggle('done',levelComplete(li));
+ });
+}
+function flyStar(fromEl,n){
+ const r=fromEl.getBoundingClientRect(), to=$('#hudStars').getBoundingClientRect();
+ for(let k=0;k<n;k++){
+  const s=document.createElement('div'); s.className='flystar'; s.textContent='⭐';
+  s.style.left=(r.left+r.width/2-20)+'px'; s.style.top=(r.top+r.height/2-20)+'px'; document.body.appendChild(s);
+  setTimeout(()=>{ requestAnimationFrame(()=>{ s.style.transform='translate('+(to.left+20-r.left-r.width/2)+'px,'+(to.top+4-r.top-r.height/2)+'px) scale(.6)'; s.style.opacity='0.3'; }); },k*160);
+  setTimeout(()=>{ s.remove(); Sfx.star(); updateHud(true); },950+k*160);
+ }
+}
+function autoSay(items){ if(S().autoRead) return Speech.play(items); return Promise.resolve(); }
+
+/* ---------- game state ---------- */
+const G={mode:'start',li:-1,items:[],idx:0,custom:false,view:'',sents:[],cbest:{},streak:0,mapSaid:false,fromFull:false,lastSpeech:''};
+
+function setBodyMode(m){ document.body.className=document.body.className.replace(/\bmode-\w+/g,'').trim()+' mode-'+m; if(!World.ok) document.body.classList.add('no3d'); }
+function showView(v){ G.view=v; ['vInput','vPractice','vFull'].forEach(id=>{ $('#'+id).hidden=id!==v; }); $('#panelBody').scrollTop=0;
+ $('#btnBack').textContent=(v==='vPractice'&&G.custom)||v==='vFull'?'‹ 返回':'‹ 地圖'; }
+
+function enterMap(){
+ if(Rec.active) Rec.stop();
+ G.mode='map'; setBodyMode('map');
+ $('#panel').hidden=true; $('#labels').hidden=false; $('#mapBubble').hidden=false; $('#start').hidden=true;
+ World.setMode('map'); refreshLabels(); updateHud();
+ if(!G.mapSaid){ G.mapSaid=true; autoSay([{t:SAY.map,lang:'yue'}]); }
+}
+function setTitle(L){ $('#pIcon').textContent=L.icon; $('#pName').textContent=L.name; $('#pEn').textContent=L.en; }
+function openLevel(li){
+ Sfx.unlock();
+ const L=LEVELS[li]; G.li=li; G.mode='level'; setBodyMode('level');
+ $('#labels').hidden=true; $('#mapBubble').hidden=true; $('#panel').hidden=false;
+ setTitle(L); G.streak=0; showStreak();
+ World.setMode('level',li);
+ if(L.id==='custom'){ openCustomInput(true); return; }
+ G.custom=false; G.fromFull=false; G.items=L.items;
+ let first=L.items.findIndex((_,i)=>C.starsOf(bestOf(li,i))<1); G.idx=first<0?0:first;
+ showView('vPractice'); renderItem();
+ autoSay([{t:L.intro,lang:'yue'},{t:'我哋開始喇，第一個係：',lang:'yue'},{t:G.items[G.idx].t,lang:'en'}]);
+}
+function introText(){
+ const L=LEVELS[G.li];
+ if(!G.custom) return L.intro+' '+SAY.howto;
+ if(G.view==='vInput') return L.intro+' '+SAY.custom;
+ if(G.view==='vFull') return SAY.customFull;
+ return SAY.customSent;
+}
+function helpText(){
+ if(G.mode==='map') return SAY.map;
+ if(G.mode==='level'){ if(G.custom) return G.view==='vInput'?SAY.custom:G.view==='vFull'?SAY.customFull:SAY.customSent; return SAY.howto; }
+ return SAY.welcome;
+}
+
+/* ---------- practice view ---------- */
+function curScore(i){ return G.custom?(G.cbest[G.items[i].t]||0):bestOf(G.li,i); }
+function renderDots(){
+ const d=$('#dots'); d.innerHTML='';
+ G.items.forEach((it,i)=>{ const b=document.createElement('button'); b.type='button';
+  b.className='dot s'+C.starsOf(curScore(i))+(i===G.idx?' cur':''); b.textContent=i+1; b.setAttribute('aria-label','第 '+(i+1)+' 個');
+  b.onclick=()=>goItem(i); d.appendChild(b); });
+}
+function renderItem(){
+ const it=G.items[G.idx]; const words=it.t.split(/\s+/).filter(Boolean);
+ $('#wEmoji').textContent=it.e||'🎤';
+ const ww=$('#wWord'); ww.className='wc-word'+(words.length>2||it.t.length>14?' long':''); ww.innerHTML='';
+ words.forEach(w=>{ const b=document.createElement('button'); b.type='button'; b.className='w'; b.textContent=w;
+  b.onclick=()=>{ const cw=C.cleanWord(w); if(cw) Speech.en(words.length===1?it.t:cw,{btn:b}); };
+  ww.appendChild(b); });
+ $('#wIpa').textContent=it.ipa||''; $('#wZh').textContent=it.zh||''; $('#wMeta').hidden=!(it.ipa||it.zh);
+ $('#wTip').textContent=it.tip||'';
+ $('#result').hidden=true; $('#live').textContent='';
+ const sc=curScore(G.idx);
+ $('#navInfo').textContent=(G.idx+1)+' / '+G.items.length+(sc?'　最高 '+sc+' 分':'');
+ $('#btnPrev').disabled=G.idx===0; $('#btnNext').disabled=G.idx>=G.items.length-1;
+ renderDots(); World.setEmoji(it.e||'🎤');
+}
+function goItem(i,say){
+ if(Rec.active) Rec.stop();
+ G.idx=clamp(i,0,G.items.length-1); renderItem(); $('#panelBody').scrollTop=0;
+ if(say) autoSay([{t:G.items[G.idx].t,lang:'en'}]); else Speech.stop();
+}
+function setMic(btn,on,labelOff,labelOn){ btn.classList.toggle('rec',on); $('.micico',btn).innerHTML=on?STOP_SVG:MIC_SVG; $('.mictxt',btn).textContent=on?labelOn:labelOff; }
+
+function recError(res){
+ const e=res.error;
+ if(e==='not-allowed'||e==='service-not-allowed'){ toast('未有權限用咪高峰'); Speech.yue(SAY.denied); return true; }
+ if(e==='network'){ toast('語音評分需要上網'); Speech.yue(SAY.network); return true; }
+ if(e==='audio-capture'){ toast('搵唔到咪高峰'); Speech.yue(SAY.nospeech); return true; }
+ return false;
+}
+function noRec(){ toast('呢個瀏覽器唔支援語音評分'); Speech.yue(SAY.nomic); }
+
+async function doRecord(){
+ if(!Rec.supported){ noRec(); return; }
+ const btn=$('#btnMic');
+ if(Rec.active){ Rec.stop(); return; }
+ Sfx.unlock(); Speech.stop();
+ const it=G.items[G.idx]; const n=C.tokenizeWithMap(it.t).tokens.length;
+ setMic(btn,true,'撳我跟讀','讀完撳停'); World.listen(true);
+ $('#result').hidden=true; $('#live').textContent='🎧 Ollie 聽緊，讀啦！';
+ const res=await Rec.start({continuous:false,maxMs:4500+n*700,silenceMs:n<=2?1400:2000,
+  onInterim:t=>{ $('#live').textContent='我聽到：'+t; }});
+ setMic(btn,false,'撳我跟讀','讀完撳停'); World.listen(false);
+ if(recError(res)){ $('#live').textContent=''; return; }
+ const ev=C.evaluate(it.t,res);
+ $('#live').textContent='';
+ showResult(ev);
+}
+function countUp(el,to){ const t0=performance.now(); const step=()=>{ const p=Math.min(1,(performance.now()-t0)/700); el.textContent=Math.round(to*p); if(p<1) requestAnimationFrame(step); }; step(); }
+function renderChips(box,ev,onlyTrouble){
+ box.innerHTML=''; const seen=new Set(); let n=0;
+ ev.tm.display.forEach((w,di)=>{
+  const st=ev.status[di]; if(!st) return;
+  if(onlyTrouble){ if(st==='ok') return; const k=C.cleanWord(w).toLowerCase(); if(seen.has(k)||n>=14) return; seen.add(k); n++; }
+  const b=document.createElement('button'); b.type='button'; b.className='chip '+st;
+  const heard=ev.heardBy[di];
+  b.innerHTML=esc(C.cleanWord(w)||w)+(heard&&st!=='ok'?'<small>聽到：'+esc(heard)+'</small>':'');
+  b.onclick=()=>Speech.en(C.cleanWord(w),{btn:b});
+  box.appendChild(b);
+ });
+ return n;
+}
+function renderFeedback(list,ev,tipFallback){
+ list.innerHTML='';
+ const items=ev.issues.slice(0,3);
+ if(!items.length){
+  const li=document.createElement('li');
+  li.innerHTML='<span class="fi">🌟</span><div class="ft"><h4>完全冇問題！</h4><p>每個字都讀得好清楚。'+(tipFallback?'留意上面嘅小貼士，可以讀得更加英式。':'')+'</p></div>';
+  list.appendChild(li); return;
+ }
+ items.forEach(iss=>{
+  const I=ISSUES[iss.code], txt=C.issueText(iss);
+  const li=document.createElement('li');
+  li.innerHTML='<span class="fi">'+I.i+'</span><div class="ft"><h4>'+esc(I.h)+'</h4><p>'+esc(txt)+'</p></div>';
+  const b=document.createElement('button'); b.type='button'; b.className='spk'; b.innerHTML=SPK_SVG; b.setAttribute('aria-label','用廣東話讀出');
+  b.onclick=()=>Speech.yue(I.h+'。'+txt,b);
+  li.appendChild(b); list.appendChild(li);
+ });
+}
+function showResult(ev){
+ const it=G.items[G.idx];
+ const r=$('#result'); r.hidden=false;
+ const sc=$('#rScore'); sc.className='score b'+ev.stars; countUp(sc,ev.score);
+ $('#rStars').innerHTML=starsHtml(ev.stars);
+ const msg=C.praise(ev.score)+(ev.stars?' 你攞到 '+ev.score+' 分，'+ev.stars+' 粒星！':' 你攞到 '+ev.score+' 分。');
+ $('#rMsg').textContent=msg;
+ $('#rHeard').textContent=ev.heard||'（聽唔到）';
+ renderChips($('#rChips'),ev,false);
+ renderFeedback($('#rFb'),ev,!!it.tip);
+ G.lastSpeech=C.feedbackSpeech(ev,msg);
+ const last=G.idx>=G.items.length-1;
+ $('#btnNext2').textContent=last?'完成 🎉':'下一個 ›';
+ // save
+ let gained=0;
+ if(G.custom){ G.cbest[it.t]=Math.max(G.cbest[it.t]||0,ev.score); }
+ else { const k=keyOf(G.li,G.idx); const old=Store.d.best[k]||0; if(ev.score>old){ gained=C.starsOf(ev.score)-C.starsOf(old); Store.d.best[k]=ev.score; Store.save(); } }
+ if(ev.stars>=2) G.streak++; else G.streak=0;
+ showStreak();
+ if(ev.stars>=1){ World.celebrate(ev.stars); Sfx.win(ev.stars); if(G.streak>=3&&G.streak%3===0){ setTimeout(()=>World.party(),600); toast('🔥 連續 '+G.streak+' 次讀得好！'); } }
+ else { World.sad(); Sfx.oops(); }
+ if(gained>0) setTimeout(()=>flyStar($('#rStars'),gained),500);
+ const sci=curScore(G.idx); $('#navInfo').textContent=(G.idx+1)+' / '+G.items.length+'　最高 '+sci+' 分';
+ renderDots();
+ setTimeout(()=>r.scrollIntoView({behavior:'smooth',block:'start'}),120);
+ autoSay([{t:G.lastSpeech,lang:'yue'}]);
+
+}
+function showStreak(){ const s=$('#streak'); if(G.streak>=2){ s.hidden=false; s.textContent='🔥 x'+G.streak; } else s.hidden=true; }
+function nextFromResult(){
+ const last=G.idx>=G.items.length-1;
+ if(!last){ goItem(G.idx+1,true); return; }
+ if(G.custom){
+  if(G.fromFull){ showView('vFull'); toast('難字練完喇！再朗誦一次試下'); return; }
+  openCustomInput(false); toast('逐句練完喇！試下「全篇朗誦」'); return;
+ }
+ if(levelComplete(G.li)){
+  const L=LEVELS[G.li];
+  if(!Store.d.done[L.id]){ Store.d.done[L.id]=1; Store.save(); }
+  celebrate(L); return;
+ }
+ const miss=G.items.findIndex((_,i)=>C.starsOf(curScore(i))<1);
+ toast('仲有字未攞星星，繼續加油！'); goItem(miss<0?0:miss,true);
+}
+function celebrate(L){
+ const s=levelStars(G.li);
+ $('#celeTitle').textContent='完成「'+L.name+'」！';
+ const txt='好叻呀！你完成咗成個'+L.name+'，一共攞到 '+s+' 粒星。返去地圖試下第二個島啦！';
+ $('#celeText').textContent=txt;
+ $('#mCele').hidden=false; World.party(); Sfx.fanfare();
+ $('#spkCele').onclick=e=>Speech.yue(txt,e.currentTarget);
+ autoSay([{t:txt,lang:'yue'}]);
+}
+
+/* ---------- custom: input ---------- */
+function openCustomInput(first){
+ G.custom=true; G.fromFull=false;
+ showView('vInput'); World.setEmoji('🏆');
+ const ta=$('#txt'); if(!ta.value) ta.value=Store.d.custom||'';
+ updateTxtInfo();
+ $('#lastFull').textContent=Store.d.fullBest!=null?'上次全篇朗誦最佳成績：'+Store.d.fullBest+' 分':'';
+ if(first) autoSay([{t:LEVELS[G.li].intro,lang:'yue'},{t:SAY.custom,lang:'yue'}]);
+}
+function updateTxtInfo(){
+ const v=$('#txt').value.trim(); const w=v?v.split(/\s+/).length:0; const s=v?C.splitSentences(v).length:0;
+ $('#txtInfo').textContent=w?w+' 個字，'+s+' 句':'';
+}
+function getText(){
+ const v=$('#txt').value.trim();
+ if(!v||!/[A-Za-z]/.test(v)){ toast('請先貼上英文文章'); Speech.yue(SAY.emptyText); return null; }
+ Store.d.custom=$('#txt').value; Store.save(); return v;
+}
+function startSentences(){
+ const v=getText(); if(!v) return;
+ const sents=C.splitSentences(v);
+ G.items=sents.map(s=>({t:s,e:'🎤',ipa:'',zh:'',tip:C.tipForText(s)}));
+ G.idx=0; G.fromFull=false; showView('vPractice'); renderItem();
+ autoSay([{t:SAY.customSent,lang:'yue'},{t:G.items[0].t,lang:'en'}]);
+}
+/* ---------- custom: full passage ---------- */
+function startFull(){
+ const v=getText(); if(!v) return;
+ G.sents=C.splitSentences(v); G.fullText=G.sents.join(' ');
+ showView('vFull'); renderPassage(); $('#fResult').hidden=true; $('#fLive').textContent='';
+ World.setEmoji('📜');
+ autoSay([{t:SAY.customFull,lang:'yue'}]);
+}
+function renderPassage(){
+ const box=$('#passage'); box.innerHTML=''; G.sentEls=[]; G.pwEls=[];
+ G.sents.forEach(s=>{
+  const span=document.createElement('span'); span.className='sent';
+  s.split(/\s+/).filter(Boolean).forEach(w=>{
+   const b=document.createElement('span'); b.className='pw'; b.textContent=w;
+   b.onclick=()=>{ const cw=C.cleanWord(w); if(cw) Speech.en(cw); };
+   span.appendChild(b); span.appendChild(document.createTextNode(' ')); G.pwEls.push(b);
+  });
+  box.appendChild(span); G.sentEls.push(span);
+ });
+}
+function hlSentence(i){ G.sentEls.forEach((el,k)=>el.classList.toggle('hl',k===i)); if(G.sentEls[i]) G.sentEls[i].scrollIntoView({block:'nearest',behavior:'smooth'}); }
+function listenFull(rate,btn){
+ Speech.play(G.sents.map((s,i)=>({t:s,lang:'en',rate,onstart:()=>hlSentence(i)})),{btn,onend:()=>hlSentence(-1)}).then(()=>hlSentence(-1));
+}
+async function recordFull(){
+ if(!Rec.supported){ noRec(); return; }
+ const btn=$('#fMic');
+ if(Rec.active){ Rec.stop(); return; }
+ Sfx.unlock(); Speech.stop(); hlSentence(-1);
+ G.pwEls.forEach(el=>el.className='pw');
+ const n=C.tokenizeWithMap(G.fullText).tokens.length;
+ setMic(btn,true,'開始朗誦','讀完喇'); World.listen(true); $('#fResult').hidden=true;
+ $('#fLive').textContent='🎧 開始讀啦！讀完成篇撳「讀完喇」。';
+ const res=await Rec.start({continuous:true,maxMs:clamp(n*1100+15000,30000,300000),silenceMs:7000,
+  onInterim:t=>{ const w=t.split(/\s+/); $('#fLive').textContent='我聽到：…'+w.slice(-10).join(' '); }});
+ setMic(btn,false,'開始朗誦','讀完喇'); World.listen(false);
+ if(recError(res)){ $('#fLive').textContent=''; return; }
+ $('#fLive').textContent='';
+ const ev=C.evaluate(G.fullText,res,{continuous:true});
+ showFullResult(ev);
+}
+function showFullResult(ev){
+ G.pwEls.forEach((el,di)=>{ el.className='pw'+(ev.status[di]?' '+ev.status[di]:''); });
+ $('#fResult').hidden=false;
+ const sc=$('#fScore'); sc.className='score b'+ev.stars; countUp(sc,ev.score);
+ $('#fStars').innerHTML=starsHtml(ev.stars);
+ const msg=C.praise(ev.score)+' 全篇朗誦你攞到 '+ev.score+' 分'+(ev.stars?'，'+ev.stars+' 粒星！':'。');
+ $('#fMsg').textContent=msg;
+ const n=renderChips($('#fChips'),ev,true);
+ $('#fTroubleH').hidden=!n; $('#btnDrill').hidden=!n;
+ renderFeedback($('#fFb'),ev,false);
+ G.fullEv=ev;
+ G.lastFullSpeech=C.feedbackSpeech(ev,msg)+(n?' 撳「練習難字」，可以逐個字再練。':'');
+ if(Store.d.fullBest==null||ev.score>Store.d.fullBest){ Store.d.fullBest=ev.score; Store.save(); }
+ if(ev.stars>=1){ World.celebrate(ev.stars); Sfx.win(ev.stars); if(ev.stars===3) setTimeout(()=>World.party(),500); } else { World.sad(); Sfx.oops(); }
+ setTimeout(()=>$('#fResult').scrollIntoView({behavior:'smooth',block:'start'}),150);
+ autoSay([{t:G.lastFullSpeech,lang:'yue'}]);
+}
+function drill(){
+ const ev=G.fullEv; if(!ev) return; const seen=new Set(), items=[];
+ ev.tm.display.forEach((w,di)=>{ const st=ev.status[di]; const cw=C.cleanWord(w); const k=cw.toLowerCase();
+  if(st&&st!=='ok'&&cw&&!seen.has(k)&&items.length<14){ seen.add(k); items.push({t:cw,e:'🎯',ipa:'',zh:'',tip:C.tipForText(cw)}); } });
+ if(!items.length) return;
+ G.items=items; G.idx=0; G.fromFull=true; showView('vPractice'); renderItem();
+ autoSay([{t:'我哋逐個難字練習。先聽，再跟住讀。',lang:'yue'},{t:items[0].t,lang:'en'}]);
+}
+
+/* ---------- settings ---------- */
+function refreshVoiceUI(){
+ const selEn=$('#selEn'), selY=$('#selYue'); if(!selEn) return;
+ const vs=Speech.list;
+ const gb=vs.filter(isGB), en=vs.filter(v=>isEn(v)&&!isGB(v)), yue=vs.filter(isYue);
+ selEn.innerHTML=''; selY.innerHTML='';
+ const opt=(sel,v,label)=>{ const o=document.createElement('option'); o.value=v?v.name:''; o.textContent=label||(v.name+'（'+v.lang+'）'); sel.appendChild(o); };
+ gb.forEach(v=>opt(selEn,v)); en.forEach(v=>opt(selEn,v,v.name+'（'+v.lang+'，非英國口音）'));
+ if(!gb.length&&!en.length) opt(selEn,null,'（搵唔到英文聲音）');
+ yue.forEach(v=>opt(selY,v)); if(!yue.length) opt(selY,null,'（搵唔到廣東話聲音，會用系統預設）');
+ if(Speech.en) selEn.value=Speech.en.name; if(Speech.yue) selY.value=Speech.yue.name;
+ $('#warnEn').hidden=!!gb.length||Speech.none; $('#warnYue').hidden=!!yue.length||Speech.none;
+ $('#diag').innerHTML='語音評分：'+(Rec.supported?'✅ 支援':'❌ 唔支援（請用 iPad Safari 或 Chrome）')+
+  '<br>英國口音：'+(Speech.en&&isGB(Speech.en)?'✅ '+esc(Speech.en.name):'⚠️ 未搵到')+
+  '<br>廣東話：'+(Speech.yue?'✅ '+esc(Speech.yue.name):'⚠️ 未搵到')+
+  (window.isSecureContext===false?'<br>⚠️ 呢個網址唔係安全連線（https），咪高峰可能用唔到。':'');
+}
+function openSettings(){
+ $('#rate').value=S().rate; $('#rateVal').textContent=S().rate+'x';
+ $('#autoRead').checked=S().autoRead; $('#sfx').checked=S().sfx;
+ refreshVoiceUI(); $('#mSettings').hidden=false;
+}
+
+/* ---------- device check ---------- */
+function deviceCheck(){
+ const lines=[];
+ lines.push(Rec.supported?'✅ 可以用咪高峰評分':'⚠️ 呢個瀏覽器唔支援語音評分，建議用 iPad Safari 或電腦 Chrome');
+ if(window.isSecureContext===false) lines.push('⚠️ 請用 https 網址開啟，咪高峰先會用得到');
+ if(!World.ok) lines.push('ℹ️ 3D 畫面載入唔到（需要上網），但遊戲仍然可以玩');
+ $('#deviceCheck').innerHTML=lines.join('<br>');
+}
+
+/* ---------- wiring ---------- */
+function wire(){
+ $$('.spk').forEach(b=>{ if(!b.innerHTML.trim()) b.innerHTML=SPK_SVG; });
+ $$('.svgspk').forEach(s=>s.innerHTML=SPK_SVG);
+ $$('.mic').forEach(b=>{ $('.micico',b).innerHTML=MIC_SVG; });
+ document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-say]'); if(b){ Sfx.unlock(); Speech.yue(SAY[b.dataset.say],b); }
+  const c=e.target.closest('[data-close]'); if(c){ c.closest('.modal').hidden=true; }
+ });
+ $('#btnStart').onclick=()=>{ Sfx.unlock(); Speech.stop(); if(!S().autoRead&&!Speech.none){ try{ const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }catch(e){} } enterMap(); };
+ $('#btnHelp').onclick=e=>Speech.yue(helpText(),e.currentTarget);
+ $('#btnSet').onclick=openSettings;
+ $('#btnBack').onclick=()=>{
+  if(Rec.active) Rec.stop(); Speech.stop();
+  if(G.custom&&G.view==='vPractice'&&G.fromFull){ showView('vFull'); return; }
+  if(G.custom&&G.view!=='vInput'){ openCustomInput(false); return; }
+  enterMap();
+ };
+ $('#spkIntro').onclick=e=>Speech.yue(introText(),e.currentTarget);
+ $('#spkTip').onclick=e=>Speech.yue($('#wTip').textContent,e.currentTarget);
+ $('#spkResult').onclick=e=>Speech.yue(G.lastSpeech,e.currentTarget);
+ $('#btnListen').onclick=e=>Speech.en(G.items[G.idx].t,{btn:e.currentTarget});
+ $('#btnSlow').onclick=e=>Speech.en(G.items[G.idx].t,{btn:e.currentTarget,rate:0.6});
+ $('#btnMic').onclick=doRecord;
+ $('#btnAgain').onclick=()=>{ $('#result').hidden=true; $('#panelBody').scrollTop=0; doRecord(); };
+ $('#btnNext2').onclick=nextFromResult;
+ $('#btnPrev').onclick=()=>goItem(G.idx-1,true);
+ $('#btnNext').onclick=()=>goItem(G.idx+1,true);
+ // custom
+ $('#txt').addEventListener('input',()=>{ updateTxtInfo(); Store.d.custom=$('#txt').value; Store.save(); });
+ $('#btnSample').onclick=()=>{ $('#txt').value=C.SAMPLE; updateTxtInfo(); };
+ $('#btnClear').onclick=()=>{ $('#txt').value=''; updateTxtInfo(); $('#txt').focus(); };
+ $('#btnPaste').onclick=async()=>{ try{ const t=await navigator.clipboard.readText(); if(t){ $('#txt').value=t; updateTxtInfo(); } else toast('剪貼簿係空嘅'); }catch(e){ toast('請長按個框，揀「貼上」'); $('#txt').focus(); } };
+ $('#btnSent').onclick=startSentences;
+ $('#btnFull').onclick=startFull;
+ $('#fListen').onclick=e=>listenFull(undefined,e.currentTarget);
+ $('#fSlow').onclick=e=>listenFull(0.65,e.currentTarget);
+ $('#fMic').onclick=recordFull;
+ $('#spkF').onclick=e=>Speech.yue(G.lastFullSpeech,e.currentTarget);
+ $('#btnDrill').onclick=drill;
+ $('#btnFullAgain').onclick=()=>{ $('#fResult').hidden=true; recordFull(); };
+ // celebrate
+ $('#celeOk').onclick=()=>{ $('#mCele').hidden=true; Speech.stop(); enterMap(); };
+ // settings
+ $('#selEn').onchange=e=>{ S().enVoice=e.target.value; Store.save(); Speech.pick(); refreshVoiceUI(); };
+ $('#selYue').onchange=e=>{ S().yueVoice=e.target.value; Store.save(); Speech.pick(); refreshVoiceUI(); };
+ $('#rate').oninput=e=>{ S().rate=parseFloat(e.target.value); $('#rateVal').textContent=S().rate+'x'; Store.save(); };
+ $('#autoRead').onchange=e=>{ S().autoRead=e.target.checked; Store.save(); };
+ $('#sfx').onchange=e=>{ S().sfx=e.target.checked; Store.save(); Sfx.unlock(); Sfx.star(); };
+ $('#testEn').onclick=e=>Speech.en('Hello! I am Ollie. Would you like a cup of tea?',{btn:e.currentTarget});
+ $('#testYue').onclick=e=>Speech.yue('你好！我係 Ollie，好開心同你一齊練英文。',e.currentTarget);
+ $('#btnReset').onclick=()=>{ if(confirm('確定要清除所有星星紀錄？')){ Store.d.best={}; Store.d.done={}; Store.d.fullBest=null; Store.save(); updateHud(); refreshLabels(); toast('已清除紀錄'); } };
+ // keyboard: space = mic
+ document.addEventListener('keydown',e=>{
+  if(e.code!=='Space'||e.target.tagName==='TEXTAREA'||e.target.tagName==='BUTTON'||e.target.tagName==='SELECT') return;
+  if(G.mode==='level'&&G.view==='vPractice'){ e.preventDefault(); doRecord(); }
+  else if(G.mode==='level'&&G.view==='vFull'){ e.preventDefault(); recordFull(); }
+ });
+ document.addEventListener('visibilitychange',()=>{ if(document.hidden){ Speech.stop(); if(Rec.active) Rec.stop(); } });
+}
+
+function buildLabels(){
+ const wrap=$('#labels');
+ LEVELS.forEach((L,i)=>{
+  const b=document.createElement('button'); b.type='button'; b.className='ilabel'+(L.id==='custom'?' custom':'');
+  b.innerHTML='<span class="ic">'+L.icon+'</span><span class="nm">'+esc(L.name)+'</span><span class="en">'+esc(L.en)+'</span><span class="st"></span>';
+  b.onclick=()=>openLevel(i); wrap.appendChild(b); World.labels[i]=b;
+ });
+}
+
+/* ---------- boot ---------- */
+World.labels=[];
+World.init({levels:LEVELS,onIsland:i=>openLevel(i),onOllie:()=>{ Speech.en(G.mode==='start'?'Hello! I am Ollie.':'Well done! Keep going!'); }});
+buildLabels(); wire(); Speech.init(); updateHud(); refreshLabels(); deviceCheck(); setBodyMode('start');
+})();
+</script>
+</body>
+</html>
