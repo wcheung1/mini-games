@@ -267,12 +267,29 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
 @keyframes think{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) translateY(-10px)}}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* library / export / sync */
+.lib-list{display:grid;gap:12px;margin-top:14px}
+.lib-item{display:flex;gap:12px;align-items:center;background:#fff;border:var(--line);border-radius:18px;box-shadow:0 4px 0 var(--ink);padding:12px 12px 12px 14px;cursor:pointer}
+.lib-item:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.lib-item .li-e{font-size:30px}
+.lib-item .li-main{flex:1;min-width:0}
+.lib-item .li-t{font-size:19px;font-weight:900;line-height:1.35;overflow-wrap:anywhere}
+.lib-item .li-m{font-size:14px;color:var(--ink2);font-weight:700;margin-top:6px;display:flex;gap:6px 10px;flex-wrap:wrap;align-items:center}
+.lib-item .li-act{display:flex;gap:6px;align-items:center}
+.icon-btn.sm{width:44px;height:44px;font-size:19px;box-shadow:0 3px 0 var(--ink)}
+.sync-card{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#eef8ff;border:2px solid var(--ink);border-radius:16px;padding:10px 12px;font-size:16px;line-height:1.5}
+.sync-card .grow{flex:1;min-width:200px;overflow-wrap:anywhere}
+.exp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:2px solid var(--ink);border-radius:16px;padding:12px;margin-top:12px}
+.exp-row .grow{flex:1;min-width:190px}
+.saved-chip{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:800;color:var(--ink2);margin-top:10px}
+@media (max-width:640px){.lib-item{flex-wrap:wrap}.lib-item .li-act{width:100%;justify-content:flex-end}}
 @media (max-width:820px){
   .island-grid{grid-template-columns:repeat(2,1fr)}
   .logo .nm small{display:none}
 }
 @media (max-width:480px){
   body{font-size:18px}
+  .topbar{gap:6px}.topbar .icon-btn{width:44px;height:44px;font-size:20px}.logo .nm{display:none}.pill{padding:5px 10px}
   .island-btn small{display:none}
   .sheet-body{padding:14px 12px 40px}
 }
@@ -292,6 +309,7 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
     <button class="logo" id="homeBtn" aria-label="返主頁"><span class="owl">🦉</span><span class="nm">辯辯島<small>Debate Island</small></span></button>
     <div class="grow"></div>
     <div class="pill" id="starPill" aria-label="星星數目">⭐ <span id="starCount">0</span></div>
+    <button class="icon-btn" id="libBtn" aria-label="我的收藏" title="我的收藏">📂</button>
     <button class="icon-btn" id="badgeBtn" aria-label="獎章同紀錄">🏅</button>
     <button class="icon-btn" id="settingsBtn" aria-label="設定">⚙️</button>
   </header>
@@ -324,6 +342,10 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
   <section class="screen" id="scr-custom"><div class="sheet ui" style="--hc:var(--grape)">
     <div class="sheet-head"><button class="icon-btn back" aria-label="返主頁">🏠</button><h2>我的辯題<small>My Own Motion</small></h2></div>
     <div class="sheet-body" id="customBody"></div></div></section>
+
+  <section class="screen" id="scr-library"><div class="sheet ui" style="--hc:var(--sky)">
+    <div class="sheet-head"><button class="icon-btn back" aria-label="返主頁">🏠</button><h2>我的收藏<small>My Library</small></h2></div>
+    <div class="sheet-body" id="libraryBody"></div></div></section>
 </div>
 
 <div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
@@ -338,11 +360,33 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
   <div class="modal-box"><div class="modal-head" style="background:var(--coral)"><h2 id="msgTitle"></h2><button class="icon-btn" data-close aria-label="關閉">✖️</button></div>
   <div class="modal-body" id="msgBody"></div></div>
 </div>
-<div class="thinking" id="thinking" aria-live="polite"><div class="to">🦉</div><p id="thinkMsg">阿辯諗緊…</p><small>AI 通常要 10 至 40 秒，等等呀～</small></div>
+<div class="thinking" id="thinking" aria-live="polite"><div class="to">🦉</div><p id="thinkMsg">阿辯諗緊…</p><small>AI 通常要 10 秒至 2 分鐘，等等呀～</small></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
 'use strict';
+/* =========================================================
+   ☁️ Firebase 雲端同步（可選）
+   想 iPad 同電腦自動同步「我的收藏」：將 Firebase Console 俾你嘅 firebaseConfig
+   貼喺下面，取代 null。例如：
+   const FIREBASE_CONFIG = {
+     apiKey: "AIza……",
+     authDomain: "你的項目.firebaseapp.com",
+     projectId: "你的項目",
+     appId: "1:……:web:……"
+   };
+   唔想改檔案？都可以喺 App 嘅 ⚙️ 設定 →「雲端同步」貼上（只存喺嗰部機）。
+   呢啲設定碼唔係密碼，可以公開；保護資料嘅係 Firestore 安全規則（睇 FIREBASE-SETUP.md）。
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC8yuLorbNRgh0wvS4Ul3XfPmOVqIGCGnQ",
+  authDomain: "debate-island.firebaseapp.com",
+  projectId: "debate-island",
+  storageBucket: "debate-island.firebasestorage.app",
+  messagingSenderId: "902390013093",
+  appId: "1:902390013093:web:68446f58d99cde948c414c"
+};
+
 /* =========================================================
    辯辯島 Debate Island — core helpers
    ========================================================= */
@@ -376,7 +420,7 @@ const LS = {
   set(k, v) { try { localStorage.setItem('dbi_' + k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem('dbi_' + k); } catch (e) {} }
 };
-const DEFAULT_SETTINGS = { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', apiKey: '', rate: 0.9, autoRead: false, sfx: true, enFeedback: 'en', voiceZh: '', voiceEn: '' };
+const DEFAULT_SETTINGS = { baseUrl: 'https://api.z.ai/api/paas/v4', model: 'glm-5.3', apiKey: '', rate: 0.9, autoRead: false, sfx: true, enFeedback: 'en', voiceZh: '', voiceEn: '' };
 let S = Object.assign({}, DEFAULT_SETTINGS, LS.get('settings', {}));
 let P = Object.assign({ name: '', grade: 'P3' }, LS.get('profile', {}));
 let G = Object.assign({ stars: 0, badges: [], practiceCount: 0, seenLessons: [], history: [] }, LS.get('progress', {}));
@@ -556,6 +600,8 @@ async function callAI(system, user, { json = true, maxTokens = 4000, timeout = 1
   if (!aiReady()) throw new NoKeyError('NOKEY');
   const base = S.baseUrl.trim().replace(/\/+$/, '');
   const isAnthropic = /anthropic\.com/i.test(base) || /\/messages$/.test(base);
+  const isZhipu = /(^|\.|\/)(z\.ai|bigmodel\.cn)(\/|$)/i.test(base.replace(/^https?:\/\//, ''));
+  if (isZhipu) timeout = Math.max(timeout * 2, 90000); // GLM-5.3 一定會先「思考」，要耐啲
   const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), timeout);
   try {
     let res, data, text = '';
@@ -574,7 +620,8 @@ async function callAI(system, user, { json = true, maxTokens = 4000, timeout = 1
       res = await fetch(url, {
         method: 'POST', signal: ctrl.signal,
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey.trim() },
-        body: JSON.stringify({ model: S.model.trim(), messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+        body: JSON.stringify(Object.assign({ model: S.model.trim(), messages: [{ role: 'system', content: system }, { role: 'user', content: user }] },
+          isZhipu ? Object.assign({ max_tokens: 32768 }, json ? { response_format: { type: 'json_object' } } : {}) : {}))
       });
       data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(apiErr(res, data));
@@ -1243,12 +1290,12 @@ ${langRule(lang)}
    ========================================================= */
 const App = {
   cur: 'home',
-  go(name) {
+  go(name, keep) {
     TTS.stop();
     $$('.screen').forEach(s => s.classList.toggle('active', s.id === 'scr-' + name));
     this.cur = name; World.focus(name);
-    const scr = { home: Home, learn: Learn, games: Games, practice: Practice, custom: Custom }[name];
-    if (scr && scr.enter) scr.enter();
+    const scr = { home: Home, learn: Learn, games: Games, practice: Practice, custom: Custom, library: LibraryScr }[name];
+    if (scr) { if (keep && scr.render) scr.render(); else if (scr.enter) scr.enter(); }
   }
 };
 
@@ -1265,7 +1312,7 @@ const Home = {
     autoSay(this.intro());
   },
   intro() {
-    return `${P.name ? P.name + '，' : ''}你好呀！歡迎嚟到辯辯島，我係島主阿辯。辯論即係用道理同證據去說服人。呢度有四個島：第一個，辯論學堂，教你論點、論證、論據同策略。第二個，小遊戲，有分類王同反駁大師。第三個，辯題挑戰，你答問題，阿辯用 AI 幫你評分，話你知邊度要改善。第四個，我的辯題，你可以貼上自己嘅辯題，揀引導思考模式，或者 AI 即時拆解模式。每樣嘢旁邊都有個小喇叭，揿一下就可以聽廣東話講解。你亦可以直接揿我，我會話你知辯論小貼士！`;
+    return `${P.name ? P.name + '，' : ''}你好呀！歡迎嚟到辯辯島，我係島主阿辯。辯論即係用道理同證據去說服人。呢度有四個島：第一個，辯論學堂，教你論點、論證、論據同策略。第二個，小遊戲，有分類王同反駁大師。第三個，辯題挑戰，你答問題，阿辯用 AI 幫你評分，話你知邊度要改善。第四個，我的辯題，你可以貼上自己嘅辯題，揀引導思考模式，或者 AI 即時拆解模式。AI 拆解同評分會自動儲存喺右上角個文件夾，即係我的收藏，隨時可以再睇。每樣嘢旁邊都有個小喇叭，揿一下就可以聽廣東話講解。你亦可以直接揿我，我會話你知辯論小貼士！`;
   },
   owlTip() {
     const tip = OWL_TIPS[Math.floor(Math.random() * OWL_TIPS.length)];
@@ -1561,7 +1608,10 @@ function renderResult(b, r, ctx) {
   b.append(h('div', { class: 'row nav no-print' },
     h('button', { class: 'btn go', onclick: ctx.onRetry }, '🔁 改良我嘅答案'),
     h('button', { class: 'btn coral', onclick: ctx.onNew }, ctx.newLabel || '🎯 換另一條辯題'),
-    h('button', { class: 'btn ghost', onclick: () => App.go('home') }, '🏠 主頁')));
+    ctx.entryId ? h('button', { class: 'btn sky', onclick: () => Exporter.dialog([Library.get(ctx.entryId)]) }, '⬇️ 匯出') : null,
+    h('button', { class: 'btn ghost', onclick: () => App.go('library') }, '📂 我的收藏')));
+  if (ctx.entryId) b.append(h('div', { class: 'saved-chip no-print' }, '💾 已儲存喺「我的收藏」' + (Cloud.user && Cloud.synced ? '，並同步到雲端 ☁️' : '')));
+  if (ctx.quiet) { autoSay(headSpeak); return; }
   if (r.stars >= 3) { SFX.play('win'); setTimeout(() => confetti(), 500); } else SFX.play('good');
   setTimeout(() => TTS.speak(headSpeak), 900);
 }
@@ -1610,13 +1660,16 @@ const Practice = {
   },
   async submit() {
     const c = this.st.cfg;
-    try { this.st.result = await runEvaluation(c); this.st.stage = 'result'; this.render(); }
-    catch (e) { aiError(e, () => this.submit()); }
+    try {
+      this.st.result = await runEvaluation(c);
+      this.st.entryId = saveEval('practice', c, this.st.result);
+      this.st.stage = 'result'; this.render();
+    } catch (e) { aiError(e, () => this.submit()); }
   },
   rResult(b) {
     const c = this.st.cfg;
     renderResult(b, this.st.result, {
-      motion: c.motion, lang: c.lang, side: c.side,
+      motion: c.motion, lang: c.lang, side: c.side, entryId: this.st.entryId,
       onRetry: () => { c.idx = 0; this.st.stage = 'answer'; this.render(); },
       onNew: () => { this.st.stage = 'pick'; this.render(); }
     });
@@ -1714,13 +1767,16 @@ const Custom = {
         h('button', { class: 'btn sm ghost', onclick: () => inner.classList.toggle('hidden') }, '顯示／隱藏'), spk(txt)), inner);
   },
   async submit() {
-    try { this.st.result = await runEvaluation(this.st.cfg); this.st.stage = 'result'; this.render(); }
-    catch (e) { aiError(e, () => this.submit()); }
+    try {
+      this.st.result = await runEvaluation(this.st.cfg);
+      this.st.entryId = saveEval('custom', this.st.cfg, this.st.result); this.st.quiet = false;
+      this.st.stage = 'result'; this.render();
+    } catch (e) { aiError(e, () => this.submit()); }
   },
   rResult(b) {
     const c = this.st.cfg;
     renderResult(b, this.st.result, {
-      motion: c.motion, lang: c.lang, side: c.side, newLabel: '✨ 輸入另一條辯題',
+      motion: c.motion, lang: c.lang, side: c.side, newLabel: '✨ 輸入另一條辯題', entryId: this.st.entryId, quiet: this.st.quiet,
       onRetry: () => { c.idx = 0; this.st.stage = 'answer'; this.render(); },
       onNew: () => { this.st.stage = 'input'; this.render(); }
     });
@@ -1732,6 +1788,8 @@ const Custom = {
       const d = await withThinking('阿辯拆解緊辯題…', () => callAI(sys, user, { maxTokens: 6000 }));
       award('custom');
       this.st.bd = { d, motion, lang, side, tab: side === 'con' ? 'con' : 'pro' };
+      this.st.quiet = false;
+      this.st.entryId = Library.add({ type: 'breakdown', src: 'custom', motion, lang, side, data: { d } }).id;
       this.st.stage = 'breakdown'; this.render();
       SFX.play('win'); World.cheer(2);
     } catch (e) { aiError(e, () => this.startBreak()); }
@@ -1791,8 +1849,11 @@ const Custom = {
     b.append(h('div', { class: 'row nav no-print' },
       h('button', { class: 'btn go', onclick: () => { if (this.st.side === 'none') { this.st.stage = 'side'; this.render(); } else this.startGuide(); } }, '🧭 用呢條辯題練習'),
       h('button', { class: 'btn sky', onclick: () => this.copy() }, '📋 複製'),
+      this.st.entryId ? h('button', { class: 'btn grape', onclick: () => Exporter.dialog([Library.get(this.st.entryId)]) }, '⬇️ 匯出') : null,
       h('button', { class: 'btn ghost', onclick: () => window.print() }, '🖨️ 列印'),
-      h('button', { class: 'btn coral', onclick: () => { this.st.stage = 'input'; this.render(); } }, '✨ 另一條辯題')));
+      h('button', { class: 'btn coral', onclick: () => { this.st.stage = 'input'; this.render(); } }, '✨ 另一條辯題'),
+      h('button', { class: 'btn ghost', onclick: () => App.go('library') }, '📂 我的收藏')));
+    if (this.st.entryId) b.append(h('div', { class: 'saved-chip no-print' }, '💾 已儲存喺「我的收藏」' + (Cloud.user && Cloud.synced ? '，並同步到雲端 ☁️' : '')));
     autoSay('拆解完成！' + (d.kid_tip ? '阿辯提提你：' + d.kid_tip : ''));
   },
   copy() {
@@ -1817,6 +1878,8 @@ const Custom = {
    Settings 設定（AI + 語音 + 個人資料）
    ========================================================= */
 const PRESETS = [
+  { n: '智譜 GLM（Z.ai）', url: 'https://api.z.ai/api/paas/v4', model: 'glm-5.3' },
+  { n: '智譜 GLM（國內 bigmodel）', url: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-5.3' },
   { n: 'OpenAI', url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
   { n: 'Anthropic Claude', url: 'https://api.anthropic.com/v1', model: 'claude-sonnet-5' },
   { n: 'Google Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.5-flash' },
@@ -1869,6 +1932,10 @@ const Settings = {
       h('label', { class: 'toggle', style: 'margin-top:10px' }, sfx, '遊戲音效'),
       h('label', { class: 'fl' }, '英文辯題：評語同拆解用咩語言？'), fb,
       h('div', { class: 'note' }, '🍎 iPad 搵唔到廣東話聲音？去「設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 中文（香港）」下載（例如 Sinji），然後重新開呢個網頁。Windows 可以喺「設定 → 時間與語言 → 語音」加入「中文（香港）」。Chrome 電腦版通常有 Google 粵語。'));
+    // ---- cloud sync ----
+    this.syncBox = h('div');
+    b.append(h('h3', { style: 'margin:26px 0 4px' }, '☁️ 雲端同步（Firebase，可選）'), this.syncBox);
+    this.drawSync();
     // ---- profile ----
     const nm = h('input', { type: 'text', value: P.name, placeholder: '例如：小明', maxlength: '20' });
     const gr = h('div', { class: 'seg' });
@@ -1882,6 +1949,29 @@ const Settings = {
       h('div', { class: 'row', style: 'margin-top:26px' }, h('button', { class: 'btn ghost sm', onclick: () => { if (!confirm('確定重設所有星星、獎章同紀錄？')) return; G = { stars: 0, badges: [], practiceCount: 0, seenLessons: [], history: [] }; saveG(); updateStars(); toast('已重設進度'); } }, '♻️ 重設進度')));
     openModal('settingsModal');
     if (focusAI) setTimeout(() => (S.apiKey ? model : key).focus(), 300);
+  },
+  drawSync() {
+    const box = this.syncBox; if (!box || !box.isConnected) return;
+    box.innerHTML = '';
+    box.append(h('div', { class: 'muted' }, '用 Google 帳戶登入之後，「📂 我的收藏」會自動喺 iPad 同電腦之間同步。唔設定都照用得，資料會留喺呢部機。建議用家長嘅 Google 帳戶登入。'));
+    if (Cloud.config()) box.append(h('div', { style: 'margin-top:10px' }, Cloud.statusEl()));
+    if (Cloud.fromFile()) box.append(h('div', { class: 'note' }, `✅ 程式檔已經設定咗 Firebase（項目：${Cloud.config() ? Cloud.config().projectId : '？'}），所有裝置都會用同一個設定。`));
+    else {
+      const cur = LS.get('fbConfig', null);
+      const ta = h('textarea', { placeholder: '喺 Firebase Console 複製成段 firebaseConfig 貼喺度，例如：\nconst firebaseConfig = {\n  apiKey: "AIza…",\n  authDomain: "…firebaseapp.com",\n  projectId: "…",\n  appId: "1:…:web:…"\n};', style: 'min-height:130px;font-size:15px', autocapitalize: 'off', spellcheck: 'false', 'aria-label': 'Firebase 設定' });
+      if (cur) ta.value = JSON.stringify(cur, null, 2);
+      box.append(h('label', { class: 'fl' }, 'Firebase 設定（firebaseConfig）'), ta,
+        h('div', { class: 'row', style: 'margin-top:10px' },
+          h('button', { class: 'btn go sm', onclick: () => {
+            const c = Cloud.parse(ta.value);
+            if (!c) { toast('❌ 讀唔到設定，請確認有 apiKey、projectId 同 appId', 4000); SFX.play('bad'); return; }
+            LS.set('fbConfig', c);
+            if (Cloud.app) { toast('💾 已儲存，重新載入緊…'); setTimeout(() => location.reload(), 900); }
+            else { toast('💾 已儲存，連接緊 Firebase…'); Cloud.init(); }
+          } }, '💾 儲存 Firebase 設定'),
+          cur ? h('button', { class: 'btn ghost sm', onclick: () => { if (!confirm('確定移除 Firebase 設定？（收藏唔會刪除）')) return; LS.del('fbConfig'); location.reload(); } }, '🗑️ 移除') : null));
+    }
+    box.append(h('div', { class: 'note' }, '📘 一步一步設定方法：睇 GitHub 入面嘅 FIREBASE-SETUP.md。Firebase 設定碼唔係密碼，可以公開；保護資料嘅係 Firestore 安全規則。AI 嘅 API Key 唔會同步上雲端。'));
   },
   fillVoices() {
     if (!this.selZh) return;
@@ -1914,6 +2004,400 @@ function openBadges() {
 }
 
 /* =========================================================
+   Library 我的收藏（本機自動儲存）
+   ========================================================= */
+const newId = () => 'e' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const nowISO = () => new Date().toISOString();
+const esc = s => str(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function fmtDate(iso) {
+  const d = new Date(iso); if (isNaN(d)) return '';
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+const sideTxt = (side, lang) => (side === 'pro' || side === 'con') ? sideName(side, lang) : '未決定立場';
+
+const Library = {
+  items: arr(LS.get('library', [])).filter(e => e && e.id),
+  list() { return this.items.filter(e => !e.deleted && e.data).sort((a, b) => str(b.createdAt).localeCompare(str(a.createdAt))); },
+  get(id) { return this.items.find(e => e.id === id); },
+  persist() {
+    try { localStorage.setItem('dbi_library', JSON.stringify(this.items)); return true; }
+    catch (e) { toast('⚠️ 呢部機嘅儲存空間滿咗！請去「📂 我的收藏」匯出備份，再刪除一啲舊紀錄。', 6000); return false; }
+  },
+  add(o) {
+    const t = nowISO();
+    const e = Object.assign({ id: newId(), createdAt: t, updatedAt: t, deleted: false, who: P.name || '', grade: P.grade || '' }, o);
+    this.items.unshift(e);
+    if (this.persist()) setTimeout(() => toast('💾 已自動儲存到「📂 我的收藏」'), 1800);
+    Cloud.put(e); this.changed();
+    return e;
+  },
+  remove(id) {
+    const e = this.get(id); if (!e) return;
+    Object.assign(e, { deleted: true, data: null, updatedAt: nowISO() });
+    this.persist(); Cloud.put(e); this.changed();
+  },
+  /* 只接受已知欄位（用於匯入同雲端資料） */
+  clean(x) {
+    if (!x || typeof x !== 'object') return null;
+    if (typeof x.id !== 'string' || !/^[A-Za-z0-9_-]{4,64}$/.test(x.id)) return null;
+    if (!['breakdown', 'eval'].includes(x.type)) return null;
+    const e = {
+      id: x.id, type: x.type, src: str(x.src).slice(0, 20) || 'custom', motion: str(x.motion).slice(0, 400),
+      lang: x.lang === 'en' ? 'en' : 'zh', side: ['pro', 'con', 'none'].includes(x.side) ? x.side : 'none',
+      who: str(x.who).slice(0, 40), grade: str(x.grade).slice(0, 4),
+      createdAt: str(x.createdAt) || nowISO(), updatedAt: str(x.updatedAt) || str(x.createdAt) || nowISO(),
+      deleted: !!x.deleted, data: null
+    };
+    if (!e.deleted) {
+      const d = x.data;
+      if (!d || typeof d !== 'object') return null;
+      if (e.type === 'breakdown') { if (!d.d || typeof d.d !== 'object') return null; e.data = { d: d.d }; }
+      else { if (!d.result || typeof d.result !== 'object') return null; e.data = { steps: arr(d.steps), answers: arr(d.answers).map(str), result: d.result }; }
+    }
+    return e;
+  },
+  /* 合併：新啲嘅版本勝出 → 'added' | 'updated' | null */
+  merge(x, restore) {
+    const e = this.clean(x); if (!e) return null;
+    const i = this.items.findIndex(y => y.id === e.id);
+    if (i < 0) { if (e.deleted) return null; this.items.push(e); return 'added'; }
+    if (restore && this.items[i].deleted && !e.deleted) { e.updatedAt = nowISO(); this.items[i] = e; return 'added'; } // 匯入備份 = 救返已刪除嘅
+    if (e.updatedAt > str(this.items[i].updatedAt)) { this.items[i] = e; return 'updated'; }
+    return null;
+  },
+  changed() { if (App.cur === 'library') LibraryScr.drawList(); }
+};
+
+/* =========================================================
+   Exporter 匯出（.json 備份檔 / .html 閱讀文件）
+   ========================================================= */
+const Exporter = {
+  stamp() { const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; },
+  safe(s) { return str(s).replace(/[\\/:*?"<>|\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24) || '辯題'; },
+  make(entries, kind) {
+    const base = entries.length === 1 ? '辯辯島-' + this.safe(entries[0].motion) : `辯辯島-收藏-${entries.length}項`;
+    const name = `${base}-${this.stamp()}.${kind}`;
+    if (kind === 'json') {
+      const clean = entries.map(e => ({ id: e.id, type: e.type, src: e.src, motion: e.motion, lang: e.lang, side: e.side, who: e.who, grade: e.grade, createdAt: e.createdAt, updatedAt: e.updatedAt, data: e.data }));
+      const body = JSON.stringify({ app: 'debate-island', format: 1, exportedAt: nowISO(), count: clean.length, entries: clean }, null, 2);
+      return { name, mime: 'application/json', blob: new Blob([body], { type: 'application/json' }) };
+    }
+    return { name, mime: 'text/html', blob: new Blob([this.docHTML(entries)], { type: 'text/html;charset=utf-8' }) };
+  },
+  download(f) {
+    const url = URL.createObjectURL(f.blob);
+    const a = h('a', { href: url, download: f.name, style: 'display:none' });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    toast('⬇️ 已下載：' + f.name, 4000); SFX.play('good');
+  },
+  fileObj(f) { try { return new File([f.blob], f.name, { type: f.mime }); } catch (e) { return null; } },
+  canShare(f) { try { const x = this.fileObj(f); return !!(x && navigator.canShare && navigator.share && navigator.canShare({ files: [x] })); } catch (e) { return false; } },
+  share(f) {
+    navigator.share({ files: [this.fileObj(f)], title: f.name })
+      .then(() => SFX.play('good'))
+      .catch(e => { if (e && e.name !== 'AbortError') this.download(f); });
+  },
+  dialog(entries) {
+    entries = entries.filter(e => e && !e.deleted && e.data);
+    if (!entries.length) { toast('未有收藏可以匯出'); return; }
+    const intro = (entries.length === 1 ? `匯出「${entries[0].motion}」。` : `匯出全部 ${entries.length} 項收藏。`) +
+      '揀一個格式：備份檔可以喺另一部機匯入返嚟；閱讀文件可以用瀏覽器或者 Word 打開，亦可以列印。';
+    const row = (e, t, d, kind) => {
+      const f = this.make(entries, kind);
+      return h('div', { class: 'exp-row' },
+        h('div', { class: 'grow' }, h('b', {}, e + ' ' + t), h('div', { class: 'muted', style: 'font-size:15px' }, d)),
+        h('button', { class: 'btn sm go', onclick: () => this.download(f) }, '⬇️ 下載'),
+        this.canShare(f) ? h('button', { class: 'btn sm sky', onclick: () => this.share(f) }, '📤 分享') : null);
+    };
+    showMsg('⬇️ 匯出收藏', [
+      sayRow(intro),
+      row('📦', '備份檔（.json）', '搬去另一部機：喺嗰部機「📂 我的收藏 → ⬆️ 匯入備份檔」。', 'json'),
+      row('📄', '閱讀文件（.html）', '用瀏覽器、Word 打開，或者列印成 PDF。', 'html'),
+      h('div', { class: 'note' }, '📱 iPad：「下載」會存入「檔案」App 嘅「下載項目」；「分享」可以用 AirDrop 傳去電腦，或者用電郵寄俾自己。')
+    ]);
+    $('#msgModal .modal-head').style.background = 'var(--sky)';
+  },
+  /* 可讀文件 */
+  docHTML(entries) {
+    const H3 = (t, inner) => inner ? `<h3>${esc(t)}</h3>${inner}` : '';
+    const P_ = t => t ? `<p>${esc(t)}</p>` : '';
+    const UL = xs => xs.length ? '<ul>' + xs.map(x => `<li>${x}</li>`).join('') + '</ul>' : '';
+    const body = entries.map((e, i) => {
+      const L = e.lang;
+      let out = `<section><h2>${i + 1}. ${esc(e.motion)}</h2><p class="meta">${e.type === 'breakdown' ? '⚡ AI 拆解' : '🏅 AI 評分'}・${esc(sideTxt(e.side, L))}・${L === 'en' ? 'English motion' : '中文辯題'}・${esc(fmtDate(e.createdAt))}${e.who ? '・' + esc(e.who) : ''}${e.grade && GRADES[e.grade] ? '（' + GRADES[e.grade].zh + '）' : ''}</p>`;
+      if (e.type === 'breakdown') {
+        const d = e.data.d || {};
+        if (d.kid_tip) out += `<p class="tip">🦉 阿辯提提你：${esc(d.kid_tip)}</p>`;
+        out += H3('🧒 辯題講乜？', P_(str(d.motion_explained)));
+        out += H3('🔑 關鍵字定義', UL(arr(d.key_terms).filter(t => t && t.term).map(t => `<b>${esc(t.term)}</b>：${esc(t.meaning)}`)));
+        if (d.burden) out += H3('⚖️ 雙方要證明乜？', UL([`<b>正方：</b>${esc(d.burden.pro)}`, `<b>反方：</b>${esc(d.burden.con)}`]));
+        ['pro', 'con'].forEach(k => {
+          const list = arr(d[k]).filter(Boolean).slice().sort((a, b) => (Number(b.strength) || 0) - (Number(a.strength) || 0));
+          if (!list.length) return;
+          out += `<h3 class="${k}">${k === 'pro' ? '🔴' : '🔵'} ${esc(sideName(k, L))}：最有力嘅論點</h3>` + list.map((a, j) =>
+            `<div class="arg ${k}"><p><b>論點 ${j + 1}：</b>${esc(a.claim)} <span class="str">${'💪'.repeat(clamp(Math.round(Number(a.strength) || 3), 1, 5))}</span></p><p><b>論證：</b>${esc(a.reasoning)}</p><p><b>論據：</b>${esc(a.evidence)}</p>${a.evidence_note ? `<p class="warn">⚠️ ${esc(a.evidence_note)}</p>` : ''}</div>`).join('');
+        });
+        out += H3('⚔️ 雙方交鋒位', UL(arr(d.clash).map(str).filter(Boolean).map(esc)));
+        out += H3('♟️ 致勝策略', UL(arr(d.strategies).filter(Boolean).map(s => `<b>${esc(s.name)}：</b>${esc(s.detail)}`)));
+        out += H3('🛡️ 反駁攻略', UL(arr(d.rebuttals).filter(Boolean).map(r => `（${r.side === 'con' ? '反方' : '正方'}用）如果對方話：${esc(r.they_say)}<br>👉 你可以咁回應：${esc(r.you_reply)}`)));
+        if (d.opening && (d.opening.pro || d.opening.con)) out += H3('🎤 主辯開場白示範', (d.opening.pro ? `<div class="arg pro"><b>${esc(sideName('pro', L))}：</b>${esc(d.opening.pro)}</div>` : '') + (d.opening.con ? `<div class="arg con"><b>${esc(sideName('con', L))}：</b>${esc(d.opening.con)}</div>` : ''));
+        out += H3('💡 辯論貼士', UL(arr(d.tips).map(str).filter(Boolean).map(esc)));
+      } else {
+        const raw = e.data.result || {};
+        const r = normResult(Object.assign({}, raw, { better_version: raw.better, next_challenge: raw.next }));
+        out += `<p class="score">總分 <b>${r.total}</b> / 100　${'⭐'.repeat(r.stars)}${r.title ? '　🏅 ' + esc(r.title) : ''}</p>` + P_(r.summary);
+        out += '<table><tr><th>項目</th><th>得分</th><th>評語</th></tr>' + r.scores.map(s => `<tr><td>${DIMS[s.key].e} ${esc(DIMS[s.key].zh)}</td><td>${s.score}/20</td><td>${esc(s.comment)}</td></tr>`).join('') + '</table>';
+        out += H3('👍 做得好嘅地方', UL(r.strengths.map(esc)));
+        out += H3('🔧 要改善嘅地方', UL(r.improvements.map(x => `<b>${esc(x.point)}</b>${x.how ? '<br>👉 ' + esc(x.how) : ''}${x.example ? '<br>✏️ ' + esc(x.example) : ''}`)));
+        if (r.better) out += H3('✨ 升級版示範', `<div class="arg">${esc(r.better)}</div>`);
+        out += H3('🚀 下一個挑戰', P_(r.next));
+        const qa = arr(e.data.steps).map((s, j) => s && s.q ? `<b>${esc(s.stage)}｜${esc(s.q)}</b><br>${esc(e.data.answers[j] || '（冇作答）')}` : '').filter(Boolean);
+        out += H3('📝 我嘅答案', UL(qa));
+      }
+      return out + '</section>';
+    }).join('');
+    return `<!doctype html><html lang="zh-HK"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>辯辯島・我的收藏</title>
+<style>body{font-family:"Noto Sans HK","PingFang HK","Microsoft JhengHei",system-ui,sans-serif;color:#1d2445;max-width:860px;margin:0 auto;padding:24px 18px 60px;line-height:1.7;font-size:17px}
+h1{font-size:28px;margin:0 0 4px}h2{font-size:23px;margin:34px 0 4px;padding-top:18px;border-top:3px solid #1d2445}h3{font-size:19px;margin:20px 0 6px}
+h3.pro{color:#c9302c}h3.con{color:#2f6fe0}.meta{color:#4a5480;font-size:14px;margin:0}.tip{background:#fff5c2;border:2px solid #1d2445;border-radius:12px;padding:8px 12px}
+.arg{border-left:8px solid #a898ff;background:#f7f7ff;border-radius:8px;padding:6px 12px;margin:10px 0}.arg.pro{border-color:#ff6b6b;background:#fff4f3}.arg.con{border-color:#4f8cff;background:#f2f7ff}.arg p{margin:3px 0}
+.warn{color:#8a5a00;font-size:15px}.str{font-size:13px}.score{font-size:20px}table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid #c8cbe0;padding:6px 8px;text-align:left;vertical-align:top}th{background:#eef0fb}
+.foot{margin-top:40px;color:#4a5480;font-size:14px;border-top:1px dashed #c8cbe0;padding-top:10px}@media print{h2{break-before:page}section:first-of-type h2{break-before:auto}}</style></head>
+<body><h1>🦉 辯辯島・我的收藏</h1><p class="meta">匯出時間：${esc(fmtDate(nowISO()))}・共 ${entries.length} 項</p>${body}
+<p class="foot">由「辯辯島 Debate Island」匯出。AI 提供嘅數據、研究同例子，請記得查證出處先用喺比賽。</p></body></html>`;
+  }
+};
+
+/* =========================================================
+   Cloud 雲端同步（Firebase：Google 登入 + Firestore，可選）
+   資料位置：users/{uid}/library/{entryId}
+   ========================================================= */
+const FB_VER = '12.19.0';
+const Cloud = {
+  st: 'off', err: '', user: null, synced: false, remote: {}, lastSync: null, m: null, app: null, auth: null, db: null, col: null, unsub: null,
+  fromFile() { return !!(FIREBASE_CONFIG && typeof FIREBASE_CONFIG === 'object' && FIREBASE_CONFIG.apiKey); },
+  config() {
+    const c = this.fromFile() ? FIREBASE_CONFIG : LS.get('fbConfig', null);
+    if (!c || !c.apiKey || !c.projectId || !c.appId) return null;
+    return Object.assign({ authDomain: c.projectId + '.firebaseapp.com' }, c);
+  },
+  parse(t) {
+    const o = {}; const re = /["']?(apiKey|authDomain|projectId|storageBucket|messagingSenderId|appId|measurementId)["']?\s*:\s*["']([^"']+)["']/g;
+    let m; while ((m = re.exec(str(t)))) o[m[1]] = m[2].trim();
+    return o.apiKey && o.projectId && o.appId ? o : null;
+  },
+  async loadSDK() {
+    const u = n => `https://www.gstatic.com/firebasejs/${FB_VER}/firebase-${n}.js`;
+    const [app, auth, fs] = await Promise.all([import(u('app')), import(u('auth')), import(u('firestore'))]);
+    return { app, auth, fs };
+  },
+  async init() {
+    const cfg = this.config();
+    if (!cfg) { this.st = 'off'; this.emit(); return; }
+    if (this.app || this.st === 'loading') return;
+    if (!/^https?:$/.test(location.protocol)) { this.st = 'error'; this.err = '要用 https 網址（例如 GitHub Pages）打開呢個網頁，先可以登入同步。直接喺電腦雙擊檔案開係唔得嘅。'; this.emit(); return; }
+    this.st = 'loading'; this.emit();
+    try {
+      this.m = await this.loadSDK();
+      this.app = this.m.app.initializeApp(cfg);
+      this.auth = this.m.auth.getAuth(this.app);
+      this.db = this.m.fs.getFirestore(this.app);
+      this.st = 'ready'; this.err = '';
+      this.m.auth.onAuthStateChanged(this.auth, u => this.onUser(u));
+    } catch (e) { this.st = 'error'; this.err = '載入唔到 Firebase：' + ((e && e.message) || e) + '（請檢查上網同 Firebase 設定）'; }
+    this.emit();
+  },
+  /* 要喺撳掣嗰一刻直接開彈出視窗（iPad Safari 規定） */
+  signIn() {
+    if (this.st !== 'ready') { toast(this.st === 'loading' ? '⏳ 仲連接緊 Firebase，等一陣再撳。' : '☁️ 雲端同步未設定好，請去 ⚙️ 設定。'); return; }
+    const p = new this.m.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' });
+    this.m.auth.signInWithPopup(this.auth, p).then(() => { SFX.play('good'); toast('✅ 登入成功，開始同步！'); }).catch(e => this.authErr(e));
+  },
+  signOut() { if (this.auth && confirm('確定登出？（呢部機嘅收藏會保留）')) this.m.auth.signOut(this.auth).then(() => toast('已登出')); },
+  authErr(e) {
+    const c = str(e && e.code);
+    if (/popup-closed-by-user|cancelled-popup-request|user-cancelled/.test(c)) { toast('取消咗登入'); return; }
+    const msg = {
+      'auth/popup-blocked': '瀏覽器擋咗登入視窗。請再撳一次「用 Google 登入」；如果仍然唔得，iPad 去「設定 → Safari」關閉「阻擋彈出式視窗」。',
+      'auth/unauthorized-domain': `呢個網址（${location.hostname}）未加入 Firebase 嘅「Authorized domains」。請去 Firebase Console → Authentication → Settings → Authorized domains 加入「${location.hostname}」。`,
+      'auth/operation-not-allowed': 'Firebase 未開啟 Google 登入。請去 Firebase Console → Authentication → Sign-in method 開啟 Google。',
+      'auth/network-request-failed': '網絡有問題，請檢查上網再試。',
+      'auth/operation-not-supported-in-this-environment': '呢個環境唔支援登入。請用 GitHub Pages 嘅 https 網址，喺 Safari 或 Chrome 打開。',
+      'auth/web-storage-unsupported': '瀏覽器封鎖咗網站資料（例如私密瀏覽模式）。請用普通模式打開再試。',
+      'auth/invalid-api-key': 'Firebase 設定入面嘅 apiKey 唔啱，請重新複製 firebaseConfig。'
+    }[c] || ('登入失敗：' + ((e && e.message) || c));
+    showMsg('☁️ 登入唔到', [h('p', {}, msg)]);
+  },
+  onUser(u) {
+    if (this.unsub) { try { this.unsub(); } catch (e) {} this.unsub = null; }
+    this.user = u || null; this.synced = false; this.remote = {}; this.err = ''; this.col = null;
+    if (u) {
+      const { collection, onSnapshot } = this.m.fs;
+      this.col = collection(this.db, 'users', u.uid, 'library');
+      this.unsub = onSnapshot(this.col, s => this.onSnap(s), e => this.fsErr(e));
+    }
+    this.emit();
+  },
+  onSnap(snap) {
+    let changed = 0;
+    snap.docChanges().forEach(ch => {
+      if (ch.type === 'removed') return;
+      const e = this.fromDoc(ch.doc.data()); if (!e) return;
+      if (!this.remote[e.id] || e.updatedAt > this.remote[e.id]) this.remote[e.id] = e.updatedAt;
+      if (Library.merge(e)) changed++;
+    });
+    if (changed) { Library.persist(); Library.changed(); }
+    this.err = '';
+    if (!this.synced) { this.synced = true; this.pushLocal(); }
+    this.lastSync = new Date(); this.emit();
+  },
+  pushLocal() {
+    if (!this.synced) return 0;
+    let n = 0;
+    Library.items.forEach(e => { const r = this.remote[e.id]; if (e.deleted && !r) return; if (!r || r < e.updatedAt) { this.put(e); n++; } });
+    return n;
+  },
+  toDoc(e) {
+    return { id: e.id, type: e.type, src: str(e.src), motion: str(e.motion), lang: str(e.lang), side: str(e.side), who: str(e.who), grade: str(e.grade),
+      createdAt: str(e.createdAt), updatedAt: str(e.updatedAt), deleted: !!e.deleted, payload: e.deleted ? '' : JSON.stringify(e.data || null), v: 1 };
+  },
+  fromDoc(d) {
+    if (!d) return null;
+    let data = null;
+    if (!d.deleted) { try { data = JSON.parse(d.payload); } catch (e) { return null; } }
+    return Library.clean(Object.assign({}, d, { data }));
+  },
+  put(e) {
+    if (!this.user || !this.synced || !this.col) return;
+    const { doc, setDoc } = this.m.fs;
+    setDoc(doc(this.col, e.id), this.toDoc(e))
+      .then(() => { if (!this.remote[e.id] || e.updatedAt > this.remote[e.id]) this.remote[e.id] = e.updatedAt; this.lastSync = new Date(); this.err = ''; this.emit(); })
+      .catch(err => this.fsErr(err));
+  },
+  fsErr(e) {
+    const c = str(e && e.code);
+    this.err = c === 'permission-denied' ? '雲端資料庫唔准存取：請檢查 Firestore 規則有冇撳「Publish」，同埋你登入嘅電郵有冇喺規則嘅名單入面。'
+      : (c === 'failed-precondition' || c === 'not-found') ? '搵唔到 Firestore 資料庫，請去 Firebase Console 建立。'
+      : c === 'resource-exhausted' ? '今日嘅免費用量用完咗，聽日會自動恢復。'
+      : '同步出錯：' + ((e && e.message) || c);
+    this.emit();
+  },
+  statusEl() {
+    const w = h('div', { class: 'sync-card' });
+    if (!this.config()) { w.append(h('span', { class: 'grow' }, '☁️ 未設定雲端同步')); return w; }
+    const t = this.lastSync ? `（${String(this.lastSync.getHours()).padStart(2, '0')}:${String(this.lastSync.getMinutes()).padStart(2, '0')}）` : '';
+    if (this.st === 'loading') w.append(h('span', { class: 'grow' }, '⏳ 連接緊 Firebase…'));
+    else if (this.st === 'error' || this.st === 'off') w.append(h('span', { class: 'grow' }, '⚠️ ' + (this.err || '雲端同步未啟動')));
+    else if (!this.user) w.append(h('span', { class: 'grow' }, '☁️ 用 Google 登入之後，iPad 同電腦嘅收藏會自動同步。'), h('button', { class: 'btn sm go', onclick: () => this.signIn() }, '🔑 用 Google 登入'));
+    else w.append(
+      h('span', { class: 'grow' }, h('b', {}, '☁️ 已登入：' + (this.user.email || this.user.displayName || '')), h('br'),
+        h('small', {}, this.err ? '⚠️ ' + this.err : this.synced ? '✅ 已同步' + t : '⏳ 同步緊…')),
+      h('button', { class: 'btn sm ghost', onclick: () => { const n = this.pushLocal(); toast(n ? `🔄 上載緊 ${n} 項…` : '✅ 已經係最新'); } }, '🔄 同步'),
+      h('button', { class: 'btn sm ghost', onclick: () => this.signOut() }, '登出'));
+    return w;
+  },
+  emit() { LibraryScr.drawSync(); Settings.drawSync(); }
+};
+
+/* =========================================================
+   Library screen 我的收藏畫面
+   ========================================================= */
+const LibraryScr = {
+  q: '', f: 'all', syncEl: null, listEl: null,
+  body() { return $('#libraryBody'); },
+  enter() { this.render(); },
+  render() {
+    const b = this.body(); b.innerHTML = ''; b.scrollTop = 0;
+    const intro = '呢度係你嘅收藏。每次 AI 拆解辯題，或者幫你評分之後，都會自動儲存喺度。揿一下就可以再睇，唔使再用 AI。大人亦可以匯出檔案，儲存喺電腦度。';
+    b.append(sayRow(intro));
+    this.syncEl = h('div', { style: 'margin-top:12px' }); b.append(this.syncEl); this.drawSync();
+    const search = h('input', { type: 'text', placeholder: '🔍 搵辯題…', 'aria-label': '搵辯題' }); search.value = this.q;
+    search.addEventListener('input', () => { this.q = search.value; this.drawList(); });
+    const seg = h('div', { class: 'seg', style: 'margin-top:12px' });
+    const drawSeg = () => { seg.innerHTML = ''; [['all', '📚 全部'], ['breakdown', '⚡ 拆解'], ['eval', '🏅 評分']].forEach(([k, t]) => seg.append(h('button', { type: 'button', class: this.f === k ? 'on' : '', onclick: () => { this.f = k; drawSeg(); this.drawList(); SFX.play('click'); } }, t))); };
+    drawSeg();
+    const fileIn = h('input', { type: 'file', accept: '.json,application/json', style: 'display:none', 'aria-hidden': 'true' });
+    fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; if (f) this.importFile(f); fileIn.value = ''; });
+    b.append(h('div', { style: 'margin-top:14px' }, search), seg,
+      h('div', { class: 'row', style: 'margin-top:12px' },
+        h('button', { class: 'btn sm sky', onclick: () => Exporter.dialog(Library.list()) }, '⬇️ 匯出全部'),
+        h('button', { class: 'btn sm ghost', onclick: () => fileIn.click() }, '⬆️ 匯入備份檔'),
+        spk('匯出全部：將所有收藏下載成檔案。匯入備份檔：將另一部機匯出嘅 json 檔加返入嚟。', { small: true }), fileIn));
+    this.listEl = h('div', { class: 'lib-list' }); b.append(this.listEl); this.drawList();
+    autoSay(intro);
+  },
+  drawSync() {
+    if (!this.syncEl || !this.syncEl.isConnected) return;
+    this.syncEl.innerHTML = '';
+    if (!Cloud.config()) this.syncEl.append(h('div', { class: 'note', style: 'margin-top:0' }, '☁️ 想 iPad 同電腦自動同步？請大人去 ⚙️ 設定 →「雲端同步」設定 Firebase。未設定都唔緊要：收藏會留喺呢部機，亦可以用「匯出／匯入」搬去另一部機。'));
+    else this.syncEl.append(Cloud.statusEl());
+  },
+  drawList() {
+    const L = this.listEl; if (!L || !L.isConnected) return;
+    L.innerHTML = '';
+    const all = Library.list(), q = this.q.trim().toLowerCase();
+    if (!all.length) { L.append(h('div', { class: 'card tint' }, sayRow('仲未有收藏。去「我的辯題」用 AI 拆解一條辯題，或者去「辯題挑戰」完成一次評分，就會自動儲存喺度！'))); return; }
+    const xs = all.filter(e => (this.f === 'all' || e.type === this.f) && (!q || e.motion.toLowerCase().includes(q)));
+    L.append(h('div', { class: 'muted', style: 'font-size:15px' }, `共 ${all.length} 項${xs.length !== all.length ? `，顯示緊 ${xs.length} 項` : ''}`));
+    if (!xs.length) { L.append(h('p', { class: 'muted' }, '搵唔到符合嘅收藏。')); return; }
+    xs.forEach(e => {
+      const isB = e.type === 'breakdown', r = !isB && e.data && e.data.result;
+      const say = `${isB ? 'AI 拆解' : `AI 評分，${r ? r.total : ''}分`}。辯題：${e.motion}。${sideTxt(e.side, e.lang)}。`;
+      L.append(tapDiv({ class: 'lib-item', onclick: () => { SFX.play('click'); this.open(e.id); } },
+        h('div', { class: 'li-e', 'aria-hidden': 'true' }, isB ? '⚡' : '🏅'),
+        h('div', { class: 'li-main' }, h('div', { class: 'li-t' }, e.motion),
+          h('div', { class: 'li-m' },
+            h('span', { class: 'chip', style: `--c:${isB ? '#fff0b3' : '#d8ffe9'}` }, isB ? 'AI 拆解' : `評分 ${r ? r.total : '?'} 分 ${'⭐'.repeat(r ? clamp(Number(r.stars) || 0, 0, 5) : 0)}`),
+            h('span', {}, sideTxt(e.side, e.lang)), h('span', {}, fmtDate(e.createdAt)), e.who ? h('span', {}, '👧 ' + e.who) : null)),
+        h('div', { class: 'li-act' },
+          spk(say, { small: true }),
+          h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': '匯出', title: '匯出', onclick: ev => { ev.stopPropagation(); Exporter.dialog([e]); } }, '⬇️'),
+          h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': '刪除', title: '刪除', onclick: ev => { ev.stopPropagation(); if (confirm(`確定刪除「${e.motion}」？${Cloud.user ? '（其他已同步嘅裝置都會一齊刪除）' : ''}`)) { Library.remove(e.id); toast('🗑️ 已刪除'); } } }, '🗑️'))));
+    });
+  },
+  open(id) {
+    const e = Library.get(id); if (!e || e.deleted || !e.data) return;
+    const C = Custom.st;
+    Object.assign(C, { motion: e.motion, side: e.side, langOv: e.lang, entryId: e.id, quiet: true });
+    if (e.type === 'breakdown') {
+      C.bd = { d: e.data.d, motion: e.motion, lang: e.lang, side: e.side, tab: e.side === 'con' ? 'con' : 'pro' };
+      C.stage = 'breakdown';
+    } else {
+      const raw = e.data.result || {};
+      C.result = normResult(Object.assign({}, raw, { better_version: raw.better, next_challenge: raw.next }));
+      let steps = arr(e.data.steps).filter(s => s && s.q).map(s => ({ stage: str(s.stage), q: str(s.q), qZh: str(s.qZh), hint: str(s.hint), starter: str(s.starter) }));
+      if (!steps.length) steps = STEPS[e.lang].map(s => Object.assign({}, s));
+      C.cfg = { motion: e.motion, lang: e.lang, side: e.side === 'con' ? 'con' : 'pro', steps, answers: arr(e.data.answers).map(str), idx: 0,
+        onBack: () => { C.stage = 'input'; Custom.render(); }, onSubmit: () => Custom.submit() };
+      C.stage = 'result';
+    }
+    App.go('custom', true);
+  },
+  importFile(f) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      let j; try { j = JSON.parse(rd.result); } catch (e) { showMsg('⬆️ 匯入唔到', [sayRow('呢個唔係辯辯島嘅備份檔。請揀由「⬇️ 匯出 → 備份檔（.json）」下載嘅檔案。')]); return; }
+      const list = Array.isArray(j) ? j : arr(j && j.entries);
+      let add = 0, upd = 0, bad = 0;
+      list.forEach(x => { const r = Library.merge(x, true); if (r === 'added') add++; else if (r === 'updated') upd++; else if (!Library.clean(x)) bad++; });
+      if (add || upd) { Library.persist(); Cloud.pushLocal(); }
+      this.drawList(); SFX.play(add || upd ? 'good' : 'click');
+      const msg = `匯入完成！新增 ${add} 項，更新 ${upd} 項` + (bad ? `，有 ${bad} 項讀唔到` : '') + '。' + (!add && !upd && !bad ? '全部都已經喺收藏入面。' : '');
+      toast('⬆️ ' + msg, 4500); TTS.speak(msg);
+    };
+    rd.onerror = () => toast('讀唔到呢個檔案');
+    rd.readAsText(f);
+  }
+};
+
+function saveEval(src, c, r) {
+  return Library.add({ type: 'eval', src, motion: c.motion, lang: c.lang, side: c.side,
+    data: { steps: c.steps.map(s => ({ stage: str(s.stage), q: str(s.q), qZh: str(s.qZh), hint: str(s.hint), starter: str(s.starter) })), answers: c.steps.map((_, i) => str(c.answers[i])), result: r } }).id;
+}
+
+/* =========================================================
    Init
    ========================================================= */
 function init() {
@@ -1922,6 +2406,7 @@ function init() {
   $('#homeBtn').addEventListener('click', () => { SFX.play('click'); App.go('home'); });
   $('#settingsBtn').addEventListener('click', () => { SFX.play('click'); Settings.open(); });
   $('#badgeBtn').addEventListener('click', () => { SFX.play('click'); openBadges(); });
+  $('#libBtn').addEventListener('click', () => { SFX.play('click'); App.go('library'); });
   $$('.back').forEach(x => x.addEventListener('click', () => { SFX.play('click'); App.go('home'); }));
   $$('.island-btn').forEach(x => x.addEventListener('click', () => { SFX.play('click'); App.go(x.dataset.go); }));
   $('#learnSpk').append(spk(() => Learn.speakText(LESSONS[Learn.i]), { label: '朗讀呢一課' }));
@@ -1943,7 +2428,8 @@ function init() {
     $('#msgModal .modal-head').style.background = 'var(--sun)';
   }
 }
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+function boot() { init(); Cloud.init(); }
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 
 </script>
 </body>
