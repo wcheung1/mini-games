@@ -280,6 +280,18 @@ const LS = {
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
+/* ---------------- Firebase (hard-coded) ----------------
+   Firebase web config is public by design. Data is protected by
+   Firestore security rules + Authorized domains, not by hiding this. */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC7hfwtFKJBvek7HZx51OKJLTIOwMD8xbw",
+  authDomain: "question-planet.firebaseapp.com",
+  projectId: "question-planet",
+  storageBucket: "question-planet.firebasestorage.app",
+  messagingSenderId: "90830707620",
+  appId: "1:90830707620:web:d0eabf4ffcebe0a4c5bf31"
+};
+
 /* ---------------- settings ---------------- */
 const DEFAULTS = {
   lang: 'zh', nickname: '', age: '9-10',
@@ -287,7 +299,7 @@ const DEFAULTS = {
   maxTokens: 131072, effort: 'high', thinking: 'auto', temperature: 0.7,
   autoRescue: true, saveReasoning: true,
   ttsRate: 0.95, voiceZh: '', voiceEn: '', autoSpeak: true,
-  firebaseConfig: '', autoSync: true
+  autoSync: true
 };
 let S = Object.assign({}, DEFAULTS, LS.get('qp_settings', {}));
 const saveS = () => LS.set('qp_settings', S);
@@ -1162,23 +1174,16 @@ $('#fileIn').addEventListener('change', async e => {
    Firebase (optional): Google sign-in + Firestore sync
    ========================================================= */
 const FB = { app: null, auth: null, db: null, user: null, m: null, loading: false };
-function parseFbConfig(txt) {
-  if (!txt || !txt.trim()) return null;
-  try { const j = JSON.parse(txt); if (j.apiKey) return j; } catch { }
-  const o = {}; txt.replace(/(\w+)\s*:\s*["']([^"']+)["']/g, (_, k, v) => { o[k] = v; });
-  return o.apiKey ? o : null;
-}
 async function fbInit(silent = false) {
   if (FB.app) return true;
-  const cfg = parseFbConfig(S.firebaseConfig);
-  if (!cfg?.apiKey || !cfg?.projectId) { if (!silent) toast(L('請先喺 ⚙️ 設定貼上 Firebase config', 'Paste your Firebase config in ⚙️ Settings first')); return false; }
+  const cfg = FIREBASE_CONFIG;
   if (FB.loading) return false; FB.loading = true;
   try {
     const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
     const [a, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
     FB.m = { ...a, ...au, ...fs };
-    FB.app = a.initializeApp(cfg, 'qp-' + Date.now()); FB.auth = au.getAuth(FB.app); FB.db = fs.getFirestore(FB.app);
-    au.onAuthStateChanged(FB.auth, u => { FB.user = u; updateCloudUI(); });
+    FB.app = a.initializeApp(cfg); FB.auth = au.getAuth(FB.app); FB.db = fs.getFirestore(FB.app);
+    au.onAuthStateChanged(FB.auth, u => { const was = FB.user?.uid; FB.user = u; updateCloudUI(); if (u && u.uid !== was && S.autoSync) cloudSync(); });
     return true;
   } catch (e) { if (!silent) toast('❌ Firebase: ' + e.message, 5000); return false; }
   finally { FB.loading = false; }
@@ -1186,7 +1191,7 @@ async function fbInit(silent = false) {
 async function fbSignIn() {
   if (!(await fbInit())) return;
   if (location.protocol === 'file:') { toast(L('Google 登入唔可以喺 file:// 用，請放上 GitHub Pages 或者用本機伺服器開', 'Google sign-in does not work from file:// — host it on GitHub Pages or a local server'), 6000); return; }
-  try { await FB.m.signInWithPopup(FB.auth, new FB.m.GoogleAuthProvider()); toast(L('✅ 登入成功', '✅ Signed in')); if (S.autoSync) cloudUpload(true); }
+  try { await FB.m.signInWithPopup(FB.auth, new FB.m.GoogleAuthProvider()); toast(L('✅ 登入成功', '✅ Signed in')); }
   catch (e) {
     const map = { 'auth/unauthorized-domain': L('呢個網址未加入 Firebase「Authorized domains」', 'This domain is not in Firebase "Authorized domains"'), 'auth/popup-blocked': L('彈出視窗被擋咗，請容許彈出視窗', 'Pop-up blocked — please allow pop-ups'), 'auth/popup-closed-by-user': L('你關咗登入視窗', 'Sign-in window closed'), 'auth/operation-not-allowed': L('Firebase 未開啟 Google 登入', 'Google sign-in is not enabled in Firebase') };
     toast('❌ ' + (map[e.code] || e.message), 6000);
@@ -1216,19 +1221,20 @@ async function cloudUpload(quiet = false) {
     if (!quiet) toast(L(`☁️ 已上傳 ${sessions.length} 個挑戰`, `☁️ Uploaded ${sessions.length} challenge(s)`));
   } catch (e) { toast('☁️❌ ' + e.message, 5000); }
 }
-async function cloudDownload() {
+async function cloudDownload(quiet = false) {
   if (!FB.user) { toast(L('請先登入', 'Please sign in first')); return; }
   try {
     const snap = await FB.m.getDocs(FB.m.collection(FB.db, 'users', FB.user.uid, 'sessions'));
     const { added, updated } = mergeSessions(snap.docs.map(d => d.data()));
     const prof = await FB.m.getDoc(FB.m.doc(FB.db, 'users', FB.user.uid));
     if (prof.exists()) { const p = prof.data(); if ((p.stars || 0) > stars) { stars = p.stars; LS.set('qp_stars', stars); } if (Array.isArray(p.readLessons)) { readLessons = [...new Set([...readLessons, ...p.readLessons])]; LS.set('qp_read', readLessons); } }
-    toast(L(`☁️ 下載完成：新增 ${added}，更新 ${updated}`, `☁️ Downloaded: ${added} added, ${updated} updated`)); render();
+    if (!quiet || added || updated) toast(L(`☁️ 下載完成：新增 ${added}，更新 ${updated}`, `☁️ Downloaded: ${added} added, ${updated} updated`));
+    if (!(state.screen === 'lab' && state.busy)) render(); else updateHeader();
   } catch (e) { toast('☁️❌ ' + e.message, 5000); }
 }
+// On sign-in: pull cloud records into this device, then push anything local-only up.
+async function cloudSync() { await cloudDownload(true); await cloudUpload(true); }
 function cloudBoxInner() {
-  const cfg = parseFbConfig(S.firebaseConfig);
-  if (!cfg) return `☁️ <b>${L('雲端同步（Firebase）', 'Cloud sync (Firebase)')}</b><p class="small">${L('未設定。去 ⚙️ 設定貼上你嘅 Firebase config，就可以用 Google 登入，喺 iPad 同電腦之間同步。', 'Not set up. Paste your Firebase config in ⚙️ Settings to sign in with Google and sync between iPad and computer.')}</p>`;
   if (!FB.user) return `☁️ <b>${L('雲端同步', 'Cloud sync')}</b> · ${L('未登入', 'Not signed in')}<div class="row" style="margin-top:8px"><button class="btn" data-act="fbIn">🔐 ${L('用 Google 登入', 'Sign in with Google')}</button></div>`;
   return `☁️ <b>${L('已登入', 'Signed in')}</b>: ${esc(FB.user.email || FB.user.displayName || '')}${S.autoSync ? ` · ${L('自動同步開咗', 'auto-sync on')}` : ''}
     <div class="row" style="margin-top:8px"><button class="btn btn-blue" data-act="cloudUp">⬆️ ${L('上傳全部', 'Upload all')}</button><button class="btn btn-green" data-act="cloudDown">⬇️ ${L('由雲端下載', 'Download')}</button><button class="btn btn-ghost" data-act="fbOut">${L('登出', 'Sign out')}</button></div>`;
@@ -1278,9 +1284,8 @@ function renderSettings() {
     <label class="chk"><input type="checkbox" data-set="autoSpeak" ${S.autoSpeak ? 'checked' : ''}> ${L('自動讀出問問博士嘅評語', "Read Dr Hoot's feedback aloud automatically")}</label>
     <div class="row"><button class="btn btn-yellow" data-act="testVoice" data-v="zh">🔊 ${L('試聽廣東話', 'Test Cantonese')}</button><button class="btn btn-yellow" data-act="testVoice" data-v="en">🔊 ${L('試聽英文', 'Test English')}</button></div>
     <p class="note">${L('iPad 冇廣東話聲音？去「設定 › 輔助使用 › 朗讀內容 › 聲音 › 中文 › 中文（香港）」下載 Sin-Ji 或其他粵語聲音，然後重新開呢頁。Windows：設定 › 時間與語言 › 語音 › 新增「中文（香港）」。', 'No Cantonese voice on iPad? Go to Settings › Accessibility › Spoken Content › Voices › Chinese › Chinese (Hong Kong) and download a voice, then reload this page. Windows: Settings › Time & language › Speech › add "Chinese (Hong Kong)".')}</p></div>
-  <div class="sgroup"><h3>☁️ Firebase ${L('雲端同步（可選）', 'cloud sync (optional)')}</h3>
-    <label>Firebase config<textarea data-set="firebaseConfig" rows="5" placeholder='{"apiKey":"...","authDomain":"xxx.firebaseapp.com","projectId":"xxx","appId":"..."}' style="font-family:ui-monospace,monospace;font-size:14px">${esc(S.firebaseConfig)}</textarea></label>
-    <p class="note">${L('可以直接貼 Firebase Console 俾你嗰段 firebaseConfig（JSON 或者 JS 格式都得）。記得喺 Authentication 開啟 Google 登入，同埋將你嘅 GitHub Pages 網域加入 Authorized domains。', 'Paste the firebaseConfig from the Firebase Console (JSON or JS format both work). Enable Google sign-in under Authentication and add your GitHub Pages domain to Authorized domains.')}</p>
+  <div class="sgroup"><h3>☁️ ${L('雲端同步（Google 登入）', 'Cloud sync (Google sign-in)')}</h3>
+    <p class="note">${L('已連接 Firebase 專案「question-planet」。用 Google 登入之後，iPad 同電腦會自動同步。', 'Connected to the Firebase project "question-planet". Sign in with Google to sync automatically between iPad and computer.')}</p>
     <label class="chk"><input type="checkbox" data-set="autoSync" ${S.autoSync ? 'checked' : ''}> ${L('登入咗就自動同步每一輪', 'Auto-sync every round when signed in')}</label>
     <div class="cloudbox">${cloudBoxInner()}</div></div>
   <div class="sgroup"><h3>💾 ${L('資料', 'Data')}</h3><div class="row"><button class="btn btn-blue" data-act="expJSON">⬇️ JSON</button><button class="btn btn-green" data-act="expMD">⬇️ Markdown</button><button class="btn btn-ghost" data-act="impJSON">⬆️ ${L('匯入', 'Import')}</button><button class="btn btn-ghost" data-act="wipe">🧹 ${L('清除所有紀錄', 'Delete all records')}</button></div></div>
@@ -1300,7 +1305,6 @@ function onSet(e) {
   S[k] = el.type === 'checkbox' ? el.checked : el.dataset.type === 'num' ? Number(el.value) : el.value;
   saveS();
   if (k === 'ttsRate') $('#rateVal').textContent = S.ttsRate;
-  if (k === 'firebaseConfig' && e.type === 'change') { FB.app = null; FB.user = null; fbInit(true).then(updateCloudUI); }
   if (k === 'maxTokens') $$('[data-act="setTok"]').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === S.maxTokens));
   if (k === 'apiKey' || k === 'model') tkUpdate();
 }
@@ -1399,7 +1403,7 @@ addEventListener('beforeunload', () => captureDrafts());
 
 /* ---------------- boot ---------------- */
 render(); drawTicker(); init3D();
-if (parseFbConfig(S.firebaseConfig)) fbInit(true);
+fbInit(true);
 </script>
 </body>
 </html>
