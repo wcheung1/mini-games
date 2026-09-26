@@ -29,9 +29,11 @@ input{-webkit-user-select:text;user-select:text}
 .tape{position:absolute;top:-17px;left:50%;width:130px;height:30px;transform:translateX(-50%) rotate(-3deg);
   background:repeating-linear-gradient(45deg,rgba(255,126,182,.9) 0 10px,rgba(255,176,210,.9) 10px 20px);border-radius:3px;
   box-shadow:0 1px 0 rgba(0,0,0,.08)}
-.ruled{background:
-  linear-gradient(90deg,transparent 40px,var(--margin) 40px,var(--margin) 42px,transparent 42px),
-  repeating-linear-gradient(180deg,var(--paper) 0 38px,var(--line) 38px 40px);}
+.ruled{background:linear-gradient(90deg,transparent 40px,var(--margin) 40px,var(--margin) 42px,transparent 42px),var(--paper);}
+/* ruled lines are drawn under each line of text, so words always sit neatly on the lines */
+.lined,.mbody>p,.bk>p{--lh:40px;line-height:var(--lh);margin-left:calc(-1*var(--pl));margin-right:calc(-1*var(--pr));
+  padding-left:var(--pl);padding-right:var(--pr);
+  background-image:repeating-linear-gradient(180deg,transparent 0 calc(var(--lh) - 2px),var(--line) calc(var(--lh) - 2px) var(--lh));}
 
 .btn{font:inherit;font-weight:900;font-size:21px;line-height:1.2;padding:12px 22px;min-height:56px;border:3px solid var(--ink);
   border-radius:999px;background:var(--hy);color:var(--ink);box-shadow:4px 4px 0 var(--ink);cursor:pointer;touch-action:manipulation}
@@ -48,12 +50,13 @@ input{-webkit-user-select:text;user-select:text}
 /* title */
 #title{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:20px;
   background:radial-gradient(ellipse at center,rgba(168,221,245,.15),rgba(31,42,92,.35))}
-.titleCard{width:min(560px,92vw);padding:40px 30px 28px 62px;text-align:left}
+.titleCard{--pl:62px;--pr:30px;width:min(560px,92vw);padding:40px 30px 28px 62px;text-align:left}
 .titleCard h1{margin:0 0 6px;font-size:clamp(44px,9vw,76px);font-weight:900;letter-spacing:.02em;line-height:1.05}
 .titleCard h1 span{background:linear-gradient(180deg,transparent 58%,var(--hy) 58%,var(--hy) 92%,transparent 92%);padding:0 4px}
-.titleCard .sub{font-size:22px;font-weight:700;margin:10px 0 22px;line-height:1.6}
+.titleCard .sub{font-size:22px;font-weight:700;margin-top:10px;margin-bottom:22px}
 .titleCard .row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.titleCard .small{font-size:15px;opacity:.8;margin-top:18px;line-height:1.6}
+.titleCard .small{--lh:32px;font-size:16px;margin-top:18px;margin-bottom:0}
+.titleCard .small span{opacity:.8}
 .btn.big{font-size:28px;padding:16px 34px;min-height:70px}
 
 /* world hud */
@@ -77,6 +80,7 @@ input{-webkit-user-select:text;user-select:text}
 #gTitle{padding:8px 16px;font-weight:900;font-size:21px}
 #gStatus{margin-left:auto;padding:8px 16px;font-weight:900;font-size:20px;background:#fff}
 #gStatus:empty{display:none}
+#rotateHint{position:absolute;left:50%;transform:translateX(-50%);top:calc(76px + var(--st));padding:6px 10px 6px 16px;display:flex;gap:10px;align-items:center;font-weight:900;font-size:18px;background:#FFE0EC;white-space:nowrap}
 #gTools{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(112px + var(--sb));display:flex;gap:12px;width:min(760px,96vw);justify-content:center}
 .btn.tool{flex:1;font-size:19px;border-radius:20px;padding:10px 8px;min-height:84px;background:#fff}
 .btn.tool b{font-size:30px;display:block}
@@ -85,18 +89,20 @@ input{-webkit-user-select:text;user-select:text}
 /* modal */
 #modalWrap{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(31,42,92,.38);
   padding:calc(20px + var(--st)) 14px calc(20px + var(--sb))}
-#modal{width:min(660px,95vw);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;padding:30px 22px 22px 58px;animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
+#modal{--pl:58px;--pr:22px;width:min(660px,95vw);max-height:100%;overflow:auto;-webkit-overflow-scrolling:touch;padding:30px 22px 22px 58px;animation:drop .35s cubic-bezier(.2,1.4,.4,1)}
 @keyframes drop{from{transform:translateY(-30px) rotate(-2deg);opacity:0}}
 @media (prefers-reduced-motion:reduce){#modal{animation:none}.spk.talking{animation:none}}
-.mhead{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.mhead{display:flex;align-items:center;gap:12px;margin:0 calc(-1*var(--pr)) 0 calc(-1*var(--pl));padding:0 var(--pr) 10px var(--pl);border-bottom:2px solid var(--line)}
 .mhead h2{margin:0;font-size:clamp(24px,4.5vw,32px);font-weight:900;flex:1;line-height:1.25}
 .mbody{font-size:20px;line-height:1.75;font-weight:500}
 .mbody p{margin:6px 0}
+.mbody>p,.bk>p{margin:0 calc(-1*var(--pr)) 0 calc(-1*var(--pl))}
+.mbody>p:first-child{margin-top:2px}
 .mbody .step{display:flex;gap:10px;align-items:flex-start}
 .mbody .step i{font-style:normal;flex:none;width:32px;height:32px;border-radius:50%;background:var(--hp);border:2px solid var(--ink);
   display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;margin-top:4px}
 .mbtns{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
-.stars{font-size:52px;letter-spacing:6px;text-align:center}
+.stars{font-size:52px;letter-spacing:6px;padding-left:6px;text-align:center}
 .stars .off{opacity:.2;filter:grayscale(1)}
 .res{font-size:22px;font-weight:900;text-align:center}
 .lesson{background:#fff;border:3px solid var(--ink);border-radius:16px;padding:12px 14px;margin-top:12px}
@@ -116,7 +122,7 @@ input{-webkit-user-select:text;user-select:text}
 .cert .cap{font-size:64px;line-height:1}
 .certTitle{font-size:34px;font-weight:900;background:linear-gradient(180deg,transparent 55%,var(--hy) 55%);display:inline-block;padding:0 6px}
 .cert input{font:inherit;font-size:26px;font-weight:900;text-align:center;border:0;border-bottom:3px solid var(--ink);background:transparent;color:var(--ink);width:80%;padding:4px}
-.certBadges{font-size:34px;letter-spacing:4px}
+.certBadges{font-size:34px;letter-spacing:4px;padding-left:4px}
 #voiceWarn{position:fixed;z-index:25;left:50%;transform:translateX(-50%);top:calc(80px + var(--st));width:min(620px,94vw);padding:14px 16px;font-size:17px;line-height:1.6;background:#FFE0EC}
 #voiceWarn b{font-weight:900}
 #noThree{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:var(--sky);font-size:22px;padding:30px;text-align:center;line-height:1.7}
@@ -129,12 +135,12 @@ input{-webkit-user-select:text;user-select:text}
   <div class="titleCard note ruled">
     <div class="tape"></div>
     <h1><span>學習高手島</span></h1>
-    <p class="sub">跟住《學習高手》嘅秘訣，<br>一齊玩出學習好習慣！</p>
+    <p class="sub lined">跟住《學習高手》嘅秘訣，<br>一齊玩出學習好習慣！</p>
     <div class="row">
       <button class="btn big green" id="startBtn">▶ 開始冒險</button>
       <button class="spk" type="button" id="titleSpk" aria-label="讀出嚟">🔊</button>
     </div>
-    <p class="small">適合 6 至 12 歲小朋友。請開大聲，用 iPad 或電腦都玩得。<br>每張卡都有小喇叭 🔊，㩒一下就會用廣東話讀出嚟。</p>
+    <p class="small lined"><span>適合 6 至 12 歲小朋友。請開大聲，用 iPad 或電腦都玩得。<br>每張卡都有小喇叭 🔊，㩒一下就會用廣東話讀出嚟。</span></p>
   </div>
 </div>
 
@@ -157,6 +163,7 @@ input{-webkit-user-select:text;user-select:text}
   </div>
   <div id="gTools" class="hidden"></div>
   <div id="gTip" class="tipbar note hidden"></div>
+  <div id="rotateHint" class="note hidden"></div>
 </div>
 
 <div id="modalWrap" class="hidden"><div id="modal" class="note ruled" role="dialog" aria-modal="true"></div></div>
@@ -282,19 +289,50 @@ function fitCam(cam,center,halfW,halfH,dir){
 
 /* ---------- canvas textures (Chinese text + emoji) ---------- */
 function roundRect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();}
+// Canvas "middle" baseline and text widths don't match what the eye sees (CJK glyphs sit high,
+// emoji carry side bearings), so centre the actual drawn ink instead.
+// Measure where the text really puts ink by drawing it once off-screen and scanning the pixels.
+// (Browsers report emoji and some CJK fonts with padding, which pushes text off-centre.)
+const _inkCache={};let _inkCv=null;
+function inkBox(x,t){
+  const font=x.font,key=font+'|'+t;
+  if(_inkCache[key])return _inkCache[key];
+  let r=null;
+  try{
+    const size=parseFloat((font.match(/(\d+(?:\.\d+)?)px/)||[])[1])||48;
+    const adv=x.measureText(t).width;
+    const W=Math.ceil(adv+size*2),H=Math.ceil(size*3),ox=size,oy=size*2;
+    if(!_inkCv)_inkCv=document.createElement('canvas');
+    _inkCv.width=W;_inkCv.height=H;
+    const c=_inkCv.getContext('2d');c.font=font;c.textAlign='left';c.textBaseline='alphabetic';c.fillStyle='#000';
+    c.fillText(t,ox,oy);
+    const d=c.getImageData(0,0,W,H).data;let minX=W,maxX=-1,minY=H,maxY=-1;
+    for(let y=0;y<H;y++){const row=y*W*4;for(let xx=0;xx<W;xx++){if(d[row+xx*4+3]>30){if(xx<minX)minX=xx;if(xx>maxX)maxX=xx;if(y<minY)minY=y;if(y>maxY)maxY=y;}}}
+    if(maxX>=0)r={L:ox-minX,R:maxX+1-ox,A:oy-minY,D:maxY+1-oy};
+  }catch(e){r=null;}
+  _inkCache[key]=r;return r;
+}
+function inkWidth(x,t){const b=inkBox(x,t);return b?b.L+b.R:x.measureText(t).width;}
+function drawCentered(x,t,cx,cy){
+  const b=inkBox(x,t);
+  if(!b){x.textAlign='center';x.textBaseline='middle';x.fillText(t,cx,cy);return;}
+  x.textAlign='left';x.textBaseline='alphabetic';
+  x.fillText(t,cx-(b.R-b.L)/2,cy+(b.A-b.D)/2);
+}
 function makeLabel(text,o){
   o=Object.assign({size:56,fg:'#1F2A5C',bg:'#FFFFFF',border:'#1F2A5C',pad:24,scale:0.012,weight:900,top:false},o||{});
   const lines=String(text).split('\n');
   const c=document.createElement('canvas'),x=c.getContext('2d');
   x.font=`${o.weight} ${o.size}px ${FONT}`;
-  const w=Math.ceil(Math.max(...lines.map(l=>x.measureText(l).width)))+o.pad*2;
-  const lh=o.size*1.3,h=Math.ceil(lines.length*lh+o.pad*1.1);
-  c.width=w+14;c.height=h+14;
+  const w=Math.ceil(Math.max(...lines.map(l=>inkWidth(x,l))))+o.pad*2;
+  const lh=o.size*1.3,h=Math.ceil(lines.length*lh+o.pad*0.8);
+  const M0=9; // box sits in the exact middle of the canvas; the shadow uses the spare margin
+  c.width=w+M0*2;c.height=h+M0*2;
   x.font=`${o.weight} ${o.size}px ${FONT}`;
-  if(o.bg){x.fillStyle=o.border;roundRect(x,9,9,w,h,24);x.fill();
-    x.fillStyle=o.bg;roundRect(x,3,3,w,h,24);x.fill();x.lineWidth=5;x.strokeStyle=o.border;x.stroke();}
-  x.fillStyle=o.fg;x.textAlign='center';x.textBaseline='middle';
-  lines.forEach((l,i)=>x.fillText(l,3+w/2,3+o.pad*0.55+lh*(i+0.5)));
+  if(o.bg){x.fillStyle=o.border;roundRect(x,M0+6,M0+6,w,h,24);x.fill();
+    x.fillStyle=o.bg;roundRect(x,M0,M0,w,h,24);x.fill();x.lineWidth=5;x.strokeStyle=o.border;x.stroke();}
+  x.fillStyle=o.fg;
+  lines.forEach((l,i)=>drawCentered(x,l,M0+w/2,M0+h/2+(i-(lines.length-1)/2)*lh));
   const tex=new THREE.CanvasTexture(c);tex.minFilter=THREE.LinearFilter;
   const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,depthTest:!o.top});
   const s=new THREE.Sprite(mat);s.scale.set(c.width*o.scale,c.height*o.scale,1);
@@ -309,16 +347,16 @@ function faceTexture(text,o){
   const lines=String(text).split('\n');let fs=o.maxFont;
   const fit=()=>{x.font=`${o.weight} ${fs}px ${FONT}`;return Math.max(...lines.map(l=>x.measureText(l).width));};
   while(fs>14&&(fit()>o.w*0.84||fs*1.22*lines.length>o.h*0.82))fs-=3;
-  x.fillStyle=o.fg;x.textAlign='center';x.textBaseline='middle';
-  const lh=fs*1.22,top=o.h/2-lh*(lines.length-1)/2;
-  lines.forEach((l,i)=>x.fillText(l,o.w/2,top+i*lh+fs*0.04));
+  x.fillStyle=o.fg;
+  const lh=fs*1.22;
+  lines.forEach((l,i)=>drawCentered(x,l,o.w/2,o.h/2+(i-(lines.length-1)/2)*lh));
   const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t;
 }
 const emojiCache={};const CACHED_TEX=new Set();
 function emojiTexture(e){
   if(emojiCache[e])return emojiCache[e];
   const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');
-  x.font=`190px ${EMOJI_FONT}`;x.textAlign='center';x.textBaseline='middle';x.fillText(e,128,140);
+  x.font=`190px ${EMOJI_FONT}`;drawCentered(x,e,128,128);
   const t=new THREE.CanvasTexture(c);CACHED_TEX.add(t);emojiCache[e]=t;return t;
 }
 function makeEmoji(e,size){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTexture(e),transparent:true}));s.scale.set(size||1.5,size||1.5,1);return s;}
@@ -1210,8 +1248,8 @@ const TASKS=[
 function tileTexture(q){
   const c=document.createElement('canvas');c.width=600;c.height=420;const x=c.getContext('2d');
   x.fillStyle=q.c;x.fillRect(0,0,600,420);x.lineWidth=12;x.strokeStyle='#1F2A5C';x.strokeRect(6,6,588,408);
-  x.fillStyle='#1F2A5C';x.textAlign='center';x.textBaseline='middle';
-  x.font=`900 58px ${FONT}`;x.fillText(q.t,300,95);x.font=`700 46px ${FONT}`;x.fillText('👉 '+q.s,300,170);
+  x.fillStyle='#1F2A5C';
+  x.font=`900 58px ${FONT}`;drawCentered(x,q.t,300,92);x.font=`700 46px ${FONT}`;drawCentered(x,'👉 '+q.s,300,164);
   return new THREE.CanvasTexture(c);
 }
 function createTime(){
@@ -1225,9 +1263,8 @@ function createTime(){
   let ti=0,cube=null,dragging=false,moved=false,downPt=null,selected=false,busy=true,mistakes=0;
   function makeCube(t){
     const side=M(0xFFFFFF);
-    const top=new THREE.MeshLambertMaterial({map:faceTexture(t.t,{w:640,h:320,bw:14,maxFont:90})});
-    const front=new THREE.MeshLambertMaterial({map:faceTexture(t.t,{w:640,h:220,bw:12,maxFont:80})});
-    return mesh(new THREE.BoxGeometry(3.2,1.1,1.6),[side,side,top,side,front,side]);
+    const top=new THREE.MeshLambertMaterial({map:faceTexture(t.t.replace(' ','\n'),{w:720,h:360,bw:14,maxFont:120})});
+    return mesh(new THREE.BoxGeometry(3.6,1.1,1.8),[side,side,top,side,side,side]);
   }
   function highlight(on){if(!cube)return;cube.material.forEach(m=>m.emissive&&m.emissive.setHex(on?0x554400:0));}
   function nextTask(){
@@ -1244,7 +1281,7 @@ function createTime(){
     if(q===t.q){
       Sfx.good();const n=counts[q]++;const c=cube,from=c.position.clone();
       const to=new THREE.Vector3(QUADS[q].x+(n%2?1.45:-1.45),0.35,QUADS[q].z+1.05);
-      tween(0.4,k=>{c.position.lerpVectors(from,to,easeOut(k));c.scale.setScalar(lerp(1,0.44,k));},()=>burst(scene,to.clone(),{n:18,speed:4,life:.8}));
+      tween(0.4,k=>{c.position.lerpVectors(from,to,easeOut(k));c.scale.setScalar(lerp(1,0.4,k));},()=>burst(scene,to.clone(),{n:18,speed:4,life:.8}));
       ti++;const t0=T;
       setTip('✔ '+t.why,true,'啱喇！'+t.why,()=>{const wait=Math.max(0,1.8-(T-t0));later(wait+0.3,nextTask);});
     }else{mistakes++;Sfx.bad();shake(cube);setTip(`唔係「${QUADS[q].t.slice(3)}」呢格喎。${t.why}`,true,`唔係${QUADS[q].t.slice(3)}呢格喎。${t.why}`);back();}
@@ -1294,16 +1331,20 @@ function createReview(){
     f.petalMat=M(s.c);
     for(let p=0;p<8;p++){const a=p/8*Math.PI*2;const pt=at(mesh(new THREE.SphereGeometry(0.3,12,10),f.petalMat),Math.cos(a)*0.48,Math.sin(a)*0.48,0);pt.scale.set(1,0.6,0.35);pt.rotation.z=a;head.add(pt);}
     head.add(at(mesh(new THREE.SphereGeometry(0.3,14,12),M(0xFFD23F)),0,0,0.08));
-    const lb=makeLabel(`${s.e} ${s.n}`,{size:40,scale:0.0098});at(lb,x,4.5,0);scene.add(lb);
-    scene.add(at(mesh(new THREE.PlaneGeometry(2.2,0.26),new THREE.MeshBasicMaterial({color:0xCCCCCC})),x,3.6,0));
+    // label + bar sit on a plane facing the camera through the pot, so they line up with it on screen
+    const faceZ=y=>-0.22*(y-0.5);
+    const lb=makeLabel(`${s.e} ${s.n}`,{size:40,scale:0.0098});at(lb,x,4.95,faceZ(4.95));scene.add(lb);
+    scene.add(at(mesh(new THREE.PlaneGeometry(2.2,0.26),new THREE.MeshBasicMaterial({color:0xCCCCCC})),x,4.2,faceZ(4.2)));
     const fgGeo=new THREE.PlaneGeometry(2.2,0.26);fgGeo.translate(1.1,0,0);
-    f.bar=at(mesh(fgGeo,new THREE.MeshBasicMaterial({color:0x3FBF6A})),x-1.1,3.6,0.01);scene.add(f.bar);
-    f.dots=at(new THREE.Group(),x,0.55,0.78);scene.add(f.dots);
+    f.bar=at(mesh(fgGeo,new THREE.MeshBasicMaterial({color:0x3FBF6A})),x-1.1,4.2,faceZ(4.2)+0.01);scene.add(f.bar);
+    f.dots=at(new THREE.Group(),x,0.5,0.74);scene.add(f.dots);
     const hit=at(mesh(new THREE.CylinderGeometry(1.2,1.2,4.4,10),new THREE.MeshBasicMaterial()),x,2,0);hit.visible=false;hit.userData.fi=i;scene.add(hit);hits.push(hit);
     Object.assign(f,{pivot,head});return f;
   });
-  function drawDots(f){while(f.dots.children.length)f.dots.remove(f.dots.children[0]);const n=Math.min(f.rev,6);
-    for(let k=0;k<n;k++)f.dots.add(at(starMesh(),-0.5+k*0.2,0,0));f.dots.children.forEach(c=>c.scale.setScalar(0.22));}
+  function drawDots(f){while(f.dots.children.length)f.dots.remove(f.dots.children[0]);const n=Math.min(f.rev,5),gap=0.24;
+    for(let k=0;k<n;k++){const st=at(starMesh(),(k-(n-1)/2)*gap,0,0);st.scale.setScalar(0.19);f.dots.add(st);}}
+  // put each star row on the line of sight to its pot's centre, so it looks centred on the pot from the camera
+  function placeDots(){const C=cam.position;flowers.forEach(f=>{const P=new THREE.Vector3(f.x,0.5,0),s=(C.z-0.72)/(C.z-P.z);f.dots.position.copy(C).add(P.sub(C).multiplyScalar(s));});}
   let time=40,running=false,acc=0,totalRev=0,told3=false;
   g.begin=()=>{g.running=true;setStatus('🌼 預備…');setTip('每朵花係一樣你學過嘅知識，佢哋會慢慢謝。㩒朵花淋水，即係溫習！守住花園40秒！');later(2.5,()=>{if(G===g)running=true;});};
   g.down=ndc=>{
@@ -1328,7 +1369,7 @@ function createReview(){
       if(time<=0){running=false;const a=Math.round(acc/40);
         finishGame({stars:a>=60?3:a>=40?2:1,line:`你嘅花園平均記憶力係${a}%，一共溫習咗${totalRev}次！`});}}
   };
-  g.resize=()=>fitCam(cam,new THREE.Vector3(0,2.1,0),6.8,3.9,new THREE.Vector3(0,0.22,1));
+  g.resize=()=>{fitCam(cam,new THREE.Vector3(0,2.5,0),6.8,3.3,new THREE.Vector3(0,0.22,1));placeDots();};
   return g;
 }
 
@@ -1359,10 +1400,19 @@ canvas.addEventListener('pointerup',endPtr);canvas.addEventListener('pointercanc
 document.addEventListener('gesturestart',e=>e.preventDefault());
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
 
+const ROTATE_TEXT='將 iPad 打橫，會睇得更清楚！';
+const WIDE_LEVELS=['goal','memory','review'];
+function rotateHint(){
+  const el=$('#rotateHint');
+  const show=state==='game'&&G&&G.st&&WIDE_LEVELS.includes(G.st.id)&&innerWidth<innerHeight;
+  if(show&&!el.innerHTML)el.innerHTML=`<span>📱↔️ ${ROTATE_TEXT}</span>`+spk(ROTATE_TEXT);
+  el.classList.toggle('hidden',!show);
+}
 function onResize(){
   const w=innerWidth,h=innerHeight;renderer.setSize(w,h);
   World.camera.aspect=w/h;World.camera.updateProjectionMatrix();
   if(G&&G.camera){G.camera.aspect=w/h;G.camera.updateProjectionMatrix();if(G.resize)G.resize();}
+  rotateHint();
 }
 addEventListener('resize',onResize);addEventListener('orientationchange',()=>setTimeout(onResize,300));
 
