@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#231a5c">
+<title>問問星球 Question Planet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+HK:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<style>
+:root{
+  --ink:#2b2350; --muted:#6b6590; --purple:#6c4ee3; --purple2:#8b6cff; --pink:#ff6fa8; --yellow:#ffd23f;
+  --green:#22b573; --blue:#3fa9f5; --orange:#ff9f1c; --red:#ef476f; --card:rgba(255,255,255,.94);
+  --hdr:64px; --tk:48px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:'Noto Sans HK','Baloo 2',system-ui,-apple-system,"PingFang HK",sans-serif;
+  color:var(--ink);
+  background:radial-gradient(1200px 800px at 70% 10%,#4b35b5 0%,#2a1f72 45%,#140f3d 100%) fixed;
+  -webkit-tap-highlight-color:transparent; overscroll-behavior-y:none;
+  -webkit-text-size-adjust:100%;
+}
+#bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block}
+button{font-family:inherit;color:inherit}
+/* ---------- header ---------- */
+header{
+  position:fixed;top:0;left:0;right:0;z-index:30;display:flex;align-items:center;gap:8px;
+  padding:calc(env(safe-area-inset-top) + 8px) 12px 8px; min-height:var(--hdr);
+  background:linear-gradient(180deg,rgba(20,14,60,.85),rgba(20,14,60,.55));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:#fff;
+}
+.brand{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.brand .logo{font-size:34px;filter:drop-shadow(0 3px 0 rgba(0,0,0,.3))}
+.brand b{font-size:20px;font-weight:900;letter-spacing:1px;display:block;line-height:1.1}
+.brand small{font-family:'Baloo 2';opacity:.8;font-size:13px}
+.hspace{flex:1}
+.hbtn{background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.25);color:#fff;border-radius:14px;min-width:46px;height:46px;font-size:20px;font-weight:800;cursor:pointer;padding:0 10px}
+.hbtn:active{transform:scale(.94)}
+.starbox{display:flex;align-items:center;gap:6px;background:rgba(255,210,63,.18);border:2px solid rgba(255,210,63,.6);border-radius:16px;padding:4px 10px;height:46px}
+.starbox b{font-size:20px;color:var(--yellow)}
+.starbox small{font-size:12px;opacity:.9;max-width:92px;line-height:1.1}
+.starbox.bump{animation:bump .6s}
+@keyframes bump{30%{transform:scale(1.25) rotate(-6deg)}60%{transform:scale(.95)}}
+/* ---------- layout ---------- */
+main{position:relative;z-index:10;max-width:800px;margin:0 auto;padding:calc(var(--hdr) + env(safe-area-inset-top) + 16px) 14px calc(var(--tk) + 40px + env(safe-area-inset-bottom))}
+@media (min-width:900px) and (min-aspect-ratio:5/4){ main{margin-left:max(24px,4vw);max-width:min(780px,60vw)} }
+.card{background:var(--card);border-radius:26px;padding:20px;margin-bottom:16px;box-shadow:0 12px 30px rgba(0,0,0,.28);border:3px solid #fff;position:relative}
+h1,h2,h3,h4{margin:0 0 10px}
+h2{font-size:26px;font-weight:900}
+p{line-height:1.65;margin:6px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+/* ---------- buttons ---------- */
+.btn{border:none;border-radius:18px;padding:12px 20px;font-size:18px;font-weight:800;min-height:52px;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.2);transition:transform .08s;color:#fff;background:var(--purple)}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.btn:disabled{opacity:.5}
+.btn-yellow{background:var(--yellow);color:#3a2c00}
+.btn-green{background:var(--green)}
+.btn-pink{background:var(--pink)}
+.btn-blue{background:var(--blue)}
+.btn-ghost{background:#efeafd;color:var(--purple);box-shadow:0 4px 0 #d6cdf7}
+.btn-big{font-size:22px;padding:16px 26px;min-height:64px;width:100%}
+.spk{flex:none;width:48px;height:48px;border-radius:50%;border:none;background:var(--yellow);font-size:24px;cursor:pointer;box-shadow:0 4px 0 #d8a800;display:inline-grid;place-items:center;vertical-align:middle}
+.spk:active{transform:translateY(2px);box-shadow:0 2px 0 #d8a800}
+.spk.big{width:64px;height:64px;font-size:32px}
+.spk.sm{width:38px;height:38px;font-size:18px}
+.spk.playing{animation:pulse 1s infinite;background:#ff9f1c}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,159,28,.7)}100%{box-shadow:0 0 0 18px rgba(255,159,28,0)}}
+.chip{border:2px solid #d8cff9;background:#fff;border-radius:999px;padding:8px 14px;font-size:16px;font-weight:700;cursor:pointer;min-height:42px}
+.chip.on{background:var(--purple);color:#fff;border-color:var(--purple)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+/* ---------- home ---------- */
+.hero-row{display:flex;gap:14px;align-items:center}
+.owl2d{font-size:64px;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+.bubble{flex:1;background:#f4f0ff;border-radius:20px;padding:12px 16px;position:relative}
+.bubble b{font-size:20px}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:14px;justify-content:center}
+.step{background:#eef7ff;border-radius:14px;padding:8px 12px;font-weight:800;font-size:17px}
+.step.hot{background:linear-gradient(135deg,var(--yellow),var(--orange));color:#3a2200;transform:scale(1.12);box-shadow:0 0 0 4px rgba(255,210,63,.35);animation:glow 1.6s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 10px rgba(255,210,63,.1)}}
+.arr{color:#aaa;font-weight:900}
+.menu{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:520px){.menu{grid-template-columns:1fr}}
+.mcard{border-radius:26px;padding:18px;color:#fff;cursor:pointer;position:relative;min-height:170px;box-shadow:0 8px 0 rgba(0,0,0,.18),0 14px 30px rgba(0,0,0,.25);transition:transform .15s;border:3px solid rgba(255,255,255,.6)}
+.mcard:active{transform:scale(.97)}
+.mcard .me{font-size:52px;line-height:1}
+.mcard h3{font-size:24px;font-weight:900;margin:8px 0 4px}
+.mcard p{margin:0;opacity:.95;font-size:16px;padding-right:50px}
+.mcard .spk{position:absolute;right:14px;bottom:14px}
+.mcard .badge{position:absolute;top:12px;right:14px;background:rgba(0,0,0,.25);border-radius:10px;padding:2px 8px;font-size:13px;font-weight:800}
+.c1{background:linear-gradient(135deg,#ff8a5b,#ff5e8a)}
+.c2{background:linear-gradient(135deg,#3fc1f5,#3f7cf5)}
+.c3{background:linear-gradient(135deg,#8b6cff,#5b3fd6)}
+.c4{background:linear-gradient(135deg,#2ec27e,#1a9c8c)}
+/* ---------- learn ---------- */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch}
+.tab{flex:none;border:none;border-radius:16px;padding:10px 14px;font-size:22px;background:rgba(255,255,255,.8);cursor:pointer;position:relative}
+.tab.on{background:var(--yellow);transform:scale(1.08)}
+.tab .ok{position:absolute;top:-6px;right:-6px;font-size:14px;background:var(--green);color:#fff;border-radius:50%;width:20px;height:20px;display:grid;place-items:center}
+.lesson-emoji{font-size:72px;text-align:center;animation:bob 2.6s infinite}
+.lesson-title{display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap}
+.lesson-title h2{margin:0}
+.lesson-body{font-size:20px;line-height:1.8}
+.example{background:#fff8dd;border:3px dashed var(--yellow);border-radius:20px;padding:14px;margin-top:12px;display:flex;gap:10px;align-items:flex-start;font-size:18px}
+.example b{display:block;color:#b27b00}
+/* ---------- game ---------- */
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.dots i{width:14px;height:14px;border-radius:50%;background:#ddd}
+.dots i.done{background:var(--green)} .dots i.bad{background:var(--red)} .dots i.cur{background:var(--purple);transform:scale(1.3)}
+.goalbox{background:#e9f7ef;border-radius:18px;padding:12px 14px;font-size:19px;font-weight:700;margin-bottom:10px;display:flex;gap:10px;align-items:center}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border:3px solid #e4ddfb;background:#fff;border-radius:20px;padding:14px;margin:10px 0;font-size:19px;cursor:pointer;min-height:64px;font-weight:600}
+.opt .lt{flex:none;width:40px;height:40px;border-radius:12px;background:#efeafd;color:var(--purple);display:grid;place-items:center;font-weight:900;font-family:'Baloo 2'}
+.opt.right{border-color:var(--green);background:#e8fbf1}
+.opt.right .lt{background:var(--green);color:#fff}
+.opt.wrong{border-color:var(--red);background:#fff0f3}
+.opt.wrong .lt{background:var(--red);color:#fff}
+.feedback{border-radius:20px;padding:14px;margin-top:8px;font-size:18px;display:flex;gap:10px;align-items:flex-start}
+.feedback.good{background:#e8fbf1} .feedback.bad{background:#fff4e0}
+.bigscore{font-size:64px;font-weight:900;text-align:center;color:var(--purple);font-family:'Baloo 2'}
+/* ---------- lab ---------- */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.scard{border:3px solid #eee;background:#fff;border-radius:22px;padding:14px;cursor:pointer;position:relative;min-height:140px;text-align:left}
+.scard.on{border-color:var(--purple);background:#f4f0ff;box-shadow:0 0 0 4px rgba(108,78,227,.2)}
+.scard .se{font-size:44px}
+.scard b{display:block;font-size:18px;margin-top:6px}
+.scard .spk{position:absolute;top:10px;right:10px}
+textarea,input,select{font-family:inherit;font-size:18px;border:3px solid #e1d9fb;border-radius:16px;padding:12px 14px;width:100%;background:#fff;color:var(--ink);outline:none}
+textarea:focus,input:focus,select:focus{border-color:var(--purple2)}
+textarea{min-height:96px;resize:vertical;line-height:1.5}
+.qwrap{position:relative}
+.mic{position:absolute;right:10px;bottom:12px;width:46px;height:46px;border-radius:50%;border:none;background:var(--pink);color:#fff;font-size:22px;cursor:pointer}
+.mic.rec{animation:pulse 1s infinite;background:var(--red)}
+.label{font-weight:900;font-size:19px;display:flex;align-items:center;gap:10px;margin:14px 0 8px;flex-wrap:wrap}
+.goal-hdr{display:flex;gap:12px;align-items:center}
+.goal-hdr .se{font-size:52px}
+.kid{display:flex;justify-content:flex-end;margin:14px 0 8px}
+.kid .kb{background:linear-gradient(135deg,var(--blue),#5a8cff);color:#fff;border-radius:22px 22px 6px 22px;padding:12px 16px;max-width:88%;font-size:19px;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.kid .kb small{display:block;opacity:.9;font-size:14px;margin-top:6px}
+.result{background:var(--card);border-radius:26px 26px 26px 8px;padding:18px;border:3px solid #fff;box-shadow:0 12px 30px rgba(0,0,0,.25);margin-bottom:10px}
+.res-top{display:flex;gap:14px;align-items:center}
+.ring{--p:0;--c:var(--green);flex:none;width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p) * 1%),#ece8f8 0);display:grid;place-items:center}
+.ring span{width:74px;height:74px;border-radius:50%;background:#fff;display:grid;place-items:center;font-family:'Baloo 2';font-weight:800;font-size:32px}
+.stars{font-size:24px;color:var(--yellow);letter-spacing:2px;text-shadow:0 2px 0 #c99a00}
+.stars .off{color:#ddd;text-shadow:none}
+.verdict{font-weight:800;font-size:19px;margin:4px 0}
+.tag{display:inline-block;background:#efeafd;color:var(--purple);border-radius:10px;padding:2px 10px;font-size:14px;font-weight:800}
+.dims{margin:14px 0 4px}
+.dim{display:grid;grid-template-columns:92px 1fr 26px;gap:8px;align-items:center;margin:6px 0;font-weight:700;font-size:15px}
+.bar{height:14px;background:#eee;border-radius:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:calc(var(--v) * 20%);background:linear-gradient(90deg,var(--blue),var(--purple2));border-radius:10px;transition:width .8s}
+.sec{border-radius:18px;padding:12px 14px;margin-top:10px}
+.sec h4{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:18px;margin:0 0 4px}
+.sec ul{margin:4px 0 0;padding-left:22px;font-size:17px;line-height:1.7}
+.s-good{background:#e8fbf1}.s-fix{background:#fff4e0}.s-soc{background:#f1ecff}.s-goal{background:#e6f5ff}.s-hint{background:#fffbe6}.s-ins{background:#fdeef5}.s-prog{background:#e9fff4;font-weight:700}
+.s-soc li{font-weight:700}
+.goalopt{display:block;width:100%;text-align:left;border:3px solid #cfe7fb;background:#fff;border-radius:16px;padding:10px 14px;margin:6px 0;font-size:17px;cursor:pointer;font-weight:600}
+.goalopt.on{border-color:var(--blue);background:var(--blue);color:#fff}
+details summary{cursor:pointer;font-weight:800;font-size:17px;padding:4px 0}
+pre.think{white-space:pre-wrap;word-break:break-word;background:#1d1640;color:#d9d0ff;border-radius:14px;padding:12px;font-size:13px;max-height:320px;overflow:auto}
+.thinking-card{text-align:center}
+.think-owl{font-size:60px;animation:bob 1s infinite}
+.live{background:#1d1640;color:#cfc4ff;border-radius:14px;padding:10px 12px;font-family:ui-monospace,Menlo,monospace;font-size:13px;height:84px;overflow:hidden;text-align:left;display:flex;align-items:flex-end;margin:10px 0;word-break:break-all}
+.live .c{color:#8ff0b8}
+.chosen{background:#e6f5ff;border-radius:14px;padding:8px 12px;font-weight:700;margin:6px 0}
+.summary-bars{display:flex;gap:10px;align-items:flex-end;height:150px;padding:10px 4px;border-bottom:3px solid #eee;margin:10px 0}
+.summary-bars div{flex:1;background:linear-gradient(0deg,var(--purple),var(--pink));border-radius:12px 12px 4px 4px;color:#fff;font-weight:900;text-align:center;font-family:'Baloo 2';padding-top:4px;min-height:28px}
+.notice{background:#fff4e0;border-radius:18px;padding:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+/* ---------- notebook ---------- */
+.nb-item{display:flex;gap:12px;align-items:center;border-bottom:2px dashed #eee;padding:12px 0;flex-wrap:wrap}
+.nb-item .se{font-size:40px}
+.nb-item .info{flex:1;min-width:160px}
+.nb-item .info b{font-size:18px}
+.cloudbox{background:#eef7ff;border-radius:18px;padding:14px;margin-top:12px}
+/* ---------- ticker ---------- */
+#ticker{position:fixed;left:0;right:0;bottom:0;z-index:40;height:calc(var(--tk) + env(safe-area-inset-bottom));padding:0 10px env(safe-area-inset-bottom);display:flex;align-items:center;gap:10px;background:rgba(18,12,52,.94);color:#fff;border-top:3px solid #3a2f7a;cursor:pointer}
+#ticker.stream{border-image:linear-gradient(90deg,var(--yellow),var(--pink),var(--blue),var(--green),var(--yellow)) 1;animation:hue 2s linear infinite}
+@keyframes hue{to{filter:hue-rotate(360deg)}}
+.dot{flex:none;width:14px;height:14px;border-radius:50%;background:#888;box-shadow:0 0 0 3px rgba(255,255,255,.1)}
+.dot.ok{background:var(--green);box-shadow:0 0 10px var(--green)}
+.dot.err{background:var(--red);box-shadow:0 0 10px var(--red)}
+.dot.stream{background:var(--yellow);animation:blink .6s infinite alternate}
+@keyframes blink{to{opacity:.3}}
+.tk-label{flex:none;font-weight:900;font-family:'Baloo 2';font-size:15px;opacity:.9}
+.tk-track{flex:1;overflow:hidden;height:100%;display:flex;align-items:center;justify-content:flex-end;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%);mask-image:linear-gradient(90deg,transparent,#000 10%)}
+.tk-text{white-space:nowrap;font-family:ui-monospace,Menlo,monospace;font-size:14px}
+.tk-text.r{color:#c9b8ff} .tk-text.c{color:#8ff0b8}
+.tk-text .cur{animation:blink .5s infinite alternate;color:var(--yellow)}
+.tk-track.idle{justify-content:flex-start}
+.tk-track.idle .tk-text{padding-left:100%;animation:marq 16s linear infinite;font-family:inherit;color:#fff}
+@keyframes marq{to{transform:translateX(-100%)}}
+.tk-stats{flex:none;font-size:12px;opacity:.85;font-family:ui-monospace,Menlo,monospace;text-align:right;line-height:1.2}
+@media (max-width:560px){.tk-stats{display:none}}
+.tk-btn{flex:none;background:rgba(255,255,255,.15);border:none;color:#fff;border-radius:10px;height:34px;min-width:34px;font-size:16px;cursor:pointer}
+#tkPanel{position:fixed;left:0;right:0;bottom:calc(var(--tk) + env(safe-area-inset-bottom));z-index:39;max-height:60vh;background:rgba(18,12,52,.97);color:#eee;transform:translateY(110%);transition:transform .3s;padding:12px;overflow:auto;border-top-left-radius:22px;border-top-right-radius:22px}
+#tkPanel.open{transform:none}
+.tkp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:700px){.tkp-grid{grid-template-columns:1fr}}
+.tkp-grid pre{white-space:pre-wrap;word-break:break-word;background:rgba(255,255,255,.06);border-radius:12px;padding:10px;font-size:13px;height:32vh;overflow:auto;margin:6px 0 0}
+#tkR{color:#c9b8ff}#tkC{color:#8ff0b8}
+#tkMeta{font-family:ui-monospace,Menlo,monospace;font-size:12px;opacity:.85;margin-top:8px}
+/* ---------- modal / toast ---------- */
+#modal{position:fixed;inset:0;z-index:60;background:rgba(10,6,30,.6);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top) + 20px) 12px 20px;overflow:auto;-webkit-overflow-scrolling:touch}
+#modal[hidden]{display:none}
+.modal-card{background:#fff;border-radius:26px;padding:20px;width:100%;max-width:640px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.mhead{display:flex;justify-content:space-between;align-items:center}
+.mhead .hbtn{background:#efeafd;color:var(--purple);border-color:#e1d9fb}
+.sgroup{border-top:2px dashed #eee;padding:14px 0}
+.sgroup h3{font-size:19px}
+.sgroup label{display:block;font-weight:700;margin:10px 0 4px;font-size:15px}
+.sgroup label input,.sgroup label select,.sgroup label textarea{margin-top:4px}
+label.chk{display:flex;gap:10px;align-items:center}
+label.chk input{width:24px;height:24px}
+.note{font-size:13px;color:var(--muted);line-height:1.5;margin:4px 0}
+.seg{display:flex;gap:8px}
+.seg button{flex:1}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 76px);transform:translateX(-50%) translateY(-20px);z-index:80;background:#fff;color:var(--ink);border-radius:18px;padding:12px 18px;font-weight:800;box-shadow:0 10px 30px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:.25s;max-width:92vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.fadein{animation:fadein .35s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(12px)}}
+.screen{pointer-events:none}.screen>*{pointer-events:auto}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<header>
+  <button class="hbtn" data-act="home" id="homeBtn" aria-label="Home">🏠</button>
+  <div class="brand" data-act="home"><span class="logo">🦉</span><div><b id="brandName">問問星球</b><small id="brandSub">Question Planet</small></div></div>
+  <div class="hspace"></div>
+  <div class="starbox" id="starBox"><span>⭐</span><b id="starCount">0</b><small id="levelName"></small></div>
+  <button class="hbtn" data-act="lang" id="langBtn">EN</button>
+  <button class="hbtn" data-act="settings" aria-label="Settings">⚙️</button>
+</header>
+
+<main id="view" class="screen"></main>
+
+<div id="tkPanel">
+  <div class="row" style="justify-content:space-between">
+    <b id="tkpTitle">📡 AI 直播</b>
+    <div class="row"><button class="tk-btn" data-act="stop">⏹</button><button class="tk-btn" data-act="copyStream">📋</button><button class="tk-btn" data-act="tkToggle">✕</button></div>
+  </div>
+  <div class="tkp-grid">
+    <div><b id="tkRLabel">💭 思考過程 reasoning</b><pre id="tkR"></pre></div>
+    <div><b id="tkCLabel">✍️ 輸出 content</b><pre id="tkC"></pre></div>
+  </div>
+  <div id="tkMeta"></div>
+</div>
+<div id="ticker" data-act="tkToggle">
+  <span class="dot" id="tkDot"></span>
+  <span class="tk-label">AI</span>
+  <div class="tk-track idle" id="tkTrack"><div class="tk-text" id="tkText"></div></div>
+  <span class="tk-stats" id="tkStats"></span>
+  <button class="tk-btn" id="tkArrow" aria-label="expand">▲</button>
+</div>
+
+<div id="modal" hidden><div class="modal-card" id="modalBody"></div></div>
+<div id="toast"></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+<script type="module">
+/* =========================================================
+   問問星球 Question Planet — a question-asking trainer for ages 6–12
+   Single file · Three.js · Cantonese / British English TTS
+   ========================================================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { toast('⚠️ Local Storage 滿咗 / full: ' + e.message); return false; } }
+};
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+/* ---------------- settings ---------------- */
+const DEFAULTS = {
+  lang: 'zh', nickname: '', age: '9-10',
+  baseUrl: 'https://api.z.ai/api/paas/v4', model: 'glm-5.3', apiKey: '',
+  maxTokens: 131072, effort: 'high', thinking: 'auto', temperature: 0.7,
+  autoRescue: true, saveReasoning: true,
+  ttsRate: 0.95, voiceZh: '', voiceEn: '', autoSpeak: true,
+  firebaseConfig: '', autoSync: true
+};
+let S = Object.assign({}, DEFAULTS, LS.get('qp_settings', {}));
+const saveS = () => LS.set('qp_settings', S);
+const L = (zh, en) => (S.lang === 'en' ? en : zh);
+
+let sessions = LS.get('qp_sessions', []);
+const saveSessions = () => LS.set('qp_sessions', sessions);
+let stars = LS.get('qp_stars', 0);
+let readLessons = LS.get('qp_read', []);
+const state = { screen: 'home', lesson: 0, game: null, cur: null, busy: false, chosenGoal: '', draftQ: null, draftC: '', pickScenario: null, viewId: null, error: null };
+
+/* ---------------- content ---------------- */
+const LESSONS = [
+  { e: '🔬',
+    zh: { t: '科學家嘅五步', b: '做科學家有五步：一、觀察；二、提問；三、動手做；四、求結果；五、分享。當中最重要嘅一步就係「提問」！問啱問題，就好似有個好嘅指南針，帶你行啱方向；問錯問題，就會行好多冤枉路。', ex: '觀察：「咦，點解窗邊嘅植物會向住窗嗰邊彎？」然後提問、做實驗、睇結果，最後同同學分享。' },
+    en: { t: 'The Five Steps of a Scientist', b: 'Scientists follow five steps: observe, ask, experiment, find the results, and share. The most important step is asking! A good question is like a compass that points you the right way. A muddled question can send you down the wrong path.', ex: 'Observe: "Hmm, why does the plant by the window lean towards the light?" Then ask, test, look at the results, and share with your class.' } },
+  { e: '🎯',
+    zh: { t: '先諗目標', b: '問問題之前，先問吓自己：「我真正想知道啲乜？我想做到啲乜？」有咗目標，先至問到啱嘅問題。', ex: '目標：想種出最高嘅豆苗。唔夠好：「豆苗係咩嚟㗎？」好問題：「每日淋幾多水，豆苗會生得最高？」' },
+    en: { t: 'Start with Your Goal', b: 'Before you ask, ask yourself: "What do I really want to find out? What do I want to achieve?" Once you know your goal, you can ask the right question.', ex: 'Goal: grow the tallest bean sprout. Not so good: "What is a bean sprout?" Great: "How much water each day makes a bean sprout grow the tallest?"' } },
+  { e: '✨',
+    zh: { t: '六個問題魔法字', b: '記住六個魔法字：邊個、乜嘢、幾時、邊度、點解、點樣。用佢哋開頭，問題就會變得清楚又有用。當中「點解」同「點樣」最啱用嚟做科學探究。', ex: '點解雪糕喺太陽底下溶得快啲？點樣可以令雪糕溶得慢啲？' },
+    en: { t: 'The Six Magic Question Words', b: 'Remember six magic words: who, what, when, where, why and how. Starting with them makes a question clear and useful. "Why" and "how" are brilliant for science investigations.', ex: 'Why does ice cream melt faster in the sun? How could we make it melt more slowly?' } },
+  { e: '🚪',
+    zh: { t: '開放同封閉問題', b: '封閉問題只可以答「係」或者「唔係」，好快就問完。開放問題可以有好多答案，會令你諗得更多、學得更多。', ex: '封閉問題：「你鍾唔鍾意狗？」開放問題：「點解好多人鍾意養狗？」' },
+    en: { t: 'Open and Closed Questions', b: 'A closed question can only be answered with "yes" or "no", so it finishes quickly. An open question can have lots of answers, so it helps you think more and learn more.', ex: 'Closed: "Do you like dogs?" Open: "Why do so many people like keeping dogs?"' } },
+  { e: '🔎',
+    zh: { t: '講清楚、講具體', b: '模糊嘅問題，令人唔知你想問乜。講清楚「乜嘢」、「邊度」、「幾時」，問題就會具體好多。', ex: '模糊：「點解會咁？」具體：「點解雪糕放喺太陽底下，五分鐘就溶晒？」' },
+    en: { t: 'Be Clear and Specific', b: 'A fuzzy question leaves people guessing. Say what, where and when, and your question becomes much more specific.', ex: 'Fuzzy: "Why does that happen?" Specific: "Why does ice cream melt completely in five minutes in the sun?"' } },
+  { e: '🧪',
+    zh: { t: '可以動手搵答案', b: '好嘅科學問題，係可以透過觀察、做實驗、量度或者搵資料去搵答案嘅。試吓問自己：「我可以點樣試吓？我要比較啲乜？」', ex: '「黑色杯同白色杯放喺太陽底下，邊隻入面嘅水會熱得快啲？」' },
+    en: { t: 'A Question You Can Test', b: 'A good science question is one you can answer by observing, experimenting, measuring or looking things up. Ask yourself: "How could I test this? What would I compare?"', ex: '"If I leave a black cup and a white cup of water in the sun, which one warms up faster?"' } },
+  { e: '🦉',
+    zh: { t: '蘇格拉底反問法', b: '好耐以前，有個叫蘇格拉底嘅哲學家，佢鍾意用反問幫人諗清楚。問問博士都會咁做：佢唔會直接話你知答案，而係會問你：「你講嘅『好』係咩意思？」「你點知㗎？」「你係想知原因，定係想知方法？」你答完，條問題就會變得更好！', ex: '你：「點樣可以變叻啲？」博士：「你想喺邊方面變叻？數學、畫畫，定係踢波？」' },
+    en: { t: 'Socratic Questioning', b: 'Long ago, a philosopher called Socrates helped people think clearly by asking them questions back. Dr Hoot does the same! Instead of giving you the answer, Dr Hoot might ask: "What do you mean by good?" "How do you know?" "Do you want to know why, or how?" Once you answer, your question gets even better!', ex: 'You: "How can I get better?" Dr Hoot: "Better at what — maths, drawing or football?"' } }
+];
+
+const GAME = [
+  { a: 1, zh: { o: ['天空係咩色㗎？', '點解日頭嘅天空係藍色，但日落嗰陣會變橙紅色？'], w: '第二條講清楚你想知嘅嘢（點解會變色），仲可以帶你去觀察同探究，所以更好！' },
+          en: { o: ['What colour is the sky?', 'Why is the sky blue in the daytime but orange and red at sunset?'], w: 'The second one says exactly what you want to find out (why the colour changes), and you can investigate it by observing. Much better!' } },
+  { a: 1, zh: { o: ['點樣令豆苗生得好啲？', '每日淋幾多水，會令豆苗生得最高？'], w: '「好啲」好模糊；第二條講明要比較「水量」同「高度」，可以做實驗！' },
+          en: { o: ['How can I make my bean sprout better?', 'How much water each day makes a bean sprout grow the tallest?'], w: '"Better" is vague. The second question compares the amount of water with the height, so you can test it!' } },
+  { a: 1, zh: { o: ['狗仔好唔好？', '養狗仔可以幫到一個家庭啲乜？'], w: '「好唔好」只可以答係或者唔係，又唔清楚；第二條係開放問題，可以有好多答案。' },
+          en: { o: ['Are dogs good?', 'How can keeping a dog help a family?'], w: '"Are dogs good?" is closed and unclear. The second is an open question with lots of possible answers.' } },
+  { a: 0, zh: { o: ['點解雪糕放喺太陽底下會溶得咁快？', '雪糕好唔好食？'], w: '第一條可以探究原因；第二條只係問口味，每個人答案都唔同，唔係科學問題。' },
+          en: { o: ['Why does ice cream melt so quickly in the sun?', 'Is ice cream yummy?'], w: "The first can be investigated. The second is just about taste, which is different for everyone, so it isn't a science question." } },
+  { a: 1, zh: { o: ['恐龍係咪好大㗎？', '點解有啲恐龍生得好大，有啲又好細？'], w: '第一條係封閉問題；第二條要你比較同諗原因，更有深度！' },
+          en: { o: ['Were dinosaurs big?', 'Why were some dinosaurs enormous while others were tiny?'], w: 'The first is closed. The second asks you to compare and think about reasons — much deeper!' } },
+  { a: 1, zh: { o: ['點解會咁？', '點解放喺窗邊嘅植物，葉會向住窗嗰邊彎？'], w: '「點解會咁」冇講「咁」係乜；第二條講清楚你觀察到咩，人哋一聽就明。' },
+          en: { o: ['Why does it do that?', 'Why do the leaves of a plant by the window bend towards the glass?'], w: '"Why does it do that?" doesn\'t say what "it" is. The second explains what you observed, so anyone can understand it.' } },
+  { a: 1, zh: { g: '你想跑得快啲', o: ['邊個係全世界跑得最快嘅人？', '每日跳繩十分鐘，會唔會令我跑得快啲？', '跑步鞋有咩顏色？'], w: '第二條同你嘅目標有關，仲可以自己試吓、量度吓！' },
+          en: { g: 'You want to run faster', o: ['Who is the fastest runner in the world?', 'Will skipping for ten minutes a day help me run faster?', 'What colours do trainers come in?'], w: 'The second question links to your goal, and you can test and measure it yourself!' } },
+  { a: 1, zh: { g: '你想保持牙齒健康', o: ['一支牙刷幾多錢？', '每次刷牙要刷幾耐，先可以刷得乾淨？', '你鍾唔鍾意刷牙？'], w: '第二條幫到你達成目標，又好具體（刷幾耐）。' },
+          en: { g: 'You want to keep your teeth healthy', o: ['How much does a toothbrush cost?', 'How long should I brush my teeth to get them properly clean?', 'Do you like brushing your teeth?'], w: 'The second one helps you reach your goal and is specific (how long).' } },
+  { a: 1, zh: { g: '你想知道魚點樣喺水入面呼吸', o: ['魚會唔會瞓覺？', '魚用身體邊個部分喺水入面攞氧氣？', '邊種魚最靚？'], w: '只有第二條直接幫到你嘅目標：搵出魚點樣呼吸。' },
+          en: { g: 'You want to know how fish breathe underwater', o: ['Do fish sleep?', "Which part of a fish's body takes oxygen from the water?", 'Which fish is the prettiest?'], w: 'Only the second question helps with your goal: finding out how fish breathe.' } },
+  { a: 1, zh: { o: ['月亮會唔會變㗎？', '點解月亮每晚嘅形狀好似都唔同？'], w: '第二條講清楚你觀察到嘅現象，係一條好嘅「點解」問題。' },
+          en: { o: ['Does the Moon change?', 'Why does the Moon seem to be a different shape each night?'], w: 'The second describes what you noticed. It\'s a brilliant "why" question.' } },
+  { a: 1, zh: { g: '你想令紙飛機飛得遠啲', o: ['紙飛機喺邊度買？', '機翼摺闊啲定窄啲，紙飛機會飛得遠啲？', '你有冇搭過真飛機？'], w: '第二條可以做實驗：改變機翼，量度飛行距離！' },
+          en: { g: 'You want your paper aeroplane to fly further', o: ['Where can I buy a paper aeroplane?', 'Will wider or narrower wings make my paper aeroplane fly further?', 'Have you ever been on a real aeroplane?'], w: 'The second can be tested: change the wings and measure how far it flies!' } },
+  { a: 1, zh: { o: ['冰係咪好凍？', '點解將鹽灑喺冰上面，冰會溶得快啲？'], w: '第一條答案好明顯；第二條可以令你發現新知識。' },
+          en: { o: ['Is ice cold?', 'Why does ice melt faster when you sprinkle salt on it?'], w: 'The answer to the first is obvious. The second can lead you to discover something new.' } },
+  { a: 1, zh: { g: '你想學校少啲膠樽垃圾', o: ['膠樽係用咩整㗎？', '如果每個同學都帶水樽返學，每星期可以減少幾多個膠樽？', '你鍾意邊個牌子嘅水？'], w: '第二條貼合目標，仲可以數吓、量度吓成效！' },
+          en: { g: 'You want less plastic bottle rubbish at school', o: ['What are plastic bottles made of?', 'If every pupil brought a reusable bottle, how many plastic bottles could we save each week?', 'Which brand of water do you like?'], w: 'The second fits your goal, and you can count the results!' } }
+];
+
+const SCENARIOS = [
+  { id: 'sprout', e: '🌱', zh: { t: '豆苗實驗', g: '你想種出全班最高嘅豆苗。你會問咩問題，幫你搵出種豆苗嘅秘密？' }, en: { t: 'Bean Sprout Challenge', g: 'You want to grow the tallest bean sprout in your class. What question would help you discover the secret?' } },
+  { id: 'pet', e: '🐶', zh: { t: '揀寵物', g: '你屋企想養寵物，但未知揀邊隻好。你會問咩問題，幫你揀啱一隻寵物？' }, en: { t: 'Choosing a Pet', g: "Your family wants a pet but can't decide which one. What question would help you choose the right pet?" } },
+  { id: 'ball', e: '🏀', zh: { t: '射波高手', g: '你想喺班際籃球比賽射多啲入球。你會問咩問題，幫你練得更好？' }, en: { t: 'Shooting Star', g: 'You want to score more baskets in the inter-class match. What question would help you practise better?' } },
+  { id: 'rain', e: '🌧️', zh: { t: '落雨之謎', g: '你好想知道雨係點樣嚟嘅。你會問咩問題去研究？' }, en: { t: 'The Mystery of Rain', g: 'You really want to know where rain comes from. What question would you investigate?' } },
+  { id: 'ice', e: '🍦', zh: { t: '雪糕救援隊', g: '去旅行帶雪糕，好快就溶晒！你想雪糕唔好咁快溶，你會問咩問題？' }, en: { t: 'Ice Cream Rescue', g: "On a day out, your ice cream melts far too quickly! You want it to last longer. What question would you ask?" } },
+  { id: 'dino', e: '🦖', zh: { t: '恐龍偵探', g: '恐龍好多好多年前已經絕種。你想研究恐龍，你會問咩問題？' }, en: { t: 'Dinosaur Detective', g: 'Dinosaurs died out a very long time ago. You want to study them. What question would you ask?' } },
+  { id: 'moon', e: '🌙', zh: { t: '月亮變變變', g: '你發現月亮每晚嘅形狀都唔同。你會問咩問題去搵出原因？' }, en: { t: 'The Changing Moon', g: 'You notice the Moon looks a different shape every night. What question would help you find out why?' } },
+  { id: 'plastic', e: '♻️', zh: { t: '地球小衛士', g: '學校附近有好多膠樽垃圾。你想幫手減少垃圾，你會問咩問題？' }, en: { t: 'Planet Protector', g: 'There are lots of plastic bottles littering the area near your school. You want to help reduce the rubbish. What question would you ask?' } },
+  { id: 'free', e: '✏️', zh: { t: '自由發問', g: '你自己定一個目標，再問一條好問題！' }, en: { t: 'Free Question', g: 'Set your own goal, then ask a brilliant question!' } }
+];
+
+const TIPS = {
+  zh: ['問問題之前，記得先諗目標呀！', '試吓用「點解」或者「點樣」開頭！', '開放問題可以令你學到更多！', '講清楚啲，問題就會更好！', '好問題係可以動手搵答案㗎！', '唔明就問，問完再問，就係科學家嘅精神！'],
+  en: ['Before you ask, think about your goal!', 'Try starting with "why" or "how"!', 'Open questions help you learn more!', 'Be clear, and your question gets better!', 'A great question is one you can test!', 'Keep asking — that is how scientists think!']
+};
+const LEVELS = [0, 20, 60, 120, 250];
+const LEVEL_NAMES = { zh: ['好奇小豆苗', '問題小偵探', '小小科學家', '提問大師', '問題之星'], en: ['Curious Seedling', 'Question Detective', 'Young Scientist', 'Question Master', 'Question Superstar'] };
+const DIMS = ['clarity', 'goal', 'specific', 'explore', 'curious'];
+const DIM_NAMES = { zh: { clarity: '清晰', goal: '貼合目標', specific: '具體', explore: '可探究', curious: '好奇心' }, en: { clarity: 'Clarity', goal: 'Fits goal', specific: 'Specific', explore: 'Testable', curious: 'Curiosity' } };
+const TYPE_NAMES = { zh: { open: '開放式問題', closed: '封閉式問題', unclear: '未夠清楚', notQuestion: '未係問題' }, en: { open: 'Open question', closed: 'Closed question', unclear: 'Not clear yet', notQuestion: 'Not a question yet' } };
+
+/* ---------------- toast ---------------- */
+let toastT;
+function toast(msg, ms = 2600) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+/* =========================================================
+   Text-to-speech (Cantonese zh-HK / British English en-GB)
+   ========================================================= */
+let voices = [];
+const hasTTS = 'speechSynthesis' in window;
+function loadVoices() { if (hasTTS) voices = speechSynthesis.getVoices(); }
+if (hasTTS) { loadVoices(); speechSynthesis.onvoiceschanged = () => { loadVoices(); if (!$('#modal').hidden) fillVoices(); }; }
+const isZhText = t => { const cjk = (t.match(/[\u3400-\u9fff]/g) || []).length; const lat = (t.match(/[A-Za-z]/g) || []).length; return cjk * 3 >= lat; };
+function zhVoices() { return voices.filter(v => /zh[-_]HK|yue/i.test(v.lang) || /Cantonese|粵|廣東|Sin-?ji|Hong Kong/i.test(v.name)); }
+function enVoices() { return voices.filter(v => /^en[-_]GB/i.test(v.lang)).concat(voices.filter(v => /^en/i.test(v.lang) && !/^en[-_]GB/i.test(v.lang))); }
+function pickVoice(lang) {
+  const pref = lang === 'zh' ? S.voiceZh : S.voiceEn;
+  if (pref) { const v = voices.find(v => v.voiceURI === pref); if (v) return v; }
+  return (lang === 'zh' ? zhVoices() : enVoices())[0] || null;
+}
+function chunkText(t) {
+  const parts = t.replace(/([。！？!?；;\n])/g, '$1\u0001').split('\u0001'); const out = []; let cur = '';
+  for (const p of parts) { if ((cur + p).length > 110 && cur) { out.push(cur); cur = p; } else cur += p; }
+  if (cur.trim()) out.push(cur);
+  return out.flatMap(c => c.length > 180 ? c.match(/.{1,160}(\s|，|,|$)/g) || [c] : [c]).filter(s => s.trim());
+}
+let speakingBtn = null, speakGen = 0;
+function stopSpeak() {
+  speakGen++;
+  if (hasTTS) speechSynthesis.cancel();
+  if (speakingBtn) speakingBtn.classList.remove('playing');
+  speakingBtn = null; scene3d?.setTalking(false);
+}
+function speak(text, btn) {
+  if (!hasTTS) { toast(L('呢部機唔支援語音朗讀', 'Speech is not supported on this device')); return; }
+  if (btn && speakingBtn === btn) { stopSpeak(); return; }
+  const wasSpeaking = speechSynthesis.speaking || speechSynthesis.pending;
+  stopSpeak();
+  const clean = String(text).replace(/\p{Extended_Pictographic}|\uFE0F|\u200D/gu, '').replace(/[*#_`>|]/g, '').replace(/\s+/g, ' ').trim();
+  if (!clean) return;
+  const lang = isZhText(clean) ? 'zh' : 'en';
+  const v = pickVoice(lang);
+  if (lang === 'zh' && !v && !speak.warned) { speak.warned = true; toast(L('搵唔到廣東話聲音，請睇 ⚙️ 設定入面嘅語音提示', 'No Cantonese voice found — see tips in ⚙️ Settings'), 4000); }
+  const gen = speakGen; speakingBtn = btn || null; btn?.classList.add('playing'); scene3d?.setTalking(true);
+  const go = () => {
+    if (gen !== speakGen) return;
+    const chunks = chunkText(clean);
+    chunks.forEach((c, i) => {
+      const u = new SpeechSynthesisUtterance(c);
+      u.lang = lang === 'zh' ? 'zh-HK' : 'en-GB'; if (v) u.voice = v;
+      u.rate = S.ttsRate; u.pitch = 1.05;
+      if (i === chunks.length - 1) u.onend = u.onerror = () => { if (gen === speakGen) { btn?.classList.remove('playing'); speakingBtn = null; scene3d?.setTalking(false); } };
+      speechSynthesis.speak(u);
+    });
+  };
+  wasSpeaking ? setTimeout(go, 80) : go();
+}
+// iOS: unlock speech on first touch
+document.addEventListener('pointerdown', () => { if (hasTTS) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } }, { once: true });
+
+const SAY = [];
+const spk = (text, cls = '') => { if (!text) return ''; SAY.push(text); return `<button class="spk ${cls}" data-act="say" data-i="${SAY.length - 1}" aria-label="listen">🔊</button>`; };
+
+/* ---------------- speech recognition (optional) ---------------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+function toggleMic(btn) {
+  const ta = $('#' + btn.dataset.target); if (!SR || !ta) return;
+  if (rec) { rec.stop(); return; }
+  rec = new SR(); rec.lang = S.lang === 'en' ? 'en-GB' : 'zh-HK'; rec.interimResults = true; rec.continuous = false;
+  const base = ta.value;
+  rec.onresult = e => { let s = ''; for (const r of e.results) s += r[0].transcript; ta.value = (base ? base + ' ' : '') + s; };
+  rec.onerror = e => toast('🎤 ' + e.error);
+  rec.onend = () => { btn.classList.remove('rec'); rec = null; };
+  btn.classList.add('rec'); stopSpeak(); rec.start();
+}
+const micBtn = id => SR ? `<button class="mic" data-act="mic" data-target="${id}" aria-label="mic">🎤</button>` : '';
+
+/* =========================================================
+   Three.js scene — Question Planet + Dr Hoot the owl
+   ========================================================= */
+let scene3d = null;
+async function init3D() {
+  let THREE;
+  try { THREE = await import('three'); } catch (e) { console.warn('Three.js failed to load', e); return; }
+  const canvas = $('#bg');
+  let renderer;
+  try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' }); } catch (e) { console.warn(e); return; }
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 300);
+  camera.position.set(0, 1.2, 14);
+  scene.add(new THREE.HemisphereLight(0xfff6e0, 0x5a3cb0, 1.4));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.7); sun.position.set(6, 10, 8); scene.add(sun);
+  const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.7, ...o });
+
+  const world = new THREE.Group(); scene.add(world);
+
+  // planet
+  const planet = new THREE.Group(); world.add(planet);
+  const pg = new THREE.IcosahedronGeometry(2.6, 3);
+  const pos = pg.attributes.position, v3 = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) { v3.fromBufferAttribute(pos, i); const k = 1 + (Math.sin(v3.x * 3) + Math.cos(v3.y * 4) + Math.sin(v3.z * 5)) * 0.018; v3.multiplyScalar(k); pos.setXYZ(i, v3.x, v3.y, v3.z); }
+  pg.computeVertexNormals();
+  planet.add(new THREE.Mesh(pg, M(0x6fd3a0, { flatShading: true })));
+  // decorations on surface
+  const up = new THREE.Vector3(0, 1, 0);
+  const treeM = M(0x2e9e6b, { flatShading: true }), trunkM = M(0x8a5a36), mushM = M(0xff6f8e), dotM = M(0xffffff), flowerM = M(0xffd23f);
+  for (let i = 0; i < 26; i++) {
+    const n = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1).normalize();
+    if (n.y > 0.78) continue;
+    const g = new THREE.Group(); const kind = i % 3;
+    if (kind === 0) { const tr = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.3, 6), trunkM); tr.position.y = 0.15; g.add(tr); const c = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.6, 7), treeM); c.position.y = 0.55; g.add(c); }
+    else if (kind === 1) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.06, 0.2, 6), dotM); st.position.y = 0.1; g.add(st); const cap = new THREE.Mesh(new THREE.SphereGeometry(0.17, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), mushM); cap.position.y = 0.2; g.add(cap); }
+    else { const f = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1, 0), flowerM); f.position.y = 0.12; g.add(f); }
+    g.position.copy(n).multiplyScalar(2.58); g.quaternion.setFromUnitVectors(up, n); planet.add(g);
+  }
+  // ring
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.9, 0.07, 8, 96), M(0xffd23f, { emissive: 0x6a4a00, emissiveIntensity: 0.6 }));
+  ring.rotation.x = 1.25; world.add(ring);
+  const moon = new THREE.Mesh(new THREE.IcosahedronGeometry(0.35, 1), M(0xbfd8ff, { flatShading: true })); world.add(moon);
+
+  // owl
+  function makeOwl() {
+    const g = new THREE.Group();
+    const brown = M(0x9b6b43), belly = M(0xf3d9b1), white = M(0xffffff, { roughness: 0.3 }), black = M(0x1c1c2a, { roughness: 0.2 }), orange = M(0xffa531), capM = M(0x2b2350);
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 28, 20), brown); body.scale.set(1, 1.15, 0.95); g.add(body);
+    const bel = new THREE.Mesh(new THREE.SphereGeometry(0.66, 24, 18), belly); bel.position.set(0, -0.15, 0.45); bel.scale.set(1, 1.1, 0.6); g.add(bel);
+    const head = new THREE.Group(); head.position.y = 1.05; g.add(head);
+    const hm = new THREE.Mesh(new THREE.SphereGeometry(0.74, 28, 20), brown); hm.scale.set(1.12, 0.95, 1); head.add(hm);
+    const face = new THREE.Mesh(new THREE.SphereGeometry(0.6, 24, 18), belly); face.position.set(0, -0.02, 0.32); face.scale.set(1.2, 0.85, 0.6); head.add(face);
+    const eyes = [];
+    for (const s of [-1, 1]) {
+      const ew = new THREE.Mesh(new THREE.SphereGeometry(0.25, 20, 16), white); ew.position.set(s * 0.29, 0.06, 0.62); head.add(ew);
+      const pu = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 12), black); pu.position.set(s * 0.29, 0.06, 0.84); head.add(pu);
+      const hl = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), white); hl.position.set(s * 0.29 + 0.04, 0.11, 0.95); head.add(hl);
+      eyes.push(ew, pu, hl);
+      const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.42, 8), brown); tuft.position.set(s * 0.52, 0.62, 0); tuft.rotation.z = -s * 0.45; head.add(tuft);
+    }
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.26, 8), orange); beak.position.set(0, -0.14, 0.8); beak.rotation.x = Math.PI + 0.35; head.add(beak);
+    const board = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.07, 1.0), capM); board.position.y = 0.78; board.rotation.y = Math.PI / 4; head.add(board);
+    const capBase = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.42, 0.22, 16), capM); capBase.position.y = 0.66; head.add(capBase);
+    const tassel = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), M(0xffd23f)); tassel.position.set(0.42, 0.72, 0.1); head.add(tassel);
+    const wings = [];
+    for (const s of [-1, 1]) {
+      const pivot = new THREE.Group(); pivot.position.set(s * 0.82, 0.25, 0); g.add(pivot);
+      const w = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), M(0x7d5232)); w.scale.set(0.35, 0.95, 0.6); w.position.y = -0.4; pivot.add(w);
+      wings.push(pivot);
+      const foot = new THREE.Mesh(new THREE.SphereGeometry(0.14, 10, 8), orange); foot.position.set(s * 0.32, -1.02, 0.32); foot.scale.set(1.2, 0.5, 1.4); g.add(foot);
+    }
+    return { g, head, eyes, wings };
+  }
+  const owl = makeOwl(); owl.g.scale.setScalar(0.78);
+  const OWL_Y = 3.35; owl.g.position.set(0, OWL_Y, 0.2); world.add(owl.g);
+  const thinkRing = new THREE.Mesh(new THREE.TorusGeometry(1.35, 0.05, 8, 64), new THREE.MeshBasicMaterial({ color: 0x7ff0ff, transparent: true, opacity: 0.85 }));
+  thinkRing.position.copy(owl.g.position); thinkRing.visible = false; world.add(thinkRing);
+  const thinkRing2 = thinkRing.clone(); thinkRing2.scale.setScalar(0.75); world.add(thinkRing2);
+
+  // orbiting question marks
+  function makeQ(color) {
+    const g = new THREE.Group(); const m = M(color, { emissive: color, emissiveIntensity: 0.3 });
+    const arc = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.1, 10, 28, Math.PI * 1.5), m); arc.rotation.z = -Math.PI / 2; arc.position.y = 0.45; g.add(arc);
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.3, 10), m); stem.position.y = 0; g.add(stem);
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), m); dot.position.y = -0.38; g.add(dot);
+    return g;
+  }
+  const qGroup = new THREE.Group(); world.add(qGroup);
+  const qColors = [0xff6fa8, 0x3fa9f5, 0xffd23f, 0x8b6cff, 0xff9f1c, 0x2ec27e];
+  const qs = qColors.map((c, i) => { const q = makeQ(c); const a = i / qColors.length * Math.PI * 2; q.userData.y = Math.sin(i * 1.7) * 1.2; q.position.set(Math.cos(a) * 4.7, q.userData.y, Math.sin(a) * 4.7); q.scale.setScalar(0.9); qGroup.add(q); return q; });
+
+  // background stars
+  const sg = new THREE.BufferGeometry(); const sp = [];
+  for (let i = 0; i < 700; i++) { const r = 40 + Math.random() * 60, th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * 2 - 1); sp.push(r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), -Math.abs(r * Math.sin(ph) * Math.sin(th)) - 10); }
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
+  const starPts = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35, transparent: true, opacity: 0.9 })); scene.add(starPts);
+
+  // confetti pool
+  const confMats = qColors.map(c => new THREE.MeshBasicMaterial({ color: c, side: THREE.DoubleSide }));
+  const confGeo = new THREE.PlaneGeometry(0.16, 0.24);
+  const conf = [];
+  for (let i = 0; i < 160; i++) { const m = new THREE.Mesh(confGeo, confMats[i % confMats.length]); m.visible = false; world.add(m); conf.push({ m, v: new THREE.Vector3(), life: 0, spin: new THREE.Vector3() }); }
+
+  let mood = 'idle', moodT = 0, jumpT = 0, talking = false, blinkT = 2, elapsed = 0;
+  const clock = new THREE.Clock();
+
+  function layout() {
+    const w = innerWidth, h = innerHeight;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    const halfH = Math.tan(THREE.MathUtils.degToRad(22.5)) * camera.position.z, halfW = halfH * camera.aspect;
+    if (w >= 900 && w / h >= 1.25) { world.position.set(halfW * 0.62, -0.9, 0); world.scale.setScalar(1); }
+    else { world.position.set(halfW * 0.3, -halfH * 0.55, -3); world.scale.setScalar(0.85); }
+  }
+  addEventListener('resize', layout); layout();
+
+  renderer.setAnimationLoop(() => {
+    if (document.hidden) return;
+    const dt = Math.min(clock.getDelta(), 0.05); elapsed += dt; const t = elapsed;
+    planet.rotation.y += dt * 0.12; ring.rotation.z += dt * 0.15;
+    moon.position.set(Math.cos(t * 0.4) * 5.6, Math.sin(t * 0.4) * 1.5 + 0.5, Math.sin(t * 0.4) * 5.6);
+    qGroup.rotation.y += dt * 0.28;
+    qs.forEach((q, i) => { q.rotation.y += dt * 1.3; q.position.y = q.userData.y + Math.sin(t * 1.5 + i) * 0.25; });
+    starPts.rotation.z += dt * 0.004;
+    if (moodT > 0) { moodT -= dt; if (moodT <= 0) mood = 'idle'; }
+    let y = OWL_Y + Math.sin(t * 2) * 0.06;
+    if (jumpT > 0) { jumpT -= dt; y += Math.sin((1 - jumpT / 0.8) * Math.PI) * 1.1; }
+    owl.g.position.y = y;
+    let tilt = 0, yaw = Math.sin(t * 0.5) * 0.25, nod = 0;
+    if (mood === 'thinking') { tilt = Math.sin(t * 2.5) * 0.28; yaw = Math.sin(t * 1.2) * 0.6; }
+    if (mood === 'sad') tilt = 0.38;
+    if (talking) nod = Math.sin(t * 13) * 0.07;
+    owl.head.rotation.z += (tilt - owl.head.rotation.z) * 0.1;
+    owl.head.rotation.y += (yaw - owl.head.rotation.y) * 0.06;
+    owl.head.rotation.x = nod;
+    const flap = (mood === 'happy' || jumpT > 0) ? Math.abs(Math.sin(t * 18)) * 0.9 : Math.sin(t * 2) * 0.05;
+    owl.wings[0].rotation.z = -0.1 - flap; owl.wings[1].rotation.z = 0.1 + flap;
+    blinkT -= dt; if (blinkT < 0) blinkT = 2.5 + Math.random() * 3;
+    const bl = blinkT < 0.12 ? 0.1 : 1; owl.eyes.forEach(e => e.scale.y = bl);
+    thinkRing.visible = thinkRing2.visible = mood === 'thinking';
+    if (thinkRing.visible) {
+      thinkRing.position.y = thinkRing2.position.y = y + 0.4;
+      thinkRing.rotation.x = t * 2; thinkRing.rotation.y = t * 1.3; thinkRing2.rotation.x = -t * 2.4; thinkRing2.rotation.z = t;
+      thinkRing.material.opacity = 0.5 + Math.sin(t * 6) * 0.35;
+    }
+    for (const c of conf) {
+      if (c.life <= 0) continue;
+      c.life -= dt; c.v.y -= 6 * dt; c.m.position.addScaledVector(c.v, dt);
+      c.m.rotation.x += c.spin.x * dt; c.m.rotation.y += c.spin.y * dt;
+      if (c.life <= 0) c.m.visible = false;
+    }
+    renderer.render(scene, camera);
+  });
+
+  const ray = new THREE.Raycaster(), pt = new THREE.Vector2();
+  canvas.addEventListener('pointerdown', e => {
+    pt.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(pt, camera);
+    if (ray.intersectObject(owl.g, true).length) { api.hop(); const tips = TIPS[S.lang]; speak(tips[Math.floor(Math.random() * tips.length)]); }
+  });
+
+  const api = {
+    setMood(m, dur = 0) { mood = m; moodT = dur; },
+    hop() { jumpT = 0.8; },
+    setTalking(b) { talking = b; },
+    celebrate() {
+      jumpT = 0.8; mood = 'happy'; moodT = 3;
+      const o = owl.g.position;
+      conf.forEach(c => { c.m.visible = true; c.life = 2.2 + Math.random(); c.m.position.set(o.x, o.y + 0.6, o.z); c.v.set((Math.random() - 0.5) * 7, 4 + Math.random() * 5, (Math.random() - 0.5) * 7); c.spin.set(Math.random() * 10, Math.random() * 10, 0); });
+    }
+  };
+  scene3d = api;
+}
+
+/* =========================================================
+   Stars & header
+   ========================================================= */
+function levelIdx(n) { let i = 0; LEVELS.forEach((v, k) => { if (n >= v) i = k; }); return i; }
+function updateHeader() {
+  $('#starCount').textContent = stars;
+  $('#levelName').textContent = LEVEL_NAMES[S.lang][levelIdx(stars)];
+  $('#brandName').textContent = L('問問星球', 'Question Planet');
+  $('#brandSub').textContent = L('Question Planet', '問問星球');
+  $('#langBtn').textContent = S.lang === 'en' ? '中' : 'EN';
+  $('#homeBtn').style.display = state.screen === 'home' ? 'none' : '';
+  document.documentElement.lang = S.lang === 'en' ? 'en-GB' : 'zh-HK';
+  $('#tkpTitle').textContent = L('📡 AI 直播（即時睇 AI 諗緊乜）', '📡 AI live stream (see what the AI is thinking)');
+}
+function addStars(n) {
+  if (!n) return;
+  const before = levelIdx(stars);
+  stars += n; LS.set('qp_stars', stars); updateHeader();
+  const sb = $('#starBox'); sb.classList.remove('bump'); void sb.offsetWidth; sb.classList.add('bump');
+  if (levelIdx(stars) > before) { const name = LEVEL_NAMES[S.lang][levelIdx(stars)]; scene3d?.celebrate(); setTimeout(() => { toast(L(`🎉 升級！你而家係「${name}」！`, `🎉 Level up! You are now a ${name}!`), 3500); speak(L(`嘩！你升級喇！你而家係${name}！`, `Wow! You levelled up! You are now a ${name}!`)); }, 600); }
+  cloudSaveProfile();
+}
+
+/* =========================================================
+   Router & render
+   ========================================================= */
+const view = $('#view');
+function go(screen) { stopSpeak(); state.screen = screen; state.error = null; render(); scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' }); }
+function render() {
+  updateHeader();
+  const fn = { home: renderHome, learn: renderLearn, game: renderGame, lab: renderLab, book: renderBook }[state.screen] || renderHome;
+  view.innerHTML = fn(); view.firstElementChild?.classList.add('fadein');
+}
+
+/* ---------------- HOME ---------------- */
+function renderHome() {
+  const n = S.nickname.trim();
+  const hello = L(`你好呀${n ? '，' + n : ''}！我係問問博士！`, `Hello${n ? ', ' + n : ''}! I'm Dr Hoot!`);
+  const steps = L('觀察,提問,動手做,求結果,分享', 'Observe,Ask,Experiment,Results,Share').split(',');
+  const speech = L(
+    `${hello}科學家最叻嘅本領，就係問好問題！做科學家有五步：觀察、提問、動手做、求結果、同埋分享。當中最重要嘅，就係提問。問啱問題，就好似有個指南針，帶你行啱方向；問錯問題，就會行好多冤枉路。今日我哋一齊學點樣問好問題啦！你可以去問題魔法書學秘訣，去好問題大挑戰玩遊戲贏星星，或者去問題實驗室，自己問問題，等我幫你評分同反問你。仲有，你撳吓我隻貓頭鷹，我會話你知小秘訣㗎！`,
+    `${hello} The best skill a scientist has is asking good questions! Scientists follow five steps: observe, ask, experiment, find the results, and share. The most important step is asking. A good question is like a compass that points you the right way. Today, let's learn how to ask brilliant questions together! Open the Question Spellbook to learn the secrets, play the Good Question Quest to win stars, or visit the Question Lab to ask your own questions — I'll score them and ask you questions back. And tap on me, the owl, for a secret tip!`);
+  const menu = [
+    ['learn', '📚', L('問題魔法書', 'Question Spellbook'), L('學識七個問好問題嘅秘訣', 'Learn seven secrets of great questions'), 'c1', `${readLessons.length}/${LESSONS.length}`],
+    ['game', '🎯', L('好問題大挑戰', 'Good Question Quest'), L('揀出邊條係好問題，贏星星！', 'Pick the best question and win stars!'), 'c2', ''],
+    ['lab', '🧪', L('問題實驗室', 'Question Lab'), L('自己問問題，問問博士幫你評分同反問你', 'Ask your own question — Dr Hoot scores it and asks you back'), 'c3', 'AI'],
+    ['book', '📒', L('我的問題簿', 'My Question Book'), L('睇返、儲存、匯出你嘅問題', 'Review, save and export your questions'), 'c4', String(sessions.length)]
+  ];
+  return `<div>
+  <section class="card">
+    <div class="hero-row"><div class="owl2d">🦉</div>
+      <div class="bubble"><b>${esc(hello)}</b><p>${L('一齊學識問好問題，做個小小科學家！撳🔊可以聽我講。', "Let's learn to ask brilliant questions and become young scientists! Tap 🔊 to hear me.")}</p></div>
+      ${spk(speech, 'big')}</div>
+    <div class="steps">${steps.map((s, i) => `<span class="step ${i === 1 ? 'hot' : ''}">${i === 1 ? '⭐ ' : ''}${esc(s)}</span>`).join('<span class="arr">➜</span>')}</div>
+  </section>
+  <section class="menu">
+    ${menu.map(([to, e, t, d, c, b]) => `<div class="mcard ${c}" data-act="go" data-to="${to}">${b ? `<span class="badge">${esc(b)}</span>` : ''}<div class="me">${e}</div><h3>${t}</h3><p>${d}</p>${spk(t + '。' + d)}</div>`).join('')}
+  </section></div>`;
+}
+
+/* ---------------- LEARN ---------------- */
+function renderLearn() {
+  const i = state.lesson, ls = LESSONS[i], c = ls[S.lang], read = readLessons.includes(i);
+  const all = `${c.t}。${c.b} ${L('例子', 'Example')}：${c.ex}`;
+  return `<div>
+  <section class="card"><div class="row" style="justify-content:space-between"><h2>${L('📚 問題魔法書', '📚 Question Spellbook')}</h2>${spk(L('歡迎嚟到問題魔法書！上面有七頁，每頁都係一個問好問題嘅秘訣。撳🔊可以聽講解，讀完撳「我明白喇」就有星星。', 'Welcome to the Question Spellbook! There are seven pages, and each one is a secret for asking great questions. Tap 🔊 to listen, then tap "I get it!" to earn a star.'), 'sm')}</div>
+    <div class="tabs">${LESSONS.map((l, k) => `<button class="tab ${k === i ? 'on' : ''}" data-act="lesson" data-i="${k}">${l.e}${readLessons.includes(k) ? '<span class="ok">✓</span>' : ''}</button>`).join('')}</div>
+  </section>
+  <section class="card">
+    <div class="lesson-emoji">${ls.e}</div>
+    <div class="lesson-title"><h2>${i + 1}. ${esc(c.t)}</h2>${spk(all, 'big')}</div>
+    <p class="lesson-body">${esc(c.b)}</p>
+    <div class="example">${spk(c.ex, 'sm')}<div><b>${L('💡 例子', '💡 Example')}</b>${esc(c.ex)}</div></div>
+    <div class="row" style="margin-top:16px;justify-content:space-between">
+      <button class="btn btn-ghost" data-act="lesson" data-i="${Math.max(0, i - 1)}" ${i === 0 ? 'disabled' : ''}>◀ ${L('上一頁', 'Back')}</button>
+      <button class="btn ${read ? 'btn-ghost' : 'btn-green'}" data-act="gotIt">${read ? L('✓ 已讀', '✓ Done') : L('我明白喇！+1⭐', 'I get it! +1⭐')}</button>
+      <button class="btn" data-act="lesson" data-i="${Math.min(LESSONS.length - 1, i + 1)}" ${i === LESSONS.length - 1 ? 'disabled' : ''}>${L('下一頁', 'Next')} ▶</button>
+    </div>
+  </section></div>`;
+}
+
+/* ---------------- GAME ---------------- */
+function newGame() {
+  const items = shuffle([...GAME]).slice(0, 6).map(q => {
+    const d = q[S.lang]; return { g: d.g, w: d.w, opts: shuffle(d.o.map((t, i) => ({ t, ok: i === q.a }))) };
+  });
+  state.game = { items, i: 0, score: 0, pick: -1, results: [], lang: S.lang };
+}
+function gameSayText(it) {
+  const letters = 'ABC';
+  return (it.g ? L(`目標係：${it.g}。`, `Your goal: ${it.g}.`) : '') + L('邊條問題最好？', 'Which question is the best?') + ' ' + it.opts.map((o, k) => `${letters[k]}，${o.t}`).join('。 ');
+}
+function renderGame() {
+  if (!state.game || state.game.lang !== S.lang) newGame();
+  const G = state.game;
+  const intro = `<section class="card"><div class="row" style="justify-content:space-between"><h2>${L('🎯 好問題大挑戰', '🎯 Good Question Quest')}</h2>${spk(L('每一題，揀出最好嘅問題。答啱就有一粒星星！', 'For each round, pick the best question. Get it right to win a star!'), 'sm')}</div>
+    <div class="dots">${G.items.map((_, k) => `<i class="${k < G.results.length ? (G.results[k] ? 'done' : 'bad') : k === G.i ? 'cur' : ''}"></i>`).join('')}</div></section>`;
+  if (G.i >= G.items.length) {
+    const msg = L(`挑戰完成！你答啱咗 ${G.score} 題，一共 ${G.items.length} 題。${G.score >= 5 ? '你真係好問題專家！' : G.score >= 3 ? '做得好好！再玩一次會更叻！' : '唔緊要，再試一次，你一定得！'}`,
+      `Quest complete! You got ${G.score} out of ${G.items.length}. ${G.score >= 5 ? "You're a question expert!" : G.score >= 3 ? 'Great work! Play again to get even better!' : "Don't worry — try again, you can do it!"}`);
+    setTimeout(() => { if (S.autoSpeak) speak(msg); if (G.score >= 4) scene3d?.celebrate(); }, 200);
+    return `<div>${intro}<section class="card" style="text-align:center"><h2>🏆 ${L('挑戰完成！', 'Quest complete!')}</h2><div class="bigscore">${G.score} / ${G.items.length}</div><p style="font-size:20px">${esc(msg)}</p>${spk(msg, 'big')}<p></p><button class="btn btn-big btn-yellow" data-act="gameAgain">🔁 ${L('再玩一次', 'Play again')}</button></section></div>`;
+  }
+  const it = G.items[G.i], answered = G.pick >= 0;
+  const letters = 'ABC';
+  let fb = '';
+  if (answered) {
+    const ok = it.opts[G.pick].ok;
+    const txt = (ok ? L('答啱咗！叻叻！', 'Correct! Well done!') : L('差少少！', 'Nearly!')) + ' ' + it.w;
+    fb = `<div class="feedback ${ok ? 'good' : 'bad'}">${spk(txt, 'sm')}<div><b>${ok ? '🎉 ' + L('答啱咗！叻叻！', 'Correct! Well done!') : '🤔 ' + L('差少少！', 'Nearly!')}</b><br>${esc(it.w)}</div></div>
+      <p></p><button class="btn btn-big" data-act="gameNext">${G.i === G.items.length - 1 ? L('睇結果 🏆', 'See results 🏆') : L('下一題 ▶', 'Next ▶')}</button>`;
+  }
+  return `<div>${intro}<section class="card">
+    <div class="row" style="justify-content:space-between"><b>${L(`第 ${G.i + 1} / ${G.items.length} 題`, `Round ${G.i + 1} of ${G.items.length}`)}</b>${spk(gameSayText(it))}</div>
+    ${it.g ? `<div class="goalbox">🎯 ${L('目標：', 'Goal: ')}${esc(it.g)}</div>` : ''}
+    <h3 style="font-size:21px">${L('邊條問題最好？', 'Which question is the best?')}</h3>
+    ${it.opts.map((o, k) => `<button class="opt ${answered ? (o.ok ? 'right' : (k === G.pick ? 'wrong' : '')) : ''}" data-act="gamePick" data-i="${k}" ${answered ? 'disabled' : ''}><span class="lt">${letters[k]}</span><span>${esc(o.t)}</span></button>`).join('')}
+    ${fb}</section></div>`;
+}
+
+/* ---------------- LAB ---------------- */
+const curSession = () => sessions.find(s => s.id === state.cur);
+function renderLab() {
+  const ses = curSession();
+  const noKey = !S.apiKey || !S.baseUrl || !S.model;
+  const warn = noKey ? `<div class="notice">⚠️ <span style="flex:1">${L('問題實驗室要用 AI。請爸爸媽媽或者老師喺 ⚙️ 設定填好 Base URL、Model 同 API Key。', 'The Question Lab needs AI. Ask a grown-up to fill in the Base URL, Model and API Key in ⚙️ Settings.')}</span><button class="btn btn-yellow" data-act="settings">⚙️ ${L('設定', 'Settings')}</button></div>` : '';
+  if (!ses) {
+    const intro = L('歡迎嚟到問題實驗室！先揀一個挑戰，然後寫低你嘅問題。問問博士唔會直接話你知答案，佢會幫你評分，話你知邊度做得好、邊度可以改善，仲會反問你，幫你諗清楚自己真正想知乜。', "Welcome to the Question Lab! First choose a challenge, then write your question. Dr Hoot won't simply tell you the answer. Instead, Dr Hoot will score your question, tell you what went well and what to improve, and ask you questions back to help you work out what you really want to know.");
+    const sel = state.pickScenario;
+    return `<div><section class="card"><div class="row" style="justify-content:space-between"><h2>${L('🧪 問題實驗室', '🧪 Question Lab')}</h2>${spk(intro, 'big')}</div><p style="font-size:18px">${esc(intro)}</p>${warn}</section>
+    <section class="card"><h3>${L('① 揀一個挑戰', '① Choose a challenge')}</h3>
+      <div class="sgrid">${SCENARIOS.map(s => `<div class="scard ${sel === s.id ? 'on' : ''}" data-act="pickSc" data-id="${s.id}">${spk(s[S.lang].t + '。' + s[S.lang].g, 'sm')}<div class="se">${s.e}</div><b>${esc(s[S.lang].t)}</b><span class="small muted">${esc(s[S.lang].g)}</span></div>`).join('')}</div>
+      ${sel === 'free' ? `<div class="label">🎯 ${L('你嘅目標係乜？', 'What is your goal?')}</div><input id="freeGoal" placeholder="${L('例如：我想知點解貓咁鍾意瞓覺', 'e.g. I want to find out why cats sleep so much')}">` : ''}
+      <p></p><button class="btn btn-big btn-yellow" data-act="startSc" ${sel ? '' : 'disabled'}>🚀 ${L('開始挑戰！', 'Start the challenge!')}</button>
+    </section></div>`;
+  }
+  return renderLabSession(ses, warn);
+}
+function goalSpeech(ses) { return L(`挑戰：${ses.scenario.title}。${ses.scenario.goal}`, `Challenge: ${ses.scenario.title}. ${ses.scenario.goal}`); }
+function renderLabSession(ses, warn = '') {
+  const turns = ses.turns, last = turns[turns.length - 1];
+  let html = `<div><section class="card"><div class="goal-hdr"><div class="se">${ses.scenario.emoji}</div><div style="flex:1"><h2 style="margin:0">${esc(ses.scenario.title)}</h2><p style="font-size:18px;margin:4px 0">🎯 ${esc(ses.scenario.goal)}</p></div>${spk(goalSpeech(ses), 'big')}</div>
+    <div class="row" style="margin-top:8px"><button class="btn btn-ghost" data-act="leaveSes">↩ ${L('換過挑戰', 'New challenge')}</button>${turns.length ? `<button class="btn btn-pink" data-act="finishSes">🏁 ${L('完成挑戰', 'Finish')}</button>` : ''}<span class="muted">${turns.length ? L(`已問 ${turns.length} 輪`, `${turns.length} round(s)`) : ''}</span></div>${warn}</section>`;
+  if (ses.done) html += summaryHTML(ses);
+  turns.forEach((tn, k) => { html += kidBubble(tn, k) + resultHTML(tn, { latest: k === turns.length - 1 && !ses.done && !state.busy, prev: turns[k - 1] }); });
+  if (state.busy) {
+    html += `<section class="card thinking-card"><div class="think-owl">🦉💭</div><h3>${L('問問博士諗緊……', 'Dr Hoot is thinking…')}</h3><p class="small muted">${L('下面係 AI 即時諗緊嘅嘢（走馬燈）', 'Below is what the AI is thinking right now')}</p><div class="live" id="liveBox"><span id="liveTxt"></span></div><div class="small muted" id="liveStats"></div><p></p><button class="btn btn-ghost" data-act="stop">⏹ ${L('停止', 'Stop')}</button></section>`;
+  } else if (state.error) {
+    html += `<section class="card"><div class="notice">❌ <span style="flex:1;word-break:break-word">${esc(state.error)}</span></div><p></p><button class="btn btn-yellow" data-act="retryAsk">🔁 ${L('再試一次', 'Try again')}</button> <button class="btn btn-ghost" data-act="settings">⚙️ ${L('設定', 'Settings')}</button></section>`;
+  }
+  if (!ses.done && !state.busy) html += composerHTML(ses, last);
+  if (ses.done && !state.busy) html += `<section class="card"><div class="row"><button class="btn btn-yellow" data-act="reopenSes">✏️ ${L('繼續改良問題', 'Keep improving')}</button><button class="btn" data-act="leaveSes">🧪 ${L('揀新挑戰', 'New challenge')}</button></div></section>`;
+  return html + '</div>';
+}
+function kidBubble(tn, k) {
+  const who = S.nickname || L('我', 'Me');
+  return `<div class="kid"><div class="kb"><b>${L(`第 ${k + 1} 輪`, `Round ${k + 1}`)} · ${esc(who)}：</b><br>❓ ${esc(tn.q)}${tn.goal ? `<small>🎯 ${esc(tn.goal)}</small>` : ''}${tn.clarify ? `<small>💬 ${esc(tn.clarify)}</small>` : ''}</div></div>`;
+}
+function starsHTML(n) { return `<span class="stars">${'★'.repeat(n)}<span class="off">${'★'.repeat(5 - n)}</span></span>`; }
+function resultHTML(tn, { latest = false, prev = null, readonly = false } = {}) {
+  const r = tn.res; if (!r) return '';
+  const col = r.score >= 80 ? 'var(--green)' : r.score >= 60 ? 'var(--blue)' : r.score >= 40 ? 'var(--orange)' : 'var(--red)';
+  const li = a => `<ul>${a.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+  const sec = (cls, title, arr, sayPrefix) => arr.length ? `<div class="sec ${cls}"><h4><span>${title}</span>${spk(sayPrefix + '。' + arr.join('。'), 'sm')}</h4>${li(arr)}</div>` : '';
+  const diff = prev?.res ? r.score - prev.res.score : null;
+  const tname = TYPE_NAMES[S.lang][r.type] || '';
+  return `<div class="result fadein">
+    <div class="res-top"><div class="ring" style="--p:${r.score};--c:${col}"><span>${r.score}</span></div>
+      <div style="flex:1">${starsHTML(r.stars)}${diff !== null ? ` <b style="color:${diff >= 0 ? 'var(--green)' : 'var(--red)'}">${diff >= 0 ? '▲' : '▼'}${Math.abs(diff)}</b>` : ''}<div class="verdict">🦉 ${esc(r.verdict)}</div>${tname ? `<span class="tag">${esc(tname)}</span>` : ''}</div>
+      ${spk(r.speech || [r.verdict, ...r.praise, ...r.improve, ...r.socratic].join('。'), 'big')}</div>
+    ${r.progress ? `<div class="sec s-prog">📈 ${esc(r.progress)} ${spk(r.progress, 'sm')}</div>` : ''}
+    <div class="dims">${DIMS.map(d => `<div class="dim"><span>${DIM_NAMES[S.lang][d]}</span><div class="bar"><i style="--v:${r.scores[d]}"></i></div><b>${r.scores[d]}</b></div>`).join('')}</div>
+    ${sec('s-good', L('👍 做得好', '👍 What went well'), r.praise, L('做得好嘅地方', 'What went well'))}
+    ${sec('s-fix', L('🔧 可以改善', '🔧 What to improve'), r.improve, L('可以改善嘅地方', 'What to improve'))}
+    ${sec('s-soc', L('🦉 問問博士反問你', '🦉 Dr Hoot asks you'), r.socratic, L('問問博士想問你', 'Dr Hoot would like to ask you'))}
+    ${r.goalOptions.length ? `<div class="sec s-goal"><h4><span>${L('🎯 你真正想做嘅係邊個？', '🎯 Which is your real goal?')}</span>${spk(L('你真正想做嘅係邊個？', 'Which is your real goal?') + ' ' + r.goalOptions.join('。 '), 'sm')}</h4>
+      ${r.goalOptions.map((g, k) => latest && !readonly ? `<button class="goalopt ${state.chosenGoal === g ? 'on' : ''}" data-act="pickGoal" data-i="${k}">${esc(g)}</button>` : `<div class="goalopt" style="cursor:default">${esc(g)}</div>`).join('')}</div>` : ''}
+    ${r.hint ? `<details class="sec s-hint"><summary>${L('💡 睇提示', '💡 Show a hint')}</summary><div class="row" style="flex-wrap:nowrap;align-items:flex-start">${spk(r.hint, 'sm')}<p style="margin:0">${esc(r.hint)}</p></div></details>` : ''}
+    ${sec('s-ins', L('📌 學習重點', '📌 Key learning'), r.insights, L('學習重點', 'Key learning'))}
+    ${tn.reasoning ? `<details class="sec"><summary>${L('🧠 睇 AI 思考過程', "🧠 See the AI's thinking")} (${tn.reasoning.length})</summary><pre class="think">${esc(tn.reasoning)}</pre></details>` : ''}
+    <div class="small muted" style="margin-top:6px">🤖 ${esc(tn.model || '')}${tn.usage?.completion_tokens ? ` · ${tn.usage.completion_tokens} tokens` : ''}${tn.elapsed ? ` · ${(tn.elapsed / 1000).toFixed(1)}s` : ''}</div>
+  </div>`;
+}
+function composerHTML(ses, last) {
+  const starters = L('點解……？|點樣……？|如果……會點樣？|邊個……？|幾時……？|邊度……？|有咩方法……？', 'Why …?|How …?|What would happen if …?|Who …?|When …?|Where …?|What is the best way to …?').split('|');
+  if (!last) {
+    const say = L('寫低你嘅問題。可以試吓用「點解」、「點樣」或者「如果」開頭。記住諗吓你嘅目標！寫好之後，撳「交俾問問博士」。', 'Write your question. Try starting with "why", "how" or "what would happen if". Remember to think about your goal! When you are ready, tap "Send to Dr Hoot".');
+    return `<section class="card"><div class="label">✏️ ${L('寫低你嘅問題', 'Write your question')} ${spk(say, 'sm')}</div>
+      <div class="chips">${starters.map(s => `<button class="chip" data-act="starter" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+      <div class="qwrap"><textarea id="qInput" placeholder="${L('例如：點解……？', 'e.g. Why …?')}">${esc(state.draftQ ?? '')}</textarea>${micBtn('qInput')}</div>
+      <p></p><button class="btn btn-big btn-yellow" data-act="ask">🚀 ${L('交俾問問博士', 'Send to Dr Hoot')}</button></section>`;
+  }
+  const say = L('問問博士反問咗你一啲問題。你可以喺第一格寫低你嘅諗法，或者揀一個目標。然後喺第二格改良你嘅問題，再撳「再問一次」。', 'Dr Hoot has asked you some questions. Write your thoughts in the first box, or choose a goal. Then improve your question in the second box and tap "Ask again".');
+  return `<section class="card"><div class="label">🦉 ${L('回答博士嘅反問（可以唔寫）', "Answer Dr Hoot's questions (optional)")} ${spk(say, 'sm')}</div>
+    <div id="chosenBox">${state.chosenGoal ? `<div class="chosen">🎯 ${L('你揀咗：', 'You chose: ')}${esc(state.chosenGoal)}</div>` : ''}</div>
+    <div class="qwrap"><textarea id="clarifyInput" placeholder="${L('我嘅諗法係……', 'My thinking is …')}" style="min-height:76px">${esc(state.draftC || '')}</textarea>${micBtn('clarifyInput')}</div>
+    <div class="label">✏️ ${L('改良你嘅問題', 'Improve your question')}</div>
+    <div class="qwrap"><textarea id="qInput">${esc(state.draftQ ?? last.q)}</textarea>${micBtn('qInput')}</div>
+    <p></p><button class="btn btn-big btn-yellow" data-act="ask">🔁 ${L('再問一次', 'Ask again')}</button></section>`;
+}
+function summaryHTML(ses) {
+  const sc = ses.turns.map(t => t.res?.score || 0); if (!sc.length) return '';
+  const first = sc[0], best = Math.max(...sc);
+  const msg = L(`好叻呀！你一共問咗 ${sc.length} 輪，由 ${first} 分進步到最高 ${best} 分。記住：好問題係練出嚟㗎！`, `Brilliant! You asked ${sc.length} round(s) and went from ${first} to a best of ${best} points. Remember: great questions come from practice!`);
+  return `<section class="card"><div class="row" style="justify-content:space-between"><h2>🏆 ${L('挑戰總結', 'Challenge summary')}</h2>${spk(msg, 'big')}</div>
+    <div class="summary-bars">${sc.map(s => `<div style="height:${Math.max(18, s)}%">${s}</div>`).join('')}</div><p style="font-size:18px">${esc(msg)}</p></section>`;
+}
+function captureDrafts() { const q = $('#qInput'), c = $('#clarifyInput'); if (q) state.draftQ = q.value; if (c) state.draftC = c.value; }
+
+/* =========================================================
+   AI — OpenAI-compatible streaming (GLM / Z.ai etc.)
+   ========================================================= */
+const TK = { reasoning: '', content: '', status: 'idle', t0: 0, t1: 0, finish: '', usage: null, err: '', model: '', pending: false, open: false };
+function tkUpdate() { if (TK.pending) return; TK.pending = true; requestAnimationFrame(() => { TK.pending = false; drawTicker(); }); }
+const tail = (s, n) => s.length > n ? '…' + s.slice(-n) : s;
+function drawTicker() {
+  const dot = $('#tkDot'), track = $('#tkTrack'), txt = $('#tkText'), stats = $('#tkStats'), tk = $('#ticker');
+  dot.className = 'dot ' + (TK.status === 'stream' ? 'stream' : TK.status === 'ok' ? 'ok' : TK.status === 'err' ? 'err' : '');
+  tk.classList.toggle('stream', TK.status === 'stream');
+  const secs = ((TK.status === 'stream' ? performance.now() : TK.t1) - TK.t0) / 1000;
+  const chars = TK.reasoning.length + TK.content.length;
+  if (TK.status === 'stream') {
+    track.classList.remove('idle');
+    const writing = TK.content.length > 0;
+    txt.className = 'tk-text ' + (writing ? 'c' : 'r');
+    const body = (writing ? '✍️ ' + tail(TK.content, 260) : '💭 ' + tail(TK.reasoning || L('連接緊……', 'Connecting…'), 260)).replace(/\s*\n\s*/g, ' ⏎ ');
+    txt.innerHTML = esc(body) + '<span class="cur">▌</span>';
+    stats.innerHTML = `💭${TK.reasoning.length} ✍️${TK.content.length}<br>${secs.toFixed(1)}s · ${secs > 0 ? Math.round(chars / secs) : 0}${L('字/秒', ' ch/s')}`;
+  } else {
+    track.classList.add('idle'); txt.className = 'tk-text';
+    let msg;
+    if (TK.status === 'ok') msg = L(`✅ AI 已連線 · ${TK.model} · 上次：思考 ${TK.reasoning.length} 字，輸出 ${TK.content.length} 字，${secs.toFixed(1)} 秒${TK.usage?.completion_tokens ? ` · ${TK.usage.completion_tokens} tokens` : ''} · finish=${TK.finish || '-'} · 撳呢度睇完整直播`, `✅ AI connected · ${TK.model} · last run: ${TK.reasoning.length} thinking chars, ${TK.content.length} output chars, ${secs.toFixed(1)}s${TK.usage?.completion_tokens ? ` · ${TK.usage.completion_tokens} tokens` : ''} · finish=${TK.finish || '-'} · tap to see the full stream`);
+    else if (TK.status === 'err') msg = L('❌ AI 連線出錯：', '❌ AI error: ') + TK.err;
+    else msg = (S.apiKey ? L(`🤖 AI 準備好 · ${S.model} · 撳 ⚙️ 設定可以測試連線`, `🤖 AI ready · ${S.model} · test the connection in ⚙️ Settings`) : L('🤖 未設定 AI · 撳 ⚙️ 設定填 Base URL、Model、API Key', '🤖 AI not set up · open ⚙️ Settings to add Base URL, Model and API Key'));
+    if (txt.dataset.msg !== msg) { txt.dataset.msg = msg; txt.textContent = msg; }
+    stats.textContent = '';
+  }
+  if (TK.open) {
+    const r = $('#tkR'), c = $('#tkC');
+    const stick = el => el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    const sr = stick(r), sc = stick(c);
+    r.textContent = TK.reasoning; c.textContent = TK.content;
+    if (sr) r.scrollTop = r.scrollHeight; if (sc) c.scrollTop = c.scrollHeight;
+    const u = TK.usage || {};
+    $('#tkMeta').textContent = `model=${TK.model || S.model} · status=${TK.status} · finish_reason=${TK.finish || '-'} · ${secs.toFixed(1)}s · prompt_tokens=${u.prompt_tokens ?? '-'} · completion_tokens=${u.completion_tokens ?? '-'} · reasoning_tokens=${u.completion_tokens_details?.reasoning_tokens ?? '-'} · max_tokens=${S.maxTokens}${TK.err ? ' · error=' + TK.err : ''}`;
+  }
+  const live = $('#liveTxt');
+  if (live) {
+    const writing = TK.content.length > 0;
+    live.innerHTML = writing ? `<span class="c">✍️ ${esc(tail(TK.content, 360))}</span>` : `💭 ${esc(tail(TK.reasoning || L('連接緊……', 'Connecting…'), 360))}`;
+    $('#liveStats').textContent = `💭 ${TK.reasoning.length} · ✍️ ${TK.content.length} · ${secs.toFixed(1)}s`;
+  }
+}
+setInterval(() => { if (TK.status === 'stream') tkUpdate(); }, 500);
+
+function splitThink(raw) {
+  const m = raw.match(/^\s*<think>([\s\S]*?)(<\/think>|$)/);
+  if (!m) return { r: '', c: raw };
+  return { r: m[1], c: m[2] ? raw.slice(m[0].length) : '' };
+}
+let currentAbort = null;
+async function callAI(messages, ov = {}) {
+  let url = S.baseUrl.trim().replace(/\/+$/, '');
+  if (!/\/chat\/completions$/.test(url)) url += '/chat/completions';
+  const body = { model: S.model.trim(), messages, stream: true, max_tokens: ov.maxTokens ?? S.maxTokens, temperature: S.temperature };
+  const th = ov.thinking ?? S.thinking; if (th === 'enabled' || th === 'disabled') body.thinking = { type: th };
+  const ef = ov.effort ?? S.effort; if (ef && ef !== 'auto') body.reasoning_effort = ef;
+  const ctrl = new AbortController(); currentAbort = ctrl;
+  const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey.trim() }, body: JSON.stringify(body), signal: ctrl.signal });
+  if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error(`HTTP ${res.status} ${t.slice(0, 500)}`); }
+  let rField = '', raw = '', finish = '', usage = null;
+  const ct = res.headers.get('content-type') || '';
+  const emit = () => { const sp = splitThink(raw); TK.reasoning = rField + sp.r; TK.content = sp.c; tkUpdate(); };
+  if (ct.includes('application/json')) { // server ignored stream
+    const j = await res.json(); const m = j.choices?.[0]?.message || {};
+    rField = m.reasoning_content || m.reasoning || ''; raw = m.content || ''; finish = j.choices?.[0]?.finish_reason || ''; usage = j.usage || null; emit();
+  } else {
+    const reader = res.body.getReader(), dec = new TextDecoder(); let buf = '';
+    for (;;) {
+      const { value, done } = await reader.read(); if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim(); if (!data || data === '[DONE]') continue;
+        let j; try { j = JSON.parse(data); } catch { continue; }
+        if (j.error) throw new Error(j.error.message || JSON.stringify(j.error));
+        const ch = j.choices?.[0]; const d = ch?.delta || {};
+        const r = d.reasoning_content ?? d.reasoning ?? ''; if (r) rField += r;
+        if (d.content) raw += d.content;
+        if (ch?.finish_reason) finish = ch.finish_reason;
+        if (j.usage) usage = j.usage;
+        if (r || d.content) emit();
+      }
+    }
+  }
+  const sp = splitThink(raw);
+  return { reasoning: rField + sp.r, content: sp.c, finish, usage };
+}
+async function runAI(messages, ov = {}) {
+  Object.assign(TK, { reasoning: '', content: '', status: 'stream', t0: performance.now(), t1: 0, finish: '', usage: null, err: '', model: S.model });
+  tkUpdate();
+  try {
+    const r = await callAI(messages, ov);
+    Object.assign(TK, { status: 'ok', t1: performance.now(), finish: r.finish, usage: r.usage });
+    r.elapsed = TK.t1 - TK.t0; return r;
+  } catch (e) {
+    const msg = e.name === 'AbortError' ? L('已停止', 'Stopped') : (e.message === 'Failed to fetch' ? L('連唔到伺服器（網絡、Base URL 錯，或者被 CORS 擋住）', 'Could not reach the server (network, wrong Base URL, or blocked by CORS)') : e.message);
+    Object.assign(TK, { status: 'err', t1: performance.now(), err: msg });
+    const err = new Error(msg); err.aborted = e.name === 'AbortError'; throw err;
+  } finally { currentAbort = null; tkUpdate(); }
+}
+
+function systemPrompt(age) {
+  if (S.lang === 'en') return `You are "Dr Hoot" 🦉, a patient and encouraging owl teacher who trains children aged ${age} to ask good questions.
+
+MOST IMPORTANT RULES
+1. Never answer the content of the child's question (e.g. if they ask "Why is the sky blue?", do NOT explain why). Only evaluate how good the question is, then use Socratic questioning to help them clarify what they really want to know or do.
+2. Language: if the child writes in English, reply in British English (colour, favourite, practise, realise, maths). If the child writes in Chinese, reply in Hong Kong Cantonese written in Traditional Chinese (係、唔係、嘅、咗、啲、點解). Short sentences, simple words suitable for age ${age}. Warm and positive — praise first, then teach.
+3. Scores (1–5 each): clarity (easy to understand, no vague words); goal (links to and helps the challenge goal); specific (says what, where, when, what to compare); explore (can be answered by observing, experimenting, measuring or researching); curious (depth, sparks more thinking — open questions usually score higher). Overall score 0–100; stars 1–5 (90+ = 5, 75–89 = 4, 60–74 = 3, 40–59 = 2, below 40 = 1).
+4. socratic: 2–3 short Socratic questions that clarify goal, meaning and method, e.g. "What do you mean by 'good'?", "Do you want to know why, or how?", "How could you test it?", "What would you compare?"
+5. goalOptions: 3 possible real goals starting with "A. ", "B. ", "C. " for the child to choose from.
+6. hint: one small hint on how to improve — do NOT write the full improved question.
+7. If there were earlier rounds, progress must say specifically what improved (or got worse) since last time; otherwise use an empty string.
+8. insights: 1–2 key learning points about HOW to ask good questions (not the answer to the question), worth saving in a notebook.
+9. speech: a 40–90 word spoken script to be read aloud to the child: the score, one thing done well, one thing to improve, and one Socratic question. No emoji or symbols.
+10. If the content is unsuitable or unsafe for children, gently steer towards a safe, worthwhile line of enquiry without scolding. If it is not a question, set type to "notQuestion" and show how to turn it into one.
+11. Keep your reasoning brief and quick, then output.
+
+OUTPUT: output ONLY one JSON object — no markdown, no code fences, no other text:
+{"score":72,"stars":3,"scores":{"clarity":4,"goal":3,"specific":3,"explore":4,"curious":4},"type":"open","verdict":"one short verdict","praise":["..."],"improve":["...","..."],"socratic":["...","..."],"goalOptions":["A. ...","B. ...","C. ..."],"hint":"...","progress":"","insights":["..."],"speech":"..."}
+type must be one of "open", "closed", "unclear", "notQuestion".`;
+  return `你係「問問博士」🦉，一位好有耐性、好識鼓勵人嘅貓頭鷹老師，專門訓練 ${age} 歲嘅小朋友「問好問題」。
+
+【最重要規則】
+1. 絕對唔好直接回答小朋友問題嘅內容或者知識答案（例如佢問「點解天空係藍色」，你唔可以解釋原因）。你只係評價「呢條問題問得好唔好」，再用蘇格拉底提問法反問佢，幫佢澄清自己真正想知乜、想做乜。
+2. 語言：如果小朋友用中文，就用香港廣東話口語（繁體字，例如：係、唔係、嘅、咗、啲、佢哋、點解、點樣）；如果小朋友用英文，就用英式英文（British English，例如 colour、favourite、practise）。句子要短、用字要淺，適合 ${age} 歲。語氣溫暖、正面，先讚後教。
+3. 評分（每項 1-5 分）：clarity 清晰（一聽就明、冇含糊字眼）；goal 貼合目標（同挑戰目標有關、幫到佢達成目標）；specific 具體（講清楚對象、情況、要比較乜）；explore 可探究（可以透過觀察、實驗、量度或者搵資料搵答案）；curious 好奇心（有深度、會引發更多思考，開放式問題通常較高）。總分 score 0-100；stars 1-5（90 以上=5、75-89=4、60-74=3、40-59=2、40 以下=1）。
+4. socratic：2-3 條短嘅蘇格拉底式反問，幫佢澄清目標、定義同方法。例如「你講嘅『好』係指咩呢？」「你係想知原因，定係想知方法？」「你可以點樣試吓搵答案？」「你會比較啲乜？」
+5. goalOptions：3 個佢可能真正想做嘅目標，用「A. 」「B. 」「C. 」開頭，等佢揀。
+6. hint：一個改良方向嘅小提示，唔好直接寫晒完整嘅新問題。
+7. 如果有之前嘅回合，progress 要具體講佢今次比上次進步咗（或者退步咗）啲乜；第一輪就用空字串。
+8. insights：1-2 個關於「點樣問好問題」嘅學習重點（唔係問題嘅答案），值得記落問題簿。
+9. speech：一段 50-110 字嘅廣東話口語講稿，用嚟讀俾小朋友聽：講分數、讚一樣嘢、教一樣嘢、再問一條反問。唔好用 emoji 同符號。
+10. 如果內容唔適合小朋友或者唔安全，溫柔咁引導佢轉去一個安全、有益嘅探究方向，唔好責罵。如果佢寫嘅唔係問題，type 用 "notQuestion"，教佢點樣變成一條問題。
+11. 思考要精簡快捷，唔好諗太耐，然後直接輸出。
+
+【輸出格式】只可以輸出一個 JSON 物件，唔好有 markdown、唔好有 \`\`\`、唔好有其他文字：
+{"score":72,"stars":3,"scores":{"clarity":4,"goal":3,"specific":3,"explore":4,"curious":4},"type":"open","verdict":"一句短評","praise":["……"],"improve":["……","……"],"socratic":["……","……"],"goalOptions":["A. ……","B. ……","C. ……"],"hint":"……","progress":"","insights":["……"],"speech":"……"}
+type 只可以係 "open"、"closed"、"unclear" 或 "notQuestion"。`;
+}
+function buildMessages(ses, q, clarify, goal) {
+  const age = S.age, name = S.nickname || L('小朋友', 'the child');
+  const hist = ses.turns.map((t, k) => L(
+    `第${k + 1}輪：問題「${t.q}」→ ${t.res?.score ?? '?'} 分；你當時反問：${(t.res?.socratic || []).join(' / ')}${t.goal ? `；佢揀咗目標「${t.goal}」` : ''}${t.clarify ? `；佢嘅補充「${t.clarify}」` : ''}`,
+    `Round ${k + 1}: question "${t.q}" → ${t.res?.score ?? '?'} points; you asked back: ${(t.res?.socratic || []).join(' / ')}${t.goal ? `; they chose the goal "${t.goal}"` : ''}${t.clarify ? `; their clarification: "${t.clarify}"` : ''}`)).join('\n');
+  const n = ses.turns.length + 1;
+  const user = L(
+`【小朋友】稱呼：${name}；年齡：${age} 歲
+【挑戰】${ses.scenario.title}：${ses.scenario.goal}
+【之前嘅回合】${hist ? '\n' + hist : '冇（今次係第一輪）'}
+【今次係第 ${n} 輪】
+小朋友嘅問題：「${q}」${goal ? `\n佢揀嘅目標：「${goal}」` : ''}${clarify ? `\n佢對你反問嘅回應／補充：「${clarify}」` : ''}
+請評價呢條問題（唔好回答問題本身），只輸出 JSON。`,
+`[Child] Name: ${name}; age: ${age}
+[Challenge] ${ses.scenario.title}: ${ses.scenario.goal}
+[Earlier rounds] ${hist ? '\n' + hist : 'None (this is round 1)'}
+[This is round ${n}]
+The child's question: "${q}"${goal ? `\nGoal they chose: "${goal}"` : ''}${clarify ? `\nTheir reply to your questions: "${clarify}"` : ''}
+Evaluate this question (do not answer the question itself) and output JSON only.`);
+  return [{ role: 'system', content: systemPrompt(age) }, { role: 'user', content: user }];
+}
+function matchBrace(s, i) {
+  let d = 0, inS = false, bs = false;
+  for (let j = i; j < s.length; j++) {
+    const c = s[j];
+    if (inS) { if (bs) bs = false; else if (c === '\\') bs = true; else if (c === '"') inS = false; continue; }
+    if (c === '"') inS = true; else if (c === '{') d++; else if (c === '}') { d--; if (d === 0) return j; }
+  }
+  return -1;
+}
+function extractResult(text) {
+  if (!text) return null;
+  text = text.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/```(?:json)?/gi, '');
+  let found = null;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] !== '{') continue;
+    const end = matchBrace(text, i); if (end < 0) continue;
+    const s = text.slice(i, end + 1);
+    let o = null; try { o = JSON.parse(s); } catch { try { o = JSON.parse(s.replace(/,\s*([}\]])/g, '$1')); } catch { } }
+    if (o && typeof o === 'object' && ('score' in o || 'scores' in o)) { found = o; i = end; }
+  }
+  return found ? normalizeRes(found) : null;
+}
+function normalizeRes(o) {
+  const clamp = (v, a, b, d) => { v = Number(v); return Number.isFinite(v) ? Math.min(b, Math.max(a, Math.round(v))) : d; };
+  const arr = v => Array.isArray(v) ? v.map(x => String(x)).filter(Boolean) : (v ? [String(v)] : []);
+  const score = clamp(o.score, 0, 100, 50);
+  const scores = {}; DIMS.forEach(d => scores[d] = clamp(o.scores?.[d], 1, 5, 3));
+  const stars = clamp(o.stars, 1, 5, score >= 90 ? 5 : score >= 75 ? 4 : score >= 60 ? 3 : score >= 40 ? 2 : 1);
+  return { score, stars, scores, type: ['open', 'closed', 'unclear', 'notQuestion'].includes(o.type) ? o.type : '', verdict: String(o.verdict || ''), praise: arr(o.praise), improve: arr(o.improve), socratic: arr(o.socratic), goalOptions: arr(o.goalOptions).slice(0, 4), hint: String(o.hint || ''), progress: String(o.progress || ''), insights: arr(o.insights), speech: String(o.speech || '') };
+}
+
+let lastAsk = null;
+async function ask(retry = false) {
+  const ses = curSession(); if (!ses || state.busy) return;
+  let q, clarify, goal;
+  if (retry && lastAsk) ({ q, clarify, goal } = lastAsk);
+  else {
+    captureDrafts();
+    q = (state.draftQ || '').trim(); clarify = (state.draftC || '').trim(); goal = state.chosenGoal || '';
+    if (!q) { toast(L('請先寫低你嘅問題 ✏️', 'Please write your question first ✏️')); speak(L('請先寫低你嘅問題', 'Please write your question first')); return; }
+  }
+  if (!S.apiKey || !S.baseUrl || !S.model) { toast(L('請先喺 ⚙️ 設定填好 AI 資料', 'Please set up the AI in ⚙️ Settings first')); openSettings(); return; }
+  lastAsk = { q, clarify, goal };
+  stopSpeak(); state.busy = true; state.error = null; render(); scene3d?.setMood('thinking');
+  $('#liveBox')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const msgs = buildMessages(ses, q, clarify, goal);
+  let r, res = null;
+  try {
+    r = await runAI(msgs);
+    res = extractResult(r.content);
+    if (!res && S.autoRescue && !r.aborted) {
+      const why = r.finish === 'length' ? L('AI 諗得太多，用晒 token 上限！自動用「低推理強度」再試一次……', 'The AI thought too much and hit the token limit! Retrying with low reasoning effort…') : L('AI 回覆格式唔啱，自動再試一次……', 'The reply was not in the right format — retrying…');
+      toast('🛟 ' + why, 4000);
+      const ov = { effort: S.effort === 'auto' ? undefined : 'low' };
+      if (S.thinking !== 'auto') ov.thinking = 'disabled';
+      const msgs2 = msgs.concat([{ role: 'user', content: L('唔好諗太耐，即刻只輸出 JSON。', 'Do not think for long — output only the JSON now.') }]);
+      const r2 = await runAI(msgs2, ov);
+      res = extractResult(r2.content);
+      r2.reasoning = (r.reasoning ? r.reasoning + '\n\n—— rescue ——\n\n' : '') + r2.reasoning; r = r2;
+    }
+    if (!res) throw new Error(r.finish === 'length'
+      ? L('AI 用晒 token 上限都未寫完。請喺 ⚙️ 設定提高「最大輸出 tokens」或者揀較低嘅推理強度。', 'The AI hit its token limit before finishing. Raise "max output tokens" or lower the reasoning effort in ⚙️ Settings.')
+      : L('AI 嘅回覆格式唔啱（冇 JSON）。撳下面 📡 走馬燈可以睇佢寫咗乜。', 'The AI reply was not valid JSON. Tap the 📡 ticker below to see what it wrote.'));
+  } catch (e) {
+    state.busy = false; state.error = e.message; scene3d?.setMood('sad', 2.5); render();
+    if (!e.aborted) speak(L('哎呀，連線有啲問題，請大人幫手睇吓設定。', 'Oops, there is a connection problem. Please ask a grown-up to check the settings.'));
+    return;
+  }
+  const prev = ses.turns[ses.turns.length - 1];
+  const turn = { q, clarify, goal, res, reasoning: S.saveReasoning ? r.reasoning.slice(0, 20000) : '', usage: r.usage, finish: r.finish, model: S.model, elapsed: Math.round(r.elapsed || 0), ts: Date.now() };
+  ses.turns.push(turn); ses.best = Math.max(ses.best || 0, res.score); ses.updated = Date.now();
+  saveSessions(); cloudSaveSession(ses);
+  state.busy = false; state.chosenGoal = ''; state.draftQ = null; state.draftC = '';
+  let bonus = 0; if (prev?.res && res.score - prev.res.score >= 10) bonus = 2;
+  render();
+  addStars(res.stars + bonus);
+  if (bonus) toast(L(`📈 進步咗 ${res.score - prev.res.score} 分！額外 +2⭐`, `📈 Up ${res.score - prev.res.score} points! Bonus +2⭐`), 3000);
+  if (res.score >= 80) scene3d?.celebrate(); else if (res.score >= 60) { scene3d?.hop(); scene3d?.setMood('happy', 2); } else scene3d?.setMood('sad', 2.5);
+  const results = $$('.result'); results[results.length - 1]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (S.autoSpeak) speak(res.speech || res.verdict);
+}
+
+async function testAI() {
+  if (!S.apiKey || !S.baseUrl || !S.model) { toast(L('請填好 Base URL、Model 同 API Key', 'Please fill in Base URL, Model and API Key')); return; }
+  toast(L('🔌 測試緊……睇吓下面嘅走馬燈', '🔌 Testing… watch the ticker below'));
+  try {
+    const r = await runAI([{ role: 'user', content: 'Reply with exactly one word: OK' }], { maxTokens: 4096, effort: S.effort === 'auto' ? undefined : 'low' });
+    toast(`✅ ${L('連線成功', 'Connected')}: "${(r.content || '').trim().slice(0, 40) || '(reasoning only)'}" · ${(r.elapsed / 1000).toFixed(1)}s`, 4000);
+  } catch (e) { toast('❌ ' + e.message, 6000); }
+}
+
+/* =========================================================
+   Notebook, export / import
+   ========================================================= */
+function renderBook() {
+  if (state.viewId) {
+    const ses = sessions.find(s => s.id === state.viewId);
+    if (ses) return `<div><section class="card"><div class="goal-hdr"><div class="se">${ses.scenario.emoji}</div><div style="flex:1"><h2 style="margin:0">${esc(ses.scenario.title)}</h2><p>🎯 ${esc(ses.scenario.goal)}</p><span class="small muted">${new Date(ses.created).toLocaleString()}</span></div>${spk(goalSpeech(ses))}</div>
+      <div class="row" style="margin-top:8px"><button class="btn btn-ghost" data-act="bookBack">◀ ${L('返回', 'Back')}</button><button class="btn btn-yellow" data-act="contSes" data-id="${ses.id}">✏️ ${L('繼續挑戰', 'Continue')}</button><button class="btn btn-blue" data-act="expOneMD" data-id="${ses.id}">⬇️ Markdown</button></div></section>
+      ${ses.turns.length > 1 ? summaryHTML(ses) : ''}
+      ${ses.turns.map((t, k) => kidBubble(t, k) + resultHTML(t, { prev: ses.turns[k - 1], readonly: true })).join('') || `<section class="card">${L('呢個挑戰仲未有問題。', 'No questions in this challenge yet.')}</section>`}</div>`;
+    state.viewId = null;
+  }
+  const list = [...sessions].sort((a, b) => (b.updated || b.created) - (a.updated || a.created));
+  return `<div><section class="card"><div class="row" style="justify-content:space-between"><h2>${L('📒 我的問題簿', '📒 My Question Book')}</h2>${spk(L('呢度係你嘅問題簿，記低咗你每次挑戰嘅問題、分數同問問博士嘅建議。你可以匯出去電腦，或者登入 Google 儲存喺雲端。', 'This is your question book. It keeps every question, score and piece of advice from Dr Hoot. You can export it to your computer, or sign in with Google to save it in the cloud.'), 'sm')}</div>
+    <div class="row"><button class="btn btn-blue" data-act="expJSON">⬇️ ${L('匯出 JSON（完整備份）', 'Export JSON (full backup)')}</button><button class="btn btn-green" data-act="expMD">⬇️ ${L('匯出 Markdown（易讀）', 'Export Markdown (readable)')}</button><button class="btn btn-ghost" data-act="impJSON">⬆️ ${L('匯入 JSON', 'Import JSON')}</button></div>
+    <div class="cloudbox">${cloudBoxInner()}</div></section>
+  <section class="card">${list.length ? list.map(s => `<div class="nb-item"><div class="se">${s.scenario.emoji}</div><div class="info"><b>${esc(s.scenario.title)}</b> ${s.done ? '🏁' : ''}<br><span class="small muted">${new Date(s.updated || s.created).toLocaleString()} · ${s.turns.length} ${L('輪', 'rounds')} · ${L('最高', 'best')} ${s.best || 0}</span></div>
+    <button class="btn btn-ghost" data-act="viewSes" data-id="${s.id}">📖</button><button class="btn btn-yellow" data-act="contSes" data-id="${s.id}">✏️</button><button class="btn btn-ghost" data-act="delSes" data-id="${s.id}">🗑</button></div>`).join('') : `<p style="font-size:18px">${L('仲未有紀錄，去問題實驗室試吓啦！', 'Nothing here yet — try the Question Lab!')}</p><button class="btn btn-yellow" data-act="go" data-to="lab">🧪 ${L('問題實驗室', 'Question Lab')}</button>`}</section></div>`;
+}
+function download(name, text, mime) {
+  const blob = new Blob([text], { type: mime + ';charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+const stamp = () => new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+function sessionMD(s) {
+  let md = `## ${s.scenario.emoji} ${s.scenario.title}\n\n- ${L('目標', 'Goal')}: ${s.scenario.goal}\n- ${L('日期', 'Date')}: ${new Date(s.created).toLocaleString()}\n- ${L('最高分', 'Best score')}: ${s.best || 0}\n\n`;
+  s.turns.forEach((t, k) => {
+    const r = t.res || {};
+    md += `### ${L(`第 ${k + 1} 輪`, `Round ${k + 1}`)} · ${r.score ?? '-'} ${L('分', 'pts')} ${'★'.repeat(r.stars || 0)}\n\n**${L('問題', 'Question')}:** ${t.q}\n\n`;
+    if (t.goal) md += `**${L('揀咗嘅目標', 'Chosen goal')}:** ${t.goal}\n\n`;
+    if (t.clarify) md += `**${L('補充', 'Clarification')}:** ${t.clarify}\n\n`;
+    md += `**${L('短評', 'Verdict')}:** ${r.verdict || ''}\n\n`;
+    md += `| ${DIMS.map(d => DIM_NAMES[S.lang][d]).join(' | ')} |\n|${DIMS.map(() => '---').join('|')}|\n| ${DIMS.map(d => r.scores?.[d] ?? '-').join(' | ')} |\n\n`;
+    const list = (title, a) => a?.length ? `**${title}**\n${a.map(x => `- ${x}`).join('\n')}\n\n` : '';
+    md += list(L('👍 做得好', '👍 What went well'), r.praise) + list(L('🔧 可以改善', '🔧 To improve'), r.improve) + list(L('🦉 反問', '🦉 Socratic questions'), r.socratic) + list(L('🎯 目標選項', '🎯 Goal options'), r.goalOptions) + list(L('📌 學習重點', '📌 Key learning'), r.insights);
+    if (r.progress) md += `**📈** ${r.progress}\n\n`;
+    if (r.hint) md += `**💡** ${r.hint}\n\n`;
+    if (t.reasoning) md += `<details><summary>🧠 ${L('AI 思考過程', 'AI reasoning')}</summary>\n\n\`\`\`text\n${t.reasoning}\n\`\`\`\n</details>\n\n`;
+  });
+  return md;
+}
+const allMD = list => `# ${L('問問星球 · 我的問題簿', 'Question Planet · My Question Book')}\n\n${L('匯出時間', 'Exported')}: ${new Date().toLocaleString()} · ⭐ ${stars}\n\n` + list.map(sessionMD).join('\n---\n\n');
+function exportJSON() { download(`question-planet-${stamp()}.json`, JSON.stringify({ app: 'question-planet', version: 1, exported: new Date().toISOString(), stars, readLessons, sessions }, null, 2), 'application/json'); }
+function mergeSessions(incoming) {
+  let added = 0, updated = 0;
+  for (const s of incoming) {
+    if (!s?.id || !s.scenario || !Array.isArray(s.turns)) continue;
+    const i = sessions.findIndex(x => x.id === s.id);
+    if (i < 0) { sessions.push(s); added++; }
+    else if ((s.updated || 0) > (sessions[i].updated || 0)) { sessions[i] = s; updated++; }
+  }
+  saveSessions(); return { added, updated };
+}
+$('#fileIn').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    const { added, updated } = mergeSessions(j.sessions || []);
+    if (typeof j.stars === 'number' && j.stars > stars) { stars = j.stars; LS.set('qp_stars', stars); }
+    if (Array.isArray(j.readLessons)) { readLessons = [...new Set([...readLessons, ...j.readLessons])]; LS.set('qp_read', readLessons); }
+    toast(L(`✅ 匯入完成：新增 ${added}，更新 ${updated}`, `✅ Imported: ${added} added, ${updated} updated`)); render();
+  } catch (err) { toast('❌ ' + err.message); }
+});
+
+/* =========================================================
+   Firebase (optional): Google sign-in + Firestore sync
+   ========================================================= */
+const FB = { app: null, auth: null, db: null, user: null, m: null, loading: false };
+function parseFbConfig(txt) {
+  if (!txt || !txt.trim()) return null;
+  try { const j = JSON.parse(txt); if (j.apiKey) return j; } catch { }
+  const o = {}; txt.replace(/(\w+)\s*:\s*["']([^"']+)["']/g, (_, k, v) => { o[k] = v; });
+  return o.apiKey ? o : null;
+}
+async function fbInit(silent = false) {
+  if (FB.app) return true;
+  const cfg = parseFbConfig(S.firebaseConfig);
+  if (!cfg?.apiKey || !cfg?.projectId) { if (!silent) toast(L('請先喺 ⚙️ 設定貼上 Firebase config', 'Paste your Firebase config in ⚙️ Settings first')); return false; }
+  if (FB.loading) return false; FB.loading = true;
+  try {
+    const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
+    const [a, au, fs] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-firestore.js')]);
+    FB.m = { ...a, ...au, ...fs };
+    FB.app = a.initializeApp(cfg, 'qp-' + Date.now()); FB.auth = au.getAuth(FB.app); FB.db = fs.getFirestore(FB.app);
+    au.onAuthStateChanged(FB.auth, u => { FB.user = u; updateCloudUI(); });
+    return true;
+  } catch (e) { if (!silent) toast('❌ Firebase: ' + e.message, 5000); return false; }
+  finally { FB.loading = false; }
+}
+async function fbSignIn() {
+  if (!(await fbInit())) return;
+  if (location.protocol === 'file:') { toast(L('Google 登入唔可以喺 file:// 用，請放上 GitHub Pages 或者用本機伺服器開', 'Google sign-in does not work from file:// — host it on GitHub Pages or a local server'), 6000); return; }
+  try { await FB.m.signInWithPopup(FB.auth, new FB.m.GoogleAuthProvider()); toast(L('✅ 登入成功', '✅ Signed in')); if (S.autoSync) cloudUpload(true); }
+  catch (e) {
+    const map = { 'auth/unauthorized-domain': L('呢個網址未加入 Firebase「Authorized domains」', 'This domain is not in Firebase "Authorized domains"'), 'auth/popup-blocked': L('彈出視窗被擋咗，請容許彈出視窗', 'Pop-up blocked — please allow pop-ups'), 'auth/popup-closed-by-user': L('你關咗登入視窗', 'Sign-in window closed'), 'auth/operation-not-allowed': L('Firebase 未開啟 Google 登入', 'Google sign-in is not enabled in Firebase') };
+    toast('❌ ' + (map[e.code] || e.message), 6000);
+  }
+}
+async function fbSignOut() { if (FB.auth) await FB.m.signOut(FB.auth); toast(L('已登出', 'Signed out')); }
+function cloudSafe(s) {
+  let o = JSON.parse(JSON.stringify(s));
+  if (JSON.stringify(o).length > 900000) o.turns.forEach(t => t.reasoning = (t.reasoning || '').slice(0, 2000));
+  return o;
+}
+async function cloudSaveSession(s) {
+  if (!FB.user || !S.autoSync) return;
+  try { await FB.m.setDoc(FB.m.doc(FB.db, 'users', FB.user.uid, 'sessions', s.id), cloudSafe(s)); }
+  catch (e) { toast('☁️❌ ' + e.message, 4000); }
+}
+let profT;
+function cloudSaveProfile() {
+  if (!FB.user || !S.autoSync) return;
+  clearTimeout(profT); profT = setTimeout(() => FB.m.setDoc(FB.m.doc(FB.db, 'users', FB.user.uid), { stars, readLessons, updated: Date.now() }, { merge: true }).catch(() => { }), 1500);
+}
+async function cloudUpload(quiet = false) {
+  if (!FB.user) { toast(L('請先登入', 'Please sign in first')); return; }
+  try {
+    await Promise.all(sessions.map(s => FB.m.setDoc(FB.m.doc(FB.db, 'users', FB.user.uid, 'sessions', s.id), cloudSafe(s))));
+    await FB.m.setDoc(FB.m.doc(FB.db, 'users', FB.user.uid), { stars, readLessons, updated: Date.now() }, { merge: true });
+    if (!quiet) toast(L(`☁️ 已上傳 ${sessions.length} 個挑戰`, `☁️ Uploaded ${sessions.length} challenge(s)`));
+  } catch (e) { toast('☁️❌ ' + e.message, 5000); }
+}
+async function cloudDownload() {
+  if (!FB.user) { toast(L('請先登入', 'Please sign in first')); return; }
+  try {
+    const snap = await FB.m.getDocs(FB.m.collection(FB.db, 'users', FB.user.uid, 'sessions'));
+    const { added, updated } = mergeSessions(snap.docs.map(d => d.data()));
+    const prof = await FB.m.getDoc(FB.m.doc(FB.db, 'users', FB.user.uid));
+    if (prof.exists()) { const p = prof.data(); if ((p.stars || 0) > stars) { stars = p.stars; LS.set('qp_stars', stars); } if (Array.isArray(p.readLessons)) { readLessons = [...new Set([...readLessons, ...p.readLessons])]; LS.set('qp_read', readLessons); } }
+    toast(L(`☁️ 下載完成：新增 ${added}，更新 ${updated}`, `☁️ Downloaded: ${added} added, ${updated} updated`)); render();
+  } catch (e) { toast('☁️❌ ' + e.message, 5000); }
+}
+function cloudBoxInner() {
+  const cfg = parseFbConfig(S.firebaseConfig);
+  if (!cfg) return `☁️ <b>${L('雲端同步（Firebase）', 'Cloud sync (Firebase)')}</b><p class="small">${L('未設定。去 ⚙️ 設定貼上你嘅 Firebase config，就可以用 Google 登入，喺 iPad 同電腦之間同步。', 'Not set up. Paste your Firebase config in ⚙️ Settings to sign in with Google and sync between iPad and computer.')}</p>`;
+  if (!FB.user) return `☁️ <b>${L('雲端同步', 'Cloud sync')}</b> · ${L('未登入', 'Not signed in')}<div class="row" style="margin-top:8px"><button class="btn" data-act="fbIn">🔐 ${L('用 Google 登入', 'Sign in with Google')}</button></div>`;
+  return `☁️ <b>${L('已登入', 'Signed in')}</b>: ${esc(FB.user.email || FB.user.displayName || '')}${S.autoSync ? ` · ${L('自動同步開咗', 'auto-sync on')}` : ''}
+    <div class="row" style="margin-top:8px"><button class="btn btn-blue" data-act="cloudUp">⬆️ ${L('上傳全部', 'Upload all')}</button><button class="btn btn-green" data-act="cloudDown">⬇️ ${L('由雲端下載', 'Download')}</button><button class="btn btn-ghost" data-act="fbOut">${L('登出', 'Sign out')}</button></div>`;
+}
+function updateCloudUI() { $$('.cloudbox').forEach(el => el.innerHTML = cloudBoxInner()); }
+
+/* =========================================================
+   Settings modal
+   ========================================================= */
+const PRESETS = [
+  ['Z.ai (International)', 'https://api.z.ai/api/paas/v4'],
+  ['智譜 BigModel (CN)', 'https://open.bigmodel.cn/api/paas/v4'],
+  ['OpenRouter', 'https://openrouter.ai/api/v1'],
+  ['OpenAI', 'https://api.openai.com/v1'],
+  ['DeepSeek', 'https://api.deepseek.com/v1']
+];
+const opt = (v, label, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? 'selected' : ''}>${esc(label)}</option>`;
+function openSettings() { $('#modal').hidden = false; renderSettings(); }
+function renderSettings() {
+  $('#modalBody').innerHTML = `
+  <div class="mhead"><h2>⚙️ ${L('設定', 'Settings')}</h2><button class="hbtn" data-act="closeModal">✕</button></div>
+  <div class="sgroup"><h3>🌐 ${L('語言', 'Language')}</h3><div class="seg"><button class="chip ${S.lang === 'zh' ? 'on' : ''}" data-act="setLang" data-v="zh">中文（廣東話）</button><button class="chip ${S.lang === 'en' ? 'on' : ''}" data-act="setLang" data-v="en">English (UK)</button></div></div>
+  <div class="sgroup"><h3>👧 ${L('小朋友', 'Child')}</h3>
+    <label>${L('暱稱', 'Nickname')}<input data-set="nickname" value="${esc(S.nickname)}" placeholder="${L('例如：小明', 'e.g. Amy')}"></label>
+    <label>${L('年齡', 'Age')}<select data-set="age">${['6-8', '9-10', '11-12'].map(a => opt(a, a + L(' 歲', ' years old'), S.age)).join('')}</select></label></div>
+  <div class="sgroup"><h3>🤖 ${L('AI 設定（爸爸媽媽／老師填）', 'AI settings (for grown-ups)')}</h3>
+    <label>${L('快速揀供應商', 'Provider preset')}<select id="presetSel"><option value="">— ${L('揀一個', 'choose')} —</option>${PRESETS.map(([n, u]) => opt(u, n, '')).join('')}</select></label>
+    <label>Base URL<input data-set="baseUrl" value="${esc(S.baseUrl)}" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <label>Model<input data-set="model" value="${esc(S.model)}" list="modelList" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+    <datalist id="modelList"><option value="glm-5.3"><option value="glm-5.2"><option value="glm-5"><option value="glm-4.6"><option value="glm-4.5-flash"></datalist>
+    <label>API Key<div class="row" style="flex-wrap:nowrap"><input type="password" id="keyIn" data-set="apiKey" value="${esc(S.apiKey)}" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="btn btn-ghost" data-act="toggleKey">👁</button></div></label>
+    <p class="note">🔒 ${L('Base URL、Model 同 API Key 只會儲存喺呢部機瀏覽器嘅 Local Storage，唔會上傳去 Firebase，亦唔會匯出。', 'Base URL, Model and API Key are stored only in this browser\'s Local Storage — never uploaded to Firebase or exported.')}</p>
+    <label>${L('最大輸出 tokens（max_tokens，包埋思考）', 'Max output tokens (max_tokens, includes thinking)')}<input type="number" data-set="maxTokens" data-type="num" min="256" step="1024" value="${S.maxTokens}"></label>
+    <div class="chips">${[[8192, '8K'], [32768, '32K'], [65536, '64K'], [131072, '128K · MAX']].map(([n, l]) => `<button class="chip ${S.maxTokens === n ? 'on' : ''}" data-act="setTok" data-v="${n}">${l}</button>`).join('')}</div>
+    <p class="note">${L('GLM-5 系列最大係 131072。設到最大，AI 思考就唔容易「爆 token」。如果供應商報錯話超出範圍，就揀細啲。', 'GLM-5 models allow up to 131072. Setting the maximum makes it much harder for thinking to run out of tokens. If your provider rejects it, choose a smaller value.')}</p>
+    <label>${L('推理強度 reasoning_effort', 'Reasoning effort (reasoning_effort)')}<select data-set="effort">${opt('auto', L('唔傳（用模型預設）', "Don't send (model default)"), S.effort)}${opt('low', 'low ⚡ ' + L('最快', 'fastest'), S.effort)}${opt('high', 'high ⭐ ' + L('建議', 'recommended'), S.effort)}${opt('max', 'max 🧠 ' + L('諗最深、最慢', 'deepest, slowest'), S.effort)}</select></label>
+    <label>${L('思考開關 thinking', 'Thinking switch (thinking)')}<select data-set="thinking">${opt('auto', L('唔傳（建議）', "Don't send (recommended)"), S.thinking)}${opt('enabled', 'enabled', S.thinking)}${opt('disabled', 'disabled', S.thinking)}</select></label>
+    <p class="note">${L('GLM-5.3 嘅 thinking 係永遠開住嘅，要用 reasoning_effort 控制諗幾多。其他供應商如果唔認識呢兩個參數而報錯，就揀「唔傳」。', 'On GLM-5.3 thinking is always on; use reasoning_effort to control how much it thinks. If another provider rejects these parameters, choose "Don\'t send".')}</p>
+    <label>Temperature<input type="number" data-set="temperature" data-type="num" min="0" max="2" step="0.1" value="${S.temperature}"></label>
+    <label class="chk"><input type="checkbox" data-set="autoRescue" ${S.autoRescue ? 'checked' : ''}> 🛟 ${L('爆 token／格式錯時自動用低推理強度再試', 'Auto-retry with low effort if tokens run out or format fails')}</label>
+    <label class="chk"><input type="checkbox" data-set="saveReasoning" ${S.saveReasoning ? 'checked' : ''}> 🧠 ${L('儲存 AI 思考過程（每輪最多 2 萬字）', 'Save AI reasoning (up to 20,000 chars per round)')}</label>
+    <div class="row" style="margin-top:10px"><button class="btn btn-green" data-act="testAI">🔌 ${L('測試連線', 'Test connection')}</button><button class="btn btn-ghost" data-act="clearKey">🗑 ${L('清除 API Key', 'Clear API Key')}</button></div></div>
+  <div class="sgroup"><h3>🔊 ${L('語音', 'Voice')}</h3>
+    <label>${L('廣東話聲音', 'Cantonese voice')}<select data-set="voiceZh" id="vZh"></select></label>
+    <label>${L('英式英文聲音', 'British English voice')}<select data-set="voiceEn" id="vEn"></select></label>
+    <label>${L('語速', 'Speed')} <b id="rateVal">${S.ttsRate}</b><input type="range" data-set="ttsRate" data-type="num" min="0.6" max="1.3" step="0.05" value="${S.ttsRate}"></label>
+    <label class="chk"><input type="checkbox" data-set="autoSpeak" ${S.autoSpeak ? 'checked' : ''}> ${L('自動讀出問問博士嘅評語', "Read Dr Hoot's feedback aloud automatically")}</label>
+    <div class="row"><button class="btn btn-yellow" data-act="testVoice" data-v="zh">🔊 ${L('試聽廣東話', 'Test Cantonese')}</button><button class="btn btn-yellow" data-act="testVoice" data-v="en">🔊 ${L('試聽英文', 'Test English')}</button></div>
+    <p class="note">${L('iPad 冇廣東話聲音？去「設定 › 輔助使用 › 朗讀內容 › 聲音 › 中文 › 中文（香港）」下載 Sin-Ji 或其他粵語聲音，然後重新開呢頁。Windows：設定 › 時間與語言 › 語音 › 新增「中文（香港）」。', 'No Cantonese voice on iPad? Go to Settings › Accessibility › Spoken Content › Voices › Chinese › Chinese (Hong Kong) and download a voice, then reload this page. Windows: Settings › Time & language › Speech › add "Chinese (Hong Kong)".')}</p></div>
+  <div class="sgroup"><h3>☁️ Firebase ${L('雲端同步（可選）', 'cloud sync (optional)')}</h3>
+    <label>Firebase config<textarea data-set="firebaseConfig" rows="5" placeholder='{"apiKey":"...","authDomain":"xxx.firebaseapp.com","projectId":"xxx","appId":"..."}' style="font-family:ui-monospace,monospace;font-size:14px">${esc(S.firebaseConfig)}</textarea></label>
+    <p class="note">${L('可以直接貼 Firebase Console 俾你嗰段 firebaseConfig（JSON 或者 JS 格式都得）。記得喺 Authentication 開啟 Google 登入，同埋將你嘅 GitHub Pages 網域加入 Authorized domains。', 'Paste the firebaseConfig from the Firebase Console (JSON or JS format both work). Enable Google sign-in under Authentication and add your GitHub Pages domain to Authorized domains.')}</p>
+    <label class="chk"><input type="checkbox" data-set="autoSync" ${S.autoSync ? 'checked' : ''}> ${L('登入咗就自動同步每一輪', 'Auto-sync every round when signed in')}</label>
+    <div class="cloudbox">${cloudBoxInner()}</div></div>
+  <div class="sgroup"><h3>💾 ${L('資料', 'Data')}</h3><div class="row"><button class="btn btn-blue" data-act="expJSON">⬇️ JSON</button><button class="btn btn-green" data-act="expMD">⬇️ Markdown</button><button class="btn btn-ghost" data-act="impJSON">⬆️ ${L('匯入', 'Import')}</button><button class="btn btn-ghost" data-act="wipe">🧹 ${L('清除所有紀錄', 'Delete all records')}</button></div></div>
+  <p style="text-align:center"><button class="btn btn-big" data-act="closeModal">✓ ${L('完成', 'Done')}</button></p>`;
+  fillVoices();
+}
+function fillVoices() {
+  const fill = (el, list, cur) => { if (!el) return; el.innerHTML = opt('', L('自動揀', 'Automatic'), cur) + list.map(v => opt(v.voiceURI, `${v.name} (${v.lang})`, cur)).join(''); };
+  fill($('#vZh'), zhVoices(), S.voiceZh); fill($('#vEn'), enVoices(), S.voiceEn);
+  if ($('#vZh') && !zhVoices().length) $('#vZh').innerHTML = `<option value="">⚠️ ${L('搵唔到廣東話聲音（睇下面提示）', 'No Cantonese voice found (see tip below)')}</option>`;
+}
+document.addEventListener('input', onSet); document.addEventListener('change', onSet);
+function onSet(e) {
+  if (e.target.id === 'presetSel' && e.type === 'change') { if (e.target.value) { S.baseUrl = e.target.value; saveS(); renderSettings(); } return; }
+  const el = e.target.closest('[data-set]'); if (!el) return;
+  const k = el.dataset.set;
+  S[k] = el.type === 'checkbox' ? el.checked : el.dataset.type === 'num' ? Number(el.value) : el.value;
+  saveS();
+  if (k === 'ttsRate') $('#rateVal').textContent = S.ttsRate;
+  if (k === 'firebaseConfig' && e.type === 'change') { FB.app = null; FB.user = null; fbInit(true).then(updateCloudUI); }
+  if (k === 'maxTokens') $$('[data-act="setTok"]').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === S.maxTokens));
+  if (k === 'apiKey' || k === 'model') tkUpdate();
+}
+
+/* =========================================================
+   Actions (event delegation)
+   ========================================================= */
+const ACT = {
+  say: el => speak(SAY[+el.dataset.i], el),
+  home: () => { state.viewId = null; go('home'); },
+  go: el => { state.viewId = null; go(el.dataset.to); },
+  lang: () => { S.lang = S.lang === 'en' ? 'zh' : 'en'; saveS(); state.game = null; stopSpeak(); render(); tkUpdate(); },
+  setLang: el => { S.lang = el.dataset.v; saveS(); state.game = null; render(); renderSettings(); tkUpdate(); },
+  settings: () => openSettings(),
+  closeModal: () => { $('#modal').hidden = true; render(); },
+  lesson: el => { state.lesson = +el.dataset.i; stopSpeak(); render(); },
+  gotIt: () => {
+    const i = state.lesson;
+    if (!readLessons.includes(i)) { readLessons.push(i); LS.set('qp_read', readLessons); addStars(1); scene3d?.hop(); toast(L('+1⭐ 叻叻！', '+1⭐ Well done!')); }
+    if (i < LESSONS.length - 1) state.lesson = i + 1; else scene3d?.celebrate();
+    render();
+  },
+  gamePick: el => {
+    const G = state.game; if (G.pick >= 0) return;
+    G.pick = +el.dataset.i; const it = G.items[G.i], ok = it.opts[G.pick].ok;
+    G.results.push(ok); if (ok) { G.score++; addStars(1); scene3d?.hop(); scene3d?.setMood('happy', 1.5); } else scene3d?.setMood('sad', 1.8);
+    render();
+    if (S.autoSpeak) speak((ok ? L('答啱咗！叻叻！', 'Correct! Well done!') : L('差少少！', 'Nearly!')) + ' ' + it.w);
+  },
+  gameNext: () => { const G = state.game; G.i++; G.pick = -1; stopSpeak(); render(); },
+  gameAgain: () => { newGame(); render(); },
+  pickSc: el => { state.pickScenario = el.dataset.id; render(); if (el.dataset.id === 'free') $('#freeGoal')?.focus(); },
+  startSc: () => {
+    const sc = SCENARIOS.find(s => s.id === state.pickScenario); if (!sc) return;
+    let goal = sc[S.lang].g;
+    if (sc.id === 'free') { const g = ($('#freeGoal')?.value || '').trim(); if (g) goal = g; }
+    const ses = { id: uid(), created: Date.now(), updated: Date.now(), lang: S.lang, scenario: { id: sc.id, emoji: sc.e, title: sc[S.lang].t, goal }, turns: [], done: false, best: 0 };
+    sessions.unshift(ses); saveSessions();
+    Object.assign(state, { cur: ses.id, chosenGoal: '', draftQ: null, draftC: '', error: null });
+    render(); if (S.autoSpeak) speak(goalSpeech(ses) + ' ' + L('寫低你嘅問題啦！', 'Now write your question!'));
+  },
+  starter: el => { const ta = $('#qInput'); ta.value = el.dataset.v.replace(/……|…/, ''); ta.focus(); },
+  mic: el => toggleMic(el),
+  ask: () => ask(false),
+  retryAsk: () => ask(true),
+  stop: () => { currentAbort?.abort(); },
+  pickGoal: el => {
+    const ses = curSession(); const last = ses?.turns[ses.turns.length - 1]; if (!last) return;
+    const g = last.res.goalOptions[+el.dataset.i];
+    state.chosenGoal = state.chosenGoal === g ? '' : g;
+    $$('.goalopt[data-act="pickGoal"]').forEach(b => b.classList.toggle('on', last.res.goalOptions[+b.dataset.i] === state.chosenGoal));
+    $('#chosenBox').innerHTML = state.chosenGoal ? `<div class="chosen">🎯 ${L('你揀咗：', 'You chose: ')}${esc(state.chosenGoal)}</div>` : '';
+    if (state.chosenGoal) speak(state.chosenGoal);
+  },
+  leaveSes: () => { captureDrafts(); Object.assign(state, { cur: null, pickScenario: null, draftQ: null, draftC: '', error: null }); render(); },
+  finishSes: () => {
+    const ses = curSession(); if (!ses) return; ses.done = true; ses.updated = Date.now(); saveSessions(); cloudSaveSession(ses);
+    render(); scene3d?.celebrate(); addStars(1);
+    const sc = ses.turns.map(t => t.res?.score || 0);
+    speak(L(`好叻呀！你一共問咗${sc.length}輪，由${sc[0]}分進步到最高${Math.max(...sc)}分。記住，好問題係練出嚟㗎！`, `Brilliant! You asked ${sc.length} round(s) and went from ${sc[0]} to a best of ${Math.max(...sc)} points. Remember, great questions come from practice!`));
+    scrollTo({ top: 0, behavior: 'smooth' });
+  },
+  reopenSes: () => { const ses = curSession(); if (ses) { ses.done = false; saveSessions(); render(); } },
+  viewSes: el => { state.viewId = el.dataset.id; go('book'); },
+  bookBack: () => { state.viewId = null; render(); },
+  contSes: el => { const ses = sessions.find(s => s.id === el.dataset.id); if (!ses) return; ses.done = false; Object.assign(state, { cur: ses.id, chosenGoal: '', draftQ: null, draftC: '', viewId: null }); go('lab'); },
+  delSes: async el => {
+    if (!confirm(L('確定刪除呢個挑戰？', 'Delete this challenge?'))) return;
+    const id = el.dataset.id; sessions = sessions.filter(s => s.id !== id); saveSessions();
+    if (state.cur === id) state.cur = null;
+    if (FB.user) FB.m.deleteDoc(FB.m.doc(FB.db, 'users', FB.user.uid, 'sessions', id)).catch(() => { });
+    render();
+  },
+  expJSON: () => exportJSON(),
+  expMD: () => download(`question-planet-${stamp()}.md`, allMD(sessions), 'text/markdown'),
+  expOneMD: el => { const s = sessions.find(x => x.id === el.dataset.id); if (s) download(`question-${s.scenario.id}-${stamp()}.md`, allMD([s]), 'text/markdown'); },
+  impJSON: () => $('#fileIn').click(),
+  wipe: () => { if (!confirm(L('真係要清除呢部機所有紀錄同星星？（雲端唔受影響）', 'Really delete all local records and stars? (The cloud is not affected)'))) return; sessions = []; stars = 0; readLessons = []; saveSessions(); LS.set('qp_stars', 0); LS.set('qp_read', []); state.cur = null; updateHeader(); toast(L('已清除', 'Cleared')); },
+  fbIn: () => fbSignIn(), fbOut: () => fbSignOut(), cloudUp: () => cloudUpload(), cloudDown: () => cloudDownload(),
+  testAI: () => testAI(),
+  clearKey: () => { S.apiKey = ''; saveS(); renderSettings(); tkUpdate(); toast(L('已清除 API Key', 'API Key cleared')); },
+  toggleKey: () => { const k = $('#keyIn'); k.type = k.type === 'password' ? 'text' : 'password'; },
+  setTok: el => { S.maxTokens = Number(el.dataset.v); saveS(); renderSettings(); },
+  testVoice: el => speak(el.dataset.v === 'zh' ? '你好呀！我係問問博士。一齊學識問好問題啦！' : "Hello! I'm Dr Hoot. Let's learn to ask brilliant questions!", el),
+  tkToggle: () => { TK.open = !TK.open; $('#tkPanel').classList.toggle('open', TK.open); $('#tkArrow').textContent = TK.open ? '▼' : '▲'; drawTicker(); },
+  copyStream: () => { navigator.clipboard?.writeText(`# reasoning\n${TK.reasoning}\n\n# content\n${TK.content}`).then(() => toast(L('已複製', 'Copied'))); }
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]'); if (!el || el.disabled) return;
+  const f = ACT[el.dataset.act]; if (!f) return;
+  if (el.dataset.act !== 'tkToggle' && el.closest('#ticker') && el !== $('#ticker')) return;
+  e.stopPropagation(); f(el, e);
+});
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') ACT.closeModal(); });
+addEventListener('beforeunload', () => captureDrafts());
+
+/* ---------------- boot ---------------- */
+render(); drawTicker(); init3D();
+if (parseFbConfig(S.firebaseConfig)) fbInit(true);
+</script>
+</body>
+</html>
