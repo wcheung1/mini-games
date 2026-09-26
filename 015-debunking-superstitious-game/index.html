@@ -234,6 +234,8 @@ const CH = {
   ching: { n: '小晴', av: '👧', p: 1.3 },
   yan: { n: '阿仁', av: '🧒', p: 1.2 },
   aunt: { n: '姨媽', av: '👵', p: .85 },
+  shop: { n: '店主', av: '🧑‍💼', p: .95 },
+  teller: { n: '占卜師', av: '🔮', p: .88 },
 };
 
 /* ---------- Cantonese TTS ---------- */
@@ -581,7 +583,7 @@ function loop() {
     if (k >= 1) { tweens.splice(i, 1); tw.res(); }
   }
   ctx.upd.forEach(f => f(dt, t));
-  hints.forEach(h => { const s = h.userData.base * (1 + .18 * Math.sin(t * 5)); h.scale.set(s, s, 1); h.material.opacity = .7 + .3 * Math.sin(t * 5); });
+  hints.forEach(h => { const tr = h.userData.track; if (tr) { tr.obj.updateWorldMatrix(true, false); h.position.copy(tr.obj.localToWorld(_v.copy(tr.local))); } const s = h.userData.base * (1 + .18 * Math.sin(t * 5)); h.scale.set(s, s, 1); h.material.opacity = .7 + .3 * Math.sin(t * 5); });
   const w = innerWidth, h = innerHeight;
   const vis = !UI.dlg.classList.contains('hidden');
   const target = vis ? UI.dlg.offsetHeight + 14 : 0;
@@ -626,6 +628,22 @@ function tap(x, y) {
   ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, cam);
   if (ctx.onPoint) { const all = ray.intersectObjects(ctx.scene.children, true).filter(h => visibleChain(h.object) && !h.object.isSprite); if (all[0]) ctx.onPoint(all[0].point); }
+  // tapping a glowing star counts as tapping the thing it marks
+  let best = null, bd = 1e9;
+  hints.forEach(h => {
+    const tr = h.userData.track; if (!tr) return;
+    const v = _v.copy(h.position).project(cam); if (v.z > 1) return;
+    const sx = (v.x + 1) / 2 * innerWidth, sy = (1 - v.y) / 2 * innerHeight;
+    const dist = cam.position.distanceTo(h.position);
+    const pr = clamp(h.userData.base / 2 / (dist * Math.tan(cam.fov * Math.PI / 360)) * innerHeight / 2, 28, 90);
+    const d = Math.hypot(sx - x, sy - y);
+    if (d < pr && d < bd) { bd = d; best = tr.obj; }
+  });
+  if (best) {
+    const ids = []; let o = best; while (o) { if (o.userData.hot) ids.push(o.userData.hot); o = o.parent; }
+    if (hotHandler && hotHandler(ids)) return;
+    if (ctx.onHot && ctx.onHot(ids)) return;
+  }
   const hits = ray.intersectObjects(ctx.hotObjs, true);
   for (const h of hits) {
     if (!visibleChain(h.object) && !h.object.userData.proxy) continue;
@@ -635,7 +653,7 @@ function tap(x, y) {
     if (!ids.length) continue;
     if (hotHandler && hotHandler(ids)) return;
     if (ctx.onHot && ctx.onHot(ids)) return;
-    return;
+    // not wanted right now: let the tap pass through to whatever is behind
   }
 }
 
@@ -676,11 +694,17 @@ function hintTexture() {
 }
 function addHint(obj) {
   const sp = new T.Sprite(new T.SpriteMaterial({ map: hintTexture(), transparent: true, depthTest: false, depthWrite: false }));
-  if (obj.userData.hintPos) sp.position.copy(obj.userData.hintPos);
+  obj.updateWorldMatrix(true, true);
+  let anchor;
+  if (obj.userData.hintLocal) anchor = obj.localToWorld(obj.userData.hintLocal.clone());
+  else if (obj.userData.hintPos) anchor = obj.userData.hintPos.clone();
   else {
     const box = meshBox(obj), c = box.getCenter(new T.Vector3());
-    sp.position.set(c.x, box.max.y + .1, c.z);
+    anchor = obj.userData.hintAt === 'center' ? c : new T.Vector3(c.x, box.max.y + .1, c.z);
   }
+  sp.position.copy(anchor);
+  // follow the object if it moves (e.g. a swaying skeleton)
+  sp.userData.track = { obj, local: obj.worldToLocal(anchor.clone()) };
   sp.userData.base = obj.userData.hintSize || .42; sp.renderOrder = 999;
   ctx.scene.add(sp); hints.push(sp); return sp;
 }
@@ -709,7 +733,8 @@ const Tr = (r, t, a = Math.PI * 2, rs = 10, ts = 28) => new T.TorusGeometry(r, t
 const Cap = (r, l) => new T.CapsuleGeometry(r, l, 6, 14);
 const Pl = (w, h) => new T.PlaneGeometry(w, h);
 function grp(par, x = 0, y = 0, z = 0) { const g = new T.Group(); g.position.set(x, y, z); if (par) par.add(g); return g; }
-function hot(c, obj, id, { proxy = 0, px = 0, py = 0, pz = 0, hintSize, hintPos } = {}) {
+function hot(c, obj, id, { proxy = 0, px = 0, py = 0, pz = 0, hintSize, hintPos, hintLocal, hintAt } = {}) {
+  if (hintLocal) obj.userData.hintLocal = hintLocal; if (hintAt) obj.userData.hintAt = hintAt;
   obj.userData.hot = id; c.hot[id] = obj; c.hotObjs.push(obj);
   if (hintSize) obj.userData.hintSize = hintSize;
   if (hintPos) obj.userData.hintPos = hintPos;
@@ -1086,8 +1111,8 @@ function buildBathroom() {
 /* ---------- 4: Corridor ---------- */
 function buildCorridor() {
   const c = newCtx(), s = c.scene;
-  s.background = new T.Color(0x05070f);
-  s.fog = new T.Fog(0x05070f, 8, 22);
+  s.background = new T.Color(0x070b1c);
+  s.fog = new T.Fog(0x070b1c, 30, 90);
   const amb = new T.AmbientLight(0x5060a0, .38); s.add(amb);
   const g = grp(s);
   const wallM = M(0xc9b99a), floorM = M(0xffffff, { map: woodTex('#8a6a50', 2) });
@@ -1097,70 +1122,173 @@ function buildCorridor() {
   const lw = mk(Pl(L, H), wallM, -W / 2, H / 2, zc, g); lw.rotation.y = Math.PI / 2;
   const rw = mk(Pl(L, H), wallM, W / 2, H / 2, zc, g); rw.rotation.y = -Math.PI / 2;
   const cl = mk(Pl(W, L), M(0xe0d6c4), 0, H, zc, g); cl.rotation.x = Math.PI / 2;
-  const end = mk(Pl(W, H), wallM, 0, H / 2, -12, g);
   const back = mk(Pl(W, H), wallM, 0, H / 2, 2, g); back.rotation.y = Math.PI;
+  // end wall with a real window opening (x -0.6..0.6, y 0.95..2.25)
+  const holeWall = (x0, x1, y0, y1, hx0, hx1, hy0, hy1, z, mat, ry) => {
+    const add = (a, b, c2, d) => { if (b - a <= 0 || d - c2 <= 0) return; const m = mk(Pl(b - a, d - c2), mat, (a + b) / 2, (c2 + d) / 2, z, s); m.rotation.y = ry; };
+    add(x0, x1, y0, hy0); add(x0, x1, hy1, y1); add(x0, hx0, hy0, hy1); add(hx1, x1, hy0, hy1);
+  };
+  holeWall(-W / 2, W / 2, 0, H, -.6, .6, .95, 2.25, -12, wallM, 0);
+  holeWall(-14, 14, -6.2, 10, -.6, .6, .95, 2.25, -12.2, M(0x5d6472), Math.PI); // outside of the building
+  [[-.6, 1.6, .2, 1.3, Math.PI / 2], [.6, 1.6, .2, 1.3, -Math.PI / 2]].forEach(([x, y, w2, h2, ry]) => { const m = mk(Pl(w2, h2), wallM, x, y, -12.1, s); m.rotation.y = ry; });
+  mk(Pl(1.2, .2), wallM, 0, 2.25, -12.1, s).rotation.x = Math.PI / 2;
   // doors
-  [[-1, -2], [1, -3.5], [-1, -7]].forEach(([sd, z]) => { const d = mk(Bx(.06, 2.05, .9), M(0x8d6e63), sd * (W / 2 - .03), 1.03, z, g); mk(Sp(.04), M(0xffd54a, { metalness: .6, roughness: .3 }), sd * (W / 2 - .09), 1.0, z + .32, g); });
-  // window at end
+  [[-1, -2], [1, -3.5], [-1, -7]].forEach(([sd, z]) => { mk(Bx(.06, 2.05, .9), M(0x8d6e63), sd * (W / 2 - .03), 1.03, z, g); mk(Sp(.04), M(0xffd54a, { metalness: .6, roughness: .3 }), sd * (W / 2 - .09), 1.0, z + .32, g); });
+  // window frame + see-through glass
   const win = windowOn(s, 0, 1.6, -11.98, 0, 1.2, 1.3, 0x14224f);
-  mk(new T.CircleGeometry(.12, 20), MB(0xfff3b0), .3, .35, .02, win);
   const winGlass = win.userData.glass;
-  const pane = mk(Pl(.6, 1.3), new T.MeshStandardMaterial({ color: 0x9fb8e0, transparent: true, opacity: .35 }), -.9, 0, .06, win); // sliding pane (opens → closes)
-  hot(c, win, 'window', { proxy: .7, pz: .2, hintPos: new T.Vector3(.4, 2.5, -11.8) });
+  winGlass.material = new T.MeshBasicMaterial({ color: 0x9fb8ff, transparent: true, opacity: .08, depthWrite: false });
+  const pane = mk(Pl(.6, 1.3), new T.MeshStandardMaterial({ color: 0x9fb8e0, transparent: true, opacity: .3, depthWrite: false }), -.9, 0, .06, win);
+  hot(c, win, 'window', { proxy: .6, pz: .15, hintPos: new T.Vector3(.35, 2.35, -11.85) });
   const moonL = new T.SpotLight(0xaec3ff, .8, 16, .5, .6, 1); moonL.position.set(0, 2.2, -11.5); moonL.target.position.set(0, 0, -6); s.add(moonL); s.add(moonL.target);
+  const flashL = new T.PointLight(0xfff4d0, 0, 14, 1.2); flashL.position.set(0, 1.6, -11.5); s.add(flashL);
+  const glareTex = canvasTex(128, 128, (g2) => { const gr = g2.createRadialGradient(64, 64, 4, 64, 64, 64); gr.addColorStop(0, 'rgba(255,250,225,1)'); gr.addColorStop(1, 'rgba(255,250,225,0)'); g2.fillStyle = gr; g2.fillRect(0, 0, 128, 128); });
+  const glare = mk(Pl(2.4, 2.4), new T.MeshBasicMaterial({ map: glareTex, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, fog: false }), .3, 1.5, -11.93, s);
   // curtain
   const cg = new T.PlaneGeometry(1.35, 1.6, 24, 12); const base = cg.attributes.position.array.slice();
-  const curtain = mk(cg, new T.MeshStandardMaterial({ color: 0xf5f5ff, side: T.DoubleSide, transparent: true, opacity: .92, emissive: 0x222233 }), 0, 1.55, -11.8, s);
+  const curtain = mk(cg, new T.MeshStandardMaterial({ color: 0xf5f5ff, side: T.DoubleSide, transparent: true, opacity: .93, emissive: 0x222233 }), 0, 1.55, -11.8, s);
   mk(Cy(.02, .02, 1.6, 8), M(0x888888), 0, 2.37, -11.85, s).rotation.z = Math.PI / 2;
-  hot(c, curtain, 'curtain', { hintPos: new T.Vector3(-.4, 2.6, -11.6) });
+  hot(c, curtain, 'curtain', { hintAt: 'center', proxy: .5 });
   // picture frame with glass
   const fr = grp(s, W / 2 - .02, 1.6, -5.2); fr.rotation.y = -Math.PI / 2;
   mk(Bx(.8, .6, .05), M(0x6d4c41), 0, 0, 0, fr);
-  const pic = mk(Pl(.68, .48), M(0xffffff, { map: canvasTex(256, 180, (g2) => { g2.fillStyle = '#87ceeb'; g2.fillRect(0, 0, 256, 180); g2.fillStyle = '#5cb85c'; g2.fillRect(0, 120, 256, 60); g2.fillStyle = '#ffeb3b'; g2.beginPath(); g2.arc(200, 45, 22, 0, 7); g2.fill(); g2.fillStyle = '#8d6e63'; g2.fillRect(60, 80, 60, 45); g2.fillStyle = '#e53935'; g2.beginPath(); g2.moveTo(50, 80); g2.lineTo(90, 50); g2.lineTo(130, 80); g2.fill(); }) }), 0, 0, .03, fr);
+  mk(Pl(.68, .48), M(0xffffff, { map: canvasTex(256, 180, (g2) => { g2.fillStyle = '#87ceeb'; g2.fillRect(0, 0, 256, 180); g2.fillStyle = '#5cb85c'; g2.fillRect(0, 120, 256, 60); g2.fillStyle = '#ffeb3b'; g2.beginPath(); g2.arc(200, 45, 22, 0, 7); g2.fill(); g2.fillStyle = '#8d6e63'; g2.fillRect(60, 80, 60, 45); g2.fillStyle = '#e53935'; g2.beginPath(); g2.moveTo(50, 80); g2.lineTo(90, 50); g2.lineTo(130, 80); g2.fill(); }) }), 0, 0, .03, fr);
   const glint = mk(Pl(.68, .48), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }), 0, 0, .04, fr);
   hot(c, fr, 'frame', { proxy: .4, hintSize: .4 });
   // plant
   const plant = grp(s, -.85, 0, -10.8); mk(Cy(.18, .14, .35), M(0xbf6d3a), 0, .17, 0, plant);
   for (let i = 0; i < 7; i++) { const l = mk(Cn(.07, .6, 6), M(0x2e7d32), Math.cos(i) * .08, .6, Math.sin(i) * .08, plant); l.rotation.set(Math.sin(i * 2) * .5, 0, Math.cos(i * 3) * .5); }
-  // the "white shadow" sweep: soft streak on left wall
+
+  /* ----- outside: the street below (we are on an upper floor) ----- */
+  const out = grp(s);
+  const GY = -6;
+  const sg = new T.BufferGeometry(), spts = [];
+  for (let i = 0; i < 300; i++) { const a = Math.random() * Math.PI - Math.PI, e = Math.random() * .8 + .1, r = 80; spts.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r - 20); }
+  sg.setAttribute('position', new T.Float32BufferAttribute(spts, 3));
+  out.add(new T.Points(sg, new T.PointsMaterial({ color: 0xffffff, size: .35, fog: false })));
+  mk(Sp(2.5), MB(0xfff3b0, { fog: false }), -25, 30, -70, out);
+  const ground = mk(Pl(80, 70), M(0x3b4250), 0, GY, -45, out); ground.rotation.x = -Math.PI / 2;
+  const roadM = M(0x23262d);
+  const r1 = mk(Pl(80, 6), roadM, 0, GY + .02, -23, out); r1.rotation.x = -Math.PI / 2;           // main road (along x)
+  const r2 = mk(Pl(6, 40), roadM, 3.5, GY + .02, -46, out); r2.rotation.x = -Math.PI / 2;         // side road (towards us)
+  for (let i = -8; i < 8; i++) { const d = mk(Pl(1.6, .15), MB(0xf5f5f5), i * 4, GY + .03, -23, out); d.rotation.x = -Math.PI / 2; }
+  for (let i = 0; i < 6; i++) { const d = mk(Pl(.15, 1.6), MB(0xf5f5f5), 3.5, GY + .03, -32 - i * 5, out); d.rotation.x = -Math.PI / 2; }
+  const walk = mk(Pl(80, 3), M(0x8a8f99), 0, GY + .05, -18.5, out); walk.rotation.x = -Math.PI / 2;
+  // buildings across the street
+  const bcols = [0x4a5568, 0x5a4a68, 0x3f5a5a, 0x5a5048];
+  for (let i = -5; i <= 5; i++) {
+    if (Math.abs(i * 7 - 3.5) < 4) continue;
+    const h = 8 + (i * 7 + 20) % 9, bx = i * 7;
+    const b = grp(out, bx, GY, -36 + (i % 2) * -4);
+    mk(Bx(6, h, 5), M(bcols[(i + 5) % 4]), 0, h / 2, 0, b);
+    for (let wy = 1.5; wy < h - 1; wy += 2) for (let wx = -2; wx <= 2; wx += 2) if ((wx * 3 + wy * 7 + i) % 3) mk(Pl(.9, .9), MB((wx + wy + i) % 2 ? 0xffe082 : 0x2d3550), wx, wy, 2.51, b);
+  }
+  // street lamps
+  [[-8, -20.5], [8, -20.5], [.8, -30]].forEach(([x, z]) => {
+    const l = grp(out, x, GY, z);
+    mk(Cy(.08, .1, 5, 8), M(0x555555), 0, 2.5, 0, l);
+    mk(Sp(.3, 12, 8), MB(0xffe7a3), 0, 5.1, 0, l);
+    const pl = new T.PointLight(0xffd79a, 1.2, 14, 1.3); pl.position.set(0, 4.8, 0); l.add(pl);
+  });
+  // the car
+  const car = grp(out, 3.5, GY, -50);
+  mk(Bx(1.8, .6, 4), M(0xe53935, { roughness: .4 }), 0, .55, 0, car);
+  mk(Bx(1.6, .55, 2), M(0xc62828, { roughness: .4 }), 0, 1.1, -.3, car);
+  mk(Bx(1.5, .45, .05), MB(0x223344), 0, 1.1, .71, car);
+  [[-.9, 1.3], [.9, 1.3], [-.9, -1.3], [.9, -1.3]].forEach(p => { const w = mk(Cy(.35, .35, .3, 16), M(0x111111), p[0], .35, p[1], car); w.rotation.z = Math.PI / 2; });
+  mk(Sp(.14, 12, 8), MB(0xffffee), -.6, .6, 2.0, car); mk(Sp(.14, 12, 8), MB(0xffffee), .6, .6, 2.0, car);
+  mk(Bx(.3, .12, .05), MB(0xff2222), -.6, .65, -2.02, car); mk(Bx(.3, .12, .05), MB(0xff2222), .6, .65, -2.02, car);
+  const TILT = .42;
+  const beamG = grp(car, 0, .6, 2.05); beamG.rotation.x = -TILT;
+  const bgeo = new T.ConeGeometry(4.2, 24, 28, 1, true); bgeo.translate(0, -12, 0); bgeo.rotateX(-Math.PI / 2);
+  mk(bgeo, new T.MeshBasicMaterial({ color: 0xfff3c0, transparent: true, opacity: .13, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide, fog: false }), 0, 0, 0, beamG);
+  const carSpot = new T.SpotLight(0xfff6dd, 2, 40, .45, .5, 1); carSpot.position.set(0, .7, 2.1); car.add(carSpot);
+  const spotT = new T.Object3D(); spotT.position.set(0, 4, 14); car.add(spotT); carSpot.target = spotT;
+
+  // curtain + white streak on the corridor wall
   const streakTex = canvasTex(128, 256, (g2) => { const gr = g2.createRadialGradient(64, 128, 5, 64, 128, 64); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g2.fillStyle = gr; g2.save(); g2.scale(1, 2); g2.fillRect(0, 0, 128, 128); g2.restore(); });
   const streak = mk(Pl(1.2, 2.2), new T.MeshBasicMaterial({ map: streakTex, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false }), -W / 2 + .02, 1.4, -9, s);
   streak.rotation.y = Math.PI / 2;
-  const st = { amp: .06, gust: 0, sweepOn: true, next: 2.5, sweepT: -1, waiters: [] };
+  const st = { amp: .06, gust: 0, open: false, closed: false, carU: -1, carTimer: 3, sweepT: -1, flashed: false, sweepWaiters: [], carWaiters: [] };
   c.fx.state = st;
+  const WINP = new T.Vector3(0, 1.6, -12), tmpA = new T.Vector3(), tmpB = new T.Vector3(), tmpD = new T.Vector3();
+  const carPose = u => { // side road → left turn → main road
+    if (u < .5) { const k = u / .5; return [3.5, lerp(-55, -28, k), 0]; }
+    if (u < .72) { const th = (u - .5) / .22 * Math.PI / 2; return [-1.5 + 5 * Math.cos(th), -28 + 5 * Math.sin(th), -th]; }
+    const k = (u - .72) / .28; return [lerp(-1.5, -40, k), -23, -Math.PI / 2];
+  };
   c.upd.push((dt, t) => {
     // curtain waves
     const p = cg.attributes.position;
     const a = st.amp + st.gust;
     for (let i = 0; i < p.count; i++) {
       const x = base[i * 3], y = base[i * 3 + 1];
-      const hang = (0.8 - y) / 1.6; // 0 top → 1 bottom
+      const hang = (0.8 - y) / 1.6;
       p.array[i * 3 + 2] = Math.sin(x * 4 + t * 3) * a * hang * 1.4 + a * hang * 1.2;
       p.array[i * 3] = x + Math.sin(t * 2 + y * 3) * a * hang * .3;
     }
     p.needsUpdate = true; cg.computeVertexNormals();
     st.gust = Math.max(0, st.gust - dt * .25);
-    // sweeping car light
-    if (st.sweepOn) {
-      if (st.sweepT < 0) { st.next -= dt; if (st.next <= 0) { st.sweepT = 0; st.gust = .35; SFX.whoosh(); } }
+    // car loop
+    if (st.carU < 0) { st.carTimer -= dt; if (st.carTimer <= 0) { st.carU = 0; st.flashed = false; } car.visible = false; }
+    else {
+      st.carU += dt / 7;
+      if (st.carU >= 1) { st.carU = -1; st.carTimer = 2.5 + Math.random() * 2; st.carWaiters.splice(0).forEach(fn => fn()); }
       else {
-        st.sweepT += dt / 1.7; const k = st.sweepT;
-        streak.position.z = lerp(-10.5, -.5, k); streak.material.opacity = Math.sin(Math.PI * clamp(k, 0, 1)) * .55;
-        glint.material.opacity = Math.max(0, 1 - Math.abs(streak.position.z + 5.2) / 1.2) * .7;
-        if (k >= 1) { st.sweepT = -1; st.next = 5 + Math.random() * 2; streak.material.opacity = 0; glint.material.opacity = 0; const w = st.waiters.splice(0); w.forEach(f => f()); }
+        car.visible = true;
+        const [x, z, yaw] = carPose(st.carU);
+        car.position.set(x, GY, z); car.rotation.y = yaw;
       }
     }
+    // does the headlight beam point at our window?
+    let flash = 0;
+    if (st.carU >= 0) {
+      car.updateWorldMatrix(true, false);
+      beamG.getWorldPosition(tmpA);
+      tmpD.set(0, 0, 1).applyQuaternion(beamG.getWorldQuaternion(new T.Quaternion()));
+      tmpB.copy(WINP).sub(tmpA).normalize();
+      const cs = tmpD.dot(tmpB);
+      flash = clamp((cs - .983) / .012, 0, 1);
+    }
+    const blocked = st.closed || (!st.open && st.amp < .02);
+    flashL.intensity = blocked ? 0 : flash * 1.6;
+    glare.material.opacity = blocked ? 0 : flash * .55;
+    if (flash > .5 && !st.flashed) {
+      st.flashed = true;
+      if (!st.closed) { st.sweepT = 0; st.gust = .35; SFX.whoosh(); }
+    }
+    // white streak sweeping along the corridor wall
+    if (st.sweepT >= 0) {
+      st.sweepT += dt / 1.7; const k = st.sweepT;
+      streak.position.z = lerp(-10.5, -.5, k); streak.material.opacity = Math.sin(Math.PI * clamp(k, 0, 1)) * .55;
+      glint.material.opacity = Math.max(0, 1 - Math.abs(streak.position.z + 5.2) / 1.2) * .7;
+      if (k >= 1) { st.sweepT = -1; streak.material.opacity = 0; glint.material.opacity = 0; st.sweepWaiters.splice(0).forEach(fn => fn()); }
+    }
   });
-  c.fx.waitSweep = () => AUTO ? Promise.resolve() : new Promise(r => { st.next = Math.min(st.next, 1.2); st.waiters.push(() => setTimeout(r, 700)); });
-  c.fx.closeWin = () => {
-    st.sweepOn = false; streak.material.opacity = 0; glint.material.opacity = 0; st.waiters.splice(0).forEach(f => f());
-    tween(1, k => { pane.position.x = lerp(-.9, -.3, k); st.amp = lerp(.06, 0, k); st.gust = 0; winGlass.material.color.setRGB(lerp(.08, .05, k), lerp(.13, .08, k), lerp(.31, .2, k)); curtain.position.x = 0; });
-    // curtain closes (wider)
-    tween(1.2, k => { curtain.scale.x = lerp(1, 1.05, k); });
-  };
+  const hurry = () => { if (st.carU < 0) st.carTimer = Math.min(st.carTimer, .6); };
+  c.fx.waitSweep = () => AUTO ? Promise.resolve() : new Promise(r => { hurry(); st.sweepWaiters.push(() => setTimeout(r, 600)); });
+  c.fx.waitCar = () => AUTO ? Promise.resolve() : new Promise(r => {
+    // wait until a car has flashed our window (and a moment more)
+    if (st.carU >= 0 && !st.flashed) { const iv = setInterval(() => { if (st.flashed) { clearInterval(iv); setTimeout(r, 1800); } }, 100); return; }
+    const go = () => { hurry(); const iv = setInterval(() => { if (st.carU >= 0 && st.flashed) { clearInterval(iv); setTimeout(r, 1800); } }, 100); };
+    if (st.carU >= 0) st.carWaiters.push(go); else go();
+  });
   const ming = kid({ shirt: 0x66bb6a, hair: 0x1b120c });
   ming.scale.setScalar(.85); ming.position.set(.75, 0, -2.8); ming.rotation.y = 2.5; s.add(ming);
-  c.pos.set(0, 1.5, 1.3); c.look.set(0, 1.45, -10); c.hfov = 72;
+  const HALL = [new T.Vector3(0, 1.5, 1.3), new T.Vector3(0, 1.45, -10)];
+  c.fx.walkToWindow = () => {
+    tween(2.4, k => { ming.position.set(lerp(.75, .7, k), 0, lerp(-2.8, -10.4, k)); ming.rotation.y = lerp(2.5, Math.PI + .5, k); ming.position.y = Math.abs(Math.sin(k * 20)) * .04; });
+    return camTo(new T.Vector3(-.1, 1.6, -10.3), new T.Vector3(0, 1.55, -12.5), 2.6);
+  };
+  c.fx.openCurtain = () => { st.open = true; SFX.whoosh(); return tween(1.2, k => { curtain.scale.x = lerp(1, .25, k); curtain.position.x = lerp(0, -.5, k); st.amp = lerp(.06, .02, k); }); };
+  c.fx.lookDown = () => camTo(new T.Vector3(0, 1.62, -11.35), new T.Vector3(.4, -5.5, -26), 1.8);
+  c.fx.lookWindow = () => camTo(new T.Vector3(0, 1.6, -10.4), new T.Vector3(0, 1.55, -12.5), 1.2);
+  c.fx.closeWin = () => {
+    st.closed = true; st.open = false; streak.material.opacity = 0; glint.material.opacity = 0; st.sweepT = -1; st.sweepWaiters.splice(0).forEach(fn => fn());
+    tween(1.2, k => { pane.position.x = lerp(-.9, -.3, k); st.amp = lerp(st.amp, 0, k); st.gust = 0; curtain.scale.x = lerp(.25, 1.05, k); curtain.position.x = lerp(-.5, 0, k); });
+  };
+  c.fx.backToHall = () => { ming.position.set(.75, 0, -2.8); ming.rotation.y = 2.5; return camTo(HALL[0], HALL[1], 2); };
+  c.pos.copy(HALL[0]); c.look.copy(HALL[1]); c.hfov = 72;
   return c;
 }
 
@@ -1212,11 +1340,12 @@ function buildLab() {
   const jaw = grp(skullG, 0, -.07, .02);
   mk(Bx(.17, .06, .13), bone, 0, -.04, .02, jaw);
   for (let i = -2; i <= 2; i++) mk(Bx(.015, .02, .01), M(0xffffff), i * .025, -.01, .09, jaw);
-  hot(c, skullG, 'skull', { hintSize: .3 }); jaw.userData.hot = 'jaw'; c.hot.jaw = jaw;
+  hot(c, skullG, 'skull', { hintSize: .17, hintLocal: new T.Vector3(0, .1, .16) });
+  hot(c, jaw, 'jaw', { proxy: .075, py: -.05, pz: .07, hintSize: .17, hintLocal: new T.Vector3(0, -.07, .15) });
   mk(Cy(.03, .03, .12, 8), bone, 0, -.4, 0, P);
   const spine = grp(P, 0, 0, -.03);
   for (let i = 0; i < 11; i++) mk(Cy(.035, .035, .045, 10), bone, 0, -.47 - i * .06, 0, spine);
-  hot(c, spine, 'spine', { hintPos: new T.Vector3(sx + .35, 1.65, sz), hintSize: .3 });
+  hot(c, spine, 'spine', { proxy: .065, py: -.98, pz: .04, hintSize: .17, hintLocal: new T.Vector3(0, -.98, .1) });
   const ribs = grp(P, 0, 0, 0);
   for (let i = 0; i < 6; i++) {
     const rg = grp(ribs, 0, -.52 - i * .065, .02); rg.rotation.x = -Math.PI / 2;
@@ -1225,7 +1354,7 @@ function buildLab() {
     rg.scale.set(1, .8, 1);
   }
   mk(Bx(.03, .3, .02), bone, 0, -.66, .15, ribs);
-  hot(c, ribs, 'ribs', { hintPos: new T.Vector3(sx - .35, 1.85, sz + .1), hintSize: .3 });
+  hot(c, ribs, 'ribs', { proxy: .11, py: -.68, pz: .08, hintSize: .17, hintLocal: new T.Vector3(-.08, -.64, .19) });
   const clav = mk(Cy(.018, .018, .42, 8), bone, 0, -.46, .03, P); clav.rotation.z = Math.PI / 2;
   mk(Tr(.12, .035, Math.PI * 2, 8, 20), bone, 0, -1.15, 0, P).rotation.x = Math.PI / 2;
   const mkArm = (sd) => {
@@ -1242,8 +1371,8 @@ function buildLab() {
     return { a, fore, hand };
   };
   const armL = mkArm(-1), armR = mkArm(1);
-  hot(c, armR.hand, 'hand', { proxy: .08, hintSize: .28 });
-  hot(c, armR.a, 'arm', { proxy: .12, py: -.2, hintSize: .3 });
+  hot(c, armR.hand, 'hand', { proxy: .07, py: -.03, hintSize: .17, hintLocal: new T.Vector3(0, -.04, .06) });
+  hot(c, armR.a, 'arm', { proxy: .08, py: -.16, pz: .02, hintSize: .17, hintLocal: new T.Vector3(.02, -.16, .08) });
   const muscle = mk(Cap(.035, .18), M(0xe57373, { roughness: .5 }), .03, -.16, .03, armR.a); muscle.visible = false;
   const mkLeg = (sd) => {
     const l = grp(P, sd * .09, -1.18, 0);
@@ -1255,7 +1384,7 @@ function buildLab() {
     return l;
   };
   mkLeg(-1); const legR = mkLeg(1);
-  hot(c, legR, 'leg', { proxy: .1, py: -.25, hintSize: .3 });
+  hot(c, legR, 'leg', { proxy: .08, py: -.23, hintSize: .17, hintLocal: new T.Vector3(0, -.23, .07) });
   shadows(P, true, false);
   // fan
   const fan = grp(s, 1.7, 1.0, -.9);
@@ -1267,7 +1396,7 @@ function buildLab() {
   const cage = mk(Tr(.22, .01, Math.PI * 2, 6, 30), M(0xb0bec5, { metalness: .5 }), 0, 0, .04, head);
   const blades = grp(head, 0, 0, .03);
   for (let i = 0; i < 3; i++) { const b = mk(Bx(.08, .19, .01), M(0x4fc3f7), 0, .1, 0, grp(blades)); b.parent.rotation.z = i * Math.PI * 2 / 3; b.rotation.y = .4; }
-  hot(c, fan, 'fan', { proxy: .3, py: .35, hintSize: .4 });
+  hot(c, fan, 'fan', { proxy: .3, py: .35, hintSize: .3 });
   shadows(fan);
   const st = { wind: 1, flex: 0 };
   c.upd.push((dt, t) => {
@@ -1280,6 +1409,7 @@ function buildLab() {
     armR.a.rotation.z = -Math.sin(t * 2.1) * .15 * st.wind;
     armR.fore.rotation.x = -st.flex * 1.9;
   });
+  c.fx.zoom = on => on ? camTo(new T.Vector3(.1, 1.8, .55), new T.Vector3(-.2, 1.62, -2)) : camTo(new T.Vector3(.7, 1.55, 1.8), new T.Vector3(-.1, 1.35, -2));
   c.fx.fanOff = () => tween(2.5, k => { st.wind = 1 - k; });
   c.fx.flex = () => { muscle.visible = true; setTimeout(() => tween(1.2, k => { st.flex = k; muscle.scale.set(1 + k * .6, 1 - k * .25, 1 + k * .6); }), 400); };
   const sze = kid({ girl: true, shirt: 0xba68c8, hair: 0x2b1b12 });
@@ -1330,13 +1460,36 @@ function buildClassroom() {
   mk(Cy(.075, .06, .02, 24), M(0xffffff, { roughness: .3 }), 0, 0, 0, plate);
   const arrow = mk(Cn(.02, .05, 8), M(0xe53935), 0, .02, -.08, plate); arrow.rotation.x = -Math.PI / 2;
   const fingers = [];
-  [[-.03, .02], [.03, .02], [0, -.03]].forEach(p => { const f = mk(Cap(.012, .05), M(0xffd9b8), p[0], .04, p[1], plate); f.rotation.x = .3; fingers.push(f); });
+  [[-.03, .015, .5], [.03, .015, -.5]].forEach((p, i) => { const f = mk(Cap(.014, .06), M(0xffd9b8), p[0], .045, p[1], plate); f.rotation.z = p[2]; fingers.push(f); hot(c, f, 'f' + (i + 1), { proxy: .035, hintSize: .12, hintLocal: new T.Vector3(0, .05, 0) }); });
+  hot(c, plate, 'plate', { hintSize: .14, hintLocal: new T.Vector3(0, .02, .05) });
+  shadows(plate);
+  // arrows for the slow-motion replay (children of the plate so they ride along)
+  const arrowMat = col => new T.MeshBasicMaterial({ color: col, depthTest: false, transparent: true });
+  const mkArrow = (len, col, th) => {
+    const g2 = new T.Group(); const m = arrowMat(col);
+    const sh = mk(Cy(th, th, len, 10), m, 0, 0, len / 2, g2); sh.rotation.x = Math.PI / 2;
+    const hd = mk(Cn(th * 2.6, th * 5, 12), m, 0, 0, len + th * 2.5, g2); hd.rotation.x = Math.PI / 2;
+    g2.traverse(o => o.renderOrder = 60); g2.visible = false; return g2;
+  };
+  const arrows = [mkArrow(.07, 0x43a047, .006), mkArrow(.07, 0x8e24aa, .006)];
+  arrows[0].position.set(-.03, .09, .015); arrows[0].rotation.y = Math.PI + .35;
+  arrows[1].position.set(.03, .09, .015); arrows[1].rotation.y = Math.PI - .35;
+  const bigArrow = mkArrow(.16, 0xe53935, .011); bigArrow.position.set(0, .1, 0); bigArrow.rotation.y = Math.PI;
+  arrows.forEach(a2 => plate.add(a2)); plate.add(bigArrow);
+  const pushLab = [label('阿明：少少力\n（自己唔覺）', { fs: 36, h: .05, bg: 'rgba(67,160,71,.95)', border: '#fff', depthTest: false }), label('阿詩：少少力\n（自己唔覺）', { fs: 36, h: .05, bg: 'rgba(142,36,170,.95)', border: '#fff', depthTest: false })];
+  pushLab[0].position.set(-.15, .12, .05); pushLab[1].position.set(.15, .12, .05);
+  const bigLab = label('加埋 = 夠力推郁隻碟！', { fs: 40, h: .06, bg: 'rgba(229,57,53,.95)', border: '#fff', depthTest: false }); bigLab.position.set(0, .2, -.14);
+  [...pushLab, bigLab].forEach(l => { l.visible = false; plate.add(l); });
+  const replayLab = label('⏪ 慢鏡重播', { fs: 48, h: .09, bg: 'rgba(20,20,20,.85)', border: '#ffd54a', depthTest: false }); replayLab.position.set(0, 1.22, -.95); replayLab.visible = false; s.add(replayLab);
+  const expLab = label('🔬 科學實驗示範（唔係玩碟仙）', { fs: 44, h: .09, bg: 'rgba(0,105,92,.92)', border: '#fff', depthTest: false }); expLab.position.set(0, 1.25, -.9); expLab.visible = false; s.add(expLab);
   shadows(plate);
   // kids
   const ming = kid({ shirt: 0x66bb6a, hair: 0x1b120c }); ming.scale.setScalar(.9); ming.position.set(-1.05, 0, -.5); ming.rotation.y = Math.PI / 2; s.add(ming);
   const sze = kid({ girl: true, shirt: 0xba68c8, hair: 0x2b1b12 }); sze.scale.setScalar(.9); sze.position.set(1.05, 0, -.55); sze.rotation.y = -Math.PI / 2; s.add(sze);
   ming.userData.arms[1].rotation.x = -1.1; sze.userData.arms[0].rotation.x = -1.1;
   shadows(ming, true, false); shadows(sze, true, false);
+  const bubbles = [label('💭 會唔會係「有」呀……', { fs: 40, h: .055, bg: 'rgba(255,255,255,.95)', color: '#1d2340', border: '#43a047', depthTest: false, h2: 0 }), label('💭 好驚……一定係「有」……', { fs: 40, h: .055, bg: 'rgba(255,255,255,.95)', color: '#1d2340', border: '#8e24aa', depthTest: false })];
+  bubbles[0].position.set(-.36, 1.12, -.55); bubbles[1].position.set(.36, 1.04, -.6); bubbles.forEach(b2 => { b2.visible = false; s.add(b2); });
   const blinds = [ming, sze].map(k => { const b = mk(Cy(.27, .27, .07, 24, 1, true), M(0x222222), 0, .03, 0, k.userData.head); b.visible = false; return b; });
   // pendulum demo
   const pend = grp(s, 1.55, 0, .75); pend.visible = false;
@@ -1359,6 +1512,22 @@ function buildClassroom() {
   c.fx.swing = m => { st.swing = m; st.amp = 0; };
   c.fx.showPend = () => { pend.visible = true; return camTo(new T.Vector3(.6, 1.6, 2.3), new T.Vector3(1.2, 1.1, 0)); };
   c.fx.blind = on => blinds.forEach(b => b.visible = on);
+  const TABLE = [new T.Vector3(0, 2.05, 2.35), new T.Vector3(0, .8, -.55)];
+  c.fx.replay = on => {
+    replayLab.visible = on; bubbles.forEach(b2 => b2.visible = on);
+    ming.userData.head.rotation.set(on ? .35 : 0, on ? .5 : 0, 0); sze.userData.head.rotation.set(on ? .35 : 0, on ? -.5 : 0, 0);
+    if (!on) { arrows.forEach(a2 => a2.visible = false); pushLab.forEach(l => l.visible = false); bigArrow.visible = false; bigLab.visible = false; }
+    else { plate.position.set(0, .8, -.5); plate.rotation.y = 0; }
+    return on ? camTo(new T.Vector3(0, 1.45, .4), new T.Vector3(0, .86, -.62), 1.6) : camTo(TABLE[0], TABLE[1], 1.4);
+  };
+  c.fx.push = i => { arrows[i].visible = true; pushLab[i].visible = true; tween(.6, k => arrows[i].scale.setScalar(Math.max(.01, k))); };
+  c.fx.combine = async () => {
+    bigArrow.visible = true; bigLab.visible = true;
+    await tween(.8, k => bigArrow.scale.setScalar(Math.max(.01, k)));
+    const from = plate.position.clone(), to = charWorld(0, st.rot);
+    await tween(4.5, k => { plate.position.lerpVectors(from, to, k); plate.position.y = .8; });
+  };
+  c.fx.expLabel = on => { expLab.visible = on; };
   const movePlate = async (to) => {
     const from = plate.position.clone(), mid = from.clone().lerp(to, .5).add(new T.Vector3((Math.random() - .5) * .1, 0, (Math.random() - .5) * .1));
     await tween(2.4, k => {
@@ -1493,11 +1662,11 @@ function buildFengshui() {
   shadows(plant); hot(c, plant, 'plant');
   // shelf on back wall with crystal and lucky cat
   mk(Bx(2.6, .06, .35), M(0x8d6e63), -1.2, 1.55, -3.8, s);
-  const cry = grp(s, -2.1, 1.58, -3.8);
+  const cry = grp(s, -2.25, 1.58, -3.8);
   mk(new T.IcosahedronGeometry(.16, 0), M(0xb388ff, { roughness: .1, metalness: .2, emissive: 0x3a1a70, flatShading: true }), 0, .18, 0, cry);
   mk(Cy(.12, .14, .05, 12), M(0x4e342e), 0, .025, 0, cry);
   hot(c, cry, 'crystal', { proxy: .2, py: .15 });
-  const cat = grp(s, -.6, 1.58, -3.8);
+  const cat = grp(s, -1.45, 1.58, -3.8); cat.rotation.y = .35;
   const wm = M(0xffffff, { roughness: .5 });
   mk(Sp(.14), wm, 0, .14, 0, cat).scale.set(1, 1.05, .9);
   const chead = grp(cat, 0, .36, 0); mk(Sp(.13), wm, 0, 0, 0, chead);
@@ -1508,7 +1677,7 @@ function buildFengshui() {
   const paw = grp(cat, .12, .28, .02); mk(Cap(.035, .1), wm, 0, .08, 0, paw);
   hot(c, cat, 'cat', { proxy: .2, py: .25 });
   // fish tank
-  const tank = grp(s, -1.0, 0, -3.5);
+  const tank = grp(s, -1.4, 0, -3.5);
   mk(Bx(1, .75, .5), M(0x6d4c41), 0, .375, 0, tank);
   mk(Bx(.9, .5, .4), new T.MeshStandardMaterial({ color: 0x80d8ff, transparent: true, opacity: .45, roughness: .1 }), 0, 1.0, 0, tank);
   const fishes = [];
@@ -1527,6 +1696,131 @@ function buildFengshui() {
     l.position.set(cc.x, box.max.y + .18, cc.z); s.add(l);
   };
   c.pos.set(.6, 2.3, 3.4); c.look.set(-.3, 1.0, -1.8); c.hfov = 84;
+  return c;
+}
+
+/* ---------- 9: Crystal shop + crystal ball ---------- */
+function buildCrystal() {
+  const c = newCtx(), s = c.scene;
+  s.background = new T.Color(0x1d1030);
+  const amb = new T.AmbientLight(0xffe6ff, .5); s.add(amb);
+  const hemi = new T.HemisphereLight(0xffe0ff, 0x402050, .45); s.add(hemi);
+  const key = new T.PointLight(0xffe8c8, .8, 12); key.position.set(0, 3, 0); s.add(key);
+  room(c, { w: 9, d: 8, h: 3.4, wall: 0x7e57c2, floorMap: woodTex('#6d4c41', 3) });
+  const sign = label('✨ 開運水晶店 ✨', { fs: 52, h: .32, bg: 'rgba(74,20,140,.92)', border: '#ffd54a' }); sign.position.set(-1.2, 2.95, -3.9); s.add(sign);
+  // glowing crystals on back shelves
+  const cols = [0xb388ff, 0x80deea, 0xf48fb1, 0xfff59d, 0xa5d6a7];
+  for (let r = 0; r < 2; r++) {
+    mk(Bx(3, .06, .35), M(0x4e342e), -1.2, 1.6 + r * .55, -3.8, s);
+    for (let i = 0; i < 7; i++) {
+      const g2 = grp(s, -2.5 + i * .43, 1.63 + r * .55, -3.8);
+      const cc = cols[(i + r) % 5];
+      for (let j = 0; j < 3; j++) { const p = mk(new T.OctahedronGeometry(.06 + j * .015, 0), M(cc, { emissive: cc, emissiveIntensity: .35, roughness: .15, flatShading: true }), (j - 1) * .05, .07 + j * .02, 0, g2); p.scale.y = 1.8; p.rotation.z = (j - 1) * .3; }
+    }
+  }
+  // counter
+  const ct = grp(s, -1.2, 0, -2.5);
+  mk(Bx(3.2, .92, .7), M(0x8d6e63), 0, .46, 0, ct);
+  mk(Bx(3.3, .05, .78), M(0xd7ccc8), 0, .945, 0, ct);
+  shadows(ct);
+  const TOP = .97;
+  // shop keeper
+  const shop = kid({ shirt: 0x5c6bc0, pants: 0x283593, hair: 0x3e2723, glasses: false });
+  shop.scale.setScalar(1.25); shop.position.set(-1.2, 0, -3.25); s.add(shop);
+  // bracelets (beads in a ring)
+  const bracelet = (x, col, glass) => {
+    const g2 = grp(s, x, TOP + .02, -2.35);
+    const m = glass ? new T.MeshStandardMaterial({ color: col, roughness: .05, transparent: true, opacity: .85 }) : M(col, { roughness: .2, emissive: col, emissiveIntensity: .15 });
+    for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2; mk(Sp(.022, 10, 8), m, Math.cos(a) * .08, 0, Math.sin(a) * .08, g2); }
+    return g2;
+  };
+  const braceA = bracelet(-2.1, 0x9c6ade, false); hot(c, braceA, 'braceA', { proxy: .1, hintSize: .26 });
+  const braceB = bracelet(-1.7, 0x9c6ade, true); braceB.visible = false; hot(c, braceB, 'braceB', { proxy: .1, hintSize: .26 });
+  const tagA = label('真水晶', { fs: 36, h: .06, bg: 'rgba(255,255,255,.95)', color: '#4a148c', border: '#9c6ade' }); tagA.position.set(-2.1, TOP + .14, -2.3); tagA.visible = false; s.add(tagA);
+  const tagB = label('玻璃假水晶', { fs: 36, h: .06, bg: 'rgba(255,255,255,.95)', color: '#4a148c', border: '#9c6ade' }); tagB.position.set(-1.7, TOP + .14, -2.3); tagB.visible = false; s.add(tagB);
+  // price card
+  const price = mk(Pl(.3, .2), M(0xffffff, { map: canvasTex(300, 200, (g) => { g.fillStyle = '#fff8e1'; g.fillRect(0, 0, 300, 200); g.strokeStyle = '#c62828'; g.lineWidth = 8; g.strokeRect(4, 4, 292, 192); g.fillStyle = '#c62828'; g.textAlign = 'center'; g.font = `900 40px ${FONT}`; g.fillText('開運手鏈', 150, 58); g.font = `900 34px ${FONT}`; g.fillText('考試必勝！', 150, 110); g.fillStyle = '#1d2340'; g.font = `900 44px ${FONT}`; g.fillText('$888', 150, 168); }), side: T.DoubleSide }), -2.1, TOP + .12, -2.62, s);
+  price.rotation.x = -.25;
+  hot(c, price, 'price', { proxy: .12, hintSize: .26 });
+  // toxic minerals tray
+  const tray = grp(s, -1.0, TOP, -2.4);
+  mk(Bx(.5, .03, .28), M(0x37474f), 0, .015, 0, tray);
+  const cin = mk(new T.DodecahedronGeometry(.055, 0), M(0xc62828, { roughness: .5, flatShading: true }), -.12, .07, 0, tray); cin.scale.set(1.2, .8, 1);
+  const mal = mk(Sp(.055, 12, 8), M(0x2e7d32, { roughness: .35 }), .12, .065, 0, tray); mal.scale.set(1.3, .8, 1);
+  mk(Tr(.035, .006, Math.PI * 2, 6, 16), M(0x81c784), .12, .1, 0, tray).rotation.x = Math.PI / 2;
+  hot(c, cin, 'cinnabar', { proxy: .06, hintSize: .22 }); hot(c, mal, 'malachite', { proxy: .06, hintSize: .22 });
+  const cinT = label('辰砂', { fs: 34, h: .05, bg: 'rgba(255,255,255,.95)', color: '#b71c1c', border: '#c62828' }); cinT.position.set(-.12, .17, .05); tray.add(cinT);
+  const malT = label('孔雀石', { fs: 34, h: .05, bg: 'rgba(255,255,255,.95)', color: '#1b5e20', border: '#2e7d32' }); malT.position.set(.12, .17, .05); tray.add(malT);
+  // "energy water" bottle with stones inside
+  const bottle = grp(s, -.35, TOP, -2.45);
+  mk(Cy(.07, .07, .26, 18), new T.MeshStandardMaterial({ color: 0xd1f2ff, transparent: true, opacity: .35, roughness: .05 }), 0, .13, 0, bottle);
+  mk(Cy(.066, .066, .18, 18), new T.MeshStandardMaterial({ color: 0x9fd8ff, transparent: true, opacity: .45 }), 0, .09, 0, bottle);
+  mk(Cy(.03, .03, .05, 12), M(0xffffff), 0, .285, 0, bottle);
+  [0xc62828, 0x2e7d32, 0x9c6ade].forEach((cc, i) => mk(new T.DodecahedronGeometry(.02, 0), M(cc, { flatShading: true }), (i - 1) * .03, .03, 0, bottle));
+  const bLab = label('💧 水晶能量水', { fs: 34, h: .06, bg: 'rgba(255,255,255,.95)', color: '#01579b', border: '#29b6f6' }); bLab.position.set(0, .38, 0); bottle.add(bLab);
+  hot(c, bottle, 'elixir', { proxy: .12, py: .12, hintSize: .24 });
+  // cheap shiny charm bracelet
+  const cheap = grp(s, .15, TOP + .01, -2.35);
+  for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2; mk(Tr(.012, .004, Math.PI * 2, 4, 8), M(0xe0e0e0, { metalness: .9, roughness: .25 }), Math.cos(a) * .07, 0, Math.sin(a) * .07, cheap).rotation.y = a; }
+  mk(new T.OctahedronGeometry(.025, 0), M(0xffd54a, { metalness: .9, roughness: .2 }), .07, -.01, 0, cheap);
+  const chLab = label('平價飾物 $10', { fs: 34, h: .055, bg: 'rgba(255,255,255,.95)', color: '#333', border: '#999' }); chLab.position.set(0, .12, .05); cheap.add(chLab);
+  hot(c, cheap, 'cheap', { proxy: .09, hintSize: .24 });
+  // 阿詩 + blindfold
+  const sze = kid({ girl: true, shirt: 0xba68c8, hair: 0x2b1b12 });
+  sze.scale.setScalar(.9); sze.position.set(.55, 0, -1.2); sze.rotation.y = -.7; s.add(sze);
+  const band = mk(Cy(.27, .27, .07, 24), M(0x222222), 0, .03, 0, sze.userData.head); band.visible = false;
+  // fortune-teller corner
+  const ft = grp(s, 2.6, 0, -1.9);
+  mk(Cy(.62, .62, .78, 28), M(0x6a1b9a), 0, .39, 0, ft);
+  mk(Cy(.66, .66, .03, 28), M(0xffd54a, { metalness: .5 }), 0, .79, 0, ft);
+  const teller = kid({ shirt: 0x4a148c, pants: 0x311b92, hair: 0x111111 });
+  teller.scale.setScalar(1.25); teller.position.set(3.35, 0, -2.4); teller.rotation.y = -.75; s.add(teller);
+  const hat = mk(Cn(.3, .5, 16), M(0x311b92), 0, .38, 0, teller.userData.head);
+  for (let i = 0; i < 5; i++) mk(Sp(.03, 8, 6), MB(0xffd54a), Math.cos(i * 1.3) * .18, .25 + i * .05, .2, teller.userData.head);
+  mk(Tr(.2, .05, Math.PI * 2, 8, 20), M(0xffd54a), 0, 0, 0, grp(teller, 0, .98, 0)).rotation.x = Math.PI / 2;
+  // bookshelf behind (the ball will show it upside down)
+  const bs = grp(s, 2.6, 0, -3.85);
+  mk(Bx(1.6, 2.2, .3), M(0x5d4037), 0, 1.1, 0, bs);
+  const bcol = [0xe53935, 0xfdd835, 0x43a047, 0x1e88e5, 0xff7043, 0x8e24aa, 0x00acc1];
+  for (let r = 0; r < 3; r++) for (let i = 0; i < 9; i++) { const hgt = .25 + ((i * 7 + r) % 4) * .04; mk(Bx(.13, hgt, .2), M(bcol[(i + r * 2) % 7]), -.65 + i * .16, .45 + r * .7 + hgt / 2, .08, bs); }
+  const star = label('⭐', { fs: 60, h: .3, bg: 'rgba(0,0,0,0)', border: 'rgba(0,0,0,0)' }); star.position.set(2.6, 2.6, -3.7); s.add(star);
+  // crystal ball
+  const BP = new T.Vector3(2.6, 1.02, -1.75);
+  mk(Cy(.09, .14, .12, 16), M(0xffd54a, { metalness: .7, roughness: .3 }), BP.x, .86, BP.z, s);
+  const ball = mk(Sp(.17, 32, 24), new T.MeshPhysicalMaterial({ color: 0xe8f4ff, roughness: .02, metalness: 0, transparent: true, opacity: .28, clearcoat: 1 }), BP.x, BP.y, BP.z, s);
+  ball.renderOrder = 20;
+  const rt = new T.WebGLRenderTarget(256, 256); c.disp.push(rt);
+  rt.texture.repeat.set(-1, -1); rt.texture.offset.set(1, 1);
+  const circ = canvasTex(128, 128, (g) => { g.fillStyle = '#000'; g.fillRect(0, 0, 128, 128); g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 62, 0, 7); g.fill(); });
+  const mystic = canvasTex(256, 256, (g) => { const gr = g.createRadialGradient(128, 128, 10, 128, 128, 128); gr.addColorStop(0, '#f3e5ff'); gr.addColorStop(.5, '#9c6ade'); gr.addColorStop(1, '#2a0f4a'); g.fillStyle = gr; g.fillRect(0, 0, 256, 256); g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 6; for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(128, 128, 20 + i * 20, i, i + 2.5); g.stroke(); } });
+  const inner = new T.Sprite(new T.SpriteMaterial({ map: mystic, alphaMap: circ, transparent: true }));
+  inner.position.copy(BP); inner.scale.set(.3, .3, 1); inner.renderOrder = 10; s.add(inner);
+  hot(c, ball, 'ball', { proxy: .2, hintSize: .3 });
+  const ballCam = new T.PerspectiveCamera(55, 1, .05, 30);
+  const st = { real: false, spin: 0 };
+  c.pre = () => {
+    if (!st.real) return;
+    ball.visible = false; inner.visible = false;
+    ballCam.position.copy(BP); ballCam.lookAt(_v2.copy(BP).multiplyScalar(2).sub(cam.position).setY(BP.y));
+    R.setRenderTarget(rt); R.render(s, ballCam); R.setRenderTarget(null);
+    ball.visible = true; inner.visible = true;
+  };
+  c.upd.push((dt, t) => { if (!st.real) inner.material.rotation = t * .6; });
+  // prediction cards
+  const cards = [];
+  ['阿明', '阿詩', '小晴'].forEach((n, i) => {
+    const cd = mk(Pl(.16, .22), M(0xffffff, { map: canvasTex(160, 220, (g) => { g.fillStyle = '#fff8e1'; g.fillRect(0, 0, 160, 220); g.strokeStyle = '#6a1b9a'; g.lineWidth = 8; g.strokeRect(4, 4, 152, 212); g.fillStyle = '#6a1b9a'; g.textAlign = 'center'; g.font = `900 30px ${FONT}`; g.fillText('🔮 預言', 80, 50); g.fillText('俾' + n, 80, 110); g.font = `700 22px ${FONT}`; g.fillStyle = '#555'; for (let l = 0; l < 3; l++) g.fillRect(28, 140 + l * 20, 104, 6); }), side: T.DoubleSide }), 2.25 + i * .35 - (i === 1 ? 0 : 0), .815, -1.3 + (i === 1 ? .08 : 0), s);
+    cd.rotation.x = -Math.PI / 2 + .1; cd.rotation.z = (i - 1) * .2;
+    hot(c, cd, 'card' + (i + 1), { proxy: .1, hintSize: .22 });
+    cards.push(cd);
+  });
+  const A = [new T.Vector3(-.95, 1.55, .25), new T.Vector3(-1.1, .95, -2.45)];
+  c.fx.blind = on => { band.visible = on; };
+  c.fx.showGlass = () => { braceB.visible = true; tagA.visible = true; tagB.visible = true; };
+  c.fx.toTeller = () => { band.visible = false; sze.position.set(1.6, 0, -1.55); sze.rotation.y = .9; return camTo(new T.Vector3(2.3, 1.35, -.45), new T.Vector3(2.62, .98, -1.8), 1.8); };
+  const revLab = label('🙃 後面嘅書架，上下倒轉咗！', { fs: 40, h: .07, bg: 'rgba(255,255,255,.95)', color: '#4a148c', border: '#ffd54a', depthTest: false }); revLab.position.set(BP.x, BP.y + .3, BP.z); revLab.visible = false; s.add(revLab);
+  c.fx.reveal = () => { revLab.visible = true; st.real = true; inner.material.map = rt.texture; inner.material.rotation = 0; inner.material.needsUpdate = true; inner.scale.set(.31, .31, 1); };
+  c.pos.copy(A[0]); c.look.copy(A[1]); c.hfov = 72;
   return c;
 }
 
@@ -1662,15 +1956,17 @@ const CASES = [
   { id: 'skel', emoji: '💀', title: '骷髏骨會郁？', short: '骷髏骨', color: 0x90a4ae, badge: '💀 骨骼專家', build: buildLab, run: runSkel,
     desc: '科學室入面副骷髏骨模型，聽講會自己搖嚟搖去，仲會「咯咯」聲！' },
   { id: 'ouija', emoji: '🍽️', title: '碟仙之謎', short: '碟仙', color: 0xef5350, badge: '🍽️ 碟仙拆解王', build: buildClassroom, run: runOuija,
-    desc: '放學後同學玩碟仙，隻碟竟然自己郁去「有」字！到底係邊個推隻碟？' },
+    desc: '放學後同學偷偷玩碟仙，隻碟竟然郁去「有」字，嚇到佢哋喊！到底係邊個推隻碟？' },
   { id: 'fu', emoji: '🍵', title: '符水同咒語', short: '符水咒語', color: 0xffa726, badge: '💊 健康守護者', build: buildLiving, run: runFu,
     desc: '小晴發燒，姨媽攞咗杯符水嚟。第二日，同學又話寫咒語就會攞一百分……' },
   { id: 'fengshui', emoji: '🧭', title: '風水偵探', short: '風水', color: 0x66bb6a, badge: '🧭 風水偵探', build: buildFengshui, run: runFengshui,
     desc: '有啲風水講法有科學道理，有啲就完全冇證據。你分唔分得出？' },
+  { id: 'crystal', emoji: '🔮', title: '水晶同水晶球', short: '水晶', color: 0xab47bc, badge: '🔮 水晶破解師', build: buildCrystal, run: runCrystal,
+    desc: '水晶店話戴開運水晶考試必勝，占卜師又話水晶球睇到你下個月有大災難，要買符化解！真定假？' },
   { id: 'court', emoji: '⚖️', title: '真相法庭', short: '真相法庭', color: 0xffca28, badge: '⚖️ 真相大法官', build: buildCourt, run: runCourt,
     desc: '最後一關！做法官，將聽到嘅講法分做四類：好玩想像、傳統心意、有科學道理、有害迷信。' },
 ];
-const FINAL_NEED = 5;
+const FINAL_NEED = 6;
 function doneCount() { return CASES.slice(0, -1).filter(c => S.done[c.id]).length; }
 function finalUnlocked() { return S.unlockAll || doneCount() >= FINAL_NEED; }
 
@@ -1807,17 +2103,34 @@ async function runHall(c) {
   await say('owl', '阿明，你先深呼吸。偵探第三步係「諗吓有咩可能」。我哋一齊留心望住走廊，等個白影再出現！', { btn: '👀 我準備好喇' });
   setDlg('owl', '留心睇吓走廊左邊嘅牆……'); autoSpeak();
   await c.fx.waitSweep();
-  await say('owl', '見到嗎？又飄過咗！窗簾仲郁咗一郁。我哋搵出三個線索。');
+  await say('owl', '見到嗎？又飄過咗！窗簾仲郁咗一郁。我哋先搵線索。');
   await find('owl', '撳發光嘅地方搵線索！', [
     { id: 'curtain', text: '走廊盡頭隻窗冇閂好，風一吹，白色窗簾就飄嚟飄去。' },
-    { id: 'window', text: '街外有車經過，車頭燈照入嚟，一道白光就喺牆上面掃過，好似有嘢飄過咁。' },
-    { id: 'frame', text: '牆上面嘅相架有塊玻璃，光一照過就閃一閃，好似有對眼咁。' },
+    { id: 'frame', text: '牆上面嘅相架有塊玻璃，有光照過就閃一閃，好似有對眼咁。' },
   ]);
-  await say('owl', '我哋有個推理：白影係風吹窗簾，加上車頭燈。點樣證明？做實驗：閂窗、拉好窗簾，睇吓白影仲會唔會出現！');
-  await find('owl', '撳一下走廊盡頭個窗，幫阿明閂窗。', [{ id: 'window', text: '閂好窗，拉好窗簾喇！我哋等一陣，睇吓會點……', on: () => c.fx.closeWin() }]);
-  await wsleep(2500);
+  await say('owl', '但係牆上面嗰道白光，究竟由邊度嚟？我估可能係窗外面嘅光。不過估唔算數，偵探要親眼搵證據！');
+  await say('owl', '{name}，我哋同阿明一齊行埋去窗口睇吓。', { btn: '🚶 行過去' });
+  await c.fx.walkToWindow();
+  await find('owl', '撳一下窗簾，將佢拉開。', [{ id: 'curtain', text: '拉開咗窗簾！我哋望落樓下條街，睇吓有咩。', on: () => c.fx.openCurtain() }]);
+  await c.fx.lookDown();
+  setDlg('owl', '留心望住樓下條街……好似有嘢嚟緊！'); autoSpeak();
+  await c.fx.waitCar();
+  await say('ming', '嘩！有架車！佢轉彎嗰陣，車頭燈向住我哋呢邊照上嚟，個窗口閃咗一下！');
+  await say('owl', '就係佢！架車轉彎嗰陣，車頭燈嘅光掃過我哋個窗口，照入屋企，喺走廊牆上面由頭掃到尾，就好似一團白影「咻」一聲飄過。');
+  await choice('owl', '想再確定多次，我哋應該點做？', [
+    { t: '見過一次就夠，一定係鬼。', fb: '我哋啱啱親眼見到架車，點會係鬼？而且真正嘅科學家會重複觀察。' },
+    { t: '再等下一架車，睇吓係咪每次車頭燈掃過，窗口都會閃。', ok: true, fb: '好！重複觀察，如果每次都一樣，證據就更加可靠。' },
+    { t: '唔好再望，返去瞓覺。', fb: '返去瞓覺都得，但我哋差少少就可以完全確定，唔好放棄！' },
+  ]);
+  setDlg('owl', '我哋等下一架車……'); autoSpeak();
+  await c.fx.waitCar();
+  await say('owl', '又嚟一次！每次有車轉彎，窗口就閃一下。證據好清楚：白光係車頭燈，窗簾郁係因為風。');
+  await c.fx.lookWindow();
+  await say('owl', '最後一步：做實驗！閂窗、拉返埋窗簾。如果我哋嘅推理啱，白影同窗簾都會停。');
+  await find('owl', '撳一下個窗，幫阿明閂窗同拉埋窗簾。', [{ id: 'window', text: '閂好窗，拉埋窗簾！我哋返去走廊等一陣，睇吓會點……', on: () => c.fx.closeWin() }]);
+  await c.fx.backToHall();
   await say('ming', '咦？等咗好耐，白影都冇再出現喎！');
-  await say('owl', '實驗成功！冇咗風同車燈，白影就消失。證明佢係光同風，唔係鬼。');
+  await say('owl', '實驗成功！閂咗窗就冇風，拉埋窗簾車頭燈又照唔入嚟，白影就消失。證明佢係光同風，唔係鬼。');
   await say('owl', '不過，點解我哋成日喺「眼角」見到嘢飄過？我哋做個「眼角測試」就知！');
   await periphTest();
   await say('owl', '你發現嗎？眼角睇顏色同形狀都好蒙，但係對「郁動」特別敏感。');
@@ -1828,6 +2141,7 @@ async function runHall(c) {
     { t: '轉頭望清楚，搵吓有冇風、有冇光、有冇反光。', ok: true, fb: '真正嘅偵探！搵到原因，就唔使驚。' },
   ]);
   await lesson('白影嘅真相', [
+    ['🚗', '行埋去窗口望，親眼見到證據：白光係車頭燈，窗簾郁係因為風。'],
     ['🌬️', '風吹窗簾、車頭燈、玻璃反光，都會整出「白影」。'],
     ['👀', '眼角睇唔清，但對郁動好敏感。'],
     ['🔁', '轉頭望清楚，就知道真相。'],
@@ -1894,20 +2208,22 @@ async function runSkel(c) {
   await find('owl', '撳發光嘅地方，搵出副骷髏骨點解會郁！', [
     { id: 'fan', text: '有部風扇對住副骷髏骨吹，所以佢會搖嚟搖去。' },
     { id: 'hook', text: '副骷髏骨係用一個鈎掛喺架上面，一有風就會晃。' },
-    { id: 'jaw', text: '下巴係用彈弓連住嘅，一搖就會「咯咯」聲。' },
+    { id: 'jaw', text: '模型嘅下巴係用彈弓連住嘅，一搖就開開合合，撞到上面啲牙就「咯咯」聲。' },
   ]);
   await say('owl', '推理：係風扇吹到佢搖。偵探第四步：做實驗！熄咗風扇，睇吓佢仲郁唔郁。');
   await find('owl', '撳一下風扇，熄咗佢。', [{ id: 'fan', text: '熄咗風扇喇！望住副骷髏骨……', on: () => c.fx.fanOff() }]);
   await wsleep(2600);
   await say('sze', '真係唔郁喇！');
   await say('owl', '實驗證明：佢唔係自己郁，係俾風吹郁嘅。其實呢，骷髏骨一啲都唔恐怖。你知唔知，你自己身體入面都有一副骷髏骨？');
-  await find('owl', '撳吓副骷髏骨唔同嘅部分，認識吓我哋嘅骨頭！', [
+  await c.fx.zoom(true);
+  await find('owl', '我哋行近啲睇。撳吓副骷髏骨發光嘅部分，認識吓我哋嘅骨頭！', [
     { id: 'skull', text: '頭骨：好似頭盔咁，保護你嘅腦。' },
     { id: 'ribs', text: '肋骨：好似一個籠，保護你嘅心同肺。' },
     { id: 'spine', text: '脊骨：由好多粒細細嘅骨砌成，所以你彎得腰、轉得身。' },
     { id: 'hand', text: '手骨：一隻手就有二十幾塊骨，所以你啲手指咁靈活，寫得字、砌得積木。' },
     { id: 'leg', text: '大髀骨：全身最長最硬嘅骨，撐住你企、跑、跳。' },
   ]);
+  await c.fx.zoom(false);
   await say('owl', '大人全身有二百零六塊骨。BB仔仲多，大個咗有啲會黐埋一齊。骨頭係我哋嘅支架，日日保護我哋。');
   await choice('owl', '咁點解你嘅骨識郁，但副骷髏骨模型唔識自己郁？', [
     { t: '因為模型未瞓醒。', fb: '模型冇腦，唔識瞓覺，亦都唔識醒㗎！' },
@@ -1930,46 +2246,59 @@ async function runSkel(c) {
 
 /* ---------- 6. ouija ---------- */
 async function runOuija(c) {
-  await say('nar', '放學後，阿明同阿詩喺課室玩「碟仙」。佢哋將手指放喺隻碟上面，細細聲問：「碟仙碟仙，呢度有冇鬼？」');
+  await say('nar', '放學後，阿明同阿詩偷偷喺課室玩「碟仙」。佢哋將手指放喺隻碟上面，細細聲問：「碟仙碟仙，呢度有冇鬼？」');
   await c.fx.plateTo('有');
-  await say('nar', '隻碟竟然慢慢郁，停咗喺「有」字上面！');
-  await say('ming', '嘩！碟仙真係答咗我哋！{name}，你都嚟一齊玩啦！');
-  await choice('owl', '你會點樣回應阿明？', [
-    { t: '好呀！我都想問碟仙問題！', fb: '唔急住玩住，因為呢類遊戲好易自己嚇自己。不如先搞清楚隻碟點解會郁？' },
-    { t: '我唔玩呀，好恐怖！', ok: true, fb: '唔想玩，係你嘅權利，講得好！不過我哋仲可以做偵探，拆穿佢。' },
-    { t: '不如我哋做個實驗，睇吓係咪真係有碟仙推隻碟？', ok: true, fb: '好有科學家精神！我哋一齊做實驗。' },
+  await say('nar', '隻碟竟然慢慢郁，停咗喺「有」字上面！兩個人嚇到尖叫，阿詩仲喊咗出嚟。');
+  await say('sze', '我好驚呀……係咪真係有鬼？我哋會唔會俾佢跟住㗎？');
+  await choice('owl', '阿明同阿詩好驚，你會點做？', [
+    { t: '叫佢哋再問多次碟仙，睇吓係咪真。', fb: '再玩只會更驚，而且我哋唔使玩都搵到真相。' },
+    { t: '陪佢哋深呼吸，然後一齊搵出隻碟點解會郁。', ok: true, fb: '好有愛心，又好有科學家精神！' },
+    { t: '話俾全校聽課室有鬼。', fb: '冇證據就咁講，會嚇親更多人。先搵真相啦！' },
   ]);
-  await say('owl', '科學家發現咗一樣嘢，叫「意動效應」。當你好想、或者好期待某個答案，你手指嘅肌肉會自己郁少少，細到你自己都唔覺。');
-  await say('owl', '幾個人一齊將手指放上去，每人郁少少，加埋就好似隻碟「自己」郁咗。');
-  await say('owl', '點樣證明？做「蒙眼測試」：大家蒙住眼再玩，然後偷偷將張紙轉一轉。如果真係有碟仙，佢應該睇得到張紙，答案都一樣啱。');
+  await say('owl', '我哋唔使再玩，都可以搵到真相。等我用「慢鏡重播」，睇清楚頭先發生咩事。');
+  await c.fx.replay(true);
+  await say('owl', '你睇，佢哋兩個一路問，一路都諗住同一個答案：「會唔會係『有』呀？」眼睛仲一直望住「有」字。');
+  await find('owl', '撳一下阿明隻手指，同阿詩隻手指，睇吓佢哋做咗啲咩。', [
+    { id: 'f1', text: '阿明個腦諗住「有」字，佢隻手指嘅肌肉就不知不覺，向「有」字嗰邊用咗少少力。細到佢自己都覺得冇推！', on: () => c.fx.push(0) },
+    { id: 'f2', text: '阿詩都一樣！佢好驚，又好想知答案，隻手指都自動向「有」字嗰邊輕輕推咗少少。', on: () => c.fx.push(1) },
+  ]);
+  await find('owl', '而家撳一下隻碟，睇吓兩股細細嘅力加埋會點。', [{ id: 'plate', text: '兩股細力加埋，就變成一股夠力嘅推力！隻碟底好滑、張紙好平，少少力已經可以令佢慢慢滑去「有」字。', on: () => c.fx.combine() }]);
+  await wsleep(3000);
+  await say('owl', '所以，冇人「刻意」推，亦唔係碟仙推。係大家個腦諗住答案，手指就自動幫手推咗。科學家叫呢個做「意動效應」。');
+  await say('owl', '每個人都覺得自己冇推，就以為係其他人推，或者係碟仙推。其實係大家一齊推。');
+  await c.fx.replay(false);
+  await say('owl', '科學家仲做過一個實驗去證明：請參加者蒙住眼，再偷偷將張紙轉咗。如果真係有碟仙，佢應該睇得到張紙。我哋睇吓示範動畫。');
+  c.fx.expLabel(true);
   c.fx.blind(true);
   await c.fx.plateHome();
-  await find('owl', '阿明同阿詩已經蒙住眼。{name}，撳一下張紙，偷偷將佢轉一轉！', [{ id: 'paper', text: '轉好喇！噓……唔好話俾佢哋知。', on: () => c.fx.rotatePaper() }]);
-  await say('ming', '碟仙碟仙，呢度有冇鬼？');
+  await find('owl', '參加者已經蒙住眼。{name}，撳一下張紙，偷偷將佢轉一轉！', [{ id: 'paper', text: '轉好喇！蒙住眼嘅人唔知道。', on: () => c.fx.rotatePaper() }]);
   const ch = await c.fx.plateBlind('有');
-  await say('nar', `隻碟停咗喺「${ch}」字上面。`);
+  await say('nar', `隻碟停咗喺「${ch}」字上面，唔再係「有」字！`);
   c.fx.blind(false);
-  await say('sze', `咦？點解會停喺「${ch}」字嘅？「有」字明明轉咗去另一邊！`);
-  await say('owl', '因為大家以為「有」字仲喺原本嗰度，手指就不知不覺推隻碟去嗰度。證明推隻碟嘅，係大家嘅手指，唔係碟仙！');
-  await say('owl', '你喺屋企都可以試「鐘擺實驗」：用條繩綁住一條鎖匙，手拎住唔好刻意郁，心入面諗「前後、前後」，睇吓會點。');
+  await say('owl', '因為大家以為「有」字仲喺原本嗰度，手指就不知不覺推去嗰度。蒙住眼，碟仙就「答錯」，證明推隻碟嘅係大家嘅手指。');
+  c.fx.expLabel(false);
+  await say('owl', '你喺屋企都可以安全咁試「鐘擺實驗」：用條繩綁住一條鎖匙，手拎住唔好刻意郁，心入面諗「前後、前後」，睇吓會點。');
   await c.fx.showPend();
   await find('owl', '撳一下隻手，心入面諗「前後、前後」。', [{ id: 'hand', text: '條鎖匙真係前後擺！冇人叫佢咁郁，係你隻手自己郁咗少少。', on: () => c.fx.swing('fb') }]);
   await find('owl', '再撳一下隻手，今次心諗「左右、左右」。', [{ id: 'hand', text: '變咗左右擺！呢個就係「意動效應」，同碟仙一模一樣。', on: () => c.fx.swing('lr') }]);
-  await choice('owl', '玩完碟仙，阿明話佢今晚唔敢瞓覺。你會點樣幫佢？', [
+  await say('owl', '雖然碟仙冇鬼，但係佢唔係一個好玩嘅遊戲。新聞曾經報道過，有學生玩完碟仙之後好驚，瞓唔著、成日覺得有嘢跟住，要搵醫生同社工幫手。');
+  await say('owl', '令佢哋咁辛苦嘅唔係鬼，而係「驚」。好驚、好緊張，會令個腦同身體都好唔舒服。所以我哋嘅建議好清楚：唔好玩碟仙，唔值得嚇親自己同朋友。');
+  await choice('owl', '阿明話佢今晚唔敢瞓覺。你會點樣幫佢？', [
     { t: '話佢知碟仙會跟佢返屋企。', fb: '咁會令阿明更驚，而且係假嘅。' },
-    { t: '同佢講係大家手指郁，教佢深呼吸，下次唔好玩自己嚇自己嘅遊戲。', ok: true, fb: '你真係一個好朋友！用真相幫人唔驚。' },
+    { t: '同佢講係大家手指推，教佢深呼吸，同爸爸媽媽傾吓，以後唔好再玩。', ok: true, fb: '你真係一個好朋友！用真相同關心幫人唔驚。' },
     { t: '再玩多次，問碟仙應該點算。', fb: '再玩只會更驚。碟仙嘅答案其實係大家手指推出嚟，幫唔到阿明。' },
   ]);
   await choice('owl', '下次有同學叫你玩碟仙、寫咒語，或者搞奇怪嘅儀式，你可以點講？', [
     { t: '你哋好蠢呀，咁都信！', fb: '唔好笑人蠢，佢哋只係未知道真相。你可以同佢哋分享「意動效應」！' },
     { t: '怕佢哋唔同我玩，所以跟住一齊玩。', fb: '真正嘅朋友唔會因為你講真話而離開你。你可以有禮貌咁拒絕。' },
-    { t: '我唔玩喇！不如我哋玩捉迷藏，或者我教你哋一個科學實驗？', ok: true, fb: '有禮貌咁拒絕，再提議一個好玩嘅遊戲，好叻！' },
+    { t: '我唔玩喇！不如我哋玩捉迷藏，或者我教你哋一個鐘擺實驗？', ok: true, fb: '有禮貌咁拒絕，再提議一個好玩又安全嘅遊戲，好叻！' },
   ]);
   await lesson('碟仙嘅真相', [
-    ['✋', '意動效應：好期待某個答案，手指會自己郁少少，自己都唔覺。'],
+    ['✋', '意動效應：心諗住答案，手指就會自動用少少力推，自己都唔覺。'],
+    ['➕', '幾個人嘅細力加埋，隻碟就滑去大家諗住嘅答案。'],
     ['🙈', '蒙眼再轉紙，碟仙就答錯，證明係大家嘅手指推。'],
-    ['😨', '呢類遊戲會令人自己嚇自己、發惡夢，唔值得玩。'],
-    ['🙂', '可以有禮貌咁拒絕，再提議另一個遊戲。'],
+    ['📰', '有人玩完驚到瞓唔著，要搵醫生幫手。唔好玩碟仙！'],
+    ['🙂', '可以有禮貌咁拒絕，再提議另一個安全嘅遊戲。'],
   ]);
 }
 
@@ -2071,6 +2400,73 @@ async function runFengshui(c) {
   ]);
 }
 
+/* ---------- 9. crystals & crystal ball ---------- */
+async function runCrystal(c) {
+  await say('nar', '週末，阿詩同{name}行過一間水晶店。門口寫住：「開運水晶，戴上身就會好運，考試必勝！」');
+  await say('shop', '小朋友，呢條紫水晶手鏈有神奇能量，戴住佢考試一定攞一百分，仲會交好運！只係八百八十八蚊咋。');
+  await say('sze', '嘩，好靚呀！好想買！係咪真㗎？');
+  await say('owl', '聽落好吸引。{name}，我哋先用偵探方法查吓，唔好咁快俾錢。');
+  await find('owl', '撳發光嘅地方搵線索！', [
+    { id: 'price', text: '價錢牌寫住「考試必勝」，但係冇講任何證據。一句廣告，唔等於真係有用。' },
+    { id: 'braceA', text: '呢條係天然紫水晶手鏈，好靚。不過「靚」唔等於「有魔力」。' },
+  ]);
+  await say('owl', '點知道水晶有冇能量？科學家做過一個實驗：請人閉埋眼，一時揸住真水晶，一時揸住玻璃做嘅假水晶，然後問佢哋有咩感覺。我哋都試吓！');
+  c.fx.blind(true); c.fx.showGlass();
+  await find('owl', '阿詩蒙住眼喇。撳兩條手鏈，逐條俾佢揸吓。', [
+    { id: 'braceA', who: 'sze', text: '（揸住真水晶）我覺得手心暖暖地，好似有能量喎！' },
+    { id: 'braceB', who: 'sze', text: '（揸住玻璃假水晶）咦？都係暖暖地，都好似有能量喎！' },
+  ]);
+  c.fx.blind(false);
+  await say('sze', '吓？原來第二條係玻璃？我兩條嘅感覺一模一樣！');
+  await say('owl', '科學家做呢個實驗，結果都係咁：無論揸住真水晶定玻璃，大家都話感覺到「能量」。即係嗰種感覺，嚟自我哋嘅期望同想像，唔係嚟自水晶。');
+  await choice('owl', '咁戴水晶手鏈，會唔會令阿詩考試好成績？', [
+    { t: '會，因為水晶有能量。', fb: '盲測已經話俾我哋知，真水晶同玻璃嘅感覺一樣，冇證據有能量。' },
+    { t: '唔會。考得好要靠溫書；鍾意佢靚可以戴，但唔好信佢有魔力。', ok: true, fb: '好有智慧！欣賞佢嘅靚，但唔信佢嘅魔力。' },
+    { t: '要戴十條先夠力。', fb: '一條冇用，十條都係冇用，只係用多咗錢。' },
+  ]);
+  await say('owl', '仲有一樣好重要嘅事：有啲石頭同平價飾物，可能有毒！我哋要學識保護自己。');
+  await find('owl', '撳發光嘅地方，睇吓邊啲要小心。', [
+    { id: 'cinnabar', text: '紅色嘅「辰砂」好靚，但入面有水銀。水銀有毒，摸完要洗手，絕對唔可以放入口。' },
+    { id: 'malachite', text: '綠色嘅「孔雀石」含有銅，磨成粉吸入，或者浸水飲，都會傷害身體。' },
+    { id: 'elixir', text: '有人將石頭浸落水，話飲咗會吸收「能量」。呢個好危險：石頭入面有毒嘅物質可能會溶咗入水度！' },
+    { id: 'cheap', text: '有啲好平嘅閃閃飾物，可能含有鉛或者鎘，呢啲重金屬會傷害身體。小朋友特別唔好咬、唔好放入口。' },
+  ]);
+  await choice('owl', '阿詩話：「我想買條手鏈，仲想浸落水飲『能量水』！」你會點講？', [
+    { t: '好呀，我哋一齊飲！', fb: '千祈唔好！石頭浸水可能溶出有毒物質，飲落肚好危險。' },
+    { t: '唔好浸水飲，亦唔好放入口。如果真係鍾意，同爸爸媽媽揀一條安全嘅當裝飾，戴完記得洗手。', ok: true, fb: '講得好！保護自己，又尊重阿詩鍾意靚嘢。' },
+    { t: '買最平嗰條，越平越好！', fb: '越平唔代表越安全，有啲平價飾物可能含重金屬。要同大人一齊揀。' },
+  ]);
+  await c.fx.toTeller();
+  await say('nar', '水晶店入面仲有一個占卜師，佢面前有一個亮晶晶嘅水晶球。');
+  await say('teller', '小妹妹，等我望吓個水晶球……我見到你嘅未來！下個月你會有一個大災難！除非買我嘅轉運符，只係一千蚊。');
+  await say('sze', '我好驚呀……我唔想有災難……');
+  await say('owl', '阿詩，先深呼吸。一個玻璃波，點樣睇到未來？我哋查吓！');
+  await find('owl', '撳一下水晶球，睇清楚入面有咩。', [{ id: 'ball', text: '水晶球其實係一個好透明嘅玻璃波。佢好似放大鏡咁，會將後面嘅嘢倒轉咗顯示出嚟。你睇，入面見到嘅，係佢後面嘅書架同星星，而且係上下倒轉㗎！', on: () => c.fx.reveal() }]);
+  await say('owl', '所以水晶球入面，只係光穿過玻璃之後轉咗方向，一啲都睇唔到未來。');
+  await say('owl', '咁點解好多人覺得占卜好準？檯上有占卜師寫俾三個小朋友嘅預言，我哋睇吓。');
+  const P = '「你有時好開心，有時又會唔開心。你好想人哋欣賞你。其實你有好多未發揮嘅能力。」';
+  await find('owl', '撳三張預言卡，逐張讀出嚟。', [
+    { id: 'card1', text: '俾阿明嘅預言：' + P },
+    { id: 'card2', text: '俾阿詩嘅預言：' + P },
+    { id: 'card3', text: '俾小晴嘅預言：' + P + '\n咦？三張一模一樣！' },
+  ]);
+  await say('owl', '三個人嘅預言一模一樣！因為呢啲說話啱晒每一個人。科學家叫呢個做「巴納姆效應」：好模糊、聽落好似講緊你嘅說話，會令你覺得「好準」。');
+  await say('owl', '至於「你會有大災難，要俾錢買符化解」：先嚇你，再賣嘢俾你，係呃人嘅常見手法。');
+  await choice('owl', '占卜師話你有災難，要俾一千蚊買符。你會點做？', [
+    { t: '好驚，即刻用晒啲利是錢買符。', fb: '唔使驚，冇人睇得到未來。俾錢只會正中佢下懷。' },
+    { t: '偷偷搵第二個占卜師再問多次。', fb: '搵幾多個占卜師都一樣睇唔到未來，仲可能俾人呃多次錢。' },
+    { t: '唔俾錢，唔使驚，即刻話俾爸爸媽媽知。', ok: true, fb: '做得啱！遇到先嚇你、再叫你俾錢嘅人，一定要同大人講。' },
+  ]);
+  await lesson('水晶同水晶球嘅真相', [
+    ['💎', '水晶好靚，但冇證據有魔力或者能量。'],
+    ['🙈', '盲測：真水晶同玻璃感覺一樣，「能量」嚟自期望。'],
+    ['☠️', '有啲礦石同平價飾物可能有毒：唔好放入口、唔好浸水飲，摸完要洗手。'],
+    ['🔮', '水晶球只係會將影像倒轉嘅玻璃波，睇唔到未來。'],
+    ['🎭', '巴納姆效應：模糊嘅說話啱晒每個人，所以好似好準。'],
+    ['💰', '先嚇你、再賣嘢俾你，係呃人手法，要同大人講。'],
+  ]);
+}
+
 /* ---------- 9. truth court ---------- */
 const COURT = [
   { t: '掛晴天公仔，希望聽日唔好落雨。', k: 0, fb: '晴天公仔係一個得意嘅願望，大家都知佢控制唔到天氣。玩吓冇問題，記得睇埋天氣報告！' },
@@ -2088,6 +2484,7 @@ const COURT = [
   { t: '見到黑貓就會有衰運。', k: 3, fb: '有人因為咁而傷害黑貓，對貓貓好唔公平！黑貓同其他貓一樣可愛。' },
   { t: '花好多錢請人驅鬼、轉運。', k: 3, fb: '冇證據有用，仲會浪費好多錢，甚至可能係呃人。' },
   { t: '考試前寫咒語，唔使溫書。', k: 3, fb: '公平測試證明咗，有用嘅係溫書，唔係咒語。' },
+  { t: '占卜師話你有災難，要俾錢買符化解。', k: 3, fb: '水晶球睇唔到未來。先嚇你再叫你俾錢，係呃人手法！' },
 ];
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
 async function runCourt(c) {
