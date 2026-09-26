@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="辯辯島">
+<meta name="theme-color" content="#86d6ff">
+<meta name="description" content="辯辯島 Debate Island：給 6 至 12 歲小朋友嘅辯論訓練遊戲，有廣東話語音、AI 評分同自訂辯題拆解。">
+<title>辯辯島 Debate Island｜小學辯論訓練</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦉</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+HK:wght@500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --ink:#1d2445; --ink2:#4a5480;
+  --paper:#fffdf6; --paper2:#fff3d6;
+  --sun:#ffd23f; --coral:#ff7a6b; --mint:#3ddc97; --grape:#a898ff; --sky:#6cc8ff;
+  --pro:#ff6b6b; --con:#4f8cff;
+  --claim:#ffb020; --reason:#3ddc97; --evid:#6cc8ff; --strat:#a898ff; --deliv:#ff8fc2;
+  --line:3px solid var(--ink);
+  --f:"Noto Sans HK","PingFang HK","Heiti TC","Microsoft JhengHei",system-ui,sans-serif;
+  --fd:"Baloo 2","Noto Sans HK","PingFang HK","Microsoft JhengHei",system-ui,sans-serif;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{font-family:var(--f);color:var(--ink);font-size:19px;line-height:1.6;
+  background:linear-gradient(180deg,#86d6ff 0%,#bfeaff 48%,#fff0c9 100%);
+  -webkit-font-smoothing:antialiased;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-text-size-adjust:100%}
+textarea,input,select{-webkit-user-select:text;user-select:text;font-family:var(--f)}
+button{font-family:var(--f);color:var(--ink)}
+button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:4px solid #2b6cff;outline-offset:3px}
+#bg{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;touch-action:none}
+#app{position:fixed;inset:0;z-index:1;pointer-events:none}
+.ui{pointer-events:auto}
+.hidden{display:none!important}
+
+/* ---------- top bar ---------- */
+.topbar{position:absolute;top:calc(var(--safe-t) + 10px);left:12px;right:12px;display:flex;gap:10px;align-items:center;z-index:5}
+.logo{display:flex;align-items:center;gap:8px;background:var(--paper);border:var(--line);border-radius:999px;padding:4px 18px 4px 6px;box-shadow:0 4px 0 var(--ink);font-weight:900;font-size:21px;cursor:pointer;min-height:54px}
+.logo .owl{font-size:30px;line-height:1}
+.logo .nm{display:flex;flex-direction:column;line-height:1.05;text-align:left}
+.logo small{font-family:var(--fd);font-weight:800;font-size:14px;color:#6b5bd6}
+.grow{flex:1}
+.pill{display:flex;align-items:center;gap:6px;background:var(--sun);border:var(--line);border-radius:999px;padding:6px 16px;box-shadow:0 4px 0 var(--ink);font-family:var(--fd);font-weight:800;font-size:22px;min-height:54px}
+.pill.bump{animation:bump .5s}
+.icon-btn{width:54px;height:54px;border-radius:50%;border:var(--line);background:var(--paper);box-shadow:0 4px 0 var(--ink);font-size:25px;cursor:pointer;display:grid;place-items:center;padding:0}
+.icon-btn:active,.logo:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+
+/* ---------- screens ---------- */
+.screen{position:absolute;inset:0;display:none}
+.screen.active{display:block}
+.home-bottom{position:absolute;left:0;right:0;bottom:calc(var(--safe-b) + 16px);display:flex;flex-direction:column;align-items:center;gap:14px;padding:0 14px}
+.bubble{position:relative;max-width:780px;width:100%;background:var(--paper);border:var(--line);border-radius:26px;box-shadow:0 6px 0 var(--ink);padding:14px 14px 14px 20px;display:flex;gap:12px;align-items:center}
+.bubble::before{content:"";position:absolute;top:-17px;left:50%;margin-left:-14px;border:14px solid transparent;border-bottom:17px solid var(--ink);border-top:0}
+.bubble::after{content:"";position:absolute;top:-11px;left:50%;margin-left:-10px;border:10px solid transparent;border-bottom:12px solid var(--paper);border-top:0}
+.bubble p{margin:0;flex:1;font-weight:700;font-size:20px}
+.island-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;width:100%;max-width:1040px}
+.island-btn{--c:var(--sun);display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 10px 12px;border:var(--line);border-radius:26px;background:var(--c);box-shadow:0 7px 0 var(--ink);cursor:pointer;transition:transform .08s}
+.island-btn .ib-emoji{font-size:42px;line-height:1.1}
+.island-btn b{font-size:23px;font-weight:900;line-height:1.3}
+.island-btn small{font-size:15px;font-weight:700;opacity:.85;line-height:1.3;text-align:center}
+.island-btn:active{transform:translateY(5px);box-shadow:0 2px 0 var(--ink)}
+.fallback-owl{display:none;position:absolute;left:50%;top:20%;transform:translateX(-50%);font-size:150px;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 10px 0 rgba(29,36,69,.15))}
+.no3d .fallback-owl{display:block}
+.no3d #bg{display:none}
+
+/* ---------- sheets ---------- */
+.sheet{position:absolute;top:calc(var(--safe-t) + 80px);bottom:calc(var(--safe-b) + 12px);left:12px;right:12px;margin:0 auto;max-width:900px;
+  background:rgba(255,253,246,.97);border:var(--line);border-radius:30px;box-shadow:0 8px 0 var(--ink);display:flex;flex-direction:column;overflow:hidden;animation:sheetIn .35s cubic-bezier(.2,1.3,.4,1)}
+@media (min-width:1100px){.sheet{left:28px;right:auto;width:min(860px,63vw);margin:0}}
+.sheet-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:var(--line);background:var(--hc,var(--sun))}
+.sheet-head h2{margin:0;font-size:25px;font-weight:900;flex:1;line-height:1.2}
+.sheet-head h2 small{display:block;font-family:var(--fd);font-size:15px;font-weight:800;opacity:.75}
+.sheet-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 18px 40px;overscroll-behavior:contain}
+
+/* ---------- common components ---------- */
+.btn{--bc:var(--sun);display:inline-flex;align-items:center;justify-content:center;gap:8px;border:var(--line);border-radius:18px;background:var(--bc);box-shadow:0 5px 0 var(--ink);
+  padding:12px 20px;font-size:20px;font-weight:900;min-height:56px;cursor:pointer;transition:transform .08s;line-height:1.25;text-align:center}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sm{font-size:17px;min-height:46px;padding:8px 14px;border-radius:14px}
+.btn.ghost{--bc:#fff}
+.btn.go{--bc:var(--mint)}
+.btn.pro{--bc:var(--pro);color:#fff}
+.btn.con{--bc:var(--con);color:#fff}
+.btn.grape{--bc:var(--grape)}
+.btn.coral{--bc:var(--coral)}
+.btn.sky{--bc:var(--sky)}
+.btn.block{width:100%}
+.spk{flex:none;width:46px;height:46px;border-radius:50%;border:var(--line);background:#fff;box-shadow:0 3px 0 var(--ink);font-size:21px;display:grid;place-items:center;cursor:pointer;padding:0;line-height:1}
+.spk.sm{width:38px;height:38px;font-size:17px;border-width:2px}
+.spk.playing{background:var(--mint);animation:pulse .9s infinite}
+.spk:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.card{background:#fff;border:var(--line);border-radius:22px;box-shadow:0 5px 0 var(--ink);padding:16px 18px}
+.card.tint{background:var(--bg,var(--paper2))}
+.stack>*+*{margin-top:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.row.end{justify-content:flex-end}
+.say{display:flex;gap:10px;align-items:flex-start}
+.say>p,.say>div.txt{margin:0;flex:1;min-width:0;white-space:pre-wrap;word-break:break-word}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 12px;border:2px solid var(--ink);border-radius:999px;background:var(--c,#fff);font-weight:800;font-size:15px;line-height:1.5}
+.chip.big{font-size:17px;padding:5px 14px}
+.sec-title{display:flex;align-items:center;gap:10px;margin:26px 0 10px;font-size:22px;font-weight:900}
+.sec-title .e{font-size:28px}
+.sec-title .grow{flex:1}
+.muted{color:var(--ink2);font-size:16px}
+.big-text{font-size:23px;font-weight:900;line-height:1.45}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.lab{font-weight:900;margin-right:4px}
+input[type=text],input[type=password],input[type=url],select,textarea{width:100%;font-size:19px;border:var(--line);border-radius:16px;padding:12px 14px;background:#fff;color:var(--ink)}
+textarea{min-height:140px;resize:vertical;line-height:1.6}
+label.fl{display:block;font-weight:900;margin:14px 0 6px}
+.toggle{display:flex;align-items:center;gap:10px;font-weight:700;cursor:pointer}
+.toggle input{width:26px;height:26px;accent-color:#2bb673}
+
+/* ---------- learn ---------- */
+.lesson{text-align:center;padding:20px 18px}
+.lesson .le{font-size:78px;line-height:1.1;display:inline-block;animation:bob 3s ease-in-out infinite}
+.lesson h3{margin:6px 0 0;font-size:30px;font-weight:900}
+.lesson .en{font-family:var(--fd);font-weight:800;color:#6b5bd6;font-size:19px}
+.lesson .body{text-align:left;margin-top:14px;font-size:21px;font-weight:500}
+.lesson .ex{text-align:left;margin-top:14px;background:var(--paper2);border:2px dashed var(--ink);border-radius:16px;padding:12px 14px;font-size:19px}
+.dots{display:flex;justify-content:center;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.dots button{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink);background:#fff;padding:0;cursor:pointer}
+.dots button.on{background:var(--sun);transform:scale(1.35)}
+.dots button.seen{background:#ffe89a}
+
+/* ---------- games ---------- */
+.game-card{display:flex;flex-direction:column;gap:8px;text-align:left;cursor:pointer;background:var(--c);padding:18px}
+.game-card .ge{font-size:52px;line-height:1}
+.game-card b{font-size:24px}
+.statement{font-size:24px;font-weight:900;background:var(--paper2);border:var(--line);border-radius:20px;padding:16px 18px;position:relative}
+.ans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:600px){.ans-grid{grid-template-columns:1fr}}
+.ans-btn{font-size:22px;min-height:80px;flex-direction:column;gap:0}
+.ans-btn small{font-family:var(--fd);font-size:14px;opacity:.8}
+.opt-btn{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:#fff;border:var(--line);border-radius:18px;box-shadow:0 5px 0 var(--ink);padding:14px;font-size:19px;font-weight:700;cursor:pointer}
+.opt-btn .let{flex:none;width:38px;height:38px;border-radius:50%;background:var(--sun);border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--fd);font-weight:800}
+.opt-btn.right{background:#d8ffe9}
+.opt-btn.wrong{background:#ffe0dc}
+.correct-flash{animation:wiggle .5s}
+.feedback{border-left:10px solid var(--c,var(--mint))}
+.scoreline{font-family:var(--fd);font-weight:800;font-size:20px}
+
+/* ---------- practice ---------- */
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filters button{border:2px solid var(--ink);background:#fff;border-radius:999px;padding:6px 14px;font-size:17px;font-weight:800;cursor:pointer;min-height:44px}
+.filters button.on{background:var(--ink);color:#fff}
+.motion-card{display:flex;gap:12px;align-items:center;text-align:left;width:100%;background:#fff;border:var(--line);border-radius:18px;box-shadow:0 4px 0 var(--ink);padding:12px 12px 12px 16px;cursor:pointer}
+.motion-card .mt{flex:1;font-size:20px;font-weight:900;line-height:1.4}
+.motion-card .mt small{display:block;font-size:15px;font-weight:700;color:var(--ink2)}
+.motion-list{display:grid;gap:12px}
+.banner{background:var(--ink);color:#fff;border-radius:20px;padding:14px 16px;display:flex;gap:12px;align-items:center}
+.banner .bt{flex:1}
+.banner .bt small{display:block;opacity:.75;font-size:15px;font-weight:700}
+.banner .bt b{font-size:22px;line-height:1.4;display:block}
+.banner .spk{box-shadow:none;border-color:#fff}
+.side-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.side-btn{flex-direction:column;min-height:150px;font-size:26px;border-radius:24px}
+.side-btn small{font-size:16px;font-weight:700;opacity:.95}
+.side-btn .se{font-size:44px;line-height:1}
+.coin{width:120px;height:120px;border-radius:50%;margin:10px auto;border:var(--line);background:radial-gradient(circle at 35% 30%,#fff6c2,var(--sun) 60%,#e0a800);display:grid;place-items:center;font-size:30px;font-weight:900;box-shadow:0 6px 0 var(--ink)}
+.coin.flip{animation:flip 1.3s ease-out}
+.progress{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.pdot{width:44px;height:44px;border-radius:14px;border:2px solid var(--ink);background:#fff;font-family:var(--fd);font-weight:800;font-size:18px;cursor:pointer}
+.pdot.done{background:#d8ffe9}
+.pdot.on{background:var(--sun);box-shadow:0 3px 0 var(--ink);transform:translateY(-2px)}
+.q-text{font-size:23px;font-weight:900;line-height:1.45}
+.q-helper{font-size:17px;color:var(--ink2);font-weight:700;margin-top:8px}
+.hint{background:#fffbe6;border:2px dashed var(--ink);border-radius:16px;padding:10px 12px;font-size:18px}
+.ta-wrap{position:relative;margin-top:12px}
+.ta-wrap textarea{padding-bottom:64px}
+.ta-tools{position:absolute;right:10px;bottom:12px;display:flex;gap:8px;align-items:center}
+.mic{width:54px;height:54px;border-radius:50%;border:var(--line);background:var(--coral);font-size:24px;cursor:pointer;box-shadow:0 3px 0 var(--ink);display:grid;place-items:center;padding:0}
+.mic.rec{background:#ff3b3b;animation:pulse .8s infinite}
+.count{font-size:14px;color:var(--ink2);font-weight:700}
+.nav{margin-top:18px;justify-content:space-between}
+
+/* ---------- results ---------- */
+.score-hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.ring{--p:0;width:150px;height:150px;border-radius:50%;border:var(--line);box-shadow:0 6px 0 var(--ink);background:conic-gradient(var(--mint) calc(var(--p)*1%),#ececf4 0);display:grid;place-items:center;flex:none}
+.ring>div{width:108px;height:108px;border-radius:50%;background:#fff;border:3px solid var(--ink);display:grid;place-items:center;font-family:var(--fd);font-weight:800;font-size:44px;line-height:1}
+.ring>div small{font-size:14px;display:block;text-align:center}
+.stars{font-size:40px;letter-spacing:2px;line-height:1.2}
+.stars span{display:inline-block;animation:starPop .5s both}
+.stars span.off{filter:grayscale(1);opacity:.3}
+.rtitle{display:inline-block;background:var(--grape);border:var(--line);border-radius:14px;padding:4px 14px;font-weight:900;font-size:21px;transform:rotate(-2deg);box-shadow:0 4px 0 var(--ink)}
+.dim{margin-top:12px}
+.dim-top{display:flex;align-items:center;gap:10px;font-weight:900}
+.dim-top .nm{flex:1}
+.bar{height:18px;border:2px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden;margin:6px 0}
+.bar>i{display:block;height:100%;width:0;background:var(--c);transition:width 1.1s cubic-bezier(.2,1,.3,1)}
+.list-say{display:grid;gap:10px}
+.item{background:#fff;border:2px solid var(--ink);border-radius:16px;padding:10px 12px}
+.improve{border-left:10px solid var(--coral)}
+.improve .ex{margin-top:6px;background:var(--paper2);border-radius:10px;padding:8px 10px;font-size:18px}
+.better{background:#f1edff}
+
+/* ---------- breakdown ---------- */
+.tabs{display:flex;gap:10px;margin:8px 0 12px}
+.tabs button{flex:1;min-height:54px;border:var(--line);border-radius:16px;font-size:19px;font-weight:900;background:#fff;cursor:pointer}
+.tabs button.on.pro{background:var(--pro);color:#fff}
+.tabs button.on.con{background:var(--con);color:#fff}
+.arg{border-left:12px solid var(--c)}
+.arg .rank{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.arg .rank b{font-size:18px}
+.arg-row{margin-top:10px}
+.arg-row .lbl{display:inline-block;font-size:15px;font-weight:900;border:2px solid var(--ink);border-radius:10px;padding:1px 8px;background:var(--c);margin-bottom:4px}
+.warn{font-size:16px;color:#8a4b00;background:#fff4e0;border-radius:10px;padding:6px 10px;margin-top:8px}
+.rebut-pair{display:grid;gap:6px}
+.rebut-pair .they{background:#f0f2f8;border-radius:14px;padding:8px 12px}
+.rebut-pair .you{background:#e3fff0;border-radius:14px;padding:8px 12px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.mode-grid,.side-grid{grid-template-columns:1fr}}
+.mode-card{text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;background:#fff;position:relative}
+.mode-card.on{background:var(--c);transform:translateY(-3px)}
+.mode-card .me{font-size:44px;line-height:1}
+.mode-card b{font-size:22px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:110px;border:var(--line);border-radius:16px;background:#fff;font-size:18px;font-weight:900;min-height:52px;cursor:pointer}
+.seg button.on{background:var(--c,var(--sun));box-shadow:0 4px 0 var(--ink)}
+
+/* ---------- overlays ---------- */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(29,36,69,.45);display:none;align-items:center;justify-content:center;padding:calc(var(--safe-t) + 14px) 14px calc(var(--safe-b) + 14px)}
+.modal.open{display:flex}
+.modal-box{background:var(--paper);border:var(--line);border-radius:28px;box-shadow:0 8px 0 var(--ink);width:100%;max-width:640px;max-height:100%;display:flex;flex-direction:column;overflow:hidden;animation:sheetIn .3s cubic-bezier(.2,1.3,.4,1)}
+.modal-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:var(--line);background:var(--sky)}
+.modal-head h2{margin:0;flex:1;font-size:24px}
+.modal-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 18px 26px}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+.presets button{border:2px solid var(--ink);border-radius:999px;background:#fff;padding:5px 12px;font-size:15px;font-weight:800;cursor:pointer;min-height:40px}
+.keyrow{display:flex;gap:8px}
+.keyrow input{flex:1}
+.note{font-size:15px;background:#eef8ff;border:2px solid var(--ink);border-radius:14px;padding:10px 12px;margin-top:12px;line-height:1.55}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.badge{text-align:center;background:#fff;border:var(--line);border-radius:18px;padding:10px 8px}
+.badge .be{font-size:44px;line-height:1.2}
+.badge b{display:block;font-size:17px}
+.badge small{display:block;font-size:13px;color:var(--ink2);line-height:1.35}
+.badge.lock{opacity:.4;filter:grayscale(1)}
+.hist{display:grid;gap:8px;margin-top:10px}
+.hist div{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:8px 10px;font-size:16px;display:flex;gap:8px}
+.hist div span:first-child{flex:1}
+.thinking{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(255,253,246,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);text-align:center;padding:20px}
+.thinking.open{display:flex}
+.thinking .to{font-size:110px;animation:think 1.4s ease-in-out infinite;line-height:1}
+.thinking p{margin:0;font-size:24px;font-weight:900;background:#fff;border:var(--line);border-radius:18px;padding:10px 18px;box-shadow:0 5px 0 var(--ink)}
+.thinking small{font-size:16px;color:var(--ink2);font-weight:700}
+#toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 24px);transform:translateX(-50%) translateY(150%);z-index:80;background:var(--ink);color:#fff;border-radius:18px;padding:12px 20px;font-weight:800;font-size:18px;max-width:92vw;transition:transform .3s cubic-bezier(.2,1.3,.4,1);text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.confetto{position:fixed;top:-20px;z-index:90;width:12px;height:18px;border:2px solid var(--ink);border-radius:3px;pointer-events:none;animation:fall linear forwards}
+
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@keyframes bump{0%,100%{transform:scale(1)}40%{transform:scale(1.25) rotate(-4deg)}}
+@keyframes starPop{0%{transform:scale(0) rotate(-40deg)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes sheetIn{from{transform:translateY(30px) scale(.97);opacity:0}to{transform:none;opacity:1}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-2deg)}75%{transform:rotate(2deg)}}
+@keyframes flip{0%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(900deg) translateY(-60px)}100%{transform:rotateY(1800deg) translateY(0)}}
+@keyframes think{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) translateY(-10px)}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+@media (max-width:820px){
+  .island-grid{grid-template-columns:repeat(2,1fr)}
+  .logo .nm small{display:none}
+}
+@media (max-width:480px){
+  body{font-size:18px}
+  .island-btn small{display:none}
+  .sheet-body{padding:14px 12px 40px}
+}
+@media print{
+  #bg,.topbar,.sheet-head,.nav,.no-print{display:none!important}
+  html,body{overflow:visible;height:auto;background:#fff}
+  #app,.screen,.sheet{position:static!important;box-shadow:none;border:0;overflow:visible;width:auto!important}
+  .sheet-body{overflow:visible}
+  .spk{display:none}
+}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="app">
+  <header class="topbar ui">
+    <button class="logo" id="homeBtn" aria-label="返主頁"><span class="owl">🦉</span><span class="nm">辯辯島<small>Debate Island</small></span></button>
+    <div class="grow"></div>
+    <div class="pill" id="starPill" aria-label="星星數目">⭐ <span id="starCount">0</span></div>
+    <button class="icon-btn" id="badgeBtn" aria-label="獎章同紀錄">🏅</button>
+    <button class="icon-btn" id="settingsBtn" aria-label="設定">⚙️</button>
+  </header>
+
+  <section class="screen active" id="scr-home">
+    <div class="fallback-owl">🦉</div>
+    <div class="home-bottom">
+      <div class="bubble ui" id="homeBubble"><p id="homeGreet"></p></div>
+      <div class="island-grid ui">
+        <button class="island-btn" data-go="learn" style="--c:var(--sun)"><span class="ib-emoji">🏫</span><b>辯論學堂</b><small>學識論點、論證、論據、策略</small></button>
+        <button class="island-btn" data-go="games" style="--c:var(--mint)"><span class="ib-emoji">🎮</span><b>小遊戲</b><small>分類王・反駁大師</small></button>
+        <button class="island-btn" data-go="practice" style="--c:var(--coral)"><span class="ib-emoji">🎯</span><b>辯題挑戰</b><small>答問題，AI 幫你評分</small></button>
+        <button class="island-btn" data-go="custom" style="--c:var(--grape)"><span class="ib-emoji">✨</span><b>我的辯題</b><small>貼上辯題，引導或即時拆解</small></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="scr-learn"><div class="sheet ui" style="--hc:var(--sun)">
+    <div class="sheet-head"><button class="icon-btn back" aria-label="返主頁">🏠</button><h2>辯論學堂<small>Debate School</small></h2><span id="learnSpk"></span></div>
+    <div class="sheet-body" id="learnBody"></div></div></section>
+
+  <section class="screen" id="scr-games"><div class="sheet ui" style="--hc:var(--mint)">
+    <div class="sheet-head"><button class="icon-btn back" aria-label="返主頁">🏠</button><h2>小遊戲<small>Mini Games</small></h2></div>
+    <div class="sheet-body" id="gamesBody"></div></div></section>
+
+  <section class="screen" id="scr-practice"><div class="sheet ui" style="--hc:var(--coral)">
+    <div class="sheet-head"><button class="icon-btn back" aria-label="返主頁">🏠</button><h2>辯題挑戰<small>Motion Challenge</small></h2></div>
+    <div class="sheet-body" id="practiceBody"></div></div></section>
+
+  <section class="screen" id="scr-custom"><div class="sheet ui" style="--hc:var(--grape)">
+    <div class="sheet-head"><button class="icon-btn back" aria-label="返主頁">🏠</button><h2>我的辯題<small>My Own Motion</small></h2></div>
+    <div class="sheet-body" id="customBody"></div></div></section>
+</div>
+
+<div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="modal-box"><div class="modal-head"><h2 id="setTitle">⚙️ 設定</h2><button class="icon-btn" data-close aria-label="關閉">✖️</button></div>
+  <div class="modal-body" id="settingsBody"></div></div>
+</div>
+<div class="modal" id="badgeModal" role="dialog" aria-modal="true" aria-labelledby="badgeTitle">
+  <div class="modal-box"><div class="modal-head" style="background:var(--sun)"><h2 id="badgeTitle">🏅 我的獎章</h2><button class="icon-btn" data-close aria-label="關閉">✖️</button></div>
+  <div class="modal-body" id="badgeBody"></div></div>
+</div>
+<div class="modal" id="msgModal" role="dialog" aria-modal="true">
+  <div class="modal-box"><div class="modal-head" style="background:var(--coral)"><h2 id="msgTitle"></h2><button class="icon-btn" data-close aria-label="關閉">✖️</button></div>
+  <div class="modal-body" id="msgBody"></div></div>
+</div>
+<div class="thinking" id="thinking" aria-live="polite"><div class="to">🦉</div><p id="thinkMsg">阿辯諗緊…</p><small>AI 通常要 10 至 40 秒，等等呀～</small></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+'use strict';
+/* =========================================================
+   辯辯島 Debate Island — core helpers
+   ========================================================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'style') e.style.cssText = v;
+    else if (k.startsWith('on') && typeof v === 'function') e.addEventListener(k.slice(2), v);
+    else if (k === 'html') e.innerHTML = v;
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const k of kids.flat(3)) {
+    if (k == null || k === false) continue;
+    e.append(k.nodeType ? k : document.createTextNode(String(k)));
+  }
+  return e;
+}
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const str = v => (v == null ? '' : String(v));
+const arr = v => (Array.isArray(v) ? v : v ? [v] : []);
+
+/* ---------- storage (Local Storage) ---------- */
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem('dbi_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('dbi_' + k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem('dbi_' + k); } catch (e) {} }
+};
+const DEFAULT_SETTINGS = { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini', apiKey: '', rate: 0.9, autoRead: false, sfx: true, enFeedback: 'en', voiceZh: '', voiceEn: '' };
+let S = Object.assign({}, DEFAULT_SETTINGS, LS.get('settings', {}));
+let P = Object.assign({ name: '', grade: 'P3' }, LS.get('profile', {}));
+let G = Object.assign({ stars: 0, badges: [], practiceCount: 0, seenLessons: [], history: [] }, LS.get('progress', {}));
+const saveS = () => LS.set('settings', S);
+const saveP = () => LS.set('profile', P);
+const saveG = () => LS.set('progress', G);
+
+const GRADES = {
+  P1: { zh: '小一', age: '6至7歲' }, P2: { zh: '小二', age: '7至8歲' }, P3: { zh: '小三', age: '8至9歲' },
+  P4: { zh: '小四', age: '9至10歲' }, P5: { zh: '小五', age: '10至11歲' }, P6: { zh: '小六', age: '11至12歲' }
+};
+
+/* ---------- toast / confetti / sound ---------- */
+let toastTimer;
+function toast(msg, ms = 2800) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+function confetti(n = 70) {
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols = ['#ff6b6b', '#ffd23f', '#3ddc97', '#4f8cff', '#a898ff', '#ff8fc2'];
+  for (let i = 0; i < n; i++) {
+    const c = h('div', { class: 'confetto' });
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = cols[i % cols.length];
+    c.style.animationDuration = (1.8 + Math.random() * 1.8) + 's';
+    c.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.append(c);
+    setTimeout(() => c.remove(), 4300);
+  }
+  World.burst && World.burst();
+}
+const SFX = {
+  ctx: null,
+  play(kind) {
+    if (!S.sfx) return;
+    try {
+      if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const c = this.ctx; if (c.state === 'suspended') c.resume();
+      const seqs = {
+        click: [[660, .06, 'triangle']],
+        good: [[660, .09], [880, .09], [1320, .16]],
+        bad: [[320, .14, 'sawtooth'], [240, .2, 'sawtooth']],
+        win: [[523, .11], [659, .11], [784, .11], [1047, .32]],
+        flip: [[400, .05], [500, .05], [600, .05], [700, .05], [800, .05], [900, .08]]
+      };
+      let t = c.currentTime;
+      for (const [f, d, ty] of seqs[kind] || []) {
+        const o = c.createOscillator(), g = c.createGain();
+        o.type = ty || 'triangle'; o.frequency.value = f;
+        const vol = ty === 'sawtooth' ? 0.06 : 0.16;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + d + 0.03); t += d * 0.92;
+      }
+    } catch (e) {}
+  }
+};
+
+/* ---------- 廣東話 / 英式英語 語音朗讀 (Text-to-Speech) ---------- */
+const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}]/gu;
+const TTS = {
+  supported: 'speechSynthesis' in window,
+  voices: [], token: 0, curBtn: null, unlocked: false,
+  load() { if (this.supported) this.voices = speechSynthesis.getVoices() || []; },
+  zhVoices() { return this.voices.filter(v => /zh[-_]HK|yue/i.test(v.lang) || /cantonese|粵|廣東|香港|hong ?kong/i.test(v.name)); },
+  enVoices() { return this.voices.filter(v => /^en/i.test(v.lang)); },
+  pick(lang) {
+    const vs = this.voices;
+    if (lang === 'zh') {
+      return (S.voiceZh && vs.find(v => v.voiceURI === S.voiceZh)) || this.zhVoices()[0] || null;
+    }
+    return (S.voiceEn && vs.find(v => v.voiceURI === S.voiceEn)) || vs.find(v => /en[-_]GB/i.test(v.lang)) || vs.find(v => /^en/i.test(v.lang)) || null;
+  },
+  clean(t) {
+    return str(t).replace(EMOJI_RE, ' ').replace(/[*#_`>~|]/g, ' ').replace(/[「」『』“”"]/g, '').replace(/…+|\.\.\.+/g, '，').replace(/\s+/g, ' ').trim();
+  },
+  chunks(text) {
+    const t = this.clean(text);
+    const parts = t.replace(/([。！？!?；;：\n])/g, '$1\u0001').replace(/([.])\s+/g, '$1\u0001').split('\u0001');
+    const out = [];
+    for (let p of parts) {
+      p = p.trim(); if (!p || /^[\s,，、.。:：;；!?！？()（）\-–—]+$/.test(p)) continue;
+      while (p.length > 130) {
+        let cut = p.lastIndexOf('，', 130);
+        if (cut < 30) cut = p.lastIndexOf(',', 130);
+        if (cut < 30) cut = p.lastIndexOf(' ', 130);
+        if (cut < 30) cut = 130;
+        out.push(p.slice(0, cut + 1)); p = p.slice(cut + 1).trim();
+      }
+      if (p) out.push(p);
+    }
+    return out.map(x => ({ text: x, lang: /[\u3400-\u9fff]/.test(x) ? 'zh' : 'en' }));
+  },
+  speak(text, btn) {
+    if (!this.supported) { toast('呢個瀏覽器唔支援語音朗讀 😢'); return; }
+    const same = btn && this.curBtn === btn;
+    this.stop();
+    if (same) return;
+    const list = this.chunks(text); if (!list.length) return;
+    if (!this.voices.length) this.load();
+    if (!this.pick('zh') && list.some(c => c.lang === 'zh') && !this.warned) {
+      this.warned = true; toast('搵唔到廣東話聲音，請睇⚙️設定入面嘅教學', 4000);
+    }
+    const token = this.token;
+    this.curBtn = btn || null; if (btn) btn.classList.add('playing');
+    World.talk(true);
+    setTimeout(() => {
+      if (token !== this.token) return;
+      list.forEach((c, i) => {
+        const u = new SpeechSynthesisUtterance(c.text);
+        const v = this.pick(c.lang);
+        if (v) { u.voice = v; u.lang = v.lang; } else u.lang = c.lang === 'zh' ? 'zh-HK' : 'en-GB';
+        u.rate = S.rate; u.pitch = c.lang === 'zh' ? 1.08 : 1.0;
+        if (i === list.length - 1) u.onend = u.onerror = () => { if (token === this.token) this.done(); };
+        speechSynthesis.speak(u);
+      });
+    }, 60);
+  },
+  done() { if (this.curBtn) this.curBtn.classList.remove('playing'); this.curBtn = null; World.talk(false); },
+  stop() { this.token++; if (this.supported) { try { speechSynthesis.cancel(); } catch (e) {} } this.done(); },
+  unlock() {
+    if (this.unlocked || !this.supported) return; this.unlocked = true;
+    try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {}
+  }
+};
+if (TTS.supported) {
+  TTS.load();
+  speechSynthesis.addEventListener ? speechSynthesis.addEventListener('voiceschanged', () => { TTS.load(); Settings.fillVoices && Settings.fillVoices(); })
+    : (speechSynthesis.onvoiceschanged = () => TTS.load());
+}
+document.addEventListener('pointerdown', () => TTS.unlock(), { once: true });
+
+/** 🔊 speaker button. textOrFn = string or function returning string */
+function spk(textOrFn, opts = {}) {
+  const b = h('button', { class: 'spk' + (opts.small ? ' sm' : ''), type: 'button', 'aria-label': opts.label || '朗讀', title: opts.label || '朗讀' }, '🔊');
+  b.addEventListener('click', e => { e.stopPropagation(); const t = typeof textOrFn === 'function' ? textOrFn() : textOrFn; TTS.speak(t, b); });
+  return b;
+}
+/** paragraph + speaker */
+function sayRow(text, cls = '', opts = {}) {
+  return h('div', { class: 'say ' + cls }, h('p', {}, text), spk(opts.speak || text, opts));
+}
+function autoSay(text) { if (S.autoRead) TTS.speak(text, null); }
+
+/* ---------- 語音輸入 (Speech-to-Text) ---------- */
+const STT = {
+  R: window.SpeechRecognition || window.webkitSpeechRecognition,
+  rec: null,
+  start(ta, lang, btn) {
+    if (!this.R) { toast('呢個瀏覽器唔支援語音輸入。iPad 可以揿鍵盤上面嘅 🎤 用廣東話講！', 4500); return; }
+    if (this.rec) { try { this.rec.stop(); } catch (e) {} return; }
+    TTS.stop();
+    const r = new this.R();
+    r.lang = lang === 'en' ? 'en-GB' : 'zh-HK';
+    r.interimResults = true; r.continuous = false;
+    const base = ta.value; const sep = base && lang === 'en' && !/\s$/.test(base) ? ' ' : '';
+    let fin = '';
+    r.onresult = e => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const tr = e.results[i][0].transcript;
+        if (e.results[i].isFinal) fin += tr; else interim += tr;
+      }
+      ta.value = base + sep + fin + interim; ta.dispatchEvent(new Event('input'));
+    };
+    r.onerror = e => { if (e.error !== 'aborted') toast('聽唔清楚，再試一次？（' + e.error + '）'); };
+    r.onend = () => { btn.classList.remove('rec'); this.rec = null; };
+    this.rec = r; btn.classList.add('rec');
+    try { r.start(); toast(lang === 'en' ? '🎤 Speak now…' : '🎤 請講嘢…', 1600); } catch (e) { btn.classList.remove('rec'); this.rec = null; }
+  }
+};
+
+/* ---------- AI client (OpenAI-compatible or Anthropic) ---------- */
+class NoKeyError extends Error {}
+function aiReady() { return !!(S.apiKey && S.baseUrl && S.model); }
+async function callAI(system, user, { json = true, maxTokens = 4000, timeout = 150000 } = {}) {
+  if (!aiReady()) throw new NoKeyError('NOKEY');
+  const base = S.baseUrl.trim().replace(/\/+$/, '');
+  const isAnthropic = /anthropic\.com/i.test(base) || /\/messages$/.test(base);
+  const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), timeout);
+  try {
+    let res, data, text = '';
+    if (isAnthropic) {
+      const url = /\/messages$/.test(base) ? base : (/\/v1$/.test(base) ? base + '/messages' : base + '/v1/messages');
+      res = await fetch(url, {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'content-type': 'application/json', 'x-api-key': S.apiKey.trim(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: S.model.trim(), max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] })
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(apiErr(res, data));
+      text = arr(data.content).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    } else {
+      const url = /\/chat\/completions$/.test(base) ? base : base + '/chat/completions';
+      res = await fetch(url, {
+        method: 'POST', signal: ctrl.signal,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey.trim() },
+        body: JSON.stringify({ model: S.model.trim(), messages: [{ role: 'system', content: system }, { role: 'user', content: user }] })
+      });
+      data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(apiErr(res, data));
+      const c = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      text = Array.isArray(c) ? c.map(x => x.text || '').join('\n') : str(c);
+    }
+    if (!text.trim()) throw new Error('AI 冇回覆任何內容，請再試一次。');
+    return json ? parseJSON(text) : text;
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('等咗太耐（超時），請再試一次。');
+    if (e instanceof TypeError) throw new Error('連唔到伺服器（' + e.message + '）。可能係 Base URL 錯咗、冇上網，或者呢個 AI 供應商唔俾瀏覽器直接連接（CORS）。');
+    throw e;
+  } finally { clearTimeout(tm); }
+}
+function apiErr(res, data) {
+  const m = (data && (data.error && (data.error.message || data.error)) || data.message) || res.statusText;
+  const hint = res.status === 401 ? '（API Key 唔啱）' : res.status === 404 ? '（Base URL 或者 Model 名唔啱）' : res.status === 429 ? '（用得太密或者額度用完）' : '';
+  return `HTTP ${res.status} ${hint} ${typeof m === 'string' ? m : JSON.stringify(m)}`.trim();
+}
+function parseJSON(t) {
+  let s = str(t).replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/```json|```/gi, '').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a >= 0 && b > a) s = s.slice(a, b + 1);
+  try { return JSON.parse(s); } catch (e) {
+    try { return JSON.parse(s.replace(/,\s*([}\]])/g, '$1').replace(/[\u201c\u201d]/g, '"')); }
+    catch (e2) { throw new Error('AI 回覆嘅格式有少少問題，請再試一次。'); }
+  }
+}
+const THINK_MSGS = ['阿辯諗緊…🤔', '翻緊辯論秘笈📖', '搵緊最有力嘅論點💡', '計緊分數🧮', '準備緊貼士✨'];
+async function withThinking(first, fn) {
+  const box = $('#thinking'), msg = $('#thinkMsg');
+  msg.textContent = first; box.classList.add('open'); World.think(true);
+  let i = 0; const iv = setInterval(() => { msg.textContent = THINK_MSGS[i++ % THINK_MSGS.length]; }, 3500);
+  try { return await fn(); } finally { clearInterval(iv); box.classList.remove('open'); World.think(false); }
+}
+function aiError(e, retry) {
+  if (e instanceof NoKeyError) {
+    showMsg('🔑 未設定 AI', [
+      sayRow('要用 AI 評分同拆解，請大人幫手喺「設定」填好 Base URL、Model 同 API Key。'),
+      h('div', { class: 'row', style: 'margin-top:16px' }, h('button', { class: 'btn go', onclick: () => { closeModal('msgModal'); Settings.open(); } }, '⚙️ 去設定'))
+    ]);
+    return;
+  }
+  showMsg('😵 阿辯連唔到 AI', [
+    h('div', { class: 'card', style: 'font-size:17px;word-break:break-word' }, str(e.message || e)),
+    h('div', { class: 'note' }, '可以檢查：① Base URL 同 Model 名啱唔啱；② API Key 有冇多咗空格；③ 有冇上網；④ 部分供應商唔俾網頁直接連線（CORS），可以試 OpenAI、Anthropic、OpenRouter、Google Gemini 等。'),
+    h('div', { class: 'row', style: 'margin-top:16px' },
+      retry ? h('button', { class: 'btn go', onclick: () => { closeModal('msgModal'); retry(); } }, '🔁 再試一次') : null,
+      h('button', { class: 'btn ghost', onclick: () => { closeModal('msgModal'); Settings.open(); } }, '⚙️ 設定'))
+  ]);
+}
+
+/* ---------- modal helpers ---------- */
+function openModal(id) { $('#' + id).classList.add('open'); }
+function closeModal(id) { $('#' + id).classList.remove('open'); TTS.stop(); }
+function showMsg(title, kids) { $('#msgModal .modal-head').style.background = ''; $('#msgTitle').textContent = title; const b = $('#msgBody'); b.innerHTML = ''; b.append(...kids); openModal('msgModal'); }
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-close]'); if (c) closeModal(c.closest('.modal').id);
+  else if (e.target.classList && e.target.classList.contains('modal')) closeModal(e.target.id);
+});
+
+/* ---------- stars & badges ---------- */
+const BADGES = [
+  { id: 'learner', e: '🎓', n: '辯論新星', d: '睇晒辯論學堂全部卡' },
+  { id: 'sorter', e: '🧩', n: '分類王', d: '分類遊戲答啱 8 題或以上' },
+  { id: 'rebut', e: '🛡️', n: '反駁大師', d: '反駁遊戲全部答啱' },
+  { id: 'first', e: '🎯', n: '第一次挑戰', d: '完成第一次 AI 評分' },
+  { id: 'five', e: '🌟', n: '五星辯手', d: 'AI 評分攞到 5 粒星' },
+  { id: 'custom', e: '✨', n: '自訂達人', d: '用「我的辯題」拆解或者練習' },
+  { id: 'bilingual', e: '🇬🇧', n: '雙語辯手', d: '完成一條英文辯題評分' },
+  { id: 'ten', e: '🏆', n: '勤力小勇士', d: '完成 10 次 AI 評分' }
+];
+function updateStars() { $('#starCount').textContent = G.stars; }
+function addStars(n) {
+  if (!n) return; G.stars += n; saveG(); updateStars();
+  const p = $('#starPill'); p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump');
+}
+function award(id) {
+  if (G.badges.includes(id)) return;
+  const b = BADGES.find(x => x.id === id); if (!b) return;
+  G.badges.push(id); saveG();
+  setTimeout(() => { toast(`🏅 新獎章：${b.e} ${b.n}！`, 3500); SFX.play('win'); confetti(50); }, 600);
+}
+function pushHistory(item) { G.history.unshift(Object.assign({ date: new Date().toISOString() }, item)); G.history = G.history.slice(0, 30); saveG(); }
+
+/* ---------- language helpers ---------- */
+function detectLang(t) {
+  const cjk = (str(t).match(/[\u3400-\u9fff]/g) || []).length;
+  const lat = (str(t).match(/[A-Za-z]/g) || []).length;
+  if (!cjk && !lat) return null;
+  return cjk * 3 >= lat ? 'zh' : 'en';
+}
+function fbLang(lang) { return lang === 'en' && S.enFeedback === 'en' ? 'en' : 'zh'; }
+function sideName(side, lang) {
+  if (lang === 'en') return side === 'pro' ? 'Proposition 正方' : 'Opposition 反方';
+  return side === 'pro' ? '正方' : '反方';
+}
+
+/* =========================================================
+   Three.js 3D world：辯辯島 + 貓頭鷹阿辯
+   ========================================================= */
+const World = {
+  ok: false, t: 0, W: 1, H: 1,
+  shiftX: 0, shiftY: 0, tShiftX: 0, tShiftY: 0.14,
+  islands: [], clouds: [], confetti: [], labels: [],
+  st: { talk: false, think: false, jumpT: -1, spins: 1, blinkT: 2.5, lookX: 0, lookY: 0 },
+  init() {
+    if (!window.THREE) { document.body.classList.add('no3d'); return; }
+    try { this._init(); this.ok = true; }
+    catch (e) { console.warn('3D init failed', e); document.body.classList.add('no3d'); }
+  },
+  mat(color, flat) { return new THREE.MeshPhongMaterial({ color, flatShading: !!flat, shininess: flat ? 8 : 40 }); },
+  _init() {
+    const T = THREE, canvas = $('#bg');
+    const r = this.renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' });
+    r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    r.setClearColor(0x000000, 0);
+    const sc = this.scene = new T.Scene();
+    sc.fog = new T.Fog(0xcfeeff, 50, 120);
+    this.camera = new T.PerspectiveCamera(46, 1, 0.1, 300);
+    this.camPos = new T.Vector3(0, 9, 26); this.camLook = new T.Vector3(0, 2, -2);
+    this.tPos = this.camPos.clone(); this.tLook = this.camLook.clone();
+    this.clock = new T.Clock();
+
+    sc.add(new T.HemisphereLight(0xffffff, 0x7fb6ff, 0.85));
+    const sun = new T.DirectionalLight(0xfff0d0, 0.75); sun.position.set(12, 24, 14); sc.add(sun);
+    sc.add(new T.AmbientLight(0xffffff, 0.12));
+
+    // ocean + sun
+    const ocean = new T.Mesh(new T.CircleGeometry(140, 48), new T.MeshPhongMaterial({ color: 0x49b6ff, shininess: 90, specular: 0xaee4ff }));
+    ocean.rotation.x = -Math.PI / 2; ocean.position.y = -1.4; sc.add(ocean);
+    const sunBall = new T.Mesh(new T.SphereGeometry(4, 24, 16), new T.MeshBasicMaterial({ color: 0xfff1a8, fog: false }));
+    sunBall.position.set(-34, 26, -70); sc.add(sunBall);
+
+    // central island with two podiums
+    const center = this.makeIsland(6.2, 0x7ed957, true); center.position.set(0, 0, 2); sc.add(center);
+    const pod = (color, x, text) => {
+      const g = new T.Group();
+      const box = new T.Mesh(new T.BoxGeometry(1.5, 1.35, 1), this.mat(color, true)); box.position.y = 0.68; g.add(box);
+      const top = new T.Mesh(new T.BoxGeometry(1.75, 0.14, 1.2), this.mat(0xfff4dc, true)); top.position.y = 1.4; top.rotation.x = -0.2; g.add(top);
+      const lab = this.makeLabel(text, color === 0xff6b6b ? '#ff6b6b' : '#4f8cff', '#ffffff', 0.55); lab.position.set(0, 2.25, 0); g.add(lab);
+      g.position.set(x, 0.4, 1.2); g.rotation.y = x < 0 ? 0.4 : -0.4; return g;
+    };
+    center.add(pod(0xff6b6b, -3.3, '正方')); center.add(pod(0x4f8cff, 3.3, '反方'));
+    // flowers
+    const fcols = [0xff8fc2, 0xffd23f, 0xffffff, 0xff7a6b];
+    for (let i = 0; i < 16; i++) {
+      const a = Math.random() * Math.PI * 2, d = 2 + Math.random() * 3.6;
+      const f = new T.Mesh(new T.SphereGeometry(0.13, 8, 6), this.mat(fcols[i % 4]));
+      f.position.set(Math.cos(a) * d, 0.5, Math.sin(a) * d); center.add(f);
+    }
+
+    // mascot
+    const owl = this.owl = this.makeOwl();
+    owl.baseY = 1.72; owl.group.position.set(0, owl.baseY, 3.1); owl.group.scale.setScalar(1.1); sc.add(owl.group);
+    this.thought = this.makeLabel('💭 ？', '#ffffff', '#1d2445', 0.7);
+    this.thought.position.set(0.9, 3.8, 3.1); this.thought.visible = false; sc.add(this.thought);
+
+    // satellite islands
+    const defs = [
+      { go: 'learn', pos: [-14.5, 0.3, -4], label: '🏫 辯論學堂', bg: '#ffd23f', mk: 'house' },
+      { go: 'games', pos: [-6, 0.8, -13], label: '🎮 小遊戲', bg: '#3ddc97', mk: 'star' },
+      { go: 'practice', pos: [6, 0.8, -13], label: '🎯 辯題挑戰', bg: '#ff7a6b', mk: 'target' },
+      { go: 'custom', pos: [14.5, 0.3, -4], label: '✨ 我的辯題', bg: '#a898ff', mk: 'crystal' }
+    ];
+    defs.forEach((d, i) => {
+      const g = this.makeIsland(3.3, 0x8be07a, false);
+      g.position.set(...d.pos);
+      const lm = this['mk_' + d.mk](); lm.position.y = 0.4; g.add(lm);
+      const lab = this.makeLabel(d.label, d.bg, '#1d2445', 1); lab.position.set(0, 5.4, 0); g.add(lab);
+      const foam = new T.Mesh(new T.RingGeometry(3.4, 4.1, 32), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 }));
+      foam.rotation.x = -Math.PI / 2; foam.position.set(d.pos[0], -1.36, d.pos[2]); sc.add(foam);
+      g.userData = { go: d.go, baseY: d.pos[1], phase: i * 1.3, lm, mk: d.mk };
+      sc.add(g); this.islands.push(g);
+    });
+    const foamC = new T.Mesh(new T.RingGeometry(6.3, 7.4, 40), new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55 }));
+    foamC.rotation.x = -Math.PI / 2; foamC.position.set(0, -1.36, 2); sc.add(foamC);
+
+    // clouds
+    for (let i = 0; i < 9; i++) {
+      const c = new T.Group();
+      const m = new T.MeshLambertMaterial({ color: 0xffffff });
+      for (let k = 0; k < 4; k++) {
+        const s = new T.Mesh(new T.SphereGeometry(1 + Math.random() * 0.8, 12, 10), m);
+        s.position.set(k * 1.3 - 2, Math.random() * 0.5, Math.random() * 0.6); s.scale.y = 0.7; c.add(s);
+      }
+      c.position.set(-40 + Math.random() * 80, 11 + Math.random() * 7, -30 + Math.random() * 25);
+      c.userData.v = 0.4 + Math.random() * 0.6; sc.add(c); this.clouds.push(c);
+    }
+    // sparkles
+    const pg = new T.BufferGeometry(); const N = 140; const pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) { pos[i * 3] = (Math.random() - .5) * 60; pos[i * 3 + 1] = Math.random() * 18; pos[i * 3 + 2] = -25 + Math.random() * 35; }
+    pg.setAttribute('position', new T.BufferAttribute(pos, 3));
+    this.sparkles = new T.Points(pg, new T.PointsMaterial({ color: 0xffffff, size: 0.18, transparent: true, opacity: 0.85 }));
+    sc.add(this.sparkles);
+
+    // events
+    this.ray = new T.Raycaster(); this.ptr = new T.Vector2();
+    let down = null;
+    canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY }; });
+    canvas.addEventListener('pointerup', e => {
+      if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 12) return;
+      this.tap(e.clientX, e.clientY);
+    });
+    window.addEventListener('pointermove', e => {
+      this.st.lookX = (e.clientX / window.innerWidth - 0.5) * 2;
+      this.st.lookY = -(e.clientY / window.innerHeight - 0.5) * 2;
+      if (e.pointerType === 'mouse' && e.target === canvas) canvas.style.cursor = this.pick(e.clientX, e.clientY) ? 'pointer' : 'default';
+    });
+    window.addEventListener('resize', () => this.resize());
+    this.resize();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.labels.forEach(l => l.userData.redraw()));
+    this.loop();
+  },
+  makeIsland(rad, grass, backTrees) {
+    const T = THREE, g = new T.Group();
+    const top = new T.Mesh(new T.CylinderGeometry(rad, rad * 0.95, 0.8, 22), this.mat(grass, true)); g.add(top);
+    const dirt = new T.Mesh(new T.ConeGeometry(rad * 0.95, rad * 1.1, 22), this.mat(0xc98b5a, true));
+    dirt.rotation.x = Math.PI; dirt.position.y = -0.4 - rad * 0.55; g.add(dirt);
+    const n = Math.round(rad * (backTrees ? 1.2 : 0.8));
+    for (let i = 0; i < n; i++) {
+      const a = backTrees ? Math.PI * 1.08 + Math.random() * Math.PI * 0.84 : Math.random() * Math.PI * 2;
+      const d = rad * (0.68 + Math.random() * 0.22);
+      const tr = this.makeTree(); tr.position.set(Math.cos(a) * d, 0.4, Math.sin(a) * d);
+      tr.scale.setScalar(0.55 + Math.random() * 0.45); g.add(tr);
+    }
+    return g;
+  },
+  makeTree() {
+    const T = THREE, g = new T.Group();
+    const trunk = new T.Mesh(new T.CylinderGeometry(0.12, 0.18, 0.9, 6), this.mat(0x8a5a3b, true)); trunk.position.y = 0.45; g.add(trunk);
+    if (Math.random() < 0.5) {
+      const c1 = new T.Mesh(new T.ConeGeometry(0.75, 1.3, 7), this.mat(0x2fbf71, true)); c1.position.y = 1.3; g.add(c1);
+      const c2 = new T.Mesh(new T.ConeGeometry(0.55, 1, 7), this.mat(0x3ddc97, true)); c2.position.y = 1.9; g.add(c2);
+    } else {
+      const b = new T.Mesh(new T.IcosahedronGeometry(0.75, 0), this.mat(0x5fd35f, true)); b.position.y = 1.4; g.add(b);
+    }
+    return g;
+  },
+  mk_house() {
+    const T = THREE, g = new T.Group();
+    const w = new T.Mesh(new T.BoxGeometry(2.2, 1.7, 1.9), this.mat(0xfff4dc, true)); w.position.y = 0.85; g.add(w);
+    const roof = new T.Mesh(new T.ConeGeometry(1.85, 1.3, 4), this.mat(0xff6b6b, true)); roof.position.y = 2.35; roof.rotation.y = Math.PI / 4; g.add(roof);
+    const door = new T.Mesh(new T.BoxGeometry(0.55, 0.9, 0.08), this.mat(0x8a5a3b, true)); door.position.set(0, 0.45, 0.97); g.add(door);
+    for (const x of [-0.7, 0.7]) { const win = new T.Mesh(new T.BoxGeometry(0.4, 0.4, 0.08), this.mat(0x6cc8ff, true)); win.position.set(x, 1.1, 0.97); g.add(win); }
+    const bell = new T.Mesh(new T.SphereGeometry(0.22, 12, 8), this.mat(0xffd23f)); bell.position.y = 3.1; g.add(bell);
+    return g;
+  },
+  mk_star() {
+    const T = THREE, s = new T.Shape(), R = 1.25, r = 0.55;
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + Math.PI / 2, rr = i % 2 ? r : R; i ? s.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : s.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+    const geo = new T.ExtrudeGeometry(s, { depth: 0.35, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 1 });
+    geo.center();
+    const g = new T.Group();
+    const st = new T.Mesh(geo, new T.MeshPhongMaterial({ color: 0xffd23f, emissive: 0x6b4d00, shininess: 60, flatShading: true }));
+    st.position.y = 2.4; g.add(st); g.userData.spin = st;
+    const ped = new T.Mesh(new T.CylinderGeometry(0.5, 0.7, 0.8, 8), this.mat(0xa898ff, true)); ped.position.y = 0.4; g.add(ped);
+    return g;
+  },
+  mk_target() {
+    const T = THREE, g = new T.Group(), board = new T.Group();
+    [[1.3, 0xff6b6b], [0.95, 0xffffff], [0.6, 0xff6b6b], [0.28, 0xffd23f]].forEach(([rad, c], i) => {
+      const d = new T.Mesh(new T.CylinderGeometry(rad, rad, 0.16, 28), this.mat(c)); d.rotation.x = Math.PI / 2; d.position.z = i * 0.03; board.add(d);
+    });
+    board.position.y = 2.2; g.add(board); g.userData.spin = board;
+    const pole = new T.Mesh(new T.CylinderGeometry(0.1, 0.1, 1.6, 6), this.mat(0x8a5a3b, true)); pole.position.y = 0.8; g.add(pole);
+    const shaft = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 1.4, 6), this.mat(0x1d2445)); shaft.rotation.x = Math.PI / 2; shaft.position.set(0, 0, 0.75); board.add(shaft);
+    const fin = new T.Mesh(new T.ConeGeometry(0.18, 0.35, 4), this.mat(0x3ddc97, true)); fin.rotation.x = -Math.PI / 2; fin.position.set(0, 0, 1.45); board.add(fin);
+    return g;
+  },
+  mk_crystal() {
+    const T = THREE, g = new T.Group();
+    const c = new T.Mesh(new T.OctahedronGeometry(1.15, 0), new T.MeshPhongMaterial({ color: 0xa898ff, emissive: 0x3a2a99, shininess: 100, flatShading: true }));
+    c.position.y = 2.3; c.scale.y = 1.4; g.add(c); g.userData.spin = c;
+    const orb = new T.Group(); orb.position.y = 2.3; g.add(orb); g.userData.orb = orb;
+    [0xffd23f, 0xff8fc2, 0x6cc8ff].forEach((col, i) => {
+      const m = new T.Mesh(new T.OctahedronGeometry(0.25, 0), new T.MeshPhongMaterial({ color: col, flatShading: true }));
+      const a = i / 3 * Math.PI * 2; m.position.set(Math.cos(a) * 1.9, 0, Math.sin(a) * 1.9); orb.add(m);
+    });
+    const base = new T.Mesh(new T.CylinderGeometry(0.8, 1, 0.5, 6), this.mat(0xfff4dc, true)); base.position.y = 0.25; g.add(base);
+    return g;
+  },
+  makeLabel(text, bg, fg, scale) {
+    const T = THREE, cv = document.createElement('canvas'); cv.width = 512; cv.height = 128;
+    const tex = new T.CanvasTexture(cv);
+    const draw = () => {
+      const ctx = cv.getContext('2d'); if (!ctx) return;
+      ctx.clearRect(0, 0, 512, 128);
+      ctx.font = '900 58px "Noto Sans HK","PingFang HK","Microsoft JhengHei",sans-serif';
+      const w = Math.min(500, ctx.measureText(text).width + 60), x = (512 - w) / 2;
+      ctx.fillStyle = '#1d2445'; this.rr(ctx, x, 14, w, 104, 40); ctx.fill();
+      ctx.fillStyle = bg; this.rr(ctx, x + 5, 8, w - 10, 98, 36); ctx.fill();
+      ctx.lineWidth = 6; ctx.strokeStyle = '#1d2445'; ctx.stroke();
+      ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, 256, 60);
+      tex.needsUpdate = true;
+    };
+    draw();
+    const sp = new T.Sprite(new T.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+    sp.scale.set(5.2 * scale, 1.3 * scale, 1); sp.userData.redraw = draw; this.labels.push(sp);
+    return sp;
+  },
+  rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); },
+  makeOwl() {
+    const T = THREE, g = new T.Group(), body = new T.Group(); g.add(body);
+    const purple = 0x8b6cff, dpurple = 0x6d4fe0, belly = 0xffe6b8, orange = 0xffa53a, dark = 0x1d2445;
+    const b = new T.Mesh(new T.SphereGeometry(1, 32, 24), this.mat(purple)); b.scale.set(1, 1.12, 0.95); body.add(b);
+    const bel = new T.Mesh(new T.SphereGeometry(1, 24, 18), this.mat(belly)); bel.scale.set(0.66, 0.7, 0.45); bel.position.set(0, -0.32, 0.56); body.add(bel);
+    const eyes = [], pupils = [], wings = [];
+    for (const s of [-1, 1]) {
+      const eg = new T.Group(); eg.position.set(0.38 * s, 0.36, 0.74);
+      const w = new T.Mesh(new T.SphereGeometry(0.34, 24, 18), this.mat(0xffffff)); w.scale.z = 0.6; eg.add(w);
+      const p = new T.Mesh(new T.SphereGeometry(0.17, 18, 14), this.mat(dark)); p.position.z = 0.14; eg.add(p);
+      const hl = new T.Mesh(new T.SphereGeometry(0.055, 10, 8), new T.MeshBasicMaterial({ color: 0xffffff })); hl.position.set(0.06, 0.07, 0.15); p.add(hl);
+      body.add(eg); eyes.push(eg); pupils.push(p);
+      const tuft = new T.Mesh(new T.ConeGeometry(0.2, 0.55, 8), this.mat(dpurple)); tuft.position.set(0.55 * s, 1.05, 0.05); tuft.rotation.z = -0.45 * s; body.add(tuft);
+      const wg = new T.Group(); wg.position.set(0.93 * s, 0.1, 0);
+      const wing = new T.Mesh(new T.SphereGeometry(1, 16, 12), this.mat(dpurple)); wing.scale.set(0.26, 0.6, 0.5); wing.position.y = -0.38; wg.add(wing);
+      wg.rotation.z = 0.15 * s; wg.userData.s = s; body.add(wg); wings.push(wg);
+      const foot = new T.Mesh(new T.SphereGeometry(0.16, 12, 10), this.mat(orange)); foot.scale.set(1.2, 0.6, 1.4); foot.position.set(0.32 * s, -1.1, 0.35); g.add(foot);
+      const cheek = new T.Mesh(new T.CircleGeometry(0.11, 16), new T.MeshBasicMaterial({ color: 0xff9ec4, transparent: true, opacity: 0.85 }));
+      cheek.position.set(0.6 * s, 0.02, 0.8); cheek.rotation.y = 0.6 * s; body.add(cheek);
+    }
+    const beak = new T.Mesh(new T.ConeGeometry(0.13, 0.32, 10), this.mat(orange)); beak.rotation.x = Math.PI / 2 + 0.35; beak.position.set(0, 0.12, 0.95); body.add(beak);
+    const cap = new T.Group(); cap.position.y = 1.1; cap.rotation.z = -0.12;
+    const cb = new T.Mesh(new T.CylinderGeometry(0.45, 0.5, 0.28, 20), this.mat(dark)); cap.add(cb);
+    const board = new T.Mesh(new T.BoxGeometry(1.25, 0.07, 1.25), this.mat(dark)); board.position.y = 0.17; board.rotation.y = Math.PI / 4; cap.add(board);
+    const knob = new T.Mesh(new T.SphereGeometry(0.07, 10, 8), this.mat(0xffd23f)); knob.position.y = 0.23; cap.add(knob);
+    const string = new T.Mesh(new T.CylinderGeometry(0.025, 0.025, 0.45, 6), this.mat(0xffd23f)); string.position.set(0.86, -0.04, 0); cap.add(string);
+    const tas = new T.Mesh(new T.ConeGeometry(0.08, 0.2, 8), this.mat(0xffd23f)); tas.position.set(0.86, -0.3, 0); cap.add(tas);
+    body.add(cap);
+    g.userData.owl = true;
+    return { group: g, body, eyes, pupils, beak, wings, cap };
+  },
+  resize() {
+    if (!this.ok && !this.renderer) return;
+    const W = this.W = window.innerWidth, H = this.H = window.innerHeight;
+    this.renderer.setSize(W, H);
+    this.camera.aspect = W / H; this.camera.fov = W / H < 1 ? 60 : 46; this.camera.updateProjectionMatrix();
+    this.focus(this.cur || 'home');
+  },
+  focus(name) {
+    this.cur = name; if (!this.camera) return;
+    const wide = window.innerWidth >= 1100, portrait = window.innerHeight > window.innerWidth;
+    if (name === 'home') {
+      this.tPos.set(0, portrait ? 10 : 8.5, portrait ? 31 : 25); this.tLook.set(0, 2.2, -3);
+      this.tShiftX = 0; this.tShiftY = portrait ? 0.2 : 0.15;
+    } else {
+      const off = { learn: -1.6, games: -0.6, practice: 0.6, custom: 1.6 }[name] || 0;
+      this.tPos.set(off * 1.6, 4.3, 11.5); this.tLook.set(off * 0.4, 2.4, 1.5);
+      this.tShiftX = wide ? -0.33 : 0; this.tShiftY = wide ? 0.03 : 0.12;
+    }
+  },
+  pick(x, y) {
+    if (!this.ok) return null;
+    this.ptr.set((x / this.W) * 2 - 1, -(y / this.H) * 2 + 1);
+    this.ray.setFromCamera(this.ptr, this.camera);
+    const hits = this.ray.intersectObjects([...this.islands, this.owl.group], true);
+    for (const hit of hits) {
+      let o = hit.object;
+      while (o) { if (o.userData && (o.userData.go || o.userData.owl)) return o.userData.go || 'owl'; o = o.parent; }
+    }
+    return null;
+  },
+  tap(x, y) {
+    const p = this.pick(x, y); if (!p) return;
+    if (p === 'owl') { Home.owlTip(); return; }
+    if (App.cur === 'home') { SFX.play('click'); App.go(p); }
+  },
+  talk(on) { this.st.talk = on; },
+  think(on) { this.st.think = on; if (this.thought) this.thought.visible = on; },
+  cheer(spins = 1) { this.st.jumpT = 0; this.st.spins = spins; },
+  burst(n = 70) {
+    if (!this.ok) return;
+    this.cheer(2);
+    const T = THREE; if (!this.cGeo) this.cGeo = new T.PlaneGeometry(0.18, 0.28);
+    const cols = [0xff6b6b, 0xffd23f, 0x3ddc97, 0x4f8cff, 0xa898ff, 0xff8fc2];
+    const o = this.owl.group.position;
+    for (let i = 0; i < n; i++) {
+      const m = new T.Mesh(this.cGeo, new T.MeshBasicMaterial({ color: cols[i % 6], side: T.DoubleSide }));
+      m.position.set(o.x, o.y + 1.2, o.z);
+      m.userData = { v: new T.Vector3((Math.random() - .5) * 9, 6 + Math.random() * 7, (Math.random() - .5) * 9), r: new T.Vector3(Math.random() * 9, Math.random() * 9, 0), life: 3 };
+      this.scene.add(m); this.confetti.push(m);
+    }
+  },
+  loop() {
+    requestAnimationFrame(() => this.loop());
+    if (document.hidden) return;
+    const dt = Math.min(this.clock.getDelta(), 0.05); this.t += dt; const t = this.t;
+    const k = 1 - Math.pow(0.03, dt);
+    this.camPos.lerp(this.tPos, k); this.camLook.lerp(this.tLook, k);
+    this.shiftX += (this.tShiftX - this.shiftX) * k; this.shiftY += (this.tShiftY - this.shiftY) * k;
+    const cam = this.camera;
+    cam.position.set(this.camPos.x + Math.sin(t * 0.21) * 0.5, this.camPos.y + Math.sin(t * 0.33) * 0.25, this.camPos.z);
+    cam.lookAt(this.camLook);
+    cam.setViewOffset(this.W, this.H, this.shiftX * this.W, this.shiftY * this.H, this.W, this.H);
+
+    for (const isl of this.islands) {
+      const u = isl.userData; isl.position.y = u.baseY + Math.sin(t * 0.8 + u.phase) * 0.28;
+      if (u.lm.userData.spin) u.lm.userData.spin.rotation.y = t * (u.mk === 'target' ? 0.6 : 1.1);
+      if (u.lm.userData.orb) u.lm.userData.orb.rotation.y = -t * 1.4;
+    }
+    for (const c of this.clouds) { c.position.x += c.userData.v * dt; if (c.position.x > 45) c.position.x = -45; }
+    this.sparkles.rotation.y = t * 0.02; this.sparkles.material.opacity = 0.55 + Math.sin(t * 2) * 0.3;
+
+    // owl
+    const o = this.owl, st = this.st;
+    let y = o.baseY + Math.sin(t * 2.2) * 0.06;
+    let flap = Math.sin(t * 2.2) * 0.05;
+    if (st.jumpT >= 0) {
+      st.jumpT += dt; const p = st.jumpT / (0.7 + 0.35 * st.spins);
+      if (p >= 1) { st.jumpT = -1; o.body.rotation.y = 0; }
+      else { y += Math.sin(p * Math.PI) * 1.7; o.body.rotation.y = p * Math.PI * 2 * st.spins; flap = Math.abs(Math.sin(p * Math.PI * 8)) * 1.1; }
+    }
+    if (st.talk) { flap += Math.abs(Math.sin(t * 5)) * 0.25; o.beak.scale.set(1 + Math.abs(Math.sin(t * 16)) * 0.35, 1, 1); y += Math.abs(Math.sin(t * 8)) * 0.05; }
+    else o.beak.scale.set(1, 1, 1);
+    o.group.position.y = y;
+    o.wings.forEach(w => { w.rotation.z = (0.15 + flap) * w.userData.s; });
+    const tilt = st.think ? 0.22 + Math.sin(t * 1.6) * 0.06 : 0;
+    o.body.rotation.z += (tilt - o.body.rotation.z) * k;
+    const lx = st.think ? 0.4 : st.lookX, ly = st.think ? 1 : st.lookY;
+    o.group.rotation.y += (lx * 0.45 - o.group.rotation.y) * k;
+    o.pupils.forEach(p => { p.position.x = clamp(lx, -1, 1) * 0.07; p.position.y = clamp(ly, -1, 1) * 0.06; });
+    st.blinkT -= dt;
+    const eyeY = st.blinkT < 0 ? 0.12 : 1;
+    o.eyes.forEach(e => { e.scale.y = eyeY; });
+    if (st.blinkT < -0.14) st.blinkT = 2 + Math.random() * 3.5;
+    if (this.thought.visible) this.thought.position.y = 3.9 + Math.sin(t * 3) * 0.15;
+
+    // 3D confetti
+    for (let i = this.confetti.length - 1; i >= 0; i--) {
+      const m = this.confetti[i], u = m.userData;
+      u.v.y -= 12 * dt; u.v.multiplyScalar(0.992);
+      m.position.addScaledVector(u.v, dt); m.rotation.x += u.r.x * dt; m.rotation.y += u.r.y * dt; u.life -= dt;
+      if (u.life < 0 || m.position.y < -1.4) { this.scene.remove(m); m.material.dispose(); this.confetti.splice(i, 1); }
+    }
+    this.renderer.render(this.scene, cam);
+  }
+};
+// safe no-op versions if 3D is unavailable
+['talk', 'think', 'cheer', 'burst'].forEach(fn => { const f = World[fn]; World[fn] = function (...a) { if (this.ok) return f.apply(this, a); }; });
+
+/* =========================================================
+   教學內容 Content
+   ========================================================= */
+const LESSONS = [
+  { e: '🗣️', t: '咩係辯論？', en: 'What is a debate?',
+    body: '辯論就係兩隊人，就住同一條「辯題」，用道理去說服評判。一隊叫正方，支持辯題；另一隊叫反方，反對辯題。贏嘅唔係最大聲嗰隊，而係最有道理、最有證據嗰隊！',
+    ex: '辯題：「小學生應該有功課」。正方話應該有，反方話唔應該有。' },
+  { e: '⚖️', t: '正方同反方', en: 'Proposition and Opposition',
+    body: '正方要證明辯題係啱嘅；反方要證明辯題唔啱，或者有更好嘅做法。比賽時你未必可以自己揀邊一方，所以兩邊都要識諗！',
+    ex: '小貼士：你唔一定要真心同意自己嗰方。辯論係訓練思考，唔係講心底話。' },
+  { e: '💡', t: '論點', en: 'Point / Claim',
+    body: '論點就係你嘅「主要理由」，用一句簡單、清楚嘅說話講出嚟。好嘅論點要短、要清楚、要直接回應辯題。',
+    ex: '辯題：學校應該有閱讀課。論點：「閱讀課可以提升同學嘅語文能力。」' },
+  { e: '🔗', t: '論證', en: 'Reasoning / Explanation',
+    body: '論證就係解釋「點解」你嘅論點成立。可以用「因為……所以……」或者「如果……就會……」去連接。冇論證嘅論點，就好似冇橋躉嘅橋，好容易冧。',
+    ex: '「因為多讀書會見到多啲詞語同句子，寫作文時就識得用，所以語文能力會進步。」' },
+  { e: '📚', t: '論據', en: 'Evidence',
+    body: '論據就係支持你嘅「證據」。可以係例子、數據、專家講法、新聞，或者自己同身邊人嘅經驗。記住：論據一定要真實，唔可以作！用數據要講清楚出處。',
+    ex: '「世界衞生組織建議，5至17歲嘅兒童同青少年，每日平均要做最少60分鐘中等至劇烈強度嘅運動。」' },
+  { e: '🧩', t: 'PEEL 四步法', en: 'Point, Explanation, Evidence, Link',
+    body: '講一個完整論點，可以用 PEEL：P 係 Point，論點；第一個 E 係 Explanation，論證；第二個 E 係 Evidence，論據；L 係 Link，連返去辯題。咁講就又清楚又有力！',
+    ex: '論點：閱讀課提升語文能力。論證：因為……所以……。論據：例如……。連返辯題：所以學校應該設立閱讀課！' },
+  { e: '♟️', t: '策略', en: 'Strategy',
+    body: '策略就係「點樣贏」嘅計劃。常用策略有四個：第一，先講清楚辯題入面重要字眼嘅「定義」；第二，「比較」好處同壞處邊樣大；第三，預計對方會講乜，準備好回應；第四，全隊論點要夾，唔好自己打自己。',
+    ex: '例如「利多於弊」嘅辯題，一定要比較好處同壞處，唔可以淨係講好處。' },
+  { e: '🛡️', t: '反駁', en: 'Rebuttal',
+    body: '反駁即係指出對方講法嘅問題。有三步：一、重複對方講咗乜；二、指出問題，例如冇證據、太誇張、或者有其他方法；三、講返點解我方更啱。記住要對事唔對人，要有禮貌。',
+    ex: '「對方辯友話功課太多會冇時間玩，但問題係功課太多，唔係功課本身。減少份量就得，唔使取消。」' },
+  { e: '🎤', t: '比賽角色', en: 'Speaker roles',
+    body: '小學辯論比賽通常每隊有四位辯員：主辯負責定義辯題同講出主要論點；第一副辯同第二副辯負責補充論點同反駁對方；結辯負責總結全場，講出點解我方應該贏。有啲比賽仲有「自由辯論」，雙方輪流即時發言。',
+    ex: '每個比賽嘅規則同時間都可能唔同，記得問清楚老師你哋比賽用咩規則。' },
+  { e: '🌟', t: '台風同禮儀', en: 'Manner and etiquette',
+    body: '開始時要打招呼：「多謝主席，各位評判、對方辯友、各位同學，大家好。」講嘢要大聲、清楚、唔好太快，眼睛望住評判，注意時間。就算緊張，深呼吸，微笑，你一定得！',
+    ex: '英文比賽可以咁講：Thank you, Madam Chair. Good morning, adjudicators, members of the opposition, and fellow pupils.' }
+];
+
+const SORT_LABEL = { claim: { zh: '論點', en: 'Point', e: '💡', c: 'var(--claim)' }, reason: { zh: '論證', en: 'Reasoning', e: '🔗', c: 'var(--reason)' }, evid: { zh: '論據', en: 'Evidence', e: '📚', c: 'var(--evid)' } };
+const SORT_ITEMS = [
+  { m: '小學生應該每日做運動', s: '做運動可以令小朋友更健康。', a: 'claim', why: '呢句係主要理由，短而清楚，但未解釋點解，所以係論點。' },
+  { m: '小學生應該每日做運動', s: '因為運動會令心肺更強，身體抵抗力提升，所以會少啲病。', a: 'reason', why: '呢句用「因為……所以……」解釋點解運動令人健康，所以係論證。' },
+  { m: '小學生應該每日做運動', s: '世界衞生組織建議，兒童每日平均要做最少60分鐘運動。', a: 'evid', why: '呢句引用咗專業機構嘅建議做證據，所以係論據。' },
+  { m: '學校應該設立閱讀課', s: '閱讀課可以提升同學嘅語文能力。', a: 'claim', why: '呢句係主要理由，所以係論點。' },
+  { m: '學校應該設立閱讀課', s: '多讀書就會見到多啲詞語同句子，寫作文時就識得用，所以語文能力會進步。', a: 'reason', why: '呢句一步一步解釋點解閱讀會令語文進步，所以係論證。' },
+  { m: '學校應該設立閱讀課', s: '我班同學小明每星期讀兩本書，佢嘅作文分數由60分升到80分。', a: 'evid', why: '呢句係一個具體例子，用嚟證明論點，所以係論據。' },
+  { m: '小學生應該養寵物', s: '養寵物可以培養小朋友嘅責任感。', a: 'claim', why: '呢句係主要理由，所以係論點。' },
+  { m: '小學生應該養寵物', s: '因為每日都要餵食同清潔，小朋友要記住做，慢慢就學識負責任。', a: 'reason', why: '呢句解釋點解養寵物會培養責任感，所以係論證。' },
+  { m: '小學生應該養寵物', s: '我表姐養咗倉鼠一年，佢而家每日都主動執房。', a: 'evid', why: '呢句係身邊人嘅真實經驗，所以係論據。' },
+  { m: '小學生應該學游水', s: '學游水可以保護自己嘅安全。', a: 'claim', why: '呢句係主要理由，所以係論點。' },
+  { m: '小學生應該學游水', s: '如果識游水，就算跌落水都識得浮起身同自救，所以唔會咁容易有危險。', a: 'reason', why: '呢句用「如果……就……」解釋道理，所以係論證。' },
+  { m: '小學生應該學游水', s: '我參加游泳班嘅同學話，佢而家落水都唔驚，仲識得踩水浮起身。', a: 'evid', why: '呢句係一個真實經驗做證據，所以係論據。' }
+];
+
+const REBUT_ITEMS = [
+  { lang: 'zh', m: '小學應該取消功課', opp: '功課太多，令小朋友冇時間玩，所以應該取消功課。', opts: [
+    { t: '你講錯！', ok: false, why: '淨係話人錯，冇講原因，唔算反駁。' },
+    { t: '問題係功課「太多」，唔係功課本身。我哋可以減少功課份量，而唔係全部取消，咁同學都可以溫故知新。', ok: true, why: '指出對方講法嘅漏洞，再提出更好嘅方法，係好嘅反駁！' },
+    { t: '我鍾意做功課。', ok: false, why: '個人喜好唔係道理，說服唔到評判。' }] },
+  { lang: 'zh', m: '小學生應該可以帶手機返學', opp: '手機可以即時搵資料，所以小學生應該帶手機返學。', opts: [
+    { t: '學校已經有電腦室同圖書館可以搵資料，而且手機容易令同學分心打機，壞處大過好處。', ok: true, why: '先講有其他方法，再比較好處同壞處，好有力！' },
+    { t: '手機好貴。', ok: false, why: '有少少關係，但冇解釋同搵資料有咩關係，太弱。' },
+    { t: '對方辯友好冇禮貌。', ok: false, why: '攻擊人唔係攻擊道理，要對事唔對人。' }] },
+  { lang: 'zh', m: '動物園應該被取消', opp: '動物園可以教育小朋友認識動物。', opts: [
+    { t: '動物好可憐。', ok: false, why: '有感情但冇道理同證據，未回應「教育」呢一點。' },
+    { t: '我唔鍾意去動物園。', ok: false, why: '個人喜好唔係反駁。' },
+    { t: '動物喺籠入面嘅行為同喺野外好唔同，小朋友學到嘅未必係真實嘅動物；我哋可以用紀錄片同自然保護區去學習。', ok: true, why: '直接回應「教育」呢點，指出問題，再提出其他方法，好反駁！' }] },
+  { lang: 'en', m: 'School uniforms should be compulsory', opp: 'School uniforms are expensive, so they should not be compulsory.', opts: [
+    { t: 'Uniforms are ugly.', ok: false, why: '只係個人意見，冇回應「貴」呢一點。' },
+    { t: 'Actually, uniforms can save families money, because parents do not need to buy lots of fashionable clothes. Schools can also offer second-hand uniforms.', ok: true, why: '直接反駁「貴」，仲提出解決方法，好有力！' },
+    { t: 'You are wrong.', ok: false, why: '冇講原因，唔算反駁。' }] },
+  { lang: 'zh', m: '學校應該取消考試', opp: '考試令學生壓力好大，所以應該取消。', opts: [
+    { t: '壓力唔一定係壞事，適量壓力可以推動我哋溫習；問題係點樣減壓，例如老師教溫習方法，而唔係取消考試。', ok: true, why: '先承認有壓力，再指出可以解決，唔使取消，好成熟嘅反駁！' },
+    { t: '我考試好叻。', ok: false, why: '講自己叻唔係道理。' },
+    { t: '考試一直都有，所以唔應該取消。', ok: false, why: '「一直都係咁」唔係好理由，要講出考試有咩好處。' }] },
+  { lang: 'zh', m: '打機對小朋友利多於弊', opp: '打機可以訓練反應，所以打機利多於弊。', opts: [
+    { t: '打機好嘥時間。', ok: false, why: '只係一句意見，冇解釋，亦冇比較。' },
+    { t: '訓練反應可以打乒乓波，仲更健康；而且長時間打機會傷眼同容易上癮，所以弊處更大。', ok: true, why: '提出更好嘅替代方法，再比較利弊，完全擊中要害！' },
+    { t: '我媽咪話唔好打機。', ok: false, why: '「媽咪話」唔係證據，評判未必信服。' }] },
+  { lang: 'en', m: 'Homework should be banned', opp: 'Homework helps pupils practise what they learn, so it should not be banned.', opts: [
+    { t: 'Pupils can practise in class instead. Short activities in lessons let teachers help straight away, while homework at home often causes stress and arguments.', ok: true, why: '提出另一個方法仲講埋點解更好，好反駁！' },
+    { t: 'Homework is boring.', ok: false, why: '沉悶唔等於冇用，未回應「練習」嘅好處。' },
+    { t: 'My friend hates homework.', ok: false, why: '一個朋友唔鍾意，唔足以證明應該禁止。' }] }
+];
+
+const LV = { 1: { n: '初級', e: '🌱', g: 'P1–P2' }, 2: { n: '中級', e: '🌿', g: 'P3–P4' }, 3: { n: '高級', e: '🌳', g: 'P5–P6' } };
+const MOTIONS = [
+  { lang: 'zh', lv: 1, t: '小學生應該每日都有功課' },
+  { lang: 'zh', lv: 1, t: '養狗好過養貓' },
+  { lang: 'zh', lv: 1, t: '小學生應該每日做運動' },
+  { lang: 'zh', lv: 1, t: '學校應該延長小息時間' },
+  { lang: 'zh', lv: 2, t: '小學生應該可以帶手機返學' },
+  { lang: 'zh', lv: 2, t: '學校應該取消考試' },
+  { lang: 'zh', lv: 2, t: '小學生應該學習編程' },
+  { lang: 'zh', lv: 2, t: '看電視對小學生利多於弊' },
+  { lang: 'zh', lv: 3, t: '動物園應該被取消' },
+  { lang: 'zh', lv: 3, t: '網上學習比面授學習更好' },
+  { lang: 'zh', lv: 3, t: '人工智能對小學生學習利多於弊' },
+  { lang: 'zh', lv: 3, t: '香港應該全面禁止即棄膠餐具' },
+  { lang: 'en', lv: 1, t: 'Primary school pupils should wear school uniforms', zh: '小學生應該著校服' },
+  { lang: 'en', lv: 1, t: 'Every pupil should learn to cook at school', zh: '每個學生都應該喺學校學煮嘢食' },
+  { lang: 'en', lv: 1, t: 'Dogs make better pets than cats', zh: '狗係比貓更好嘅寵物' },
+  { lang: 'en', lv: 2, t: 'Homework should be banned in primary schools', zh: '小學應該禁止功課' },
+  { lang: 'en', lv: 2, t: 'Children should be allowed to bring mobile phones to school', zh: '小朋友應該可以帶手機返學' },
+  { lang: 'en', lv: 2, t: 'Video games do more good than harm for children', zh: '打機對小朋友利多於弊' },
+  { lang: 'en', lv: 3, t: 'Zoos should be closed', zh: '動物園應該關閉' },
+  { lang: 'en', lv: 3, t: 'Artificial intelligence does more good than harm for pupils', zh: '人工智能對學生利多於弊' },
+  { lang: 'en', lv: 3, t: 'This House would ban junk food adverts aimed at children', zh: '本院會禁止針對兒童嘅垃圾食物廣告' }
+];
+
+const STEPS = {
+  zh: [
+    { stage: '立場', q: '你係正方定反方？用一句完整嘅說話，講出你嘅立場。', hint: '例如：「我方認為，小學生應該……」要清楚講出支持定反對。', starter: '我方認為，' },
+    { stage: '論點', q: '你最重要嘅一個理由，即係論點，係咩？', hint: '用一句短而清楚嘅說話，例如「呢樣嘢可以令小朋友更健康」。', starter: '我方第一個論點係，' },
+    { stage: '論證', q: '點解你嘅論點成立？試下用「因為……所以……」去解釋。', hint: '一步一步講清楚中間嘅道理，等評判明白點解。', starter: '因為' },
+    { stage: '論據', q: '你有咩例子、數據，或者親身經驗，可以證明你嘅論點？', hint: '例子要真實、具體：係邊個？做咗咩？結果點樣？用數據要講埋出處。', starter: '例如，' },
+    { stage: '反駁', q: '對方可能會點樣反駁你？你又會點樣回應？', hint: '先寫「對方可能會話……」，再寫「但係……」。', starter: '對方可能會話，' },
+    { stage: '總結', q: '用一兩句說話總結，點解你方應該贏？', hint: '重複你嘅論點，再連返去辯題。', starter: '總括而言，' }
+  ],
+  en: [
+    { stage: 'Stance 立場', q: 'Which side are you on? Say your stance in one full sentence.', qZh: '你係正方定反方？用一句完整嘅英文講出你嘅立場。', hint: "For example: 'We firmly believe that…' Make it clear whether you agree or disagree.", starter: 'We firmly believe that ' },
+    { stage: 'Point 論點', q: 'What is your most important reason? This is your point.', qZh: '你最重要嘅理由，即係論點，係咩？', hint: "Keep it short and clear, e.g. 'Uniforms help pupils focus on learning.'", starter: 'Our first point is that ' },
+    { stage: 'Explanation 論證', q: "Why is your point true? Try using 'because… so…'.", qZh: '點解你嘅論點成立？試下用 because 同 so 去解釋。', hint: 'Explain step by step how one idea leads to the next.', starter: 'This is because ' },
+    { stage: 'Evidence 論據', q: 'What example, fact or personal experience proves your point?', qZh: '你有咩例子、事實或者親身經驗可以證明？', hint: 'Be specific: who, what happened, and what was the result? If you use a number, say where it comes from.', starter: 'For example, ' },
+    { stage: 'Rebuttal 反駁', q: 'How might the other side attack your point? How would you reply?', qZh: '對方可能會點樣反駁你？你會點樣回應？', hint: "Write 'The other side may say… However…'", starter: 'The other side may argue that ' },
+    { stage: 'Conclusion 總結', q: 'Sum up in one or two sentences why your side should win.', qZh: '用一兩句總結，點解你方應該贏？', hint: 'Repeat your point and link it back to the motion.', starter: 'In conclusion, ' }
+  ]
+};
+
+const DIMS = {
+  claim: { zh: '立場與論點', en: 'Stance & Point', c: 'var(--claim)', e: '💡' },
+  reasoning: { zh: '論證', en: 'Reasoning', c: 'var(--reason)', e: '🔗' },
+  evidence: { zh: '論據', en: 'Evidence', c: 'var(--evid)', e: '📚' },
+  strategy: { zh: '反駁與策略', en: 'Rebuttal & Strategy', c: 'var(--strat)', e: '♟️' },
+  delivery: { zh: '組織與表達', en: 'Structure & Delivery', c: 'var(--deliv)', e: '🎤' }
+};
+
+const OWL_TIPS = [
+  '講論點之前，先講清楚辯題入面嘅關鍵字係咩意思，呢個叫做定義。',
+  '記住 PEEL 四步：論點、論證、論據，最後連返去辯題！',
+  '反駁要對事唔對人，要有禮貌㗎。',
+  '用數據一定要講出處，唔可以作㗎！',
+  '講嘢要望住評判，大聲、清楚、唔好太快。',
+  '預計對方會講乜，準備好回應，就唔會手忙腳亂。',
+  '利多於弊嘅辯題，一定要比較好處同壞處邊樣大。',
+  '緊張嘅時候，深呼吸三下，微笑，你一定得！',
+  '一個好例子要具體：邊個、做咗咩、結果點樣。'
+];
+
+/* =========================================================
+   AI prompts
+   ========================================================= */
+function studentLine() {
+  const g = GRADES[P.grade] || GRADES.P3;
+  return `學生：${P.name || '小朋友'}，${g.zh}（約${g.age}）`;
+}
+function langRule(lang) {
+  if (lang === 'zh') return '【語言規則】全部內容用香港繁體中文，唔好用簡體字。解釋、評語、提示用親切嘅廣東話口語（例如：係、嘅、咗、唔、佢哋、點解）；示範發言（例如開場白、反駁句、升級版示範、句子開頭）用適合香港小學辯論比賽嘅正式語體（書面語為主）。';
+  if (fbLang('en') === 'en') return '[Language rule] The motion is in English. Write EVERY text field in simple British English suitable for primary pupils in Hong Kong. Use British spelling and vocabulary (e.g. colour, favourite, organise, practise (verb), programme, pupils, mum, maths, adjudicator, Madam Chair).';
+  return '【語言規則】辯題係英文。解釋、評語、提示用香港繁體中文廣東話口語；但所有論點句、示範發言、開場白、反駁句、升級版示範、句子開頭都要用簡單嘅英式英文（British spelling，例如 colour, favourite, organise），方便學生直接喺英文比賽用。';
+}
+const COACH = '你係「阿辯」，一位親切、有耐性而且誠實嘅香港小學辯論教練，專門訓練6至12歲學生準備校際辯論比賽。你熟悉香港小學辯論賽制（主辯、第一副辯、第二副辯、結辯、自由辯論）。';
+const HONEST = '論據規則：唔可以捏造數據、研究或者新聞。如果提到數據，只可以用廣為人知、可信嘅資料，並喺句尾加「（記得查證出處）」或 "(check the source)"；或者建議學生去邊度搵（例如政府統計處、世界衞生組織、教育局、可信新聞）。可以多用生活例子同假設例子，但要講明係例子。';
+
+function promptEvaluate({ motion, lang, side, qa }) {
+  const sys = `${COACH}
+你會收到一位學生就某條辯題嘅作答。請按學生年級作出公平評分同具體、可行嘅改善建議。
+評分準則（每項0至20分，總分100分）：
+1. claim 立場與論點：立場清唔清楚？論點有冇直接回應辯題？
+2. reasoning 論證：有冇解釋「點解」？因果關係合唔合理？
+3. evidence 論據：例子、數據或經驗係咪具體、相關、可信？
+4. strategy 反駁與策略：有冇預計對方講法並回應？有冇用定義、比較等策略？
+5. delivery 組織與表達：句子通唔通順？結構清唔清楚？有冇總結？
+年級期望：小一、小二可以寬鬆啲；小五、小六要求較高。但唔好亂送分：空白、離題或者太短嘅答案要誠實俾低分，然後溫柔咁講點樣改。
+星星：90分或以上=5，75至89=4，60至74=3，40至59=2，40以下=1。
+唔好講學生冇寫過嘅嘢係佢寫嘅。建議要具體，最好附示範句子。
+${HONEST}
+${langRule(lang)}
+只輸出一個 JSON 物件，唔好有其他文字或者 markdown：
+{"total":整數,"stars":整數,"title":"一個得意嘅稱號，例如「論點小火箭」","summary":"兩至三句總評","scores":[{"key":"claim","score":整數,"comment":"一至兩句"},{"key":"reasoning","score":整數,"comment":""},{"key":"evidence","score":整數,"comment":""},{"key":"strategy","score":整數,"comment":""},{"key":"delivery","score":整數,"comment":""}],"strengths":["具體優點（2至3項）"],"improvements":[{"point":"要改善嘅地方","how":"點樣改","example":"示範句子"}],"better_version":"根據學生原本嘅想法改寫嘅升級版發言（中文約120至200字；英文約80至140 words）","next_challenge":"一個細小、可以即刻做嘅下一步練習"}`;
+  const user = `${studentLine()}
+辯題：${motion}
+辯題語言：${lang === 'en' ? 'English' : '中文'}
+學生立場：${side === 'pro' ? '正方（支持辯題）' : '反方（反對辯題）'}
+學生作答：
+${qa.map((x, i) => `【第${i + 1}題｜${x.stage}】\n問題：${x.q}\n答案：${x.a && x.a.trim() ? x.a.trim() : '（冇作答）'}`).join('\n\n')}`;
+  return [sys, user];
+}
+function promptGuide({ motion, lang, side }) {
+  const enQ = lang === 'en';
+  const sys = `${COACH}
+請為以下辯題設計「引導問題」，一步一步帶學生自己諗出論點、論證、論據同策略。唔好直接俾答案。
+要求：
+- 按學生年級，用佢聽得明嘅字眼。
+- 設計6條問題，stage 大致依次係：定義、論點、論證、論據、反駁、總結（可按辯題需要微調，但一定要涵蓋論點、論證、論據同策略或反駁）。
+- 問題要針對呢條辯題同學生嘅立場，唔好太空泛。
+- hint 係提示方向，唔好直接講答案。starter 係一個句子開頭，幫學生起步。
+${enQ ? '- question 同 starter 用簡單英式英文；question_zh 係該問題嘅廣東話翻譯。' : '- question_zh 留空字串。'}
+${HONEST}
+${langRule(lang)}
+只輸出一個 JSON 物件：
+{"motion_explained":"用小朋友明白嘅說話解釋呢條辯題係講乜","key_terms":[{"term":"關鍵字","meaning":"意思"}],"questions":[{"stage":"論點","stage_en":"Point","question":"","question_zh":"","hint":"","starter":""}]}`;
+  const user = `${studentLine()}\n辯題：${motion}\n辯題語言：${enQ ? 'English' : '中文'}\n學生立場：${side === 'pro' ? '正方（支持辯題）' : '反方（反對辯題）'}`;
+  return [sys, user];
+}
+function promptBreakdown({ motion, lang, side }) {
+  const sys = `${COACH}
+請即時拆解以下辯題，教學生點樣準備。要實用、有策略，而且適合學生年級。
+要求：
+- 正方同反方各俾3個論點，由最有力排到最弱（strength 5 係最強）。每個論點都要有 claim（論點）、reasoning（論證）、evidence（論據）。
+- evidence 要具體；如果係建議搵資料，就講清楚去邊度搵。evidence_note 寫提醒（例如要查證），冇就留空。
+- strategies：3至4個致勝策略（例如定義、比較標準、預計對方、團隊分工）。
+- rebuttals：雙方各2個「如果對方話……你可以咁回應……」。
+- opening：正方同反方各一段約60至100字（英文約50至80 words）嘅主辯開場白示範。
+- 如果學生已揀咗立場，用多啲心機寫嗰方，但雙方都要有（知己知彼係策略）。
+- 如果辯題唔清楚或者唔適合小學生，都要用溫和、教育嘅角度處理。
+${HONEST}
+${langRule(lang)}
+只輸出一個 JSON 物件：
+{"motion_explained":"","key_terms":[{"term":"","meaning":""}],"burden":{"pro":"正方要證明乜","con":"反方要證明乜"},"pro":[{"claim":"","reasoning":"","evidence":"","evidence_note":"","strength":5}],"con":[{"claim":"","reasoning":"","evidence":"","evidence_note":"","strength":5}],"clash":["雙方最主要嘅交鋒位"],"strategies":[{"name":"","detail":""}],"rebuttals":[{"side":"pro","they_say":"","you_reply":""}],"opening":{"pro":"","con":""},"tips":["比賽小貼士"],"kid_tip":"一句最重要嘅提醒"}`;
+  const user = `${studentLine()}\n辯題：${motion}\n辯題語言：${lang === 'en' ? 'English' : '中文'}\n學生立場：${side === 'pro' ? '正方' : side === 'con' ? '反方' : '未決定（兩方平均處理）'}`;
+  return [sys, user];
+}
+
+/* =========================================================
+   App router
+   ========================================================= */
+const App = {
+  cur: 'home',
+  go(name) {
+    TTS.stop();
+    $$('.screen').forEach(s => s.classList.toggle('active', s.id === 'scr-' + name));
+    this.cur = name; World.focus(name);
+    const scr = { home: Home, learn: Learn, games: Games, practice: Practice, custom: Custom }[name];
+    if (scr && scr.enter) scr.enter();
+  }
+};
+
+/* =========================================================
+   Home
+   ========================================================= */
+const Home = {
+  enter() {
+    const g = $('#homeGreet'), b = $('#homeBubble');
+    const name = P.name ? P.name + '，' : '';
+    g.textContent = `${name}歡迎嚟到辯辯島！我係島主阿辯🦉 揀一個島，開始辯論冒險啦！`;
+    $$('.spk', b).forEach(x => x.remove());
+    b.append(spk(() => this.intro()));
+    autoSay(this.intro());
+  },
+  intro() {
+    return `${P.name ? P.name + '，' : ''}你好呀！歡迎嚟到辯辯島，我係島主阿辯。辯論即係用道理同證據去說服人。呢度有四個島：第一個，辯論學堂，教你論點、論證、論據同策略。第二個，小遊戲，有分類王同反駁大師。第三個，辯題挑戰，你答問題，阿辯用 AI 幫你評分，話你知邊度要改善。第四個，我的辯題，你可以貼上自己嘅辯題，揀引導思考模式，或者 AI 即時拆解模式。每樣嘢旁邊都有個小喇叭，揿一下就可以聽廣東話講解。你亦可以直接揿我，我會話你知辯論小貼士！`;
+  },
+  owlTip() {
+    const tip = OWL_TIPS[Math.floor(Math.random() * OWL_TIPS.length)];
+    World.cheer(1); SFX.play('good');
+    if (App.cur === 'home') {
+      $('#homeGreet').textContent = '🦉 ' + tip;
+      const b = $('#homeBubble'); $$('.spk', b).forEach(x => x.remove()); const sb = spk(tip); b.append(sb);
+      TTS.speak(tip, sb);
+    } else { toast('🦉 ' + tip, 4000); TTS.speak(tip); }
+  }
+};
+
+/* =========================================================
+   Learn 辯論學堂
+   ========================================================= */
+const Learn = {
+  i: 0,
+  enter() { this.render(); },
+  speakText(L) { return `${L.t}。${L.en}。${L.body}。例子：${L.ex}`; },
+  render() {
+    const b = $('#learnBody'); b.innerHTML = ''; b.scrollTop = 0;
+    const L = LESSONS[this.i];
+    if (!G.seenLessons.includes(this.i)) { G.seenLessons.push(this.i); saveG(); }
+    if (G.seenLessons.length >= LESSONS.length) award('learner');
+    const dots = h('div', { class: 'dots' }, LESSONS.map((_, k) => h('button', { class: (k === this.i ? 'on ' : '') + (G.seenLessons.includes(k) ? 'seen' : ''), 'aria-label': '第' + (k + 1) + '課', onclick: () => { this.i = k; this.render(); SFX.play('click'); } })));
+    const card = h('div', { class: 'card lesson' },
+      h('div', { class: 'le' }, L.e),
+      h('h3', {}, L.t), h('div', { class: 'en' }, L.en),
+      h('div', { class: 'row', style: 'justify-content:center;margin-top:10px' }, spk(() => this.speakText(L), { label: '朗讀成張卡' }), h('span', { class: 'muted' }, '揿喇叭聽成張卡')),
+      h('div', { class: 'body' }, sayRow(L.body)),
+      h('div', { class: 'ex' }, sayRow('例子：' + L.ex)));
+    // swipe
+    let sx = null;
+    card.addEventListener('pointerdown', e => { sx = e.clientX; });
+    card.addEventListener('pointerup', e => { if (sx == null) return; const d = e.clientX - sx; sx = null; if (Math.abs(d) > 70) { this.i = clamp(this.i + (d < 0 ? 1 : -1), 0, LESSONS.length - 1); this.render(); } });
+    const last = this.i === LESSONS.length - 1;
+    const nav = h('div', { class: 'row nav' },
+      h('button', { class: 'btn ghost', disabled: this.i === 0, onclick: () => { this.i--; this.render(); SFX.play('click'); } }, '⬅️ 上一課'),
+      h('span', { class: 'scoreline' }, `${this.i + 1} / ${LESSONS.length}`),
+      last ? h('button', { class: 'btn go', onclick: () => { SFX.play('win'); App.go('games'); } }, '🎮 去玩小遊戲')
+        : h('button', { class: 'btn', onclick: () => { this.i++; this.render(); SFX.play('click'); } }, '下一課 ➡️'));
+    b.append(dots, card, nav);
+    autoSay(this.speakText(L));
+  }
+};
+
+/* =========================================================
+   Games 小遊戲
+   ========================================================= */
+const Games = {
+  g: null,
+  body() { return $('#gamesBody'); },
+  enter() { this.menu(); },
+  menu() {
+    const b = this.body(); b.innerHTML = ''; b.scrollTop = 0;
+    const intro = '揀一個遊戲玩！分類王：睇下每句說話係論點、論證定論據。反駁大師：對方講完，你揀最好嘅反駁。答啱就有星星㗎！';
+    b.append(sayRow(intro, 'big-text'));
+    const card = (c, e, title, desc, fn) => tapDiv({ class: 'card game-card', style: `--c:${c}`, onclick: () => { SFX.play('click'); fn(); } },
+      h('div', { class: 'row between' }, h('span', { class: 'ge' }, e), spk(title + '。' + desc)), h('b', {}, title), h('span', {}, desc));
+    b.append(h('div', { class: 'grid2', style: 'margin-top:16px' },
+      card('var(--sun)', '🧩', '分類王', '每題一句說話，你判斷佢係論點、論證，定係論據。一共9題。', () => this.sortStart()),
+      card('var(--sky)', '🛡️', '反駁大師', '對方辯友講完一句，你喺三個答案入面揀最好嘅反駁。一共6題。', () => this.rebutStart())));
+    autoSay(intro);
+  },
+  header(label, i, n) {
+    return h('div', { class: 'row between', style: 'margin-bottom:12px' },
+      h('button', { class: 'btn sm ghost', onclick: () => this.menu() }, '⬅️ 遊戲選單'),
+      h('span', { class: 'scoreline' }, `${label}　第 ${i + 1} / ${n} 題　⭐ ${this.g.score}`));
+  },
+  /* ---- 分類王 ---- */
+  sortStart() { this.g = { type: 'sort', items: shuffle(SORT_ITEMS).slice(0, 9), i: 0, score: 0 }; this.sortQ(); },
+  sortQ() {
+    const g = this.g, b = this.body(); if (g.i >= g.items.length) return this.end();
+    const it = g.items[g.i]; b.innerHTML = ''; b.scrollTop = 0;
+    const read = `辯題：${it.m}。正方講：${it.s}。呢句係論點、論證，定係論據？`;
+    b.append(this.header('🧩 分類王', g.i, g.items.length),
+      h('div', { class: 'banner' }, h('div', { class: 'bt' }, h('small', {}, '辯題'), h('b', {}, it.m)), spk(read)),
+      h('p', { class: 'muted', style: 'margin:14px 0 6px' }, '正方辯員講：'),
+      h('div', { class: 'statement' }, sayRow('「' + it.s + '」')),
+      h('p', { style: 'font-weight:900;font-size:21px;margin:16px 0 10px' }, '呢句係論點、論證，定係論據？'));
+    const fb = h('div');
+    const grid = h('div', { class: 'ans-grid' }, Object.entries(SORT_LABEL).map(([k, v]) =>
+      h('button', { class: 'btn ans-btn', style: `--bc:${v.c}`, onclick: e => answer(k, e.currentTarget) }, h('span', {}, v.e + ' ' + v.zh), h('small', {}, v.en))));
+    b.append(grid, fb);
+    const answer = (k, btn) => {
+      $$('button', grid).forEach(x => x.disabled = true);
+      const ok = k === it.a;
+      if (ok) { g.score++; addStars(1); SFX.play('good'); World.cheer(1); btn.classList.add('correct-flash'); } else SFX.play('bad');
+      const msg = (ok ? '答啱喇！' : `差少少！答案係「${SORT_LABEL[it.a].zh}」。`) + it.why;
+      fb.append(h('div', { class: 'card feedback', style: `margin-top:16px;--c:${ok ? 'var(--mint)' : 'var(--coral)'}` },
+        h('div', { class: 'big-text' }, ok ? '🎉 答啱！' : '🤔 再諗下…'), sayRow(msg),
+        h('div', { class: 'row end', style: 'margin-top:12px' }, h('button', { class: 'btn go', onclick: () => { g.i++; this.sortQ(); } }, g.i < g.items.length - 1 ? '下一題 ➡️' : '睇結果 🏁'))));
+      TTS.speak(msg);
+      try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+    };
+    autoSay(read);
+  },
+  /* ---- 反駁大師 ---- */
+  rebutStart() { this.g = { type: 'rebut', items: shuffle(REBUT_ITEMS).slice(0, 6), i: 0, score: 0 }; this.rebutQ(); },
+  rebutQ() {
+    const g = this.g, b = this.body(); if (g.i >= g.items.length) return this.end();
+    const it = g.items[g.i]; b.innerHTML = ''; b.scrollTop = 0;
+    const opts = shuffle(it.opts); const L = 'ABC';
+    const read = `辯題：${it.m}。對方辯友話：${it.opp}。邊一個反駁最好？` + opts.map((o, k) => `${L[k]}：${o.t}`).join('。');
+    b.append(this.header('🛡️ 反駁大師', g.i, g.items.length),
+      h('div', { class: 'banner' }, h('div', { class: 'bt' }, h('small', {}, it.lang === 'en' ? 'Motion 辯題' : '辯題'), h('b', {}, it.m)), spk(read)),
+      h('p', { class: 'muted', style: 'margin:14px 0 6px' }, '對方辯友話：'),
+      h('div', { class: 'statement' }, sayRow('「' + it.opp + '」')),
+      h('p', { style: 'font-weight:900;font-size:21px;margin:16px 0 10px' }, '邊一個反駁最好？'));
+    const fb = h('div');
+    const list = h('div', { class: 'stack' }, opts.map((o, k) => {
+      const btn = tapDiv({ class: 'opt-btn', onclick: () => pick(o, btn) }, h('span', { class: 'let' }, L[k]), h('span', { style: 'flex:1' }, o.t), spk(o.t, { small: true }));
+      o._btn = btn; return btn;
+    }));
+    b.append(list, fb);
+    const pick = (o, btn) => {
+      opts.forEach(x => { x._btn.dataset.off = '1'; if (x.ok) x._btn.classList.add('right'); });
+      if (!o.ok) btn.classList.add('wrong');
+      if (o.ok) { g.score++; addStars(1); SFX.play('good'); World.cheer(1); } else SFX.play('bad');
+      const best = opts.find(x => x.ok);
+      const msg = o.ok ? '好嘢！' + o.why : '呢個唔係最好：' + o.why + ' 最好嘅答案係：' + best.t + '。' + best.why;
+      fb.append(h('div', { class: 'card feedback', style: `margin-top:16px;--c:${o.ok ? 'var(--mint)' : 'var(--coral)'}` },
+        h('div', { class: 'big-text' }, o.ok ? '🎉 反駁成功！' : '🤔 差少少…'), sayRow(msg),
+        h('div', { class: 'row end', style: 'margin-top:12px' }, h('button', { class: 'btn go', onclick: () => { g.i++; this.rebutQ(); } }, g.i < g.items.length - 1 ? '下一題 ➡️' : '睇結果 🏁'))));
+      TTS.speak(msg);
+      try { fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+    };
+    autoSay(read);
+  },
+  end() {
+    const g = this.g, b = this.body(), n = g.items.length; b.innerHTML = '';
+    const great = g.score >= n - 1;
+    if (g.type === 'sort' && g.score >= 8) award('sorter');
+    if (g.type === 'rebut' && g.score === n) award('rebut');
+    if (great) { SFX.play('win'); confetti(); }
+    const msg = `你答啱咗 ${g.score} 題，一共 ${n} 題！` + (great ? '好犀利呀，你真係辯論小勇士！' : g.score >= n / 2 ? '做得唔錯！再玩多次會更叻！' : '唔緊要，返辯論學堂溫習下，再嚟過！');
+    b.append(h('div', { class: 'card lesson' },
+      h('div', { class: 'le' }, great ? '🏆' : g.score >= n / 2 ? '🥈' : '💪'),
+      h('h3', {}, `${g.score} / ${n}`), h('div', { class: 'body' }, sayRow(msg)),
+      h('div', { class: 'row', style: 'justify-content:center;margin-top:16px' },
+        h('button', { class: 'btn go', onclick: () => g.type === 'sort' ? this.sortStart() : this.rebutStart() }, '🔁 再玩一次'),
+        h('button', { class: 'btn ghost', onclick: () => this.menu() }, '🎮 遊戲選單'),
+        h('button', { class: 'btn coral', onclick: () => App.go('practice') }, '🎯 去辯題挑戰'))));
+    TTS.speak(msg);
+  }
+};
+
+/* =========================================================
+   Shared pieces: motion banner, side picker, wizard, result
+   ========================================================= */
+function tapDiv(attrs, ...kids) {
+  const fn = attrs.onclick; delete attrs.onclick;
+  const d = h('div', Object.assign({ role: 'button', tabindex: '0' }, attrs), ...kids);
+  d.addEventListener('click', e => { if (d.dataset.off) return; fn && fn(e); });
+  d.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === d) { e.preventDefault(); d.click(); } });
+  return d;
+}
+function motionBanner(motion, lang, side) {
+  const sideTxt = side ? (lang === 'en' ? (side === 'pro' ? 'You are the Proposition. 你係正方。' : 'You are the Opposition. 你係反方。') : `你係${sideName(side)}。`) : '';
+  return h('div', { class: 'banner' },
+    h('div', { class: 'bt' }, h('small', {}, lang === 'en' ? 'Motion 辯題' : '辯題'), h('b', {}, motion),
+      side ? h('span', { class: 'chip', style: `margin-top:6px;--c:${side === 'pro' ? 'var(--pro)' : 'var(--con)'};color:#fff;border-color:#fff` }, side === 'pro' ? '🔴 ' + sideName('pro', lang) : '🔵 ' + sideName('con', lang)) : null),
+    spk(() => `辯題係：${motion}。${sideTxt}`));
+}
+function sidePicker(b, motion, lang, onPick, onBack) {
+  b.innerHTML = ''; b.scrollTop = 0;
+  const intro = '你想做正方定反方？正方要證明辯題係啱嘅，反方要證明辯題唔啱。唔知揀邊個？可以擲銅板，等運氣幫你決定！';
+  b.append(motionBanner(motion, lang), h('div', { style: 'margin-top:16px' }, sayRow(intro, 'big-text')));
+  const grid = h('div', { class: 'side-grid', style: 'margin-top:16px' },
+    h('button', { class: 'btn pro side-btn', onclick: () => { SFX.play('click'); onPick('pro'); } }, h('span', { class: 'se' }, '👍'), sideName('pro', lang), h('small', {}, '支持辯題')),
+    h('button', { class: 'btn con side-btn', onclick: () => { SFX.play('click'); onPick('con'); } }, h('span', { class: 'se' }, '👎'), sideName('con', lang), h('small', {}, '反對辯題')));
+  const coin = h('div', { class: 'coin' }, '🪙');
+  const coinBtn = h('button', { class: 'btn grape', onclick: () => {
+    coinBtn.disabled = true; SFX.play('flip'); coin.classList.remove('flip'); void coin.offsetWidth; coin.classList.add('flip');
+    const side = Math.random() < 0.5 ? 'pro' : 'con';
+    setTimeout(() => { coin.textContent = side === 'pro' ? '正' : '反'; coin.style.background = side === 'pro' ? 'var(--pro)' : 'var(--con)'; coin.style.color = '#fff'; SFX.play('good'); TTS.speak(`銅板話你做${sideName(side)}！`); }, 1300);
+    setTimeout(() => onPick(side), 2600);
+  } }, '🪙 擲銅板');
+  b.append(grid, h('div', { class: 'card', style: 'margin-top:16px;text-align:center' }, coin, coinBtn),
+    h('div', { class: 'row nav' }, h('button', { class: 'btn ghost', onclick: onBack }, '⬅️ 返回')));
+  autoSay(intro);
+}
+function stageColor(stage) {
+  const s = str(stage);
+  if (/論點|point|claim/i.test(s)) return 'var(--claim)';
+  if (/論證|reason|explan/i.test(s)) return 'var(--reason)';
+  if (/論據|evid|example/i.test(s)) return 'var(--evid)';
+  if (/反駁|策略|rebut|strateg/i.test(s)) return 'var(--strat)';
+  if (/總結|conclu/i.test(s)) return 'var(--deliv)';
+  return 'var(--sun)';
+}
+/** step-by-step answer wizard.
+ * cfg: {motion, lang, side, steps:[{stage,q,qZh,hint,starter}], answers:[], idx, pre(), onBack(), onSubmit()} */
+function renderWizard(b, cfg) {
+  const { steps, lang } = cfg; const i = cfg.idx; const s = steps[i];
+  b.innerHTML = ''; b.scrollTop = 0;
+  b.append(motionBanner(cfg.motion, lang, cfg.side));
+  if (cfg.pre) b.append(cfg.pre(i));
+  const ta = h('textarea', { placeholder: lang === 'en' ? 'Type here, or tap 🎤 to speak…' : '喺度打字，或者揿 🎤 用把口講…', 'aria-label': '你嘅答案' });
+  ta.value = cfg.answers[i] || '';
+  const count = h('span', { class: 'count' });
+  const save = () => { cfg.answers[i] = ta.value; const n = lang === 'en' ? (ta.value.trim().match(/\S+/g) || []).length : ta.value.replace(/\s/g, '').length; count.textContent = lang === 'en' ? n + ' words' : n + ' 字'; };
+  ta.addEventListener('input', save); save();
+  b.append(h('div', { class: 'progress' }, steps.map((st, k) => h('button', {
+    class: 'pdot' + (k === i ? ' on' : '') + (cfg.answers[k] && cfg.answers[k].trim() ? ' done' : ''), 'aria-label': '第' + (k + 1) + '步',
+    onclick: () => { save(); cfg.idx = k; renderWizard(b, cfg); } }, String(k + 1)))));
+  const hintBox = h('div', { class: 'hint hidden', style: 'margin-top:12px' }, sayRow('💡 ' + s.hint));
+  const mic = h('button', { class: 'mic', type: 'button', 'aria-label': '語音輸入', onclick: () => STT.start(ta, lang, mic) }, '🎤');
+  b.append(h('div', { class: 'card' },
+    h('span', { class: 'chip big', style: `--c:${stageColor(s.stage)}` }, `第 ${i + 1} 步・${s.stage}`),
+    h('div', { style: 'margin-top:10px' }, sayRow(s.q, 'q-text')),
+    s.qZh ? h('div', {}, sayRow(s.qZh, 'q-helper', { small: true })) : null,
+    h('div', { class: 'row', style: 'margin-top:12px' },
+      s.hint ? h('button', { class: 'btn sm ghost', onclick: () => { hintBox.classList.toggle('hidden'); SFX.play('click'); } }, '💡 提示') : null,
+      s.starter ? h('button', { class: 'btn sm ghost', onclick: () => { ta.value = ta.value.trim() ? ta.value + (lang === 'en' ? ' ' : '') + s.starter : s.starter; save(); ta.focus(); } }, '✏️ 句子開頭') : null),
+    hintBox,
+    h('div', { class: 'ta-wrap' }, ta, h('div', { class: 'ta-tools' }, count, spk(() => ta.value.trim() || '你仲未寫嘢喎，試下寫少少先！', { label: '讀出我嘅答案' }), mic))));
+  const nav = h('div', { class: 'row nav' },
+    h('button', { class: 'btn ghost', onclick: () => { save(); if (i === 0) cfg.onBack(); else { cfg.idx--; renderWizard(b, cfg); } } }, i === 0 ? '⬅️ 返回' : '⬅️ 上一步'));
+  if (i < steps.length - 1) nav.append(h('button', { class: 'btn', onclick: () => { save(); if (!ta.value.trim()) toast('冇寫都可以去下一步，不過寫咗先有分㗎！'); cfg.idx++; SFX.play('click'); renderWizard(b, cfg); } }, '下一步 ➡️'));
+  else nav.append(h('button', { class: 'btn go', onclick: () => {
+    save(); const filled = cfg.answers.filter(a => a && a.trim()).length;
+    if (filled < 2) { toast('最少答兩題，阿辯先可以幫你評分㗎！'); TTS.speak('最少答兩題，阿辯先可以幫你評分㗎！'); return; }
+    cfg.onSubmit();
+  } }, '🦉 交俾阿辯評分！'));
+  b.append(nav);
+  autoSay(s.q + (s.qZh ? '。' + s.qZh : ''));
+}
+function normResult(r) {
+  r = r || {};
+  const scores = Object.keys(DIMS).map(k => {
+    const f = arr(r.scores).find(x => x && x.key === k) || {};
+    return { key: k, score: clamp(Math.round(Number(f.score) || 0), 0, 20), comment: str(f.comment) };
+  });
+  let total = Number(r.total); if (!isFinite(total)) total = scores.reduce((a, x) => a + x.score, 0);
+  total = clamp(Math.round(total), 0, 100);
+  let stars = Number(r.stars); if (!isFinite(stars) || stars < 1) stars = total >= 90 ? 5 : total >= 75 ? 4 : total >= 60 ? 3 : total >= 40 ? 2 : 1;
+  return {
+    total, stars: clamp(Math.round(stars), 1, 5), title: str(r.title), summary: str(r.summary), scores,
+    strengths: arr(r.strengths).map(str).filter(Boolean),
+    improvements: arr(r.improvements).map(x => typeof x === 'string' ? { point: x } : { point: str(x.point), how: str(x.how), example: str(x.example) }),
+    better: str(r.better_version), next: str(r.next_challenge)
+  };
+}
+async function runEvaluation(ctx) {
+  const qa = ctx.steps.map((s, i) => ({ stage: s.stage, q: s.q, a: ctx.answers[i] || '' }));
+  const [sys, user] = promptEvaluate({ motion: ctx.motion, lang: ctx.lang, side: ctx.side, qa });
+  const raw = await withThinking('阿辯睇緊你嘅答案…', () => callAI(sys, user));
+  const r = normResult(raw);
+  addStars(r.stars); G.practiceCount++; saveG();
+  pushHistory({ motion: ctx.motion, side: ctx.side, total: r.total, stars: r.stars });
+  award('first'); if (r.stars >= 5) award('five'); if (ctx.lang === 'en') award('bilingual'); if (G.practiceCount >= 10) award('ten');
+  return r;
+}
+function renderResult(b, r, ctx) {
+  b.innerHTML = ''; b.scrollTop = 0;
+  const en = fbLang(ctx.lang) === 'en';
+  const dimName = k => en ? `${DIMS[k].en} ${DIMS[k].zh}` : DIMS[k].zh;
+  b.append(motionBanner(ctx.motion, ctx.lang, ctx.side));
+  const numEl = h('div', {}, '0'); const ring = h('div', { class: 'ring' }, numEl);
+  const starsEl = h('div', { class: 'stars', 'aria-label': r.stars + ' 粒星' }, [1, 2, 3, 4, 5].map(n => h('span', { class: n <= r.stars ? '' : 'off', style: `animation-delay:${0.3 + n * 0.15}s` }, '⭐')));
+  const headSpeak = `你攞到 ${r.total} 分，${r.stars} 粒星！${r.title ? '你嘅稱號係：' + r.title + '。' : ''}${r.summary}`;
+  b.append(h('div', { class: 'card', style: 'margin-top:16px' },
+    h('div', { class: 'score-hero' }, ring, h('div', { style: 'flex:1;min-width:200px' }, starsEl, r.title ? h('div', { class: 'rtitle', style: 'margin-top:6px' }, '🏅 ' + r.title) : null)),
+    h('div', { style: 'margin-top:14px' }, sayRow(r.summary || '', '', { speak: headSpeak }))));
+  // count-up
+  let n0 = 0; const iv = setInterval(() => { n0 = Math.min(r.total, n0 + Math.max(1, Math.round(r.total / 30))); numEl.firstChild.textContent = n0; ring.style.setProperty('--p', n0); if (n0 >= r.total) clearInterval(iv); }, 30);
+  numEl.append(h('small', {}, '/ 100'));
+  // dims
+  const dimWrap = h('div', { class: 'card' });
+  const allDims = r.scores.map(s => `${DIMS[s.key].zh}，${s.score}分，滿分20分。${s.comment}`).join('。');
+  dimWrap.append(h('div', { class: 'sec-title', style: 'margin-top:0' }, h('span', { class: 'e' }, '📊'), h('span', { class: 'grow' }, '五項得分'), spk(allDims)));
+  r.scores.forEach(s => {
+    const bar = h('i', { style: `--c:${DIMS[s.key].c}` });
+    dimWrap.append(h('div', { class: 'dim' },
+      h('div', { class: 'dim-top' }, h('span', {}, DIMS[s.key].e), h('span', { class: 'nm' }, dimName(s.key)), h('span', { class: 'scoreline' }, `${s.score}/20`), spk(`${DIMS[s.key].zh}，${s.score}分。${s.comment}`, { small: true })),
+      h('div', { class: 'bar' }, bar), s.comment ? h('div', { class: 'muted', style: 'font-size:17px' }, s.comment) : null));
+    setTimeout(() => { bar.style.width = (s.score / 20 * 100) + '%'; }, 200);
+  });
+  b.append(h('div', { style: 'margin-top:16px' }, dimWrap));
+  const sec = (e, t, speakAll) => h('div', { class: 'sec-title' }, h('span', { class: 'e' }, e), h('span', { class: 'grow' }, t), speakAll ? spk(speakAll) : null);
+  if (r.strengths.length) {
+    b.append(sec('👍', '做得好嘅地方', '做得好嘅地方：' + r.strengths.join('。')), h('div', { class: 'list-say' }, r.strengths.map(s => h('div', { class: 'item' }, sayRow(s, '', { small: true })))));
+  }
+  if (r.improvements.length) {
+    const txt = x => [x.point, x.how && '點樣改：' + x.how, x.example && '例如：' + x.example].filter(Boolean).join('。');
+    b.append(sec('🔧', '要改善嘅地方', '要改善嘅地方：' + r.improvements.map(txt).join('。')),
+      h('div', { class: 'list-say' }, r.improvements.map(x => h('div', { class: 'item improve' },
+        h('div', { class: 'say' }, h('div', { class: 'txt' }, h('b', {}, x.point), x.how ? h('div', {}, '👉 ' + x.how) : null, x.example ? h('div', { class: 'ex' }, '✏️ ' + x.example) : null), spk(txt(x), { small: true }))))));
+  }
+  if (r.better) b.append(sec('✨', '升級版示範'), h('div', { class: 'card better' }, sayRow(r.better)));
+  if (r.next) b.append(sec('🚀', '下一個挑戰'), h('div', { class: 'card tint' }, sayRow(r.next)));
+  b.append(h('div', { class: 'row nav no-print' },
+    h('button', { class: 'btn go', onclick: ctx.onRetry }, '🔁 改良我嘅答案'),
+    h('button', { class: 'btn coral', onclick: ctx.onNew }, ctx.newLabel || '🎯 換另一條辯題'),
+    h('button', { class: 'btn ghost', onclick: () => App.go('home') }, '🏠 主頁')));
+  if (r.stars >= 3) { SFX.play('win'); setTimeout(() => confetti(), 500); } else SFX.play('good');
+  setTimeout(() => TTS.speak(headSpeak), 900);
+}
+
+/* =========================================================
+   Practice 辯題挑戰
+   ========================================================= */
+const Practice = {
+  st: { stage: 'pick', fl: 'all', lv: 'all', motion: null, side: null, cfg: null, result: null },
+  body() { return $('#practiceBody'); },
+  enter() { this.st.stage = 'pick'; this.render(); },
+  render() {
+    const b = this.body();
+    if (this.st.stage === 'pick') this.rPick(b);
+    else if (this.st.stage === 'side') sidePicker(b, this.st.motion.t, this.st.motion.lang, side => this.startAnswer(side), () => { this.st.stage = 'pick'; this.render(); });
+    else if (this.st.stage === 'answer') renderWizard(b, this.st.cfg);
+    else if (this.st.stage === 'result') this.rResult(b);
+  },
+  rPick(b) {
+    b.innerHTML = ''; b.scrollTop = 0;
+    const intro = '揀一條辯題去挑戰！可以揀中文或者英文，仲有初級、中級同高級。唔知揀邊條？揿「隨機抽辯題」！揀好之後，阿辯會一步一步問你問題，最後用 AI 幫你評分。';
+    b.append(sayRow(intro, 'big-text'));
+    if (!aiReady()) b.append(h('div', { class: 'note' }, '🔑 AI 評分需要先喺右上角 ⚙️ 設定填好 Base URL、Model 同 API Key（請大人幫手）。你都可以先練習作答。'));
+    const f1 = h('div', { class: 'filters' }, [['all', '全部'], ['zh', '中文'], ['en', 'English']].map(([k, t]) => h('button', { class: this.st.fl === k ? 'on' : '', onclick: () => { this.st.fl = k; this.rPick(b); } }, t)));
+    const f2 = h('div', { class: 'filters' }, [['all', '所有程度'], ...Object.entries(LV).map(([k, v]) => [k, `${v.e} ${v.n}（${v.g}）`])].map(([k, t]) => h('button', { class: String(this.st.lv) === String(k) ? 'on' : '', onclick: () => { this.st.lv = k; this.rPick(b); } }, t)));
+    const list = MOTIONS.filter(m => (this.st.fl === 'all' || m.lang === this.st.fl) && (this.st.lv === 'all' || String(m.lv) === String(this.st.lv)));
+    b.append(h('div', { class: 'stack', style: 'margin-top:14px' }, f1, f2),
+      h('div', { class: 'row', style: 'margin:16px 0' },
+        h('button', { class: 'btn grape', onclick: () => { const m = list[Math.floor(Math.random() * list.length)]; if (m) { SFX.play('flip'); World.cheer(1); this.choose(m); } } }, '🎲 隨機抽辯題'),
+        h('button', { class: 'btn ghost', onclick: () => App.go('custom') }, '✨ 用自己嘅辯題')),
+      h('div', { class: 'motion-list' }, list.map(m => tapDiv({ class: 'motion-card', onclick: () => { SFX.play('click'); this.choose(m); } },
+        h('span', { class: 'chip', style: `--c:${m.lv === 1 ? '#d8ffe9' : m.lv === 2 ? '#fff0b3' : '#ffe0dc'}` }, LV[m.lv].e + ' ' + LV[m.lv].n),
+        h('div', { class: 'mt' }, m.t, m.zh ? h('small', {}, m.zh) : null),
+        spk(m.t + (m.zh ? '。中文意思係：' + m.zh : ''), { small: true })))));
+    autoSay(intro);
+  },
+  choose(m) { this.st.motion = m; this.st.stage = 'side'; this.render(); },
+  startAnswer(side) {
+    const m = this.st.motion; this.st.side = side;
+    this.st.cfg = {
+      motion: m.t, lang: m.lang, side, steps: STEPS[m.lang], answers: [], idx: 0,
+      onBack: () => { this.st.stage = 'side'; this.render(); },
+      onSubmit: () => this.submit()
+    };
+    this.st.stage = 'answer'; this.render();
+  },
+  async submit() {
+    const c = this.st.cfg;
+    try { this.st.result = await runEvaluation(c); this.st.stage = 'result'; this.render(); }
+    catch (e) { aiError(e, () => this.submit()); }
+  },
+  rResult(b) {
+    const c = this.st.cfg;
+    renderResult(b, this.st.result, {
+      motion: c.motion, lang: c.lang, side: c.side,
+      onRetry: () => { c.idx = 0; this.st.stage = 'answer'; this.render(); },
+      onNew: () => { this.st.stage = 'pick'; this.render(); }
+    });
+  }
+};
+
+/* =========================================================
+   Custom 我的辯題
+   ========================================================= */
+const Custom = {
+  st: { stage: 'input', motion: LS.get('lastMotion', ''), langOv: null, side: 'none', mode: 'guide', cfg: null, result: null, bd: null },
+  body() { return $('#customBody'); },
+  lang() { return this.st.langOv || detectLang(this.st.motion) || 'zh'; },
+  enter() { this.st.stage = 'input'; this.render(); },
+  render() {
+    const b = this.body();
+    if (this.st.stage === 'input') this.rInput(b);
+    else if (this.st.stage === 'side') sidePicker(b, this.st.motion, this.lang(), side => { this.st.side = side; this.startGuide(); }, () => { this.st.stage = 'input'; this.render(); });
+    else if (this.st.stage === 'answer') renderWizard(b, this.st.cfg);
+    else if (this.st.stage === 'result') this.rResult(b);
+    else if (this.st.stage === 'breakdown') this.rBreakdown(b);
+  },
+  rInput(b) {
+    b.innerHTML = ''; b.scrollTop = 0;
+    const intro = '喺呢度貼上或者打你嘅辯題，中文或者英文都得。然後揀你係正方、反方，定係未決定。再揀一個模式：引導思考模式，阿辯會一步一步問你問題，等你自己諗出論點、論證、論據同策略，答完再幫你評分，話你知邊度要改善。AI 即時拆解模式，阿辯會即刻話你知最有力嘅論點、論證、論據、策略同辯論貼士。';
+    b.append(sayRow(intro, '', { speak: intro }));
+    const ta = h('textarea', { placeholder: '例如：小學生應該每日閱讀半小時\nor: Primary pupils should learn a musical instrument', maxlength: '300', style: 'min-height:110px', 'aria-label': '辯題' });
+    ta.value = this.st.motion;
+    const langSeg = h('div', { class: 'seg' });
+    const drawLang = () => {
+      const d = detectLang(ta.value); const cur = this.st.langOv || d;
+      langSeg.innerHTML = '';
+      [['zh', '中文辯題'], ['en', 'English motion（英式英語）']].forEach(([k, t]) => langSeg.append(h('button', { class: cur === k ? 'on' : '', style: '--c:var(--sky)', onclick: () => { this.st.langOv = k; drawLang(); } }, t + (d === k && !this.st.langOv ? ' ✓' : ''))));
+    };
+    ta.addEventListener('input', () => { this.st.motion = ta.value; this.st.langOv = null; LS.set('lastMotion', ta.value); drawLang(); });
+    drawLang();
+    const mic = h('button', { class: 'mic', type: 'button', 'aria-label': '語音輸入辯題', onclick: () => STT.start(ta, this.st.langOv || detectLang(ta.value) || 'zh', mic) }, '🎤');
+    b.append(h('label', { class: 'fl' }, '📜 你嘅辯題'),
+      h('div', { class: 'ta-wrap' }, ta, h('div', { class: 'ta-tools' }, spk(() => ta.value.trim() ? '辯題係：' + ta.value : '你仲未輸入辯題'), mic)),
+      h('label', { class: 'fl' }, '🌐 辯題語言（自動偵測，可以改）'), langSeg);
+    const sideSeg = h('div', { class: 'seg' });
+    const drawSide = () => { sideSeg.innerHTML = ''; [['pro', '🔴 正方', 'var(--pro)'], ['con', '🔵 反方', 'var(--con)'], ['none', '🤔 未決定', 'var(--sun)']].forEach(([k, t, c]) => sideSeg.append(h('button', { class: this.st.side === k ? 'on' : '', style: '--c:' + c, onclick: () => { this.st.side = k; drawSide(); SFX.play('click'); } }, t))); };
+    drawSide();
+    b.append(h('div', { class: 'row', style: 'margin-top:14px' }, h('label', { class: 'fl', style: 'margin:0;flex:1' }, '⚖️ 你係邊一方？'), spk('你係邊一方？正方支持辯題，反方反對辯題。如果未知，揀未決定。', { small: true })), h('div', { style: 'margin-top:6px' }, sideSeg));
+    const modes = h('div', { class: 'mode-grid', style: 'margin-top:6px' });
+    const drawModes = () => {
+      modes.innerHTML = '';
+      const mk = (k, e, t, d, c) => tapDiv({ class: 'card mode-card' + (this.st.mode === k ? ' on' : ''), style: '--c:' + c, onclick: () => { this.st.mode = k; drawModes(); SFX.play('click'); } },
+        h('div', { class: 'row between' }, h('span', { class: 'me' }, e), spk(t + '。' + d, { small: true })), h('b', {}, t), h('span', {}, d));
+      modes.append(
+        mk('guide', '🧭', '引導思考模式', '阿辯一步一步問你問題，你自己諗論點、論證、論據同策略，最後 AI 評分同講改善位。', 'var(--mint)'),
+        mk('break', '⚡', 'AI 即時拆解', '阿辯即刻拆解辯題：關鍵字定義、雙方最有力論點、論證、論據、策略、反駁同開場白。', 'var(--sun)'));
+    };
+    drawModes();
+    b.append(h('label', { class: 'fl', style: 'margin-top:18px' }, '🎮 揀模式'), modes);
+    if (!aiReady()) b.append(h('div', { class: 'note' }, '🔑 呢個部分要用 AI，請先喺右上角 ⚙️ 設定填好 Base URL、Model 同 API Key。'));
+    b.append(h('div', { class: 'row end', style: 'margin-top:18px' }, h('button', { class: 'btn go', onclick: () => this.start() }, '🚀 開始！')));
+    autoSay(intro);
+  },
+  start() {
+    const m = this.st.motion.trim();
+    if (m.length < 4) { toast('請先輸入一條辯題 📜'); TTS.speak('請先輸入一條辯題'); return; }
+    this.st.motion = m; LS.set('lastMotion', m); SFX.play('click');
+    if (!aiReady()) { aiError(new NoKeyError('NOKEY')); return; }
+    if (this.st.mode === 'break') return this.startBreak();
+    if (this.st.side === 'none') { this.st.stage = 'side'; this.render(); return; }
+    this.startGuide();
+  },
+  async startGuide() {
+    const motion = this.st.motion, lang = this.lang(), side = this.st.side;
+    try {
+      const [sys, user] = promptGuide({ motion, lang, side });
+      const d = await withThinking('阿辯設計緊引導問題…', () => callAI(sys, user));
+      const qs = arr(d.questions).filter(q => q && q.question).slice(0, 8);
+      if (!qs.length) throw new Error('AI 冇俾到問題，請再試一次。');
+      award('custom');
+      const intro = { explained: str(d.motion_explained), terms: arr(d.key_terms).filter(t => t && t.term) };
+      this.st.cfg = {
+        motion, lang, side, idx: 0, answers: [],
+        steps: qs.map(q => ({ stage: lang === 'en' ? `${str(q.stage_en || q.stage)}${q.stage && q.stage_en ? ' ' + q.stage : ''}` : str(q.stage || '思考'), q: str(q.question), qZh: lang === 'en' ? str(q.question_zh) : '', hint: str(q.hint), starter: str(q.starter) })),
+        pre: i => this.introCard(intro, i === 0),
+        onBack: () => { this.st.stage = 'input'; this.render(); },
+        onSubmit: () => this.submit()
+      };
+      this.st.stage = 'answer'; this.render();
+    } catch (e) { aiError(e, () => this.startGuide()); }
+  },
+  introCard(intro, open) {
+    const txt = [intro.explained && '辯題解讀：' + intro.explained, ...intro.terms.map(t => `${t.term}：${t.meaning}`)].filter(Boolean).join('。');
+    const inner = h('div', { class: open ? '' : 'hidden', style: 'margin-top:10px' },
+      intro.explained ? sayRow(intro.explained) : null,
+      intro.terms.length ? h('div', { class: 'list-say', style: 'margin-top:10px' }, intro.terms.map(t => h('div', { class: 'item' }, sayRow(`🔑 ${t.term}：${t.meaning}`, '', { small: true })))) : null);
+    return h('div', { class: 'card tint', style: 'margin-top:14px' },
+      h('div', { class: 'row' }, h('b', { style: 'flex:1;font-size:20px' }, '📖 辯題解讀同關鍵字'),
+        h('button', { class: 'btn sm ghost', onclick: () => inner.classList.toggle('hidden') }, '顯示／隱藏'), spk(txt)), inner);
+  },
+  async submit() {
+    try { this.st.result = await runEvaluation(this.st.cfg); this.st.stage = 'result'; this.render(); }
+    catch (e) { aiError(e, () => this.submit()); }
+  },
+  rResult(b) {
+    const c = this.st.cfg;
+    renderResult(b, this.st.result, {
+      motion: c.motion, lang: c.lang, side: c.side, newLabel: '✨ 輸入另一條辯題',
+      onRetry: () => { c.idx = 0; this.st.stage = 'answer'; this.render(); },
+      onNew: () => { this.st.stage = 'input'; this.render(); }
+    });
+  },
+  async startBreak() {
+    const motion = this.st.motion, lang = this.lang(), side = this.st.side;
+    try {
+      const [sys, user] = promptBreakdown({ motion, lang, side });
+      const d = await withThinking('阿辯拆解緊辯題…', () => callAI(sys, user, { maxTokens: 6000 }));
+      award('custom');
+      this.st.bd = { d, motion, lang, side, tab: side === 'con' ? 'con' : 'pro' };
+      this.st.stage = 'breakdown'; this.render();
+      SFX.play('win'); World.cheer(2);
+    } catch (e) { aiError(e, () => this.startBreak()); }
+  },
+  rBreakdown(b) {
+    const { d, motion, lang, side } = this.st.bd; const en = fbLang(lang) === 'en';
+    b.innerHTML = ''; b.scrollTop = 0;
+    b.append(motionBanner(motion, lang, side === 'none' ? null : side));
+    const sec = (e, t, speakAll) => h('div', { class: 'sec-title' }, h('span', { class: 'e' }, e), h('span', { class: 'grow' }, t), speakAll ? spk(speakAll) : null);
+    if (d.kid_tip) b.append(h('div', { class: 'card', style: 'margin-top:16px;background:var(--sun)' }, sayRow('🦉 阿辯提提你：' + d.kid_tip)));
+    if (d.motion_explained) b.append(sec('🧒', '辯題講乜？'), h('div', { class: 'card' }, sayRow(str(d.motion_explained))));
+    const terms = arr(d.key_terms).filter(t => t && t.term);
+    if (terms.length) b.append(sec('🔑', '關鍵字定義', '關鍵字定義：' + terms.map(t => `${t.term}：${t.meaning}`).join('。')), h('div', { class: 'list-say' }, terms.map(t => h('div', { class: 'item' }, sayRow(`${t.term}：${str(t.meaning)}`, '', { small: true })))));
+    if (d.burden) {
+      const bp = str(d.burden.pro), bc = str(d.burden.con);
+      b.append(sec('⚖️', '雙方要證明乜？'), h('div', { class: 'grid2' },
+        h('div', { class: 'item', style: 'border-left:10px solid var(--pro)' }, sayRow('🔴 正方：' + bp, '', { small: true })),
+        h('div', { class: 'item', style: 'border-left:10px solid var(--con)' }, sayRow('🔵 反方：' + bc, '', { small: true }))));
+    }
+    // arguments with tabs
+    b.append(sec('💪', '最有力嘅論點（由強到弱）'));
+    const tabs = h('div', { class: 'tabs' }); const argWrap = h('div', { class: 'stack' });
+    const lbl = { claim: en ? 'Point 論點' : '💡 論點', reasoning: en ? 'Explanation 論證' : '🔗 論證', evidence: en ? 'Evidence 論據' : '📚 論據' };
+    const drawArgs = () => {
+      tabs.innerHTML = ''; argWrap.innerHTML = '';
+      ['pro', 'con'].forEach(k => tabs.append(h('button', { class: k + (this.st.bd.tab === k ? ' on' : ''), onclick: () => { this.st.bd.tab = k; drawArgs(); SFX.play('click'); } }, (k === 'pro' ? '🔴 ' : '🔵 ') + sideName(k, lang) + (side === k ? '（你）' : ''))));
+      const list = arr(d[this.st.bd.tab]).filter(Boolean).slice().sort((a, b2) => (Number(b2.strength) || 0) - (Number(a.strength) || 0));
+      const col = this.st.bd.tab === 'pro' ? 'var(--pro)' : 'var(--con)';
+      list.forEach((a, i) => {
+        const stg = clamp(Math.round(Number(a.strength) || 3), 1, 5);
+        const all = `第${i + 1}個論點。論點：${str(a.claim)}。論證：${str(a.reasoning)}。論據：${str(a.evidence)}。${a.evidence_note ? '提提你：' + a.evidence_note : ''}`;
+        argWrap.append(h('div', { class: 'card arg', style: '--c:' + col },
+          h('div', { class: 'rank' }, h('b', {}, i === 0 ? '🥇 最有力' : i === 1 ? '🥈 第二' : '🥉 第三'), h('span', { title: '力度' }, '💪'.repeat(stg)), h('span', { class: 'grow' }), spk(all)),
+          ...['claim', 'reasoning', 'evidence'].map(k => h('div', { class: 'arg-row' }, h('span', { class: 'lbl', style: '--c:' + DIMS[k === 'claim' ? 'claim' : k].c }, lbl[k]), sayRow(str(a[k]), '', { small: true }))),
+          a.evidence_note ? h('div', { class: 'warn' }, '⚠️ ' + a.evidence_note) : null));
+      });
+      if (!list.length) argWrap.append(h('p', { class: 'muted' }, '（呢方冇資料）'));
+    };
+    drawArgs(); b.append(tabs, argWrap);
+    const clash = arr(d.clash).map(str).filter(Boolean);
+    if (clash.length) b.append(sec('⚔️', '雙方交鋒位', '雙方交鋒位：' + clash.join('。')), h('div', { class: 'list-say' }, clash.map(c => h('div', { class: 'item' }, sayRow(c, '', { small: true })))));
+    const strat = arr(d.strategies).filter(Boolean);
+    if (strat.length) b.append(sec('♟️', '致勝策略', '致勝策略：' + strat.map(s => `${str(s.name)}：${str(s.detail)}`).join('。')), h('div', { class: 'list-say' }, strat.map(s => h('div', { class: 'item', style: 'border-left:10px solid var(--strat)' }, sayRow(`${str(s.name)}：${str(s.detail)}`, '', { small: true })))));
+    const reb = arr(d.rebuttals).filter(Boolean);
+    if (reb.length) b.append(sec('🛡️', '反駁攻略'), h('div', { class: 'stack' }, reb.map(r => {
+      const t = `${r.side === 'con' ? '反方' : '正方'}用。如果對方話：${str(r.they_say)}。你可以咁回應：${str(r.you_reply)}`;
+      return h('div', { class: 'card rebut-pair' }, h('div', { class: 'row between' }, h('span', { class: 'chip', style: `--c:${r.side === 'con' ? 'var(--con)' : 'var(--pro)'};color:#fff` }, (r.side === 'con' ? '🔵 ' : '🔴 ') + sideName(r.side === 'con' ? 'con' : 'pro', lang) + '用'), spk(t, { small: true })),
+        h('div', { class: 'they' }, '🗣️ 如果對方話：' + str(r.they_say)), h('div', { class: 'you' }, '💬 你可以咁回應：' + str(r.you_reply)));
+    })));
+    if (d.opening && (d.opening.pro || d.opening.con)) {
+      b.append(sec('🎤', '主辯開場白示範'), h('div', { class: 'stack' },
+        d.opening.pro ? h('div', { class: 'card better', style: 'border-left:10px solid var(--pro)' }, h('b', {}, '🔴 ' + sideName('pro', lang)), sayRow(str(d.opening.pro))) : null,
+        d.opening.con ? h('div', { class: 'card better', style: 'border-left:10px solid var(--con)' }, h('b', {}, '🔵 ' + sideName('con', lang)), sayRow(str(d.opening.con))) : null));
+    }
+    const tips = arr(d.tips).map(str).filter(Boolean);
+    if (tips.length) b.append(sec('💡', '辯論貼士', '辯論貼士：' + tips.join('。')), h('div', { class: 'list-say' }, tips.map(t => h('div', { class: 'item' }, sayRow(t, '', { small: true })))));
+    b.append(h('div', { class: 'row nav no-print' },
+      h('button', { class: 'btn go', onclick: () => { if (this.st.side === 'none') { this.st.stage = 'side'; this.render(); } else this.startGuide(); } }, '🧭 用呢條辯題練習'),
+      h('button', { class: 'btn sky', onclick: () => this.copy() }, '📋 複製'),
+      h('button', { class: 'btn ghost', onclick: () => window.print() }, '🖨️ 列印'),
+      h('button', { class: 'btn coral', onclick: () => { this.st.stage = 'input'; this.render(); } }, '✨ 另一條辯題')));
+    autoSay('拆解完成！' + (d.kid_tip ? '阿辯提提你：' + d.kid_tip : ''));
+  },
+  copy() {
+    const { d, motion, lang } = this.st.bd; const L = [];
+    L.push('辯題：' + motion, '');
+    if (d.motion_explained) L.push('【辯題講乜】' + d.motion_explained, '');
+    arr(d.key_terms).forEach(t => L.push(`【關鍵字】${t.term}：${t.meaning}`));
+    if (d.burden) L.push('', `【正方要證明】${str(d.burden.pro)}`, `【反方要證明】${str(d.burden.con)}`);
+    ['pro', 'con'].forEach(k => { L.push('', `== ${sideName(k, lang)} ==`); arr(d[k]).forEach((a, i) => L.push(`${i + 1}. 論點：${str(a.claim)}`, `   論證：${str(a.reasoning)}`, `   論據：${str(a.evidence)}${a.evidence_note ? '（' + a.evidence_note + '）' : ''}`)); });
+    if (arr(d.clash).length) L.push('', '【交鋒位】', ...arr(d.clash).map(c => '・' + c));
+    if (arr(d.strategies).length) L.push('', '【策略】', ...arr(d.strategies).map(s => `・${str(s.name)}：${str(s.detail)}`));
+    if (arr(d.rebuttals).length) L.push('', '【反駁】', ...arr(d.rebuttals).map(r => `・（${r.side === 'con' ? '反方' : '正方'}）對方話：${str(r.they_say)} → 回應：${str(r.you_reply)}`));
+    if (d.opening) L.push('', '【正方開場白】' + str(d.opening.pro), '【反方開場白】' + str(d.opening.con));
+    if (arr(d.tips).length) L.push('', '【貼士】', ...arr(d.tips).map(t => '・' + t));
+    const text = L.join('\n');
+    const fallback = () => { const t = h('textarea', { style: 'position:fixed;opacity:0' }); t.value = text; document.body.append(t); t.select(); try { document.execCommand('copy'); toast('📋 已複製！'); } catch (e) { toast('複製唔到，請手動選取'); } t.remove(); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => toast('📋 已複製！'), fallback); else fallback();
+  }
+};
+
+/* =========================================================
+   Settings 設定（AI + 語音 + 個人資料）
+   ========================================================= */
+const PRESETS = [
+  { n: 'OpenAI', url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+  { n: 'Anthropic Claude', url: 'https://api.anthropic.com/v1', model: 'claude-sonnet-5' },
+  { n: 'Google Gemini', url: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.5-flash' },
+  { n: 'OpenRouter', url: 'https://openrouter.ai/api/v1', model: 'openai/gpt-4o-mini' },
+  { n: 'DeepSeek', url: 'https://api.deepseek.com/v1', model: 'deepseek-chat' }
+];
+const Settings = {
+  open(focusAI) {
+    const b = $('#settingsBody'); b.innerHTML = '';
+    // ---- AI ----
+    const url = h('input', { type: 'url', value: S.baseUrl, placeholder: 'https://api.openai.com/v1', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+    const model = h('input', { type: 'text', value: S.model, placeholder: 'gpt-4o-mini', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+    const key = h('input', { type: 'password', value: S.apiKey, placeholder: 'sk-…', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
+    const eye = h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { key.type = key.type === 'password' ? 'text' : 'password'; } }, '👁️');
+    const status = h('div', { class: 'muted', style: 'margin-top:8px' });
+    const saveAI = () => { S.baseUrl = url.value.trim(); S.model = model.value.trim(); S.apiKey = key.value.trim(); saveS(); };
+    b.append(h('h3', { style: 'margin:0 0 4px' }, '🤖 AI 設定'),
+      h('div', { class: 'muted' }, '支援 OpenAI 格式（/chat/completions）同 Anthropic 格式。揿下面快速填入，再改 Model 名。'),
+      h('div', { class: 'presets', style: 'margin-top:10px' }, PRESETS.map(p => h('button', { type: 'button', onclick: () => { url.value = p.url; model.value = p.model; } }, p.n))),
+      h('label', { class: 'fl' }, 'Base URL'), url,
+      h('label', { class: 'fl' }, 'Model'), model,
+      h('label', { class: 'fl' }, 'API Key'), h('div', { class: 'keyrow' }, key, eye),
+      h('div', { class: 'row', style: 'margin-top:14px' },
+        h('button', { class: 'btn go', onclick: () => { saveAI(); toast('💾 已儲存喺呢部機'); status.textContent = '✅ 已儲存。'; } }, '💾 儲存'),
+        h('button', { class: 'btn sky', onclick: async () => {
+          saveAI(); status.textContent = '⏳ 測試緊…';
+          try { const t = await callAI('You are a connection test.', 'Reply with the single word: OK', { json: false, maxTokens: 20, timeout: 40000 }); status.textContent = '✅ 連線成功！AI 回覆：' + t.slice(0, 40); SFX.play('good'); }
+          catch (e) { status.textContent = '❌ ' + (e instanceof NoKeyError ? '請先填齊三格。' : e.message); SFX.play('bad'); }
+        } }, '🧪 測試連線'),
+        h('button', { class: 'btn ghost', onclick: () => { if (!confirm('確定清除 Base URL、Model 同 API Key？')) return; S.apiKey = ''; S.baseUrl = DEFAULT_SETTINGS.baseUrl; S.model = DEFAULT_SETTINGS.model; saveS(); url.value = S.baseUrl; model.value = S.model; key.value = ''; status.textContent = '🗑️ 已清除。'; } }, '🗑️ 清除')),
+      status,
+      h('div', { class: 'note' }, '🔒 呢三項只會臨時儲存喺呢部機嘅瀏覽器（Local Storage），唔會寫入程式檔，亦唔會上載去 GitHub。用公用電腦嘅話，用完記得揿「清除」。API Key 請由家長或老師保管。'));
+    // ---- voice ----
+    const selZh = h('select', { 'aria-label': '廣東話聲音' }), selEn = h('select', { 'aria-label': '英文聲音' });
+    this.selZh = selZh; this.selEn = selEn; this.fillVoices();
+    selZh.addEventListener('change', () => { S.voiceZh = selZh.value; saveS(); });
+    selEn.addEventListener('change', () => { S.voiceEn = selEn.value; saveS(); });
+    const rate = h('input', { type: 'range', min: '0.6', max: '1.2', step: '0.05', value: String(S.rate), style: 'width:100%;accent-color:#2bb673' });
+    const rateLbl = h('span', {}, S.rate.toFixed(2) + 'x');
+    rate.addEventListener('input', () => { S.rate = parseFloat(rate.value); rateLbl.textContent = S.rate.toFixed(2) + 'x'; saveS(); });
+    const auto = h('input', { type: 'checkbox' }); auto.checked = S.autoRead; auto.addEventListener('change', () => { S.autoRead = auto.checked; saveS(); });
+    const sfx = h('input', { type: 'checkbox' }); sfx.checked = S.sfx; sfx.addEventListener('change', () => { S.sfx = sfx.checked; saveS(); });
+    const fb = h('select', {}, h('option', { value: 'en' }, 'English (UK) 英式英語'), h('option', { value: 'zh' }, '廣東話解釋 + 英文示範句'));
+    fb.value = S.enFeedback; fb.addEventListener('change', () => { S.enFeedback = fb.value; saveS(); });
+    b.append(h('h3', { style: 'margin:26px 0 4px' }, '🔊 語音設定'),
+      h('label', { class: 'fl' }, '廣東話聲音（zh-HK）'), h('div', { class: 'keyrow' }, selZh, h('button', { class: 'btn sm ghost', type: 'button', onclick: e => TTS.speak('你好呀！我係阿辯，一齊學辯論啦！', e.currentTarget) }, '🔊 試聽')),
+      h('label', { class: 'fl' }, '英文聲音（en-GB）'), h('div', { class: 'keyrow' }, selEn, h('button', { class: 'btn sm ghost', type: 'button', onclick: e => TTS.speak('Hello! Welcome to Debate Island. Shall we practise together?', e.currentTarget) }, '🔊 Test')),
+      h('label', { class: 'fl' }, '講嘢速度 ', rateLbl), rate,
+      h('label', { class: 'toggle', style: 'margin-top:14px' }, auto, '入到每頁自動朗讀'),
+      h('label', { class: 'toggle', style: 'margin-top:10px' }, sfx, '遊戲音效'),
+      h('label', { class: 'fl' }, '英文辯題：評語同拆解用咩語言？'), fb,
+      h('div', { class: 'note' }, '🍎 iPad 搵唔到廣東話聲音？去「設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 中文（香港）」下載（例如 Sinji），然後重新開呢個網頁。Windows 可以喺「設定 → 時間與語言 → 語音」加入「中文（香港）」。Chrome 電腦版通常有 Google 粵語。'));
+    // ---- profile ----
+    const nm = h('input', { type: 'text', value: P.name, placeholder: '例如：小明', maxlength: '20' });
+    const gr = h('div', { class: 'seg' });
+    const drawGr = () => { gr.innerHTML = ''; Object.entries(GRADES).forEach(([k, v]) => gr.append(h('button', { type: 'button', class: P.grade === k ? 'on' : '', style: 'min-width:80px', onclick: () => { P.grade = k; saveP(); drawGr(); } }, v.zh))); };
+    drawGr();
+    nm.addEventListener('input', () => { P.name = nm.value.trim(); saveP(); });
+    b.append(h('h3', { style: 'margin:26px 0 4px' }, '👧 我嘅資料'),
+      h('div', { class: 'muted' }, 'AI 會按年級調整問題難度同評分標準。'),
+      h('label', { class: 'fl' }, '名（可以用花名）'), nm,
+      h('label', { class: 'fl' }, '年級'), gr,
+      h('div', { class: 'row', style: 'margin-top:26px' }, h('button', { class: 'btn ghost sm', onclick: () => { if (!confirm('確定重設所有星星、獎章同紀錄？')) return; G = { stars: 0, badges: [], practiceCount: 0, seenLessons: [], history: [] }; saveG(); updateStars(); toast('已重設進度'); } }, '♻️ 重設進度')));
+    openModal('settingsModal');
+    if (focusAI) setTimeout(() => (S.apiKey ? model : key).focus(), 300);
+  },
+  fillVoices() {
+    if (!this.selZh) return;
+    const mk = (sel, list, all, cur, label) => {
+      sel.innerHTML = '';
+      sel.append(h('option', { value: '' }, label));
+      const seen = new Set();
+      [...list, ...all].forEach(v => { if (seen.has(v.voiceURI)) return; seen.add(v.voiceURI); sel.append(h('option', { value: v.voiceURI }, `${v.name}（${v.lang}）`)); });
+      sel.value = cur || '';
+    };
+    const zh = TTS.zhVoices(), en = TTS.enVoices();
+    mk(this.selZh, zh, TTS.voices.filter(v => /^zh/i.test(v.lang)), S.voiceZh, zh.length ? '自動（' + zh[0].name + '）' : '⚠️ 未搵到廣東話聲音');
+    mk(this.selEn, en.filter(v => /GB/i.test(v.lang)), en, S.voiceEn, '自動（英式英語優先）');
+  }
+};
+
+/* =========================================================
+   Badges 獎章
+   ========================================================= */
+function openBadges() {
+  const b = $('#badgeBody'); b.innerHTML = '';
+  const got = G.badges.length;
+  const txt = `你有 ${G.stars} 粒星星，${got} 個獎章。` + BADGES.map(x => `${x.n}：${x.d}，${G.badges.includes(x.id) ? '已經攞到' : '未攞到'}`).join('。');
+  b.append(h('div', { class: 'row' }, h('div', { class: 'big-text', style: 'flex:1' }, `⭐ ${G.stars} 粒星星・🏅 ${got}/${BADGES.length} 個獎章`), spk(txt)),
+    h('div', { class: 'badges', style: 'margin-top:14px' }, BADGES.map(x => h('div', { class: 'badge' + (G.badges.includes(x.id) ? '' : ' lock') }, h('div', { class: 'be' }, x.e), h('b', {}, x.n), h('small', {}, x.d)))));
+  b.append(h('h3', { style: 'margin:24px 0 0' }, '📒 最近 AI 評分紀錄'));
+  if (!G.history.length) b.append(h('p', { class: 'muted' }, '仲未有紀錄，去「辯題挑戰」試下啦！'));
+  else b.append(h('div', { class: 'hist' }, G.history.slice(0, 15).map(x => h('div', {}, h('span', {}, `${x.motion}（${x.side === 'pro' ? '正' : '反'}）`), h('span', {}, `${x.total}分 ${'⭐'.repeat(x.stars || 0)}`)))));
+  openModal('badgeModal');
+}
+
+/* =========================================================
+   Init
+   ========================================================= */
+function init() {
+  updateStars();
+  World.init();
+  $('#homeBtn').addEventListener('click', () => { SFX.play('click'); App.go('home'); });
+  $('#settingsBtn').addEventListener('click', () => { SFX.play('click'); Settings.open(); });
+  $('#badgeBtn').addEventListener('click', () => { SFX.play('click'); openBadges(); });
+  $$('.back').forEach(x => x.addEventListener('click', () => { SFX.play('click'); App.go('home'); }));
+  $$('.island-btn').forEach(x => x.addEventListener('click', () => { SFX.play('click'); App.go(x.dataset.go); }));
+  $('#learnSpk').append(spk(() => Learn.speakText(LESSONS[Learn.i]), { label: '朗讀呢一課' }));
+  document.addEventListener('visibilitychange', () => { if (document.hidden) TTS.stop(); });
+  App.go('home');
+  if (!P.name && !LS.get('welcomed', false)) {
+    LS.set('welcomed', true);
+    const nm = h('input', { type: 'text', placeholder: '例如：小明', maxlength: '20' });
+    const gr = h('div', { class: 'seg' });
+    const draw = () => { gr.innerHTML = ''; Object.entries(GRADES).forEach(([k, v]) => gr.append(h('button', { type: 'button', class: P.grade === k ? 'on' : '', style: 'min-width:80px', onclick: () => { P.grade = k; draw(); } }, v.zh))); };
+    draw();
+    const hello = '你好呀！我係阿辯，辯辯島嘅島主。你叫咩名？讀幾年級？話俾我知，我就可以幫你揀啱你嘅挑戰！';
+    showMsg('🦉 歡迎嚟到辯辯島！', [
+      sayRow(hello),
+      h('label', { class: 'fl' }, '你叫咩名？'), nm,
+      h('label', { class: 'fl' }, '你讀幾年級？'), gr,
+      h('div', { class: 'row', style: 'margin-top:18px' }, h('button', { class: 'btn go', onclick: () => { P.name = nm.value.trim(); saveP(); closeModal('msgModal'); SFX.play('win'); World.cheer(2); Home.enter(); } }, '🚀 出發！'))
+    ]);
+    $('#msgModal .modal-head').style.background = 'var(--sun)';
+  }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+</script>
+</body>
+</html>
