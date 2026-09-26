@@ -281,6 +281,23 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
 .sync-card .grow{flex:1;min-width:200px;overflow-wrap:anywhere}
 .exp-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border:2px solid var(--ink);border-radius:16px;padding:12px;margin-top:12px}
 .exp-row .grow{flex:1;min-width:190px}
+.sp-card{margin-top:16px;border-left:12px solid var(--grape)}
+.sp-card.pro{border-left-color:var(--pro)}.sp-card.con{border-left-color:var(--con)}.sp-card.ex{border-left-color:var(--sun)}
+.sp-card.reading{outline:5px solid var(--sun);outline-offset:3px}
+.sp-card .script{margin-top:10px;background:#fffdf5;border:2px dashed #d9d3b8;border-radius:14px;padding:6px 14px;font-size:19px;line-height:1.85}
+.sp-card .script p{margin:10px 0}
+.sp-card .coach{margin-top:10px;background:#f1edff;border:2px solid var(--ink);border-radius:14px;padding:8px 10px;font-size:16px}
+.chat{display:grid;gap:10px;margin-top:12px}
+.chat .msg{max-width:88%;border:2px solid var(--ink);border-radius:16px;padding:8px 12px;background:#fff}
+.chat .msg.pro{justify-self:start;background:#fff1ef;border-bottom-left-radius:4px}
+.chat .msg.con{justify-self:end;background:#eef4ff;border-bottom-right-radius:4px}
+.chat .msg small{font-weight:800;color:var(--ink2);font-size:14px}
+.chat .msg p{margin:2px 0;font-size:18px}
+.rundown{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.rundown .rd{border:2px solid var(--ink);border-radius:999px;padding:5px 12px;font-size:15px;font-weight:800;background:#fff;cursor:pointer;min-height:40px}
+.rundown .rd.pro{background:#ffe3df}.rundown .rd.con{background:#dfeaff}.rundown .rd.ex{background:#fff0b3}
+.mode-grid>:nth-child(3){grid-column:1/-1}
+@media print{.sp-card{break-inside:auto;box-shadow:none}.sp-card .script{border:0;padding:0}}
 .saved-chip{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:800;color:var(--ink2);margin-top:10px}
 @media (max-width:640px){.lib-item{flex-wrap:wrap}.lib-item .li-act{width:100%;justify-content:flex-end}}
 @media (max-width:820px){
@@ -514,12 +531,13 @@ const TTS = {
     }
     return out.map(x => ({ text: x, lang: /[\u3400-\u9fff]/.test(x) ? 'zh' : 'en' }));
   },
-  speak(text, btn) {
-    if (!this.supported) { toast('呢個瀏覽器唔支援語音朗讀 😢'); return; }
+  speak(text, btn, onDone) {
+    if (!this.supported) { toast('呢個瀏覽器唔支援語音朗讀 😢'); if (onDone) onDone(false); return; }
     const same = btn && this.curBtn === btn;
     this.stop();
     if (same) return;
-    const list = this.chunks(text); if (!list.length) return;
+    const list = this.chunks(text); if (!list.length) { if (onDone) onDone(true); return; }
+    this.cb = onDone || null;
     if (!this.voices.length) this.load();
     if (!this.pick('zh') && list.some(c => c.lang === 'zh') && !this.warned) {
       this.warned = true; toast('搵唔到廣東話聲音，請睇⚙️設定入面嘅教學', 4000);
@@ -534,12 +552,12 @@ const TTS = {
         const v = this.pick(c.lang);
         if (v) { u.voice = v; u.lang = v.lang; } else u.lang = c.lang === 'zh' ? 'zh-HK' : 'en-GB';
         u.rate = S.rate; u.pitch = c.lang === 'zh' ? 1.08 : 1.0;
-        if (i === list.length - 1) u.onend = u.onerror = () => { if (token === this.token) this.done(); };
+        if (i === list.length - 1) u.onend = u.onerror = () => { if (token === this.token) this.done(true); };
         speechSynthesis.speak(u);
       });
     }, 60);
   },
-  done() { if (this.curBtn) this.curBtn.classList.remove('playing'); this.curBtn = null; World.talk(false); },
+  done(natural) { if (this.curBtn) this.curBtn.classList.remove('playing'); this.curBtn = null; World.talk(false); const cb = this.cb; this.cb = null; if (cb) cb(!!natural); },
   stop() { this.token++; if (this.supported) { try { speechSynthesis.cancel(); } catch (e) {} } this.done(); },
   unlock() {
     if (this.unlocked || !this.supported) return; this.unlocked = true;
@@ -1092,7 +1110,7 @@ const LESSONS = [
     body: '反駁即係指出對方講法嘅問題。有三步：一、重複對方講咗乜；二、指出問題，例如冇證據、太誇張、或者有其他方法；三、講返點解我方更啱。記住要對事唔對人，要有禮貌。',
     ex: '「對方辯友話功課太多會冇時間玩，但問題係功課太多，唔係功課本身。減少份量就得，唔使取消。」' },
   { e: '🎤', t: '比賽角色', en: 'Speaker roles',
-    body: '小學辯論比賽通常每隊有四位辯員：主辯負責定義辯題同講出主要論點；第一副辯同第二副辯負責補充論點同反駁對方；結辯負責總結全場，講出點解我方應該贏。有啲比賽仲有「自由辯論」，雙方輪流即時發言。',
+    body: '小學辯論比賽通常每隊有四位辯員：主辯負責定義辯題同講出主要論點；第一副辯同第二副辯負責補充論點同反駁對方；結辯負責總結全場，講出點解我方應該贏。有啲比賽仲有「自由辯論」或者「攻辯」，雙方輪流即時發言。中文比賽由正方主辯開始，正反輪流；去到結辯，反方先講，正方最後講。英文比賽多數每隊三位：1st、2nd、3rd speaker，正反輪流，3rd speaker 負責反駁同總結，唔可以提出新論點。',
     ex: '每個比賽嘅規則同時間都可能唔同，記得問清楚老師你哋比賽用咩規則。' },
   { e: '🌟', t: '台風同禮儀', en: 'Manner and etiquette',
     body: '開始時要打招呼：「多謝主席，各位評判、對方辯友、各位同學，大家好。」講嘢要大聲、清楚、唔好太快，眼睛望住評判，注意時間。就算緊張，深呼吸，微笑，你一定得！',
@@ -1691,10 +1709,20 @@ const Custom = {
     else if (this.st.stage === 'answer') renderWizard(b, this.st.cfg);
     else if (this.st.stage === 'result') this.rResult(b);
     else if (this.st.stage === 'breakdown') this.rBreakdown(b);
+    else if (this.st.stage === 'sampleSetup') Sample.setupPage(b, this.st.motion, this.lang(), this.st.side, this.st.bd ? this.st.bd.d : null, () => { this.st.stage = this.st.bd ? 'breakdown' : 'input'; this.render(); });
+    else if (this.st.stage === 'sample') this.rSample(b);
+  },
+  rSample(b) {
+    const sm = Object.assign({ entryId: this.st.entryId }, this.st.sample);
+    Sample.render(b, sm, h('div', { class: 'row nav no-print' },
+      h('button', { class: 'btn go', onclick: () => { this.st.motion = sm.motion; this.st.langOv = sm.lang; this.st.mode = 'guide'; if (sm.side === 'pro' || sm.side === 'con') { this.st.side = sm.side; this.startGuide(); } else { this.st.stage = 'side'; this.render(); } } }, '🧭 用呢條辯題練習'),
+      h('button', { class: 'btn coral', onclick: () => { this.st.stage = 'input'; this.render(); } }, '✨ 另一條辯題'),
+      h('button', { class: 'btn ghost', onclick: () => App.go('library') }, '📂 我的收藏')));
+    if (this.st.entryId) b.append(h('div', { class: 'saved-chip no-print' }, '💾 已儲存喺「我的收藏」' + (Cloud.user && Cloud.synced ? '，並同步到雲端 ☁️' : '')));
   },
   rInput(b) {
     b.innerHTML = ''; b.scrollTop = 0;
-    const intro = '喺呢度貼上或者打你嘅辯題，中文或者英文都得。然後揀你係正方、反方，定係未決定。再揀一個模式：引導思考模式，阿辯會一步一步問你問題，等你自己諗出論點、論證、論據同策略，答完再幫你評分，話你知邊度要改善。AI 即時拆解模式，阿辯會即刻話你知最有力嘅論點、論證、論據、策略同辯論貼士。';
+    const intro = '喺呢度貼上或者打你嘅辯題，中文或者英文都得。然後揀你係正方、反方，定係未決定。再揀一個模式。仲有第三個模式，全場比賽示範，阿辯會幫正反雙方每位辯員寫晒講稿，等你睇晒成場比賽。頭兩個模式係：引導思考模式，阿辯會一步一步問你問題，等你自己諗出論點、論證、論據同策略，答完再幫你評分，話你知邊度要改善。AI 即時拆解模式，阿辯會即刻話你知最有力嘅論點、論證、論據、策略同辯論貼士。';
     b.append(sayRow(intro, '', { speak: intro }));
     const ta = h('textarea', { placeholder: '例如：小學生應該每日閱讀半小時\nor: Primary pupils should learn a musical instrument', maxlength: '300', style: 'min-height:110px', 'aria-label': '辯題' });
     ta.value = this.st.motion;
@@ -1702,9 +1730,10 @@ const Custom = {
     const drawLang = () => {
       const d = detectLang(ta.value); const cur = this.st.langOv || d;
       langSeg.innerHTML = '';
-      [['zh', '中文辯題'], ['en', 'English motion（英式英語）']].forEach(([k, t]) => langSeg.append(h('button', { class: cur === k ? 'on' : '', style: '--c:var(--sky)', onclick: () => { this.st.langOv = k; drawLang(); } }, t + (d === k && !this.st.langOv ? ' ✓' : ''))));
+      [['zh', '中文辯題'], ['en', 'English motion（英式英語）']].forEach(([k, t]) => langSeg.append(h('button', { class: cur === k ? 'on' : '', style: '--c:var(--sky)', onclick: () => { this.st.langOv = k; drawLang(); if (this.st.mode === 'sample' && typeof drawModes === 'function') drawModes(); } }, t + (d === k && !this.st.langOv ? ' ✓' : ''))));
     };
-    ta.addEventListener('input', () => { this.st.motion = ta.value; this.st.langOv = null; LS.set('lastMotion', ta.value); drawLang(); });
+    let lastLang = detectLang(ta.value);
+    ta.addEventListener('input', () => { this.st.motion = ta.value; this.st.langOv = null; LS.set('lastMotion', ta.value); drawLang(); const nl = detectLang(ta.value); if (nl !== lastLang) { lastLang = nl; if (this.st.mode === 'sample' && typeof drawModes === 'function') drawModes(); } });
     drawLang();
     const mic = h('button', { class: 'mic', type: 'button', 'aria-label': '語音輸入辯題', onclick: () => STT.start(ta, this.st.langOv || detectLang(ta.value) || 'zh', mic) }, '🎤');
     b.append(h('label', { class: 'fl' }, '📜 你嘅辯題'),
@@ -1721,10 +1750,14 @@ const Custom = {
         h('div', { class: 'row between' }, h('span', { class: 'me' }, e), spk(t + '。' + d, { small: true })), h('b', {}, t), h('span', {}, d));
       modes.append(
         mk('guide', '🧭', '引導思考模式', '阿辯一步一步問你問題，你自己諗論點、論證、論據同策略，最後 AI 評分同講改善位。', 'var(--mint)'),
-        mk('break', '⚡', 'AI 即時拆解', '阿辯即刻拆解辯題：關鍵字定義、雙方最有力論點、論證、論據、策略、反駁同開場白。', 'var(--sun)'));
+        mk('break', '⚡', 'AI 即時拆解', '阿辯即刻拆解辯題：關鍵字定義、雙方最有力論點、論證、論據、策略、反駁同開場白。', 'var(--sun)'),
+        mk('sample', '🎬', '全場比賽示範', '跟香港比賽賽制，AI 幫正反雙方每位辯員寫晒逐字稿，由主辯一直去到結辯，等你由頭到尾睇晒成場比賽。', 'var(--grape)'));
+      extra.innerHTML = '';
+      if (this.st.mode === 'sample') extra.append(Sample.optsUI(this.st.langOv || detectLang(ta.value) || 'zh'));
     };
+    const extra = h('div');
     drawModes();
-    b.append(h('label', { class: 'fl', style: 'margin-top:18px' }, '🎮 揀模式'), modes);
+    b.append(h('label', { class: 'fl', style: 'margin-top:18px' }, '🎮 揀模式'), modes, extra);
     if (!aiReady()) b.append(h('div', { class: 'note' }, '🔑 呢個部分要用 AI，請先喺右上角 ⚙️ 設定填好 Base URL、Model 同 API Key。'));
     b.append(h('div', { class: 'row end', style: 'margin-top:18px' }, h('button', { class: 'btn go', onclick: () => this.start() }, '🚀 開始！')));
     autoSay(intro);
@@ -1735,6 +1768,7 @@ const Custom = {
     this.st.motion = m; LS.set('lastMotion', m); SFX.play('click');
     if (!aiReady()) { aiError(new NoKeyError('NOKEY')); return; }
     if (this.st.mode === 'break') return this.startBreak();
+    if (this.st.mode === 'sample') return Sample.generate({ motion: m, lang: this.lang(), side: this.st.side, ctx: null });
     if (this.st.side === 'none') { this.st.stage = 'side'; this.render(); return; }
     this.startGuide();
   },
@@ -1848,8 +1882,9 @@ const Custom = {
     if (tips.length) b.append(sec('💡', '辯論貼士', '辯論貼士：' + tips.join('。')), h('div', { class: 'list-say' }, tips.map(t => h('div', { class: 'item' }, sayRow(t, '', { small: true })))));
     b.append(h('div', { class: 'row nav no-print' },
       h('button', { class: 'btn go', onclick: () => { if (this.st.side === 'none') { this.st.stage = 'side'; this.render(); } else this.startGuide(); } }, '🧭 用呢條辯題練習'),
+      h('button', { class: 'btn grape', onclick: () => { this.st.motion = motion; this.st.langOv = lang; this.st.side = side; this.st.stage = 'sampleSetup'; this.render(); } }, '🎬 全場示範逐字稿'),
       h('button', { class: 'btn sky', onclick: () => this.copy() }, '📋 複製'),
-      this.st.entryId ? h('button', { class: 'btn grape', onclick: () => Exporter.dialog([Library.get(this.st.entryId)]) }, '⬇️ 匯出') : null,
+      this.st.entryId ? h('button', { class: 'btn ghost', onclick: () => Exporter.dialog([Library.get(this.st.entryId)]) }, '⬇️ 匯出') : null,
       h('button', { class: 'btn ghost', onclick: () => window.print() }, '🖨️ 列印'),
       h('button', { class: 'btn coral', onclick: () => { this.st.stage = 'input'; this.render(); } }, '✨ 另一條辯題'),
       h('button', { class: 'btn ghost', onclick: () => App.go('library') }, '📂 我的收藏')));
@@ -2041,7 +2076,7 @@ const Library = {
   clean(x) {
     if (!x || typeof x !== 'object') return null;
     if (typeof x.id !== 'string' || !/^[A-Za-z0-9_-]{4,64}$/.test(x.id)) return null;
-    if (!['breakdown', 'eval'].includes(x.type)) return null;
+    if (!['breakdown', 'eval', 'sample'].includes(x.type)) return null;
     const e = {
       id: x.id, type: x.type, src: str(x.src).slice(0, 20) || 'custom', motion: str(x.motion).slice(0, 400),
       lang: x.lang === 'en' ? 'en' : 'zh', side: ['pro', 'con', 'none'].includes(x.side) ? x.side : 'none',
@@ -2053,6 +2088,11 @@ const Library = {
       const d = x.data;
       if (!d || typeof d !== 'object') return null;
       if (e.type === 'breakdown') { if (!d.d || typeof d.d !== 'object') return null; e.data = { d: d.d }; }
+      else if (e.type === 'sample') {
+        if (!d.s || typeof d.s !== 'object' || !Array.isArray(d.s.segs)) return null;
+        const f = d.fmt && typeof d.fmt === 'object' ? d.fmt : {};
+        e.data = { s: d.s, fmt: { key: SAMPLE_FORMATS[f.key] ? f.key : (e.lang === 'en' ? 'en3' : 'zh4'), free: !!f.free, mins: clamp(Number(f.mins) || 3, 1, 8), register: str(f.register) } };
+      }
       else { if (!d.result || typeof d.result !== 'object') return null; e.data = { steps: arr(d.steps), answers: arr(d.answers).map(str), result: d.result }; }
     }
     return e;
@@ -2126,8 +2166,9 @@ const Exporter = {
     const UL = xs => xs.length ? '<ul>' + xs.map(x => `<li>${x}</li>`).join('') + '</ul>' : '';
     const body = entries.map((e, i) => {
       const L = e.lang;
-      let out = `<section><h2>${i + 1}. ${esc(e.motion)}</h2><p class="meta">${e.type === 'breakdown' ? '⚡ AI 拆解' : '🏅 AI 評分'}・${esc(sideTxt(e.side, L))}・${L === 'en' ? 'English motion' : '中文辯題'}・${esc(fmtDate(e.createdAt))}${e.who ? '・' + esc(e.who) : ''}${e.grade && GRADES[e.grade] ? '（' + GRADES[e.grade].zh + '）' : ''}</p>`;
-      if (e.type === 'breakdown') {
+      let out = `<section><h2>${i + 1}. ${esc(e.motion)}</h2><p class="meta">${e.type === 'breakdown' ? '⚡ AI 拆解' : e.type === 'sample' ? '🎬 全場比賽示範' : '🏅 AI 評分'}・${esc(sideTxt(e.side, L))}・${L === 'en' ? 'English motion' : '中文辯題'}・${esc(fmtDate(e.createdAt))}${e.who ? '・' + esc(e.who) : ''}${e.grade && GRADES[e.grade] ? '（' + GRADES[e.grade].zh + '）' : ''}</p>`;
+      if (e.type === 'sample') out += Sample.docHTML(e);
+      else if (e.type === 'breakdown') {
         const d = e.data.d || {};
         if (d.kid_tip) out += `<p class="tip">🦉 阿辯提提你：${esc(d.kid_tip)}</p>`;
         out += H3('🧒 辯題講乜？', P_(str(d.motion_explained)));
@@ -2163,7 +2204,7 @@ const Exporter = {
 h1{font-size:28px;margin:0 0 4px}h2{font-size:23px;margin:34px 0 4px;padding-top:18px;border-top:3px solid #1d2445}h3{font-size:19px;margin:20px 0 6px}
 h3.pro{color:#c9302c}h3.con{color:#2f6fe0}.meta{color:#4a5480;font-size:14px;margin:0}.tip{background:#fff5c2;border:2px solid #1d2445;border-radius:12px;padding:8px 12px}
 .arg{border-left:8px solid #a898ff;background:#f7f7ff;border-radius:8px;padding:6px 12px;margin:10px 0}.arg.pro{border-color:#ff6b6b;background:#fff4f3}.arg.con{border-color:#4f8cff;background:#f2f7ff}.arg p{margin:3px 0}
-.warn{color:#8a5a00;font-size:15px}.str{font-size:13px}.score{font-size:20px}table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid #c8cbe0;padding:6px 8px;text-align:left;vertical-align:top}th{background:#eef0fb}
+.warn{color:#8a5a00;font-size:15px}.line{margin:6px 0;padding:6px 10px;border-radius:10px}.line.pro{background:#fff4f3}.line.con{background:#f2f7ff;margin-left:40px}.str{font-size:13px}.score{font-size:20px}table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid #c8cbe0;padding:6px 8px;text-align:left;vertical-align:top}th{background:#eef0fb}
 .foot{margin-top:40px;color:#4a5480;font-size:14px;border-top:1px dashed #c8cbe0;padding-top:10px}@media print{h2{break-before:page}section:first-of-type h2{break-before:auto}}</style></head>
 <body><h1>🦉 辯辯島・我的收藏</h1><p class="meta">匯出時間：${esc(fmtDate(nowISO()))}・共 ${entries.length} 項</p>${body}
 <p class="foot">由「辯辯島 Debate Island」匯出。AI 提供嘅數據、研究同例子，請記得查證出處先用喺比賽。</p></body></html>`;
@@ -2310,13 +2351,13 @@ const LibraryScr = {
   enter() { this.render(); },
   render() {
     const b = this.body(); b.innerHTML = ''; b.scrollTop = 0;
-    const intro = '呢度係你嘅收藏。每次 AI 拆解辯題，或者幫你評分之後，都會自動儲存喺度。揿一下就可以再睇，唔使再用 AI。大人亦可以匯出檔案，儲存喺電腦度。';
+    const intro = '呢度係你嘅收藏。每次 AI 拆解辯題、寫全場示範，或者幫你評分之後，都會自動儲存喺度。揿一下就可以再睇，唔使再用 AI。大人亦可以匯出檔案，儲存喺電腦度。';
     b.append(sayRow(intro));
     this.syncEl = h('div', { style: 'margin-top:12px' }); b.append(this.syncEl); this.drawSync();
     const search = h('input', { type: 'text', placeholder: '🔍 搵辯題…', 'aria-label': '搵辯題' }); search.value = this.q;
     search.addEventListener('input', () => { this.q = search.value; this.drawList(); });
     const seg = h('div', { class: 'seg', style: 'margin-top:12px' });
-    const drawSeg = () => { seg.innerHTML = ''; [['all', '📚 全部'], ['breakdown', '⚡ 拆解'], ['eval', '🏅 評分']].forEach(([k, t]) => seg.append(h('button', { type: 'button', class: this.f === k ? 'on' : '', onclick: () => { this.f = k; drawSeg(); this.drawList(); SFX.play('click'); } }, t))); };
+    const drawSeg = () => { seg.innerHTML = ''; [['all', '📚 全部'], ['breakdown', '⚡ 拆解'], ['sample', '🎬 示範'], ['eval', '🏅 評分']].forEach(([k, t]) => seg.append(h('button', { type: 'button', class: this.f === k ? 'on' : '', onclick: () => { this.f = k; drawSeg(); this.drawList(); SFX.play('click'); } }, t))); };
     drawSeg();
     const fileIn = h('input', { type: 'file', accept: '.json,application/json', style: 'display:none', 'aria-hidden': 'true' });
     fileIn.addEventListener('change', () => { const f = fileIn.files && fileIn.files[0]; if (f) this.importFile(f); fileIn.value = ''; });
@@ -2338,19 +2379,20 @@ const LibraryScr = {
     const L = this.listEl; if (!L || !L.isConnected) return;
     L.innerHTML = '';
     const all = Library.list(), q = this.q.trim().toLowerCase();
-    if (!all.length) { L.append(h('div', { class: 'card tint' }, sayRow('仲未有收藏。去「我的辯題」用 AI 拆解一條辯題，或者去「辯題挑戰」完成一次評分，就會自動儲存喺度！'))); return; }
+    if (!all.length) { L.append(h('div', { class: 'card tint' }, sayRow('仲未有收藏。去「我的辯題」用 AI 拆解一條辯題、寫全場示範，或者去「辯題挑戰」完成一次評分，就會自動儲存喺度！'))); return; }
     const xs = all.filter(e => (this.f === 'all' || e.type === this.f) && (!q || e.motion.toLowerCase().includes(q)));
     L.append(h('div', { class: 'muted', style: 'font-size:15px' }, `共 ${all.length} 項${xs.length !== all.length ? `，顯示緊 ${xs.length} 項` : ''}`));
     if (!xs.length) { L.append(h('p', { class: 'muted' }, '搵唔到符合嘅收藏。')); return; }
     xs.forEach(e => {
-      const isB = e.type === 'breakdown', r = !isB && e.data && e.data.result;
-      const say = `${isB ? 'AI 拆解' : `AI 評分，${r ? r.total : ''}分`}。辯題：${e.motion}。${sideTxt(e.side, e.lang)}。`;
+      const isB = e.type === 'breakdown', isS = e.type === 'sample', r = e.type === 'eval' && e.data && e.data.result;
+      const fmtName = isS && SAMPLE_FORMATS[e.data.fmt.key] ? SAMPLE_FORMATS[e.data.fmt.key].name : '';
+      const say = `${isB ? 'AI 拆解' : isS ? '全場比賽示範，' + fmtName : `AI 評分，${r ? r.total : ''}分`}。辯題：${e.motion}。${isS ? '' : sideTxt(e.side, e.lang) + '。'}`;
       L.append(tapDiv({ class: 'lib-item', onclick: () => { SFX.play('click'); this.open(e.id); } },
-        h('div', { class: 'li-e', 'aria-hidden': 'true' }, isB ? '⚡' : '🏅'),
+        h('div', { class: 'li-e', 'aria-hidden': 'true' }, isB ? '⚡' : isS ? '🎬' : '🏅'),
         h('div', { class: 'li-main' }, h('div', { class: 'li-t' }, e.motion),
           h('div', { class: 'li-m' },
-            h('span', { class: 'chip', style: `--c:${isB ? '#fff0b3' : '#d8ffe9'}` }, isB ? 'AI 拆解' : `評分 ${r ? r.total : '?'} 分 ${'⭐'.repeat(r ? clamp(Number(r.stars) || 0, 0, 5) : 0)}`),
-            h('span', {}, sideTxt(e.side, e.lang)), h('span', {}, fmtDate(e.createdAt)), e.who ? h('span', {}, '👧 ' + e.who) : null)),
+            h('span', { class: 'chip', style: `--c:${isB ? '#fff0b3' : isS ? '#e6e0ff' : '#d8ffe9'}` }, isB ? 'AI 拆解' : isS ? '🎬 全場示範' : `評分 ${r ? r.total : '?'} 分 ${'⭐'.repeat(r ? clamp(Number(r.stars) || 0, 0, 5) : 0)}`),
+            h('span', {}, isS ? fmtName : sideTxt(e.side, e.lang)), h('span', {}, fmtDate(e.createdAt)), e.who ? h('span', {}, '👧 ' + e.who) : null)),
         h('div', { class: 'li-act' },
           spk(say, { small: true }),
           h('button', { class: 'icon-btn sm', type: 'button', 'aria-label': '匯出', title: '匯出', onclick: ev => { ev.stopPropagation(); Exporter.dialog([e]); } }, '⬇️'),
@@ -2364,6 +2406,9 @@ const LibraryScr = {
     if (e.type === 'breakdown') {
       C.bd = { d: e.data.d, motion: e.motion, lang: e.lang, side: e.side, tab: e.side === 'con' ? 'con' : 'pro' };
       C.stage = 'breakdown';
+    } else if (e.type === 'sample') {
+      C.sample = { motion: e.motion, lang: e.lang, side: e.side, s: e.data.s, fmt: e.data.fmt };
+      C.stage = 'sample';
     } else {
       const raw = e.data.result || {};
       C.result = normResult(Object.assign({}, raw, { better_version: raw.better, next_challenge: raw.next }));
@@ -2389,6 +2434,287 @@ const LibraryScr = {
     };
     rd.onerror = () => toast('讀唔到呢個檔案');
     rd.readAsText(f);
+  }
+};
+
+/* =========================================================
+   Sample 🎬 全場比賽示範（每位辯員逐字稿）
+   ========================================================= */
+const SAMPLE_FORMATS = {
+  zh4: { lang: 'zh', ex: 'free', name: '中文 4 人制', sub: '主辯、第一副辯、第二副辯、結辯＋自由辯論（例如《基本法》盃）' },
+  zh4x: { lang: 'zh', ex: 'cross', name: '中文 4 人制（攻辯）', sub: '主辯、副辯、攻辯、結辯＋攻辯環節（例如保良局全港小學校際辯論賽）' },
+  zh3: { lang: 'zh', ex: 'free', name: '中文 3 人制', sub: '主辯、副辯、結辯＋自由辯論' },
+  en3: { lang: 'en', ex: null, name: 'English 3-on-3', sub: '1st, 2nd and 3rd speakers, Affirmative and Negative take turns' },
+  en3r: { lang: 'en', ex: null, name: 'English 3-on-3 + Reply', sub: 'plus Reply Speeches: Negative first, Affirmative last' }
+};
+const ZH_JOB = {
+  主辯: side => side === 'pro' ? '定義關鍵字、講清楚立場同判斷標準、預告全隊論點分工，詳細講第一個論點。' : '先簡短回應正方嘅定義同標準，再講清楚反方立場、預告全隊論點，詳細講第一個論點。',
+  第一副辯: () => '先反駁對方主辯，再深化本方第二個論點。',
+  第二副辯: () => '反駁對方之前嘅發言，提出或者深化本方第三個論點，鞏固主線。',
+  副辯: () => '先反駁對方主辯，再深化本方其餘論點。',
+  攻辯: () => '喺攻辯環節向對方提出尖銳問題，亦要答對方嘅問題。',
+  結辯: side => (side === 'con' ? '（反方先結辯）' : '（正方最後結辯）') + '唔可以提出新論點；總結全場交鋒位、指出對方謬誤、重申本方立場，有力收結。'
+};
+const EN_JOB = {
+  1: side => side === 'pro' ? 'Define the motion, set the framework, outline the team split and present the first argument(s).' : 'Respond briefly to the definition, give a short rebuttal, outline the team split and present the first argument(s).',
+  2: () => 'Rebut the previous speakers, then present the team’s further argument(s).',
+  3: () => 'Rebut and summarise the key clashes. No new arguments.',
+  R: side => (side === 'con' ? 'Negative reply comes first. ' : 'Affirmative reply comes last. ') + 'Given by the 1st speaker: a short, one-sided review of why your team won. No new arguments.'
+};
+const ORD = { 1: '1st', 2: '2nd', 3: '3rd' };
+
+const Sample = {
+  opts: Object.assign({ fmtZh: 'zh4', fmtEn: 'en3', free: true, mins: 3, register: 'formal' }, LS.get('sampleOpts', {})),
+  st: null, playing: false,
+  saveOpts() { LS.set('sampleOpts', this.opts); },
+  fmtKey(lang) { const k = lang === 'en' ? this.opts.fmtEn : this.opts.fmtZh; return SAMPLE_FORMATS[k] && SAMPLE_FORMATS[k].lang === lang ? k : (lang === 'en' ? 'en3' : 'zh4'); },
+  /* 由賽制砌出發言次序 */
+  build(fk, free, mins) {
+    const F = SAMPLE_FORMATS[fk], zh = F.lang === 'zh', A = [], B = [];
+    let ex = null;
+    const sp = (side, role, roleEn, job, m) => ({ t: 'speech', id: `${side}_${roleEn.replace(/\W+/g, '')}`, side, role, roleEn, job, mins: m });
+    if (zh) {
+      const mids = fk === 'zh4' ? ['第一副辯', '第二副辯'] : ['副辯'];
+      const enName = { 主辯: 'Lead', 第一副辯: 'Deputy1', 第二副辯: 'Deputy2', 副辯: 'Deputy', 結辯: 'Closing' };
+      ['主辯', ...mids].forEach(r => ['pro', 'con'].forEach(s => A.push(sp(s, (s === 'pro' ? '正方' : '反方') + r, enName[r], ZH_JOB[r](s), mins))));
+      if (F.ex === 'cross') ex = { t: 'ex', kind: 'cross', title: '攻辯環節', job: '正方攻辯向反方提問、反方作答；然後反方攻辯向正方提問、正方作答。問題要短而尖銳，答案要直接。' };
+      else if (free) ex = { t: 'ex', kind: 'free', title: '自由辯論', job: '由正方開始，雙方輪流發言，每次一至兩句：追問對方弱點、即時回應質疑。' };
+      ['con', 'pro'].forEach(s => B.push(sp(s, (s === 'pro' ? '正方' : '反方') + '結辯', 'Closing', ZH_JOB.結辯(s), mins)));
+    } else {
+      const nm = (s, n) => `${ORD[n]} ${s === 'pro' ? 'Affirmative' : 'Negative'}`;
+      const zhn = (s, n) => `${s === 'pro' ? '正方' : '反方'}${'一二三'[n - 1]}辯`;
+      [1, 2].forEach(n => ['pro', 'con'].forEach(s => A.push(sp(s, `${nm(s, n)}（${zhn(s, n)}）`, nm(s, n), EN_JOB[n](s), mins))));
+      ['pro', 'con'].forEach(s => B.push(sp(s, `${nm(s, 3)}（${zhn(s, 3)}）`, nm(s, 3), EN_JOB[3](s), mins)));
+      if (fk === 'en3r') ['con', 'pro'].forEach(s => B.push(sp(s, `${s === 'pro' ? 'Affirmative' : 'Negative'} Reply（${s === 'pro' ? '正方' : '反方'}總結，由一辯負責）`, `${s === 'pro' ? 'Affirmative' : 'Negative'} Reply`, EN_JOB.R(s), Math.max(1.5, mins / 2))));
+    }
+    return { A, ex, B };
+  },
+  orderText(fk, free) {
+    const { A, ex, B } = this.build(fk, free, 3);
+    return [...A.map(x => x.role), ex ? ex.title : null, ...B.map(x => x.role)].filter(Boolean).join(' → ');
+  },
+  target(lang, mins) { return lang === 'en' ? `about ${Math.round(mins * 110)} words` : `約 ${Math.round(mins * 180)} 字`; },
+  /* 選項 UI */
+  optsUI(lang) {
+    const w = h('div', { class: 'card tint', style: 'margin-top:14px' });
+    const draw = () => {
+      w.innerHTML = '';
+      const fk = this.fmtKey(lang), F = SAMPLE_FORMATS[fk];
+      const fseg = h('div', { class: 'seg' });
+      Object.entries(SAMPLE_FORMATS).filter(([, f]) => f.lang === lang).forEach(([k, f]) => fseg.append(h('button', { type: 'button', class: k === fk ? 'on' : '', style: '--c:var(--grape)', onclick: () => { if (lang === 'en') this.opts.fmtEn = k; else this.opts.fmtZh = k; this.saveOpts(); SFX.play('click'); draw(); } }, f.name)));
+      const mseg = h('div', { class: 'seg' });
+      [2, 3, 4].forEach(m => mseg.append(h('button', { type: 'button', class: this.opts.mins === m ? 'on' : '', style: 'min-width:80px', onclick: () => { this.opts.mins = m; this.saveOpts(); draw(); } }, m + ' 分鐘')));
+      const order = '發言次序：' + this.orderText(fk, this.opts.free);
+      w.append(
+        h('div', { class: 'row' }, h('b', { style: 'flex:1;font-size:20px' }, '🎬 示範設定'), spk(`賽制：${F.name}。${F.sub}。${order}`, { small: true })),
+        h('label', { class: 'fl' }, '🏟️ 賽制'), fseg,
+        h('div', { class: 'muted', style: 'font-size:15px;margin-top:6px' }, F.sub),
+        F.ex === 'free' ? h('label', { class: 'toggle', style: 'margin-top:12px' }, (() => { const c = h('input', { type: 'checkbox' }); c.checked = this.opts.free; c.addEventListener('change', () => { this.opts.free = c.checked; this.saveOpts(); draw(); }); return c; })(), '包括自由辯論環節') : null,
+        h('label', { class: 'fl' }, '⏱️ 每位辯員發言時間'), mseg,
+        lang === 'zh' ? h('label', { class: 'fl' }, '✍️ 講稿語體') : null,
+        lang === 'zh' ? (() => { const s = h('div', { class: 'seg' }); [['formal', '書面語（比賽常用）'], ['colloquial', '廣東話口語']].forEach(([k, t]) => s.append(h('button', { type: 'button', class: this.opts.register === k ? 'on' : '', onclick: () => { this.opts.register = k; this.saveOpts(); draw(); } }, t))); return s; })() : null,
+        h('div', { class: 'note' }, '📋 ' + order),
+        h('div', { class: 'muted', style: 'font-size:14px;margin-top:8px' }, '每場比賽嘅賽制都唔同，請以大會嘅「賽制章程」為準。AI 要寫成場比賽，通常要 1 至 4 分鐘。'));
+    };
+    draw();
+    return w;
+  },
+  /* 設定頁（由拆解頁過嚟） */
+  setupPage(b, motion, lang, side, ctx, onBack) {
+    b.innerHTML = ''; b.scrollTop = 0;
+    const intro = '阿辯會跟住你揀嘅賽制，幫正反雙方每一位辯員寫晒示範講稿，由主辯開始，一直去到結辯，等你由頭到尾睇晒成場比賽點樣打。';
+    b.append(motionBanner(motion, lang, side === 'none' ? null : side), h('div', { style: 'margin-top:14px' }, sayRow(intro)), this.optsUI(lang),
+      h('div', { class: 'row nav' }, h('button', { class: 'btn ghost', onclick: onBack }, '⬅️ 返回'),
+        h('button', { class: 'btn go', onclick: () => this.generate({ motion, lang, side, ctx }) }, '🎬 開始寫示範！')));
+    autoSay(intro);
+  },
+  /* 提示詞 */
+  sys(lang, fk, part) {
+    const F = SAMPLE_FORMATS[fk], en = lang === 'en', fbEn = fbLang(lang) === 'en';
+    const reg = en ? '講稿用自然、清楚嘅英式英文（British English spelling），適合小學生讀出。'
+      : this.opts.register === 'colloquial' ? '講稿用自然嘅廣東話口語（繁體中文），但仍然要有禮貌、有條理。'
+      : '講稿用規範書面語（繁體中文），即香港中文辯論比賽常用、以粵語讀出嘅語體；唔好用廣東話口語字（例如「係、唔、嘅、咗」）。';
+    return `${COACH}
+你而家要為一場香港小學辯論比賽寫「示範逐字稿」，俾學生由頭到尾學習成場比賽點樣打。賽制：${F.name}（${F.sub}）。
+寫作要求：
+- ${reg}
+- 用學生年級聽得明嘅詞彙，但要示範良好結構：清楚嘅路標（例如「我方有三個論點」「第一」「第二」）、論點→論證→論據。
+- 每篇講稿開頭要有禮貌稱呼（中文例如「多謝主席。各位評判、各位老師、對方辯友、各位同學：」；英文例如 "Thank you, Madam Chair. Adjudicators, ladies and gentlemen,"）。
+- 後面嘅辯員一定要真正回應之前對方講過嘅具體內容（先簡述對方講法，再反駁），唔可以自說自話。
+- 正反雙方要旗鼓相當，兩邊都要寫得好，唔好刻意令一方弱。
+- 結辯、3rd speaker 同 Reply 唔可以提出新論點。
+- 講稿入面用 \\n 分段。字數要貼近每篇指定長度（上下 15%）。
+- coach 欄：用 1 至 2 句${fbEn ? '簡單英式英文' : '廣東話'}講呢篇示範咗咩技巧，等小朋友學。
+${HONEST}
+${part === 'A' ? '' : '- 自由辯論／攻辯每句都要短（中文 20 至 60 字；英文 12 至 35 words），雙方輪流，要針對之前講稿嘅內容。'}
+只輸出一個 JSON 物件，唔好有其他文字。`;
+  },
+  list(xs, lang) { return xs.map(x => `[${x.id}] ${x.role}：任務：${x.job}　長度：${this.target(lang, x.mins)}`).join('\n'); },
+  head(motion, lang, side, ctx) {
+    let s = `${studentLine()}\n辯題：${motion}\n辯題語言：${lang === 'en' ? 'English' : '中文'}`;
+    if (side === 'pro' || side === 'con') s += `\n學生屬於：${side === 'pro' ? '正方' : '反方'}（兩方都要寫得好）`;
+    if (ctx) {
+      const pts = k => arr(ctx[k]).slice(0, 4).map(a => `・${str(a.claim)}`).join('\n');
+      s += `\n之前拆解出嚟嘅論點（可以採用）：\n正方：\n${pts('pro')}\n反方：\n${pts('con')}`;
+    }
+    return s;
+  },
+  async generate({ motion, lang, side, ctx }) {
+    if (!aiReady()) { aiError(new NoKeyError('NOKEY')); return; }
+    const fk = this.fmtKey(lang), fmt = { key: fk, free: SAMPLE_FORMATS[fk].ex === 'free' ? !!this.opts.free : false, mins: this.opts.mins, register: lang === 'zh' ? this.opts.register : '' };
+    const plan = this.build(fk, fmt.free, fmt.mins);
+    this.st = { motion, lang, side, ctx, fk, fmt, plan, a: null };
+    return this.runA();
+  },
+  async runA() {
+    const c = this.st, { A } = c.plan;
+    try {
+      const user = `${this.head(c.motion, c.lang, c.side, c.ctx)}\n\n今次只寫以下 ${A.length} 篇發言（按比賽次序）：\n${this.list(A, c.lang)}\n\n輸出格式：{"plan":{"pro_line":"正方主線（一句）","con_line":"反方主線（一句）","pro_points":["正方論點（短）"],"con_points":["反方論點（短）"]},"speeches":[{"id":"同上面嘅 id","text":"逐字稿","coach":"技巧點評"}]}`;
+      const d = await withThinking(`阿辯寫緊上半場講稿（1/2）…`, () => callAI(this.sys(c.lang, c.fk, 'A'), user, { maxTokens: 12000, timeout: 240000 }));
+      const got = this.pick(arr(d.speeches), A);
+      if (got.filter(x => x.text).length < Math.ceil(A.length / 2)) throw new Error('AI 冇寫齊上半場講稿，請再試一次。');
+      c.a = { plan: d.plan && typeof d.plan === 'object' ? d.plan : {}, segs: got };
+      return this.runB();
+    } catch (e) { aiError(e, () => this.runA()); }
+  },
+  async runB() {
+    const c = this.st, { ex, B } = c.plan;
+    try {
+      const before = c.a.segs.map(x => `【${x.role}】\n${x.text}`).join('\n\n');
+      const exReq = ex ? `先寫「${ex.title}」：${ex.job}大約 ${ex.kind === 'cross' ? 12 : 14} 句。\n然後寫` : '寫';
+      const user = `${this.head(c.motion, c.lang, c.side, c.ctx)}\n\n以下係上半場已經講咗嘅講稿：\n${before}\n\n${exReq}以下 ${B.length} 篇發言（按比賽次序），要回應上半場${ex ? '同' + ex.title : ''}嘅具體內容：\n${this.list(B, c.lang)}\n\n最後用${fbLang(c.lang) === 'en' ? '簡單英式英文' : '廣東話'}寫評判點評。\n輸出格式：{${ex ? '"exchange":[{"side":"pro 或 con","speaker":"例如：正方第一副辯","line":"一句發言"}],' : ''}"speeches":[{"id":"同上面嘅 id","text":"逐字稿","coach":"技巧點評"}],"judge":{"clashes":["全場主要交鋒位"],"pro_did_well":"正方做得好嘅地方","con_did_well":"反方做得好嘅地方","lessons":["學生可以學到嘅重點"]}}`;
+      const d = await withThinking(`阿辯寫緊${ex ? ex.title + '同' : ''}${c.lang === 'en' ? '下半場' : '結辯'}（2/2）…`, () => callAI(this.sys(c.lang, c.fk, 'B'), user, { maxTokens: 12000, timeout: 240000 }));
+      const bs = this.pick(arr(d.speeches), B);
+      if (!bs.some(x => x.text)) throw new Error('AI 冇寫到下半場講稿，請再試一次。');
+      const segs = [...c.a.segs];
+      if (ex) segs.push(Object.assign({}, ex, { lines: arr(d.exchange).filter(l => l && l.line).map(l => ({ side: l.side === 'con' ? 'con' : 'pro', speaker: str(l.speaker), line: str(l.line) })) }));
+      segs.push(...bs);
+      const s = { plan: c.a.plan, segs, judge: d.judge && typeof d.judge === 'object' ? d.judge : {} };
+      award('custom');
+      const entry = Library.add({ type: 'sample', src: 'custom', motion: c.motion, lang: c.lang, side: c.side || 'none', data: { s, fmt: c.fmt } });
+      Object.assign(Custom.st, { sample: { motion: c.motion, lang: c.lang, side: c.side, s, fmt: c.fmt }, entryId: entry.id, quiet: false, stage: 'sample' });
+      if (App.cur !== 'custom') App.go('custom', true); else Custom.render();
+      SFX.play('win'); World.cheer(2); confetti(60);
+    } catch (e) { aiError(e, () => this.runB()); }
+  },
+  pick(list, want) {
+    return want.map((w, i) => {
+      const f = list.find(x => x && x.id === w.id) || list[i] || {};
+      return Object.assign({}, w, { text: str(f.text).trim(), coach: str(f.coach).trim() });
+    });
+  },
+  /* 睇示範 */
+  render(b, sm, nav) {
+    this.stopAll();
+    const { motion, lang, s, fmt } = sm, F = SAMPLE_FORMATS[fmt.key] || SAMPLE_FORMATS.zh4, you = sm.side;
+    b.innerHTML = ''; b.scrollTop = 0;
+    b.append(motionBanner(motion, lang, you === 'pro' || you === 'con' ? you : null));
+    const segs = arr(s.segs);
+    b.append(h('div', { class: 'card', style: 'margin-top:16px;background:var(--grape)' },
+      sayRow(`🎬 全場比賽示範：${F.name}，每人約 ${fmt.mins} 分鐘。由${segs[0] ? segs[0].role || '' : ''}開始，一直去到最後。揿每篇講稿旁邊嘅喇叭可以聽，或者揿「由頭到尾朗讀」聽晒成場。`)));
+    const p = s.plan || {};
+    if (p.pro_line || p.con_line) {
+      const side = (k, c) => h('div', { class: 'item', style: `border-left:10px solid var(--${k})` },
+        sayRow(`${k === 'pro' ? '🔴 正方' : '🔵 反方'}主線：${str(p[k + '_line'])}`, '', { small: true }),
+        arr(p[k + '_points']).length ? h('ol', { style: 'margin:6px 0 0;padding-left:22px;font-size:17px' }, arr(p[k + '_points']).map(x => h('li', {}, str(x)))) : null);
+      b.append(h('div', { class: 'sec-title' }, h('span', { class: 'e' }, '🧭'), h('span', { class: 'grow' }, '雙方主線')), h('div', { class: 'grid2' }, side('pro'), side('con')));
+    }
+    const playBtn = h('button', { class: 'btn go sm', onclick: () => this.playAll(playBtn, cards) }, '▶️ 由頭到尾朗讀');
+    b.append(h('div', { class: 'row no-print', style: 'margin-top:14px' }, playBtn,
+      h('button', { class: 'btn sky sm', onclick: () => this.copy(sm) }, '📋 複製全場'),
+      sm.entryId ? h('button', { class: 'btn grape sm', onclick: () => Exporter.dialog([Library.get(sm.entryId)]) }, '⬇️ 匯出') : null,
+      h('button', { class: 'btn ghost sm', onclick: () => window.print() }, '🖨️ 列印')));
+    const cards = [];
+    const rundown = h('div', { class: 'rundown no-print' });
+    b.append(h('div', { class: 'sec-title' }, h('span', { class: 'e' }, '📋'), h('span', { class: 'grow' }, '發言次序'), spk('發言次序：' + segs.map(x => x.t === 'ex' ? x.title : x.role).join('，'))), rundown);
+    segs.forEach((x, i) => {
+      const n = i + 1;
+      let card, say;
+      if (x.t === 'ex') {
+        say = x.title + '。' + arr(x.lines).map(l => `${l.speaker || (l.side === 'pro' ? '正方' : '反方')}：${l.line}`).join('。');
+        card = h('div', { class: 'card sp-card ex' },
+          h('div', { class: 'row' }, h('span', { class: 'chip big', style: '--c:var(--sun)' }, `${n}・${x.title}`), h('span', { class: 'grow' }), spk(say)),
+          h('div', { class: 'muted', style: 'font-size:15px;margin-top:6px' }, '任務：' + str(x.job)),
+          h('div', { class: 'chat' }, arr(x.lines).map(l => h('div', { class: 'msg ' + l.side },
+            h('small', {}, (l.side === 'pro' ? '🔴 ' : '🔵 ') + (l.speaker || (l.side === 'pro' ? '正方' : '反方'))),
+            h('div', { class: 'say' }, h('p', {}, l.line), spk(l.line, { small: true }))))));
+      } else {
+        const paras = str(x.text).split(/\n+/).filter(Boolean);
+        const len = lang === 'en' ? (str(x.text).match(/\S+/g) || []).length : str(x.text).replace(/\s/g, '').length;
+        const estMin = lang === 'en' ? len / 110 : len / 180;
+        say = `${x.role}發言。${x.text}`;
+        card = h('div', { class: 'card sp-card ' + x.side },
+          h('div', { class: 'row' }, h('span', { class: 'chip big', style: `--c:var(--${x.side});color:#fff` }, `${n}・${x.side === 'pro' ? '🔴' : '🔵'} ${x.role}${you === x.side ? '（你嗰方）' : ''}`), h('span', { class: 'grow' }), spk(say, { label: '朗讀呢篇講稿' })),
+          h('div', { class: 'muted', style: 'font-size:15px;margin-top:6px' }, '任務：' + str(x.job)),
+          h('div', { class: 'script' }, paras.length ? paras.map(t => h('p', {}, t)) : h('p', { class: 'muted' }, '（AI 冇寫到呢篇，可以再生成一次）')),
+          h('div', { class: 'muted', style: 'font-size:14px;margin-top:6px' }, `${lang === 'en' ? len + ' words' : len + ' 字'}・大約 ${estMin.toFixed(1)} 分鐘（目標 ${x.mins} 分鐘）`),
+          x.coach ? h('div', { class: 'coach' }, sayRow('🦉 教練點評：' + x.coach, '', { small: true })) : null);
+      }
+      card.id = 'sp-' + n;
+      cards.push({ el: card, text: say });
+      rundown.append(h('button', { type: 'button', class: 'rd ' + (x.t === 'ex' ? 'ex' : x.side), onclick: () => { try { card.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {} } }, `${n}. ${x.t === 'ex' ? x.title : x.role.replace(/（.*）/, '')}`));
+      b.append(card);
+    });
+    const j = s.judge || {};
+    const jl = [...arr(j.clashes).map(x => '⚔️ ' + str(x)), j.pro_did_well ? '🔴 正方做得好：' + str(j.pro_did_well) : '', j.con_did_well ? '🔵 反方做得好：' + str(j.con_did_well) : '', ...arr(j.lessons).map(x => '💡 ' + str(x))].filter(Boolean);
+    if (jl.length) b.append(h('div', { class: 'sec-title' }, h('span', { class: 'e' }, '👩‍⚖️'), h('span', { class: 'grow' }, '評判點評同學習重點'), spk('評判點評：' + jl.join('。'))),
+      h('div', { class: 'list-say' }, jl.map(t => h('div', { class: 'item' }, sayRow(t, '', { small: true })))));
+    b.append(h('div', { class: 'note' }, '⚠️ 呢份係 AI 寫嘅示範稿，用嚟學結構同技巧。比賽前請用自己嘅說話改寫；入面提到嘅數據同例子，一定要查證出處。'));
+    if (nav) b.append(nav);
+    autoSay('全場示範準備好！由' + (segs[0] ? segs[0].role : '主辯') + '開始睇啦。');
+  },
+  playAll(btn, cards) {
+    if (this.playing) { this.stopAll(); TTS.stop(); return; }
+    if (!cards.length) return;
+    this.playing = true; this.btn = btn; btn.textContent = '⏹ 停止朗讀';
+    const step = i => {
+      $$('.sp-card.reading').forEach(x => x.classList.remove('reading'));
+      if (!this.playing || i >= cards.length) { this.stopAll(); return; }
+      const c = cards[i]; c.el.classList.add('reading');
+      try { c.el.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {}
+      TTS.speak(c.text, null, natural => natural ? step(i + 1) : this.stopAll());
+    };
+    step(0);
+  },
+  stopAll() {
+    this.playing = false;
+    $$('.sp-card.reading').forEach(x => x.classList.remove('reading'));
+    if (this.btn) { this.btn.textContent = '▶️ 由頭到尾朗讀'; this.btn = null; }
+  },
+  toText(sm) {
+    const { motion, s, fmt } = sm, F = SAMPLE_FORMATS[fmt.key] || SAMPLE_FORMATS.zh4, L = [];
+    L.push('辯題：' + motion, `賽制：${F.name}（每人約 ${fmt.mins} 分鐘）`, '');
+    const p = s.plan || {};
+    if (p.pro_line) L.push('【正方主線】' + p.pro_line, ...arr(p.pro_points).map((x, i) => `  ${i + 1}. ${x}`));
+    if (p.con_line) L.push('【反方主線】' + p.con_line, ...arr(p.con_points).map((x, i) => `  ${i + 1}. ${x}`));
+    arr(s.segs).forEach((x, i) => {
+      L.push('', `==== ${i + 1}. ${x.t === 'ex' ? x.title : x.role} ====`);
+      if (x.t === 'ex') arr(x.lines).forEach(l => L.push(`${l.speaker || (l.side === 'pro' ? '正方' : '反方')}：${l.line}`));
+      else { L.push(str(x.text)); if (x.coach) L.push('（教練點評：' + x.coach + '）'); }
+    });
+    const j = s.judge || {};
+    if (arr(j.clashes).length || arr(j.lessons).length) L.push('', '==== 評判點評 ====', ...arr(j.clashes).map(x => '・交鋒：' + x), j.pro_did_well ? '・正方：' + j.pro_did_well : '', j.con_did_well ? '・反方：' + j.con_did_well : '', ...arr(j.lessons).map(x => '・學習：' + x));
+    L.push('', '（AI 示範稿：數據同例子請查證出處）');
+    return L.filter(x => x !== '').join('\n').replace(/\n(?====)/g, '\n\n');
+  },
+  copy(sm) {
+    const text = this.toText(sm);
+    const fallback = () => { const t = h('textarea', { style: 'position:fixed;opacity:0' }); t.value = text; document.body.append(t); t.select(); try { document.execCommand('copy'); toast('📋 已複製全場逐字稿！'); } catch (e) { toast('複製唔到，請用匯出'); } t.remove(); };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(() => toast('📋 已複製全場逐字稿！'), fallback); else fallback();
+  },
+  docHTML(e) {
+    const { s, fmt } = e.data, F = SAMPLE_FORMATS[fmt.key] || SAMPLE_FORMATS.zh4, p = s.plan || {};
+    let out = `<p class="meta">🎬 ${esc(F.name)}（${esc(F.sub)}）・每人約 ${esc(fmt.mins)} 分鐘</p>`;
+    if (p.pro_line || p.con_line) out += `<h3>🧭 雙方主線</h3><div class="arg pro"><b>正方：</b>${esc(p.pro_line)}<ol>${arr(p.pro_points).map(x => `<li>${esc(x)}</li>`).join('')}</ol></div><div class="arg con"><b>反方：</b>${esc(p.con_line)}<ol>${arr(p.con_points).map(x => `<li>${esc(x)}</li>`).join('')}</ol></div>`;
+    out += `<h3>📋 發言次序</h3><p>${arr(s.segs).map((x, i) => `${i + 1}. ${esc(x.t === 'ex' ? x.title : x.role)}`).join('　→　')}</p>`;
+    arr(s.segs).forEach((x, i) => {
+      if (x.t === 'ex') out += `<h3>${i + 1}. ${esc(x.title)}</h3>` + arr(x.lines).map(l => `<p class="line ${l.side === 'con' ? 'con' : 'pro'}"><b>${esc(l.speaker || (l.side === 'pro' ? '正方' : '反方'))}：</b>${esc(l.line)}</p>`).join('');
+      else out += `<h3 class="${x.side}">${i + 1}. ${x.side === 'pro' ? '🔴' : '🔵'} ${esc(x.role)}</h3><p class="meta">任務：${esc(x.job)}</p><div class="arg ${x.side}">${str(x.text).split(/\n+/).filter(Boolean).map(t => `<p>${esc(t)}</p>`).join('')}</div>${x.coach ? `<p class="warn">🦉 教練點評：${esc(x.coach)}</p>` : ''}`;
+    });
+    const j = s.judge || {};
+    const jl = [...arr(j.clashes).map(x => '⚔️ ' + esc(x)), j.pro_did_well ? '🔴 正方做得好：' + esc(j.pro_did_well) : '', j.con_did_well ? '🔵 反方做得好：' + esc(j.con_did_well) : '', ...arr(j.lessons).map(x => '💡 ' + esc(x))].filter(Boolean);
+    if (jl.length) out += '<h3>👩‍⚖️ 評判點評同學習重點</h3><ul>' + jl.map(x => `<li>${x}</li>`).join('') + '</ul>';
+    return out;
   }
 };
 
