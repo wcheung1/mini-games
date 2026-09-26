@@ -250,7 +250,25 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
 .hist div span:first-child{flex:1}
 .thinking{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:rgba(255,253,246,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);text-align:center;padding:20px}
 .thinking.open{display:flex}
-.thinking .to{font-size:110px;animation:think 1.4s ease-in-out infinite;line-height:1}
+.thinking p{font-size:20px!important}
+.live{width:min(760px,94vw);background:#fff;border:var(--line);border-radius:18px;box-shadow:0 5px 0 var(--ink);padding:12px 14px;text-align:left;display:grid;gap:8px;overflow:hidden}
+.live-bar{height:6px;border-radius:6px;background:#eceaf6;overflow:hidden;margin:-4px 0 2px}
+.live-bar i{display:block;height:100%;width:35%;border-radius:6px;background:linear-gradient(90deg,var(--grape),var(--sky),var(--mint));animation:livebar 1.3s ease-in-out infinite}
+@keyframes livebar{0%{transform:translateX(-110%)}100%{transform:translateX(320%)}}
+.live-top{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:17px;gap:10px}
+.live-top #liveTime{font-family:var(--fd);font-size:18px;background:var(--sun);border:2px solid var(--ink);border-radius:999px;padding:0 10px}
+.live-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--mint);margin-right:8px;vertical-align:middle;animation:livedot 1s ease-in-out infinite}
+@keyframes livedot{50%{opacity:.25}}
+.live-meta{font-size:13px;color:var(--ink2);font-weight:700;line-height:1.4}
+.live-box{border:2px solid var(--ink);border-radius:12px;overflow:hidden}
+.live-box[hidden]{display:none}
+.live-box b{display:block;font-size:13px;padding:4px 10px;background:#f1edff;border-bottom:2px solid var(--ink)}
+.live-box.out b{background:#e2fbef}
+.live-box pre{margin:0;height:21vh;min-height:70px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:13px/1.55 ui-monospace,Menlo,Consolas,monospace;padding:8px 10px;color:#3a3f5c;background:#fbfbff}
+.live-box.think pre{color:#6b5fa8}
+.live .row small{font-size:13px;color:var(--ink2);font-weight:700;flex:1}
+@media (max-width:640px){.live-box pre{height:16vh}.thinking .to{font-size:44px}}
+.thinking .to{font-size:64px;animation:think 1.4s ease-in-out infinite;line-height:1}
 .thinking p{margin:0;font-size:24px;font-weight:900;background:#fff;border:var(--line);border-radius:18px;padding:10px 18px;box-shadow:0 5px 0 var(--ink)}
 .thinking small{font-size:16px;color:var(--ink2);font-weight:700}
 #toast{position:fixed;left:50%;bottom:calc(var(--safe-b) + 24px);transform:translateX(-50%) translateY(150%);z-index:80;background:var(--ink);color:#fff;border-radius:18px;padding:12px 20px;font-weight:800;font-size:18px;max-width:92vw;transition:transform .3s cubic-bezier(.2,1.3,.4,1);text-align:center}
@@ -377,7 +395,16 @@ label.fl{display:block;font-weight:900;margin:14px 0 6px}
   <div class="modal-box"><div class="modal-head" style="background:var(--coral)"><h2 id="msgTitle"></h2><button class="icon-btn" data-close aria-label="關閉">✖️</button></div>
   <div class="modal-body" id="msgBody"></div></div>
 </div>
-<div class="thinking" id="thinking" aria-live="polite"><div class="to">🦉</div><p id="thinkMsg">阿辯諗緊…</p><small>AI 通常要 10 秒至 2 分鐘，等等呀～</small></div>
+<div class="thinking" id="thinking" aria-live="polite"><div class="to">🦉</div><p id="thinkMsg">阿辯諗緊…</p>
+  <div class="live" id="live">
+    <div class="live-bar"><i></i></div>
+    <div class="live-top"><span id="liveStat"><span class="live-dot"></span>準備連接 AI…</span><span id="liveTime">0:00</span></div>
+    <div class="live-meta" id="liveMeta"></div>
+    <div class="live-box think" id="liveThinkBox" hidden><b>🧠 AI 思考過程（即時）</b><pre id="liveThink"></pre></div>
+    <div class="live-box out" id="liveOutBox" hidden><b>✍️ AI 寫緊嘅答案（即時）</b><pre id="liveOut"></pre></div>
+    <div class="row between"><small>AI 通常要 10 秒至幾分鐘，等等呀～</small><button class="btn sm ghost" type="button" id="liveCancel">⏹ 取消</button></div>
+  </div>
+</div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -437,7 +464,7 @@ const LS = {
   set(k, v) { try { localStorage.setItem('dbi_' + k, JSON.stringify(v)); } catch (e) {} },
   del(k) { try { localStorage.removeItem('dbi_' + k); } catch (e) {} }
 };
-const DEFAULT_SETTINGS = { baseUrl: 'https://api.z.ai/api/paas/v4', model: 'glm-5.3', apiKey: '', rate: 0.9, autoRead: false, sfx: true, enFeedback: 'en', voiceZh: '', voiceEn: '' };
+const DEFAULT_SETTINGS = { baseUrl: 'https://api.z.ai/api/paas/v4', model: 'glm-5.3', apiKey: '', rate: 0.9, stream: true, maxOut: 0, autoRead: false, sfx: true, enFeedback: 'en', voiceZh: '', voiceEn: '' };
 let S = Object.assign({}, DEFAULT_SETTINGS, LS.get('settings', {}));
 let P = Object.assign({ name: '', grade: 'P3' }, LS.get('profile', {}));
 let G = Object.assign({ stars: 0, badges: [], practiceCount: 0, seenLessons: [], history: [] }, LS.get('progress', {}));
@@ -614,51 +641,184 @@ const STT = {
 /* ---------- AI client (OpenAI-compatible or Anthropic) ---------- */
 class NoKeyError extends Error {}
 function aiReady() { return !!(S.apiKey && S.baseUrl && S.model); }
+class CancelError extends Error { constructor() { super('已取消'); this.name = 'CancelError'; } }
+/* 輸出上限：0 = 自動（GLM 用到最盡） */
+function aiMaxTokens(isAnthropic, isZhipu, callMax, base) {
+  const u = Math.round(Number(S.maxOut) || 0);
+  if (u > 0) return u;
+  if (isZhipu) return 131072;
+  if (isAnthropic) return Math.max(callMax, 16000);
+  if (/deepseek\.com/i.test(base)) return 8192;
+  return 0; // 其他供應商用佢哋自己嘅預設（通常係最大）
+}
 async function callAI(system, user, { json = true, maxTokens = 4000, timeout = 150000 } = {}) {
   if (!aiReady()) throw new NoKeyError('NOKEY');
   const base = S.baseUrl.trim().replace(/\/+$/, '');
+  const host = base.replace(/^https?:\/\//, '').split('/')[0];
   const isAnthropic = /anthropic\.com/i.test(base) || /\/messages$/.test(base);
   const isZhipu = /(^|\.|\/)(z\.ai|bigmodel\.cn)(\/|$)/i.test(base.replace(/^https?:\/\//, ''));
-  if (isZhipu) timeout = Math.max(timeout * 2, 90000); // GLM-5.3 一定會先「思考」，要耐啲
-  const ctrl = new AbortController(); const tm = setTimeout(() => ctrl.abort(), timeout);
-  try {
-    let res, data, text = '';
-    if (isAnthropic) {
-      const url = /\/messages$/.test(base) ? base : (/\/v1$/.test(base) ? base + '/messages' : base + '/v1/messages');
-      res = await fetch(url, {
-        method: 'POST', signal: ctrl.signal,
-        headers: { 'content-type': 'application/json', 'x-api-key': S.apiKey.trim(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: S.model.trim(), max_tokens: maxTokens, system, messages: [{ role: 'user', content: user }] })
-      });
-      data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(apiErr(res, data));
-      text = arr(data.content).filter(b => b.type === 'text').map(b => b.text).join('\n');
-    } else {
-      const url = /\/chat\/completions$/.test(base) ? base : base + '/chat/completions';
-      res = await fetch(url, {
-        method: 'POST', signal: ctrl.signal,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey.trim() },
-        body: JSON.stringify(Object.assign({ model: S.model.trim(), messages: [{ role: 'system', content: system }, { role: 'user', content: user }] },
-          isZhipu ? Object.assign({ max_tokens: 32768 }, json ? { response_format: { type: 'json_object' } } : {}) : {}))
-      });
-      data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(apiErr(res, data));
-      const c = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-      text = Array.isArray(c) ? c.map(x => x.text || '').join('\n') : str(c);
-    }
-    if (!text.trim()) throw new Error('AI 冇回覆任何內容，請再試一次。');
-    return json ? parseJSON(text) : text;
-  } catch (e) {
-    if (e.name === 'AbortError') throw new Error('等咗太耐（超時），請再試一次。');
-    if (e instanceof TypeError) throw new Error('連唔到伺服器（' + e.message + '）。可能係 Base URL 錯咗、冇上網，或者呢個 AI 供應商唔俾瀏覽器直接連接（CORS）。');
-    throw e;
-  } finally { clearTimeout(tm); }
+  const stream = S.stream !== false;
+  const firstWait = isZhipu ? Math.max(timeout * 2, 180000) : Math.max(timeout, 120000);
+  const IDLE = 180000;
+  let outMax = aiMaxTokens(isAnthropic, isZhipu, maxTokens, base);
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const ctrl = new AbortController(); Live.ctrl = ctrl;
+    let idle = null, got = false;
+    const kick = ms => { clearTimeout(idle); idle = setTimeout(() => ctrl.abort(), ms); };
+    kick(firstWait);
+    Live.stat(`🔌 連接緊 ${host}…`); Live.req(S.model.trim(), outMax, stream);
+    let text = '', finish = '';
+    try {
+      let url, headers, body;
+      if (isAnthropic) {
+        url = /\/messages$/.test(base) ? base : (/\/v1$/.test(base) ? base + '/messages' : base + '/v1/messages');
+        headers = { 'content-type': 'application/json', 'x-api-key': S.apiKey.trim(), 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' };
+        body = { model: S.model.trim(), max_tokens: outMax || 16000, system, messages: [{ role: 'user', content: user }] };
+        if (stream) body.stream = true;
+      } else {
+        url = /\/chat\/completions$/.test(base) ? base : base + '/chat/completions';
+        headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.apiKey.trim() };
+        body = { model: S.model.trim(), messages: [{ role: 'system', content: system }, { role: 'user', content: user }] };
+        if (outMax) body.max_tokens = outMax;
+        if (isZhipu && json) body.response_format = { type: 'json_object' };
+        if (stream) body.stream = true;
+      }
+      const res = await fetch(url, { method: 'POST', signal: ctrl.signal, headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const raw = await res.text().catch(() => '');
+        let data = {}; try { data = JSON.parse(raw); } catch (e) { data = { message: raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200) }; }
+        const blob = JSON.stringify(data);
+        if (res.status === 400 && outMax && /max[_ ]?(completion_)?tokens|max_output|maximum.*tokens|tokens.*(exceed|too large|range)|output.*limit/i.test(blob) && attempt < 3) {
+          const unsupported = /not supported|unsupported|max_completion_tokens/i.test(blob);
+          outMax = unsupported ? 0 : Math.floor(outMax / 2);
+          Live.stat(unsupported ? '⚠️ 呢個模型唔接受輸出上限參數，自動改用預設再試…' : `⚠️ 輸出上限太高，自動降到 ${outMax.toLocaleString()} 再試…`);
+          continue;
+        }
+        throw new Error(apiErr(res, data));
+      }
+      const ct = res.headers.get('content-type') || '';
+      Live.stat(`✅ 已連線（HTTP ${res.status}）・等緊 AI 回應…`);
+      if (stream && res.body && res.body.getReader && /event-stream/i.test(ct)) {
+        const reader = res.body.getReader(), dec = new TextDecoder();
+        let buf = '';
+        const handle = line => {
+          if (!line.startsWith('data:')) return;
+          const d = line.slice(5).trim(); if (!d || d === '[DONE]') return;
+          let j; try { j = JSON.parse(d); } catch (e) { return; }
+          if (isAnthropic) {
+            if (j.type === 'content_block_delta' && j.delta) {
+              if (j.delta.type === 'text_delta') { text += j.delta.text; Live.out(j.delta.text); }
+              else if (j.delta.type === 'thinking_delta') Live.think(j.delta.thinking);
+            } else if (j.type === 'message_delta') { if (j.delta && j.delta.stop_reason) finish = j.delta.stop_reason; if (j.usage) Live.use(j.usage.output_tokens); }
+            else if (j.type === 'error') throw new Error('AI 串流出錯：' + ((j.error && j.error.message) || '未知錯誤'));
+          } else {
+            if (j.error) throw new Error('AI 串流出錯：' + (j.error.message || JSON.stringify(j.error)));
+            const ch = j.choices && j.choices[0];
+            if (ch) {
+              const dl = ch.delta || ch.message || {};
+              const r = dl.reasoning_content || dl.reasoning || '';
+              if (r && typeof r === 'string') Live.think(r);
+              const c = typeof dl.content === 'string' ? dl.content : Array.isArray(dl.content) ? dl.content.map(x => x.text || '').join('') : '';
+              if (c) { text += c; Live.out(c); }
+              if (ch.finish_reason) finish = ch.finish_reason;
+            }
+            if (j.usage) Live.use(j.usage.completion_tokens || j.usage.output_tokens);
+          }
+        };
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          got = true; kick(IDLE);
+          buf += dec.decode(value, { stream: true });
+          let i;
+          while ((i = buf.indexOf('\n')) >= 0) { const line = buf.slice(0, i).replace(/\r$/, ''); buf = buf.slice(i + 1); handle(line); }
+        }
+        buf += dec.decode(); if (buf.trim()) handle(buf.trim());
+      } else {
+        const data = await res.json().catch(() => ({}));
+        got = true;
+        if (isAnthropic) { text = arr(data.content).filter(b => b.type === 'text').map(b => b.text).join('\n'); finish = str(data.stop_reason); }
+        else {
+          const ch = data.choices && data.choices[0], m = (ch && ch.message) || {};
+          if (m.reasoning_content) Live.think(str(m.reasoning_content));
+          text = Array.isArray(m.content) ? m.content.map(x => x.text || '').join('\n') : str(m.content);
+          finish = str(ch && ch.finish_reason);
+        }
+        Live.out(text);
+        if (data.usage) Live.use(data.usage.completion_tokens || data.usage.output_tokens);
+      }
+      clearTimeout(idle);
+      const cut = finish === 'length' || finish === 'max_tokens';
+      Live.stat(cut ? '⚠️ 去到輸出上限，AI 停咗' : '🎉 收晒！整理緊…');
+      if (!text.trim()) throw new Error(cut ? 'AI 用晒輸出上限都未寫到答案（可能諗得太多）。請喺 ⚙️ 設定調高「最大輸出 tokens」，或者揀短啲嘅內容再試。' : 'AI 冇回覆任何內容，請再試一次。');
+      if (!json) return text;
+      try { return parseJSON(text); }
+      catch (e) { if (cut) throw new Error('AI 嘅回覆太長，去到輸出上限被截斷咗。請喺 ⚙️ 設定調高「最大輸出 tokens」，或者揀短啲嘅發言時間。'); throw e; }
+    } catch (e) {
+      clearTimeout(idle);
+      if (e.name === 'AbortError') {
+        if (Live.cancelled) throw new CancelError();
+        throw new Error(got ? 'AI 中途停咗好耐冇再傳嘢嚟（超時），請再試一次。' : '等咗好耐都未有回應（超時）。可以再試一次；如果成日咁，試下喺 ⚙️ 設定確認「串流輸出」已經開咗。');
+      }
+      if (e instanceof TypeError) {
+        if (got) throw new Error('連線中途斷咗（' + e.message + '），請檢查網絡再試一次。');
+        throw new Error('連唔到伺服器（' + e.message + '）。可能係 Base URL 錯咗、冇上網，或者呢個 AI 供應商唔俾瀏覽器直接連接（CORS）。');
+      }
+      throw e;
+    } finally { clearTimeout(idle); }
+  }
+  throw new Error('試咗幾次都唔成功，請檢查設定再試。');
 }
 function apiErr(res, data) {
   const m = (data && (data.error && (data.error.message || data.error)) || data.message) || res.statusText;
-  const hint = res.status === 401 ? '（API Key 唔啱）' : res.status === 404 ? '（Base URL 或者 Model 名唔啱）' : res.status === 429 ? '（用得太密或者額度用完）' : '';
-  return `HTTP ${res.status} ${hint} ${typeof m === 'string' ? m : JSON.stringify(m)}`.trim();
+  const st = res.status;
+  const hint = st === 401 ? '（API Key 唔啱）' : st === 404 ? '（Base URL 或者 Model 名唔啱）' : st === 429 ? '（用得太密或者額度用完）'
+    : st === 524 || st === 522 || st === 504 ? `（伺服器等太耐冇回應，被中途截斷咗。${S.stream === false ? '請喺 ⚙️ 設定開返「串流輸出」再試。' : '請再試一次，或者揀短啲嘅內容。'}）`
+    : st === 502 || st === 503 || st === 529 ? '（AI 伺服器而家好忙，等一陣再試）' : '';
+  const mm = typeof m === 'string' ? m : JSON.stringify(m);
+  return `HTTP ${st} ${hint} ${mm && mm !== 'undefined' ? mm : ''}`.trim();
 }
+/* =========================================================
+   Live 即時顯示 AI 連線、思考過程同輸出
+   ========================================================= */
+const Live = {
+  on: false, t0: 0, iv: null, th: '', ou: '', nTh: 0, nOut: 0, raf: 0, ctrl: null, cancelled: false, tokens: 0, model: '', max: 0, streaming: true,
+  el(id) { return document.getElementById(id); },
+  start() {
+    this.on = true; this.t0 = Date.now(); this.th = ''; this.ou = ''; this.nTh = 0; this.nOut = 0; this.tokens = 0; this.cancelled = false; this.ctrl = null;
+    this.el('liveThinkBox').hidden = true; this.el('liveOutBox').hidden = true;
+    this.el('liveThink').textContent = ''; this.el('liveOut').textContent = '';
+    this.stat('準備連接 AI…'); clearInterval(this.iv); this.iv = setInterval(() => this.tick(), 500); this.tick();
+  },
+  stop() { this.on = false; clearInterval(this.iv); if (this.raf) cancelAnimationFrame(this.raf); this.raf = 0; this.ctrl = null; },
+  tick() { const s = Math.floor((Date.now() - this.t0) / 1000); this.el('liveTime').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; this.meta(); },
+  stat(t) { if (!this.on) return; const e = this.el('liveStat'); e.textContent = ''; e.append(h('span', { class: 'live-dot' }), t); },
+  req(model, max, streaming) { this.model = model; this.max = max; this.streaming = streaming; this.meta(); },
+  use(n) { if (n) { this.tokens = n; this.meta(); } },
+  think(d) { if (!this.on || !d) return; if (!this.nTh && !this.nOut) this.stat('🧠 AI 思考緊…'); this.nTh += d.length; this.th = (this.th + d).slice(-3000); this.sched(); },
+  out(d) { if (!this.on || !d) return; if (!this.nOut) this.stat('✍️ AI 寫緊答案…'); this.nOut += d.length; this.ou = (this.ou + d).slice(-3000); this.sched(); },
+  sched() { if (this.raf) return; this.raf = requestAnimationFrame(() => { this.raf = 0; this.draw(); }); },
+  draw() {
+    if (!this.on) return;
+    const a = this.el('liveThink'), b = this.el('liveOut');
+    if (this.nTh) { this.el('liveThinkBox').hidden = false; a.textContent = this.th; a.scrollTop = a.scrollHeight; }
+    if (this.nOut) { this.el('liveOutBox').hidden = false; b.textContent = this.ou; b.scrollTop = b.scrollHeight; }
+    this.meta();
+  },
+  meta() {
+    if (!this.on) return;
+    const sec = Math.max(1, (Date.now() - this.t0) / 1000), p = [];
+    if (this.model) p.push('🤖 ' + this.model);
+    p.push(this.streaming ? '📡 串流' : '📦 一次過');
+    p.push('🎯 上限 ' + (this.max ? this.max.toLocaleString() + ' tokens' : '供應商預設'));
+    if (this.nTh) p.push(`🧠 思考 ${this.nTh.toLocaleString()} 字`);
+    if (this.nOut) p.push(`✍️ 答案 ${this.nOut.toLocaleString()} 字`);
+    if (this.nTh || this.nOut) p.push(`⚡ ${Math.round((this.nTh + this.nOut) / sec)} 字/秒`);
+    if (this.tokens) p.push(`🔢 用咗 ${Number(this.tokens).toLocaleString()} tokens`);
+    this.el('liveMeta').textContent = p.join('・');
+  },
+  cancel() { this.cancelled = true; if (this.ctrl) this.ctrl.abort(); }
+};
 function parseJSON(t) {
   let s = str(t).replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/```json|```/gi, '').trim();
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
@@ -671,11 +831,12 @@ function parseJSON(t) {
 const THINK_MSGS = ['阿辯諗緊…🤔', '翻緊辯論秘笈📖', '搵緊最有力嘅論點💡', '計緊分數🧮', '準備緊貼士✨'];
 async function withThinking(first, fn) {
   const box = $('#thinking'), msg = $('#thinkMsg');
-  msg.textContent = first; box.classList.add('open'); World.think(true);
+  msg.textContent = first; box.classList.add('open'); World.think(true); Live.start();
   let i = 0; const iv = setInterval(() => { msg.textContent = THINK_MSGS[i++ % THINK_MSGS.length]; }, 3500);
-  try { return await fn(); } finally { clearInterval(iv); box.classList.remove('open'); World.think(false); }
+  try { return await fn(); } finally { clearInterval(iv); Live.stop(); box.classList.remove('open'); World.think(false); }
 }
 function aiError(e, retry) {
+  if (e && e.name === 'CancelError') { toast('⏹ 已取消'); return; }
   if (e instanceof NoKeyError) {
     showMsg('🔑 未設定 AI', [
       sayRow('要用 AI 評分同拆解，請大人幫手喺「設定」填好 Base URL、Model 同 API Key。'),
@@ -1819,7 +1980,7 @@ const Custom = {
     const motion = this.st.motion, lang = this.lang(), side = this.st.side;
     try {
       const [sys, user] = promptBreakdown({ motion, lang, side });
-      const d = await withThinking('阿辯拆解緊辯題…', () => callAI(sys, user, { maxTokens: 6000 }));
+      const d = await withThinking('阿辯拆解緊辯題…', () => callAI(sys, user, { maxTokens: 16000 }));
       award('custom');
       this.st.bd = { d, motion, lang, side, tab: side === 'con' ? 'con' : 'pro' };
       this.st.quiet = false;
@@ -1930,19 +2091,24 @@ const Settings = {
     const key = h('input', { type: 'password', value: S.apiKey, placeholder: 'sk-…', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false' });
     const eye = h('button', { class: 'btn sm ghost', type: 'button', onclick: () => { key.type = key.type === 'password' ? 'text' : 'password'; } }, '👁️');
     const status = h('div', { class: 'muted', style: 'margin-top:8px' });
-    const saveAI = () => { S.baseUrl = url.value.trim(); S.model = model.value.trim(); S.apiKey = key.value.trim(); saveS(); };
+    const maxIn = h('input', { type: 'text', inputmode: 'numeric', value: S.maxOut ? String(S.maxOut) : '', placeholder: '留空 = 自動（GLM：131072，最大）', autocomplete: 'off' });
+    const streamCb = h('input', { type: 'checkbox' }); streamCb.checked = S.stream !== false;
+    const saveAI = () => { S.baseUrl = url.value.trim(); S.model = model.value.trim(); S.apiKey = key.value.trim(); S.maxOut = Math.max(0, parseInt(maxIn.value.replace(/[^0-9]/g, ''), 10) || 0); S.stream = streamCb.checked; saveS(); };
     b.append(h('h3', { style: 'margin:0 0 4px' }, '🤖 AI 設定'),
       h('div', { class: 'muted' }, '支援 OpenAI 格式（/chat/completions）同 Anthropic 格式。揿下面快速填入，再改 Model 名。'),
       h('div', { class: 'presets', style: 'margin-top:10px' }, PRESETS.map(p => h('button', { type: 'button', onclick: () => { url.value = p.url; model.value = p.model; } }, p.n))),
       h('label', { class: 'fl' }, 'Base URL'), url,
       h('label', { class: 'fl' }, 'Model'), model,
       h('label', { class: 'fl' }, 'API Key'), h('div', { class: 'keyrow' }, key, eye),
+      h('label', { class: 'fl' }, '最大輸出 tokens（Max output）'), maxIn,
+      h('div', { class: 'muted', style: 'font-size:14px;margin-top:4px' }, '留空 = 自動：GLM 用到最大（131072）；如果供應商話太大，App 會自動減半再試。'),
+      h('label', { class: 'toggle', style: 'margin-top:12px' }, streamCb, '📡 串流輸出（建議開：即時睇到 AI 思考同寫緊乜，亦唔會因為等太耐被伺服器截斷）'),
       h('div', { class: 'row', style: 'margin-top:14px' },
         h('button', { class: 'btn go', onclick: () => { saveAI(); toast('💾 已儲存喺呢部機'); status.textContent = '✅ 已儲存。'; } }, '💾 儲存'),
         h('button', { class: 'btn sky', onclick: async () => {
           saveAI(); status.textContent = '⏳ 測試緊…';
-          try { const t = await callAI('You are a connection test.', 'Reply with the single word: OK', { json: false, maxTokens: 20, timeout: 40000 }); status.textContent = '✅ 連線成功！AI 回覆：' + t.slice(0, 40); SFX.play('good'); }
-          catch (e) { status.textContent = '❌ ' + (e instanceof NoKeyError ? '請先填齊三格。' : e.message); SFX.play('bad'); }
+          try { const t0 = Date.now(); const t = await withThinking('🧪 測試緊連線…', () => callAI('You are a connection test.', 'Reply with the single word: OK', { json: false, maxTokens: 20, timeout: 40000 })); status.textContent = `✅ 連線成功！用咗 ${((Date.now() - t0) / 1000).toFixed(1)} 秒。AI 回覆：` + t.slice(0, 40); SFX.play('good'); }
+          catch (e) { status.textContent = '❌ ' + (e instanceof NoKeyError ? '請先填齊三格。' : e.name === 'CancelError' ? '已取消。' : e.message); SFX.play('bad'); }
         } }, '🧪 測試連線'),
         h('button', { class: 'btn ghost', onclick: () => { if (!confirm('確定清除 Base URL、Model 同 API Key？')) return; S.apiKey = ''; S.baseUrl = DEFAULT_SETTINGS.baseUrl; S.model = DEFAULT_SETTINGS.model; saveS(); url.value = S.baseUrl; model.value = S.model; key.value = ''; status.textContent = '🗑️ 已清除。'; } }, '🗑️ 清除')),
       status,
@@ -2505,7 +2671,7 @@ const Sample = {
       const mseg = h('div', { class: 'seg' });
       [2, 3, 4].forEach(m => mseg.append(h('button', { type: 'button', class: this.opts.mins === m ? 'on' : '', style: 'min-width:80px', onclick: () => { this.opts.mins = m; this.saveOpts(); draw(); } }, m + ' 分鐘')));
       const order = '發言次序：' + this.orderText(fk, this.opts.free);
-      w.append(
+      w.append(...[
         h('div', { class: 'row' }, h('b', { style: 'flex:1;font-size:20px' }, '🎬 示範設定'), spk(`賽制：${F.name}。${F.sub}。${order}`, { small: true })),
         h('label', { class: 'fl' }, '🏟️ 賽制'), fseg,
         h('div', { class: 'muted', style: 'font-size:15px;margin-top:6px' }, F.sub),
@@ -2514,7 +2680,7 @@ const Sample = {
         lang === 'zh' ? h('label', { class: 'fl' }, '✍️ 講稿語體') : null,
         lang === 'zh' ? (() => { const s = h('div', { class: 'seg' }); [['formal', '書面語（比賽常用）'], ['colloquial', '廣東話口語']].forEach(([k, t]) => s.append(h('button', { type: 'button', class: this.opts.register === k ? 'on' : '', onclick: () => { this.opts.register = k; this.saveOpts(); draw(); } }, t))); return s; })() : null,
         h('div', { class: 'note' }, '📋 ' + order),
-        h('div', { class: 'muted', style: 'font-size:14px;margin-top:8px' }, '每場比賽嘅賽制都唔同，請以大會嘅「賽制章程」為準。AI 要寫成場比賽，通常要 1 至 4 分鐘。'));
+        h('div', { class: 'muted', style: 'font-size:14px;margin-top:8px' }, '每場比賽嘅賽制都唔同，請以大會嘅「賽制章程」為準。AI 要寫成場比賽，通常要 1 至 4 分鐘，寫嘅時候可以即時睇到佢諗緊乜。')].filter(Boolean));
     };
     draw();
     return w;
@@ -2570,7 +2736,7 @@ ${part === 'A' ? '' : '- 自由辯論／攻辯每句都要短（中文 20 至 60
     const c = this.st, { A } = c.plan;
     try {
       const user = `${this.head(c.motion, c.lang, c.side, c.ctx)}\n\n今次只寫以下 ${A.length} 篇發言（按比賽次序）：\n${this.list(A, c.lang)}\n\n輸出格式：{"plan":{"pro_line":"正方主線（一句）","con_line":"反方主線（一句）","pro_points":["正方論點（短）"],"con_points":["反方論點（短）"]},"speeches":[{"id":"同上面嘅 id","text":"逐字稿","coach":"技巧點評"}]}`;
-      const d = await withThinking(`阿辯寫緊上半場講稿（1/2）…`, () => callAI(this.sys(c.lang, c.fk, 'A'), user, { maxTokens: 12000, timeout: 240000 }));
+      const d = await withThinking(`阿辯寫緊上半場講稿（1/2）…`, () => callAI(this.sys(c.lang, c.fk, 'A'), user, { maxTokens: 32000, timeout: 240000 }));
       const got = this.pick(arr(d.speeches), A);
       if (got.filter(x => x.text).length < Math.ceil(A.length / 2)) throw new Error('AI 冇寫齊上半場講稿，請再試一次。');
       c.a = { plan: d.plan && typeof d.plan === 'object' ? d.plan : {}, segs: got };
@@ -2583,7 +2749,7 @@ ${part === 'A' ? '' : '- 自由辯論／攻辯每句都要短（中文 20 至 60
       const before = c.a.segs.map(x => `【${x.role}】\n${x.text}`).join('\n\n');
       const exReq = ex ? `先寫「${ex.title}」：${ex.job}大約 ${ex.kind === 'cross' ? 12 : 14} 句。\n然後寫` : '寫';
       const user = `${this.head(c.motion, c.lang, c.side, c.ctx)}\n\n以下係上半場已經講咗嘅講稿：\n${before}\n\n${exReq}以下 ${B.length} 篇發言（按比賽次序），要回應上半場${ex ? '同' + ex.title : ''}嘅具體內容：\n${this.list(B, c.lang)}\n\n最後用${fbLang(c.lang) === 'en' ? '簡單英式英文' : '廣東話'}寫評判點評。\n輸出格式：{${ex ? '"exchange":[{"side":"pro 或 con","speaker":"例如：正方第一副辯","line":"一句發言"}],' : ''}"speeches":[{"id":"同上面嘅 id","text":"逐字稿","coach":"技巧點評"}],"judge":{"clashes":["全場主要交鋒位"],"pro_did_well":"正方做得好嘅地方","con_did_well":"反方做得好嘅地方","lessons":["學生可以學到嘅重點"]}}`;
-      const d = await withThinking(`阿辯寫緊${ex ? ex.title + '同' : ''}${c.lang === 'en' ? '下半場' : '結辯'}（2/2）…`, () => callAI(this.sys(c.lang, c.fk, 'B'), user, { maxTokens: 12000, timeout: 240000 }));
+      const d = await withThinking(`阿辯寫緊${ex ? ex.title + '同' : ''}${c.lang === 'en' ? '下半場' : '結辯'}（2/2）…`, () => callAI(this.sys(c.lang, c.fk, 'B'), user, { maxTokens: 32000, timeout: 240000 }));
       const bs = this.pick(arr(d.speeches), B);
       if (!bs.some(x => x.text)) throw new Error('AI 冇寫到下半場講稿，請再試一次。');
       const segs = [...c.a.segs];
@@ -2733,6 +2899,7 @@ function init() {
   $('#settingsBtn').addEventListener('click', () => { SFX.play('click'); Settings.open(); });
   $('#badgeBtn').addEventListener('click', () => { SFX.play('click'); openBadges(); });
   $('#libBtn').addEventListener('click', () => { SFX.play('click'); App.go('library'); });
+  $('#liveCancel').addEventListener('click', () => { Live.cancel(); });
   $$('.back').forEach(x => x.addEventListener('click', () => { SFX.play('click'); App.go('home'); }));
   $$('.island-btn').forEach(x => x.addEventListener('click', () => { SFX.play('click'); App.go(x.dataset.go); }));
   $('#learnSpk').append(spk(() => Learn.speakText(LESSONS[Learn.i]), { label: '朗讀呢一課' }));
