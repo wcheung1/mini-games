@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b0604">
+<title>秘密探險隊 · The Secret 小朋友版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#e9c46a;--gold2:#ffe29a;--gold3:#b8862b;--ink:#3a2210;--ink2:#6b4424;--seal:#9e1b1b;--bg:#0a0503;--r:18px;
+--serif:'Noto Serif TC','Songti TC','PMingLiU',serif;--sans:'Noto Sans TC','PingFang HK','PingFang TC','Microsoft JhengHei',sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:#f7ecd4;font-family:var(--sans);font-size:18px;line-height:1.75}
+body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#2a1508 0%,#0a0503 70%);overflow-x:hidden}
+#bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
+#app{position:relative;z-index:1;min-height:100vh}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+button:disabled{cursor:not-allowed}
+header#top{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 14px 8px;background:linear-gradient(#0a0503f2,#0a0503bb 75%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.brand{display:flex;align-items:center;gap:8px;background:none;border:0;color:var(--gold2);font-family:var(--serif);font-weight:900;font-size:20px;padding:4px}
+.tools{display:flex;align-items:center;gap:8px}
+.gems{color:var(--gold2);font-weight:700;background:#ffffff14;border:1px solid #e9c46a55;border-radius:999px;padding:4px 12px;font-size:15px;white-space:nowrap}
+.sos{background:linear-gradient(135deg,#ff9cbc,#e0457b);color:#fff;border:0;border-radius:999px;padding:8px 14px;font-weight:700;font-size:16px;box-shadow:0 0 18px #ff6fa066;animation:breathe 3s ease-in-out infinite;white-space:nowrap}
+.icon{background:#ffffff14;border:1px solid #e9c46a55;color:#fff;border-radius:50%;width:44px;height:44px;font-size:20px;flex:none}
+main{max-width:980px;margin:0 auto;padding:6px 16px calc(50px + env(safe-area-inset-bottom))}
+h1,h2,h3{font-family:var(--serif);margin:.3em 0;line-height:1.35}
+.title-gold{background:linear-gradient(180deg,#fff6cf,#e9c46a 55%,#a8741f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px #ffcf6a55)}
+.parch{position:relative;color:var(--ink);background:radial-gradient(ellipse at 50% 40%,#fbf1d4 0%,#f1dcaa 55%,#d7b474 100%);border-radius:var(--r);padding:20px 18px;box-shadow:inset 0 0 50px rgba(110,60,15,.45),inset 0 0 6px rgba(80,40,10,.5),0 14px 40px rgba(0,0,0,.55);margin:14px 0}
+.parch::before{content:"";position:absolute;inset:0;border-radius:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .2 0 0 0 0 .05 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");pointer-events:none;mix-blend-mode:multiply;opacity:.85}
+.parch>*{position:relative}
+.parch h2,.parch h3{color:#5a2e0e}
+.say{display:flex;gap:10px;align-items:flex-start;margin:10px 0}
+.say>span{flex:1;border-radius:6px;transition:background .3s}
+.say.reading>span{background:#ffe08acc;box-shadow:0 0 0 5px #ffe08acc}
+.spk{flex:none;width:42px;height:42px;border-radius:50%;border:2px solid #b8862b;background:radial-gradient(circle at 35% 30%,#fff3c4,#e9c46a);font-size:18px;line-height:1;box-shadow:0 2px 6px #0004;display:inline-flex;align-items:center;justify-content:center;padding:0;color:#000}
+.spk.speaking{animation:pulse 1s infinite;background:radial-gradient(circle at 35% 30%,#fff,#ffb74d)}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #ffb74dcc}50%{box-shadow:0 0 0 12px #ffb74d00}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes float{50%{transform:translateY(-8px)}}
+@keyframes fadeIn{to{opacity:1}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes sealIn{0%{transform:scale(3) rotate(-30deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes glow{50%{filter:drop-shadow(0 0 26px #ff5a3c)}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.25)}100%{transform:scale(1)}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:10px 22px;border-radius:999px;border:0;font-size:18px;font-weight:700;color:#3a2210;background:linear-gradient(180deg,#fff0b8,#e9c46a 60%,#c8962f);box-shadow:0 4px 0 #8a5d17,0 8px 18px #0006;text-decoration:none}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #8a5d17}
+.btn.red{color:#fff3dc;background:linear-gradient(180deg,#d9443a,#9e1b1b);box-shadow:0 4px 0 #5e0f0f,0 8px 18px #0006}
+.btn.ghost{background:#ffffff18;color:#fbe9c0;border:1px solid #e9c46a77;box-shadow:none}
+.parch .btn.ghost{background:#5a2e0e12;color:#5a2e0e;border-color:#5a2e0e55}
+.btn.small{min-height:44px;font-size:16px;padding:6px 16px}
+.btn:disabled{opacity:.45;transform:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.center-row{justify-content:center}
+.center{text-align:center}.mt{margin-top:16px}
+.note{font-size:15px;color:#7a5530;margin:6px 0}
+.lvl-ch{font-size:14px;color:#8a5a2a;font-weight:700;letter-spacing:.05em}
+/* splash */
+.splash{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.splash h1{font-size:clamp(60px,15vw,130px);letter-spacing:.12em;margin:6px 0 0}
+.splash .sub{color:#f3dfae;font-size:18px;letter-spacing:.2em;opacity:.9}
+.bigseal{animation:sealIn 1.6s cubic-bezier(.2,1.4,.4,1) both,glow 3s 1.6s infinite}
+.whisper-wrap{opacity:0;animation:fadeIn 2s 1.2s forwards;min-height:3.4em;margin-top:14px}
+#whisper{font-family:var(--serif);color:#f7e4b4;font-size:20px;transition:opacity .5s}
+/* map */
+.prog{height:14px;border-radius:999px;background:#ffffff18;border:1px solid #e9c46a55;overflow:hidden;margin:8px 0}
+.prog>div{height:100%;background:linear-gradient(90deg,#b8862b,#ffe29a);border-radius:999px;transition:width .8s}
+.map{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.lvl{display:flex;align-items:center;gap:12px;text-align:left;border:0;padding:14px;margin:0;font-size:inherit}
+.lvl.locked{filter:grayscale(.85) brightness(.6)}
+.lvl .lock{position:absolute;right:14px;top:10px;font-size:26px}
+.lvl-t{font-family:var(--serif);font-weight:900;font-size:21px;line-height:1.3}
+.lvl-s{font-size:15px;color:#6b4424}
+.stars{color:#c8962f;letter-spacing:3px;font-size:20px}
+.lvl.done::after{content:"✔ 已解封";position:absolute;right:12px;bottom:8px;font-size:13px;color:#2e7d32;font-weight:700}
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.tile{border:1px solid #e9c46a66;background:linear-gradient(160deg,#2c1709,#140a04);color:#fbe9c0;border-radius:18px;padding:14px 10px;text-align:center;font-size:17px;font-weight:700;min-height:110px;box-shadow:0 6px 18px #0007}
+.tile b{display:block;font-size:40px;line-height:1.2}
+.tile small{display:block;font-weight:400;font-size:13px;opacity:.8}
+.guide{display:flex;gap:10px;align-items:flex-start;background:#1b0f07dd;border:1px solid #e9c46a55;border-radius:16px;padding:10px 14px;margin:10px 0}
+.guide .face{font-size:36px;flex:none;animation:float 3s ease-in-out infinite}
+.guide .say{margin:4px 0;color:#fbe9c0}
+.guide>div:last-child{flex:1}
+/* level */
+.steps{display:flex;gap:6px;margin:10px 0}
+.step{flex:1;border-radius:12px;padding:8px 2px;background:#ffffff14;color:#e8d6ad;font-size:15px;font-weight:700;border:1px solid #e9c46a44;min-height:48px}
+.step.on{background:linear-gradient(180deg,#fff0b8,#e9c46a);color:#3a2210}
+.step.ok::after{content:" ✓";color:#7ee07e}
+.step.on.ok::after{color:#2e7d32}
+.step:disabled{opacity:.35}
+.vision{width:150px;height:150px;margin:6px auto 0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:74px;background:radial-gradient(circle,#fff6d0 0%,#ffcf6a 32%,#b8621b00 70%);animation:float 4s ease-in-out infinite}
+.key{border:2px dashed #b8862b;border-radius:14px;padding:4px 12px;background:#fff6d588;font-weight:700;margin-top:12px}
+.opts{display:grid;gap:10px;margin-top:12px}
+.opt{text-align:left;padding:12px 16px;border-radius:14px;border:2px solid #b8862b88;background:#fffaf0;color:var(--ink);font-size:18px;min-height:56px;line-height:1.5}
+.opt.right{background:#dff5dd;border-color:#2e7d32}
+.opt.wrong{background:#fde9d6;border-color:#c56a12;animation:shake .4s}
+.fb{margin-top:12px;padding:6px 12px;border-radius:12px;display:none}
+.fb.show{display:block}
+.fb.good{background:#e6f6e4;border-left:6px solid #2e7d32}
+.fb.try{background:#fff1e0;border-left:6px solid #c56a12}
+.inp{width:100%;font-size:18px;font-family:inherit;padding:12px 14px;border-radius:12px;border:2px solid #b8862b88;background:#fffdf6;color:var(--ink);min-height:50px}
+.row .inp{flex:1;min-width:200px;width:auto}
+textarea.inp{resize:vertical;line-height:1.6}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.chip{border:1px solid #b8862b;background:#fff6dc;color:#5a2e0e;border-radius:999px;padding:6px 14px;font-size:16px;min-height:40px}
+.chip.on{background:#9e1b1b;color:#fff;border-color:#9e1b1b}
+.list{list-style:none;padding:0;margin:8px 0}
+.list li{display:flex;align-items:center;gap:6px;border-bottom:1px dashed #b8862b66}
+.list li .say{flex:1;margin:6px 0}
+.x{border:0;background:#5a2e0e18;color:#5a2e0e;border-radius:50%;width:36px;height:36px;flex:none}
+.lab{display:block;margin-top:10px;font-weight:700}
+.lab .say{margin:4px 0}
+/* bubbles */
+.arena{position:relative;height:min(62vh,540px);border-radius:var(--r);overflow:hidden;background:radial-gradient(ellipse at 50% 0%,#4a2a10,#120904 75%);border:1px solid #e9c46a66;touch-action:none;-webkit-user-select:none;user-select:none;margin:14px 0}
+.magnet{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:64px;filter:drop-shadow(0 0 18px #ffcf6a);z-index:2}
+.bub{position:absolute;left:0;top:0;padding:10px 16px;border-radius:999px;font-size:18px;font-weight:700;white-space:nowrap;will-change:transform;background:radial-gradient(circle at 30% 30%,#fffdf0,#f3dca6);color:#4a260c;box-shadow:0 0 16px #ffe08a88,inset 0 -4px 8px #0001;border:2px solid #fff8}
+.hud{position:absolute;left:12px;bottom:10px;color:var(--gold2);font-weight:700;font-size:20px;z-index:2}
+.bstart{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;background:#0006}
+/* sort */
+.sortcard{display:flex;gap:10px;align-items:center;justify-content:center;font-size:24px;font-weight:700;font-family:var(--serif);background:#fffaf0;border:3px solid #b8862b;border-radius:18px;padding:22px 16px;margin:14px auto;max-width:560px;transition:transform .45s,opacity .45s}
+.sortcard.fly0{transform:translateX(-60vw) rotate(-20deg);opacity:0}
+.sortcard.fly1{transform:translateX(60vw) rotate(20deg);opacity:0}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bin{min-height:90px;border-radius:18px;border:3px solid #b8862b;background:linear-gradient(180deg,#fff6dc,#f1d897);font-size:20px;font-weight:900;color:#5a2e0e}
+/* jar */
+.jarwrap{text-align:center}
+.jar{position:relative;width:190px;height:220px;margin:10px auto 0;border:4px solid #ffffffaa;border-top-width:16px;border-radius:30px 30px 70px 70px;background:linear-gradient(90deg,#ffffff33,#ffffff11 40%,#ffffff44);box-shadow:inset 0 0 30px #fff8,0 0 30px #ffe08a88;overflow:hidden}
+.jstar{position:absolute;font-size:20px;animation:pop .5s}
+.jarlabel{font-family:var(--serif);font-weight:900;color:#5a2e0e;margin:6px 0 10px}
+/* visualize */
+.vizbox{position:relative;text-align:center;border-radius:var(--r);padding:26px 18px;background:radial-gradient(ellipse at 50% 30%,#3b1f5c,#120920 75%);border:1px solid #b89cff66;margin:14px 0;min-height:360px}
+.vizorb{width:120px;height:120px;margin:0 auto 14px;border-radius:50%;background:radial-gradient(circle,#fff 0%,#d9c6ff 30%,#7d5cff55 60%,transparent 72%);animation:breathe 5s ease-in-out infinite}
+.viztext{font-family:var(--serif);font-size:24px;color:#f1e8ff;min-height:3.6em}
+.dots{display:flex;gap:6px;justify-content:center;margin:12px 0}
+.dots i{width:10px;height:10px;border-radius:50%;background:#ffffff33}
+.dots i.on{background:#ffe29a}
+/* breath */
+.breath-wrap{height:320px;display:flex;align-items:center;justify-content:center}
+.bb{width:130px;height:130px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#bfe6ff 40%,#5aa9e6);box-shadow:0 0 50px #9fd8ffaa;display:flex;align-items:center;justify-content:center;color:#083a5c;font-weight:900;font-size:20px;text-align:center}
+/* body */
+.bodygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.bpart{border:2px solid #b8862b88;background:#fffaf0;border-radius:16px;padding:10px;font-size:17px;color:#5a2e0e;min-height:96px}
+.bpart b{display:block;font-size:38px}
+.bpart.on{background:#ffe9f0;border-color:#e0457b}
+.bpart.on::after{content:" 💗"}
+/* affirm */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.acard{border:2px solid #b8862b;background:#fffaf0;border-radius:14px;padding:14px 10px;font-size:18px;font-weight:700;color:#5a2e0e;font-family:var(--serif);min-height:64px}
+.acard.on{background:linear-gradient(180deg,#fff0b8,#e9c46a);box-shadow:0 0 16px #ffcf6a}
+.mirror{position:relative;width:220px;height:220px;margin:6px auto;border-radius:50%;border:8px solid #c8962f;overflow:hidden;background:radial-gradient(circle at 35% 30%,#fff,#cfe3ee 60%,#9bb7c8);box-shadow:0 0 30px #ffe08a}
+.mirror video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
+.mface{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:90px}
+.aword{font-size:30px;color:#9e1b1b}
+/* emotions */
+.emos{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.emo{font-size:18px;font-weight:700;padding:12px;border-radius:18px;border:2px solid #e9c46a88;background:#fffaf0;color:var(--ink);min-height:110px}
+.emo b{display:block;font-size:44px;line-height:1.2}
+.ladder{display:flex;flex-direction:column;gap:8px}
+.rung{display:flex;align-items:center;gap:10px;border:2px solid #b8862b88;background:#fffaf0;border-radius:14px;padding:10px 14px;font-size:18px;font-weight:700;color:#5a2e0e;text-align:left;min-height:56px}
+.rung b{font-size:30px}
+.rung.on{background:#ffe08a;border-color:#9e1b1b}
+.toolcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+/* tree */
+.tree{font-size:90px;line-height:1;filter:drop-shadow(0 0 22px #7ee07e88);animation:float 5s ease-in-out infinite}
+.you{background:#fff6dc;border-radius:12px;padding:10px 14px;font-size:16px;color:#6b4424;border-left:5px solid #b8862b;white-space:pre-wrap}
+.thinking{margin-top:10px;font-weight:700;color:#5a2e0e}
+.dots3 i{display:inline-block;width:8px;height:8px;margin:0 2px;border-radius:50%;background:#9e1b1b;animation:float 1s infinite}
+.dots3 i:nth-child(2){animation-delay:.2s}.dots3 i:nth-child(3){animation-delay:.4s}
+.talk{background:linear-gradient(180deg,#fffaf0,#fff1d0);border:2px solid #e9c46a;border-radius:14px;padding:10px 14px;margin:8px 0;box-shadow:inset 0 0 20px #ffe08a66}
+.talk p{margin:6px 0;padding:6px 10px;border-radius:8px;font-family:var(--serif);font-size:20px;transition:background .3s}
+.talk p.reading{background:#ffe08a;box-shadow:0 0 12px #ffcf6a}
+.safety{background:#fff0f3;border:2px solid #e0457b;border-radius:14px;padding:6px 14px;margin:10px 0}
+.safety h3{color:#b0204f!important}
+.seq{margin:6px 0 10px;padding-left:28px}
+.seqi{background:#dff5dd;border-radius:10px;padding:6px 10px;margin:6px 0;font-weight:700;animation:pop .35s}
+/* modal/toast */
+#modal{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:#000b;padding:16px}
+#modal.show{display:flex}
+#modal .box{max-width:680px;width:100%;max-height:90vh;overflow:auto;-webkit-overflow-scrolling:touch}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(150%);z-index:60;background:#1b0f07f2;color:#fbe9c0;border:1px solid #e9c46a;border-radius:16px;padding:12px 18px;max-width:90vw;font-size:16px;transition:transform .35s;box-shadow:0 10px 30px #000a}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.gemboom{font-size:90px;animation:pop .8s}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.tabs button{border-radius:999px;border:1px solid #e9c46a77;background:#ffffff14;color:#fbe9c0;padding:6px 14px;font-size:16px;min-height:42px}
+.tabs button.on{background:linear-gradient(180deg,#fff0b8,#e9c46a);color:#3a2210}
+.field{margin:10px 0}
+.field label{font-weight:700;display:block;margin-bottom:4px}
+.switch{display:flex;align-items:center;gap:10px;margin:8px 0;font-weight:700}
+.switch input{width:26px;height:26px}
+select.inp{appearance:auto}
+.wishcard{text-align:center;border:3px double #9e1b1b;border-radius:16px;padding:14px;background:#fffaf0}
+.cert{border:12px double #b8862b;text-align:center;padding:30px 20px}
+.cert h1{font-size:clamp(30px,6vw,46px);color:#7a1a12;margin:.2em 0}
+.cname{font-size:clamp(32px,7vw,54px);color:#9e1b1b;border-bottom:2px solid #b8862b;display:inline-block;padding:0 30px;margin:.2em 0}
+.foot{text-align:center;font-size:13px;opacity:.6;margin-top:30px}
+@media (max-width:560px){body{font-size:17px}.sos span{display:none}.brand span{font-size:17px}.steps .step{font-size:13px}}
+@media print{header,#bg,.noprint,#toast{display:none!important}body{background:#fff}.parch{box-shadow:none}.parch::before{display:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<radialGradient id="sealG" cx="38%" cy="32%" r="75%"><stop offset="0" stop-color="#e5463b"/><stop offset=".55" stop-color="#a11c1c"/><stop offset="1" stop-color="#5c0b0b"/></radialGradient>
+<radialGradient id="sealH" cx="35%" cy="28%" r="40%"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+</defs></svg>
+<canvas id="bg"></canvas>
+<div id="app">
+  <header id="top" style="display:none">
+    <button class="brand" onclick="go('map')" aria-label="返地圖"><span id="brandSeal"></span><span>秘密探險隊</span></button>
+    <div class="tools">
+      <span class="gems" id="gemCount">💎 0/10</span>
+      <button class="sos" onclick="go('calm')">💗<span> 我唔開心</span></button>
+      <button class="icon" onclick="openSettings()" aria-label="設定">⚙️</button>
+    </div>
+  </header>
+  <main id="view"></main>
+</div>
+<div id="modal" onclick="if(event.target===this)closeModal()"><div class="box" id="modalBox"></div></div>
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* =========================================================
+   秘密探險隊 · The Secret 小朋友版
+   單一 HTML 檔 · 可放上 GitHub Pages
+   ========================================================= */
+'use strict';
+const $=(s,el=document)=>el.querySelector(s);
+const $$=(s,el=document)=>[...el.querySelectorAll(s)];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const rnd=(k,s)=>{const x=Math.sin(k*12.9898+s*78.233)*43758.5453;return x-Math.floor(x)};
+const today=()=>new Date().toLocaleDateString('zh-HK');
+const V=$('#view');
+
+/* ---------- 儲存 ---------- */
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const DEF={levels:{},gratitude:[],happy:[],wishes:[],routine:null,talks:[],name:'',seenIntro:false,unlockAll:false,sound:true};
+let P=Object.assign({},DEF,LS.get('ss_progress',{}));
+function save(){LS.set('ss_progress',P)}
+function lvState(id){return P.levels[id]||(P.levels[id]={game:false,quiz:false,mission:false,done:false,reach:0})}
+function unlocked(id){return P.unlockAll||id===1||!!(P.levels[id-1]&&P.levels[id-1].done)}
+function gemCount(){return Object.values(P.levels).filter(l=>l.done).length}
+function updateGems(){const g=$('#gemCount');if(g)g.textContent='💎 '+gemCount()+'/10'}
+
+/* ---------- 封印 (原創蠟封設計) ---------- */
+function seal(ch,size=64){
+  let d='';const n=26;
+  for(let i=0;i<=n;i++){const a=i/n*Math.PI*2;const r=45+Math.sin(i*2.7)*2.2+(i%3===0?2.5:0);d+=(i?'L':'M')+(50+Math.cos(a)*r).toFixed(1)+' '+(50+Math.sin(a)*r).toFixed(1)}
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true" style="filter:drop-shadow(0 3px 5px #0008)"><path d="${d}Z" fill="url(#sealG)"/><path d="M78 80 q4 10 1 14 q-4 2 -5 -4z" fill="#8a1717"/><circle cx="50" cy="50" r="33" fill="none" stroke="#5c0b0b" stroke-width="3" opacity=".7"/><circle cx="50" cy="50" r="29" fill="none" stroke="#ff8a75" stroke-width="1" opacity=".35"/><text x="50" y="52" text-anchor="middle" dominant-baseline="middle" font-family="Noto Serif TC,Songti TC,serif" font-weight="900" font-size="34" fill="#f6d9b6" opacity=".92">${esc(ch)}</text><ellipse cx="38" cy="32" rx="20" ry="14" fill="url(#sealH)"/></svg>`;
+}
+
+/* ---------- 音效 ---------- */
+const SFX={ctx:null,t(fr,dur=.15,type='sine',gap=.09,vol=.13){if(!P.sound)return;try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();const c=this.ctx;if(c.state==='suspended')c.resume();fr.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;const st=c.currentTime+i*gap;g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(vol,st+.02);g.gain.exponentialRampToValueAtTime(.001,st+dur);o.connect(g);g.connect(c.destination);o.start(st);o.stop(st+dur+.05)})}catch(e){}},
+ok(){this.t([660,880,1320])},soft(){this.t([392,330],.22,'triangle',.12,.09)},win(){this.t([523,659,784,1047,1319],.4,'sine',.1,.13)},magic(){this.t([880,1175,1568,2093,2637],.6,'sine',.08,.07)}};
+
+/* ---------- 廣東話語音 (Web Speech API) ---------- */
+const EMOJI_RE=/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2190}-\u{21FF}\u{2460}-\u{24FF}\u{FE0F}\u{200D}\u{20E3}]/gu;
+let readToken=0;
+const TTS={
+  ok:'speechSynthesis' in window,voice:null,voices:[],seq:0,warned:false,
+  rate:parseFloat(localStorage.getItem('ss_rate')||'0.92'),
+  auto:localStorage.getItem('ss_auto')!=='0',
+  pick(){const vs=speechSynthesis.getVoices();if(!vs.length)return;this.voices=vs;const pref=localStorage.getItem('ss_voice');let v=vs.find(x=>x.name===pref);if(!v)v=vs.find(x=>/zh[-_]HK|yue/i.test(x.lang))||vs.find(x=>/cantonese|粵|粤|sinji|hiugaai|wanlung/i.test(x.name));this.voice=v||null},
+  init(){if(!this.ok)return;const pick=()=>this.pick();pick();try{speechSynthesis.addEventListener('voiceschanged',pick)}catch(e){speechSynthesis.onvoiceschanged=pick}},
+  clean(t){return String(t).replace(EMOJI_RE,'').replace(/[「」『』《》【】（）()＿_*#]/g,' ').replace(/\s+/g,' ').trim()},
+  chunks(t){const parts=t.match(/[^。！？!?；;\n，,：:]+[。！？!?；;\n，,：:]*/g)||[t];const out=[];let cur='';parts.forEach(p=>{if((cur+p).length>60&&cur){out.push(cur);cur=p}else cur+=p});if(cur.trim())out.push(cur);return out},
+  speak(text,opts={}){
+    if(!this.ok){toast('呢部機唔支援語音朗讀 😢');opts.onend&&opts.onend();return}
+    this.stop();const t=this.clean(text);if(!t){opts.onend&&opts.onend();return}
+    if(!this.voice)this.pick();
+    if(!this.voice&&!this.warned&&this.voices.length){this.warned=true;toast('搵唔到廣東話聲音。iPad：設定 › 輔助使用 › 朗讀內容 › 聲音 › 中文（香港），下載一個聲音。',7000)}
+    if(opts.btn)opts.btn.classList.add('speaking');
+    const id=++this.seq;const cs=this.chunks(t);
+    cs.forEach((c,i)=>{const u=new SpeechSynthesisUtterance(c);u.lang=this.voice?this.voice.lang:'zh-HK';if(this.voice)u.voice=this.voice;u.rate=this.rate;u.pitch=1.05;
+      if(i===cs.length-1){u.onend=()=>{if(id!==this.seq)return;this._clear();opts.onend&&opts.onend()};u.onerror=()=>{if(id!==this.seq)return;this._clear();opts.onend&&opts.onend()}}
+      speechSynthesis.speak(u)});
+  },
+  stop(){this.seq++;if(this.ok){try{speechSynthesis.cancel()}catch(e){}}this._clear()},
+  _clear(){$$('.spk.speaking').forEach(b=>b.classList.remove('speaking'));$$('.reading').forEach(b=>b.classList.remove('reading'))}
+};
+function stopAll(){readToken++;TTS.stop()}
+function autoSay(t){if(TTS.auto)TTS.speak(t)}
+function spk(t){return `<button class="spk" data-t="${esc(t)}" aria-label="播放廣東話語音">🔊</button>`}
+function para(text,speakText){return `<p class="say">${spk(speakText||text)}<span>${esc(text)}</span></p>`}
+document.addEventListener('click',e=>{const b=e.target.closest('.spk');if(!b)return;e.stopPropagation();if(b.classList.contains('speaking')){stopAll();return}readToken++;TTS.speak(b.dataset.t,{btn:b})});
+function readAll(sel){const ps=$$(sel+' .say');if(!ps.length)return;const token=++readToken;let i=0;
+  const next=()=>{if(token!==readToken)return;if(i>=ps.length)return;const p=ps[i++];TTS.speak(p.querySelector('span').textContent,{btn:p.querySelector('.spk'),onend:()=>setTimeout(next,350)});p.classList.add('reading');p.scrollIntoView({block:'center',behavior:'smooth'})};next()}
+
+/* ---------- UI 小工具 ---------- */
+let toastT=0;
+function toast(m,ms=3500){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),ms)}
+function openModal(h){$('#modalBox').innerHTML=h;$('#modal').classList.add('show')}
+function closeModal(){$('#modal').classList.remove('show')}
+let cleanupFn=null;
+function runCleanup(){if(cleanupFn){try{cleanupFn()}catch(e){}cleanupFn=null}}
+function gHead(title,instr){return `<div class="parch"><h3>${esc(title)}</h3>${para(instr)}</div>`}
+
+/* =========================================================
+   內容：跟足《The Secret》十個章節嘅架構
+   ========================================================= */
+const INTRO=[
+ '好耐好耐以前，已經有好多聰明嘅人知道一個秘密。佢哋將呢個秘密寫喺卷軸上面，一代傳一代。',
+ '後來，有一位作者叫朗達．拜恩（Rhonda Byrne），將呢個秘密寫成一本書，叫做《秘密》（The Secret）。全世界有好多好多人讀過。',
+ '今日，呢份秘密卷軸傳咗到你手上喇！你就係新一代嘅「秘密探險家」。',
+ '呢個秘密就係：你嘅諗法同感覺，好似一塊神奇嘅磁石。佢哋會影響你點樣睇呢個世界、你會做啲咩，同埋你會變成一個點樣嘅人。',
+ '不過要記住，秘密唔係魔法棒，唔係諗一諗就會有嘢跌落嚟。真正嘅力量係：好嘅諗法，加上好嘅感覺，再加上你自己一步一步去做。',
+ '卷軸入面一共有十個封印，即係十個關卡。每解開一個，你就會得到一粒「秘密寶石」。集齊十粒，你就會成為「秘密守護者」！',
+ '仲有呀，如果有一日你唔開心，隨時撳上面粉紅色嘅「我唔開心」掣，我會喺度陪住你。我係你嘅秘密嚮導，小光！'
+];
+const op=(t,good,fb)=>({t,good:!!good,fb});
+const LEVELS=[
+{id:1,ch:'第一章 · 秘密揭曉',title:'秘密揭曉',sub:'思想磁石',icon:'🧲',seal:'吸',
+ guide:'準備好未？我哋一齊搵出你個腦入面嗰塊神奇磁石！',
+ lesson:[
+  '歡迎嚟到第一關！《秘密》呢本書第一個講嘅道理，叫做「吸引力法則」。聽落好深？其實好簡單：同類嘅嘢，會互相吸埋一齊，好似磁石咁。',
+  '你可以想像，你個腦入面有一塊小磁石。你成日諗咩，呢塊磁石就會吸住同佢差唔多嘅嘢。',
+  '例如你成日諗「我好蠢，我一定做唔到」，你就會好容易放棄，亦都會淨係留意到自己做錯嘅地方。唔開心嘅感覺就會愈嚟愈多。',
+  '但如果你諗「呢題好難，不過我可以慢慢學」，你就會肯試、肯問人。結果你真係會學識更多，開心嘅事都會多咗。',
+  '科學家發現，我哋個腦有一個「探射燈」。你專心諗咩，探射燈就照去邊。好似你好想要一部紅色單車，你就會突然發覺，點解街上面咁多紅色單車！其實單車一直都喺度，只係你嘅探射燈而家照住佢哋。',
+  '所以秘密嘅第一步好簡單：留意你自己喺度諗緊咩。你係自己個腦嘅船長，你可以揀個探射燈照去邊。',
+  '記住呀：有唔開心或者驚嘅諗法，係好正常㗎，大人都會有。唔係你嘅錯，亦唔代表你「吸引」咗壞事。我哋要學嘅，只係點樣溫柔咁幫個探射燈轉個方向。'],
+ key:'你專注咩，探射燈就照去邊；揀一啲幫到你嘅「輕」諗法。',
+ game:[{type:'bubbles',title:'🧲 思想磁石',goal:8,
+   instr:'思想泡泡會由下面慢慢飄上嚟！讀下每個泡泡寫咩：「輕」嘅諗法會幫到你，「重」嘅諗法會令你好攰。撳輕嘅諗法，將佢吸入磁石。收集八個就過關！',
+   light:['我可以試下','慢慢嚟，我得㗎','錯咗都可以再嚟','有好多人錫我','今日會有好事發生','我可以學識','問人係勇敢嘅表現','我盡咗力已經好叻','我可以休息下再做','我今日有進步'],
+   heavy:['我一定做唔到','我好蠢','冇人鍾意我','試都唔使試','我成日都衰','我永遠學唔識'],
+   heavyFb:'呢個係重嘅諗法。唔緊要，吹走佢，搵一個輕啲嘅！'}],
+ quiz:[
+  {q:'「吸引力法則」係咩意思？',o:['同類嘅嘢會互相吸引，好似磁石咁','只要唔做嘢，好事都會自己跌落嚟','磁石可以吸晒所有嘢'],a:0,why:'諗法同感覺好似磁石，會吸引同佢差唔多嘅嘢。但記住，仲要配合行動㗎！'},
+  {q:'我哋個腦嘅「探射燈」有咩特別？',o:['你專心諗咩，就會見到更多咩','佢只可以喺夜晚用','佢會令你睇唔到嘢'],a:0,why:'你專注咩，就會留意到更多咩，好似紅色單車嘅例子咁。'},
+  {q:'如果你有一個唔開心嘅諗法，應該點？',o:['鬧自己：我點解咁諗㗎！','明白呢個好正常，然後溫柔咁揀一個輕啲嘅諗法','收埋佢，當冇事發生'],a:1,why:'有唔開心嘅諗法好正常，唔係你嘅錯。溫柔咁轉個方向就得。'}],
+ mission:'今日做一個「諗法偵探」：留意三次自己喺度諗緊咩。如果發現一個「重」嘅諗法，試下同自己講一句「輕」啲嘅說話。'},
+
+{id:2,ch:'第二章 · 秘密好簡單',title:'秘密好簡單',sub:'感覺指南針',icon:'🧭',seal:'感',
+ guide:'你知唔知，你嘅感覺其實係一個好叻嘅指南針？一齊嚟睇下！',
+ lesson:[
+  '我哋每日有好多好多諗法，多到數唔晒！咁點樣知道自己諗緊咩呢？《秘密》話俾我哋知：睇下你嘅「感覺」就得喇！',
+  '感覺就好似一個指南針。覺得開心、輕鬆、溫暖，即係你諗緊一啲幫到你嘅嘢。覺得難過、嬲、驚，就好似指南針話你知：「喂，可能要轉下方向喇。」',
+  '所以唔開心嘅感覺唔係壞人，佢係一個好朋友，嚟提你留意自己。我哋唔使驚佢，亦唔使收埋佢。',
+  '有三個好簡單嘅步驟。第一步，停一停，深呼吸。第二步，講出你嘅感覺，例如「我而家好嬲」。科學家發現，講得出自己嘅感覺，個心就會平靜啲。第三步，揀一樣可以令你好少少嘅嘢。',
+  '書入面有個好正嘅方法，叫做「秘密轉換器」。即係準備好一張清單，寫低你鍾意嘅嘢：一首鍾意嘅歌、一個開心嘅回憶、你最鍾意嘅動物、一個好笑嘅笑話。唔開心嘅時候，就攞一樣出嚟用。',
+  '唔使一下子由好傷心變到好開心，只要好少少，已經好叻！好似爬樓梯咁，一級一級上。'],
+ key:'感覺係指南針：停一停、講出感覺、揀一樣令自己好少少嘅嘢。',
+ game:[{type:'scenario',title:'🧭 感覺指南針',instr:'每個情況，揀一個最可以幫你「好少少」嘅做法。',items:[
+   {s:'你砌咗好耐嘅積木，俾細佬推冧咗。你好嬲！',o:[op('大叫，然後推返細佬',0,'嬲係正常嘅，但推人會令事情更差。可以先深呼吸。'),op('深呼吸三次，同自己講「我好嬲」，然後話俾媽媽聽',1,'好叻！你講出咗感覺，仲識搵人幫手。'),op('以後都唔再砌積木',0,'放棄會令你失去鍾意嘅嘢。休息一陣再砌都得㗎！')]},
+   {s:'考試分數唔似預期，你覺得好失望。',o:[op('我好失敗，我好蠢',0,'呢個係好重嘅諗法。一次分數唔代表你唔聰明。'),op('我好失望，不過我可以睇下邊度錯，下次改進',1,'好叻！你講出咗感覺，又搵到下一步。'),op('收埋份卷唔俾人見',0,'收埋會令你一直擔心。同大人一齊睇，可以學到更多。')]},
+   {s:'小息時冇人同你玩，你覺得好寂寞。',o:[op('主動問一位同學：「我可唔可以一齊玩？」',1,'好勇敢！主動行一小步，好多時會有驚喜。'),op('覺得冇人鍾意自己，喺度喊',0,'寂寞係正常嘅感覺，喊都冇問題。不過試下行一小步，會好啲㗎。'),op('去搞亂人哋嘅遊戲',0,'搞亂遊戲會令大家唔開心。可以用友善嘅方法加入。')]},
+   {s:'聽日要喺全班面前表演，你好驚。',o:[op('想像自己表演完，大家拍手嘅畫面，然後練習多一次',1,'好叻！想像加練習，係最強嘅組合。'),op('扮病唔返學',0,'逃避會令下次更驚。驚係正常嘅，我哋可以一齊準備。'),op('成晚諗住「我一定會出醜」',0,'呢個諗法好重，會令你更驚。試下想像成功嘅畫面。')]}]},
+  {type:'shifters',title:'🎵 製作我嘅秘密轉換器',instr:'寫低最少三樣令你開心嘅嘢，例如一首歌、一個回憶、一個人、一隻動物、一個活動。唔開心嘅時候，你就可以喺「心靈角落」搵返佢哋。',
+   sugg:['聽我最鍾意嘅歌','抱住我嘅公仔','諗起去沙灘嘅回憶','同貓貓狗狗玩','畫畫','同家人講笑話','踢波或者跳繩','睇我鍾意嘅書']}],
+ quiz:[
+  {q:'《秘密》話感覺好似咩？',o:['指南針，話你知你諗緊咩','鬧鐘','垃圾，要掉走'],a:0,why:'感覺好似指南針，話你知你諗緊咩，同埋幾時要轉方向。'},
+  {q:'唔開心嘅時候，第一步可以做咩？',o:['即刻扮開心','停一停，深呼吸','大叫'],a:1,why:'先停一停、深呼吸，令身體平靜落嚟。'},
+  {q:'咩係「秘密轉換器」？',o:['一部遊戲機','一張寫滿令你開心嘅嘢嘅清單','一粒魔法糖果'],a:1,why:'秘密轉換器係你自己嘅快樂清單，唔開心時攞一樣出嚟用。'}],
+ mission:'今日用一次你嘅「秘密轉換器」：當你覺得有少少悶或者唔開心，揀清單上面一樣嘢嚟做，睇下個心有冇好少少。'},
+
+{id:3,ch:'第三章 · 點樣用秘密',title:'點樣用秘密',sub:'三步魔法 ＋ 行動',icon:'✨',seal:'願',
+ guide:'嚟學一條魔法公式！不過小光會話你知一個「秘密中嘅秘密」㗎。',
+ lesson:[
+  '《秘密》教咗一個「創造三步曲」：第一步「要求」，第二步「相信」，第三步「接收」。我哋一齊逐步學！',
+  '第一步：要求。清清楚楚講出你想要咩。好似喺餐廳落單咁，你會講「我要一碗粟米肉粒飯」，而唔係「我唔想餓親」。所以要用正面講法：講「我想上堂有信心咁舉手」，唔好講「我唔想俾老師問親都答唔到」。',
+  '第二步：相信。相信你嘅願望係有可能實現嘅。好似你網購落咗單，你唔會日日擔心件貨唔會嚟，你會放心咁等。',
+  '第三步：接收。想像你已經做到，感受嗰份開心同感恩。例如想像你游完五十米，上水嗰一刻有幾咁自豪！',
+  '不過，小光要同你講一個超級重要嘅「秘密中嘅秘密」：願望唔係坐喺度等就會跌落嚟㗎！書入面都講，當你有靈感想做一樣嘢，就要去做。想游水游得好，就要去練水；想考試有信心，就要溫書。諗法幫你起步，行動幫你到達。',
+  '所以魔法公式係：要求，加相信，加接收，再加一小步行動。每日行一小步，積少成多，就會變成好大步！'],
+ key:'要求 ＋ 相信 ＋ 接收 ＋ 一小步行動。',
+ game:[{type:'order',title:'🪄 魔法公式排排隊',instr:'將魔法公式嘅四個步驟，由第一步開始，順序撳出嚟。',
+   steps:['要求：清楚講出我想要咩','相信：我相信有可能做到','接收：想像已經做到嘅開心','行動：今日行一小步'],
+   win:'完全正確！要求、相信、接收，再加一小步行動，就係完整嘅魔法公式！'},
+  {type:'wish',title:'🌠 願望工作坊',instr:'而家輪到你！寫低一個你嘅願望，用正面講法，再寫低你今日可以行嘅一小步。',
+   sugg:['我想上堂有信心咁舉手','我想學識游水','我想同同學做好朋友','我想畫畫畫得更好','我想每朝準時起身']}],
+ quiz:[
+  {q:'創造三步曲嘅次序係？',o:['相信、要求、接收','要求、相信、接收','接收、要求、相信'],a:1,why:'先要求，再相信，然後接收。'},
+  {q:'邊句係正面嘅要求？',o:['我唔想遲到','我想每朝準時返到學校','我唔好再俾人鬧'],a:1,why:'正面講法係講你「想要」咩，而唔係「唔想要」咩。'},
+  {q:'除咗三個步驟，仲有咩最重要？',o:['一小步行動','每日許同一個願望十次','唔好話俾人知'],a:0,why:'諗法幫你起步，行動幫你到達！'}],
+ mission:'揀你嘅一個願望，今日為佢行一小步。例如想畫畫叻啲，今日就畫一幅畫。'},
+
+{id:4,ch:'第四章 · 強大嘅方法',title:'強大嘅方法',sub:'感恩同想像',icon:'🙏',seal:'謝',
+ guide:'呢一關有兩件超級寶物，你隨時都可以帶喺身！',
+ lesson:[
+  '《秘密》話，有兩個超級強大嘅方法：「感恩」同「想像」。佢哋好似兩件寶物，你隨時都可以帶喺身。',
+  '先講感恩。感恩即係留意你已經擁有嘅好嘢，然後真心講「多謝」。例如：多謝媽媽煮飯、多謝太陽咁暖、多謝朋友借擦膠俾我。',
+  '科學家研究過，每日寫低幾樣感恩嘅事，人會開心啲、瞓得好啲、同朋友都相處得好啲。感恩就好似俾個心曬太陽。',
+  '書入面有個「感恩石」嘅方法：搵一粒細細嘅石仔放喺袋入面，每次摸到佢，就諗一樣感恩嘅嘢。你都可以試下㗎！',
+  '再講想像。想像就係喺個腦入面播一套電影，主角係你，而且結局係你想要嘅樣。好多運動員比賽之前，都會閉埋眼想像自己做得好好。',
+  '想像嘅時候，唔單止要「睇」，仲要「感受」：你聽到咩聲？身體覺得點？有幾開心？感覺愈真，你就愈有動力去行動。'],
+ key:'感恩俾個心曬太陽；想像幫你播一套成功嘅心靈電影。',
+ game:[{type:'jar',title:'🏺 感恩罐',instr:'寫低三樣你今日感恩嘅嘢。每寫一樣，就有一粒星星飛入你嘅感恩罐！',
+   sugg:['多謝媽媽煮飯俾我食','多謝今日天氣好好','多謝朋友同我玩','多謝我有一張暖暖嘅床','多謝老師教我新嘢','多謝我對腳可以跑跑跳跳']},
+  {type:'visualize',title:'🎬 我嘅心靈電影',instr:'而家我哋一齊播一套心靈電影。搵個舒服嘅位坐好，撳「開始」，跟住小光把聲慢慢做。',
+   script:['搵個舒服嘅位坐好，輕輕閉埋眼。','慢慢吸一啖氣……再慢慢呼出嚟。','而家，諗一樣你好想做到嘅事。','想像你已經做到喇！你喺邊度？身邊有邊個？','你聽到咩聲音？可能係拍手聲，可能係笑聲。','感受下你個心，係咪好暖、好開心、好自豪？','將呢份開心嘅感覺，放入你個心嘅寶箱入面。','最後，諗一個你今日可以行嘅一小步。','慢慢打開眼。好叻！你啱啱播咗一套屬於你嘅心靈電影。']}],
+ quiz:[
+  {q:'感恩係咩意思？',o:['留意已經擁有嘅好嘢，真心講多謝','問人攞多啲禮物','只係喺生日先講多謝'],a:0,why:'感恩就係留意已經擁有嘅好嘢，然後真心講多謝。'},
+  {q:'「感恩石」點樣用？',o:['掟向唔鍾意嘅人','每次摸到佢，就諗一樣感恩嘅事','擺喺枕頭底許願'],a:1,why:'每次摸到感恩石，就提自己諗一樣感恩嘅事。'},
+  {q:'想像嘅時候，點樣先最有力量？',o:['淨係諗一秒','唔單止睇，仲要感受嗰份開心','一路想像一路玩手機'],a:1,why:'感覺愈真，你就愈有動力去行動！'}],
+ mission:'今晚瞓覺前，同屋企人講三樣你今日感恩嘅事。可以試下搵一粒屬於你嘅「感恩石」！'},
+
+{id:5,ch:'第五章 · 金錢嘅秘密',title:'豐盛嘅秘密',sub:'豐盛眼鏡',icon:'💎',seal:'豐',
+ guide:'戴上一副神奇眼鏡，你會發現自己原來好富有！',
+ lesson:[
+  '《秘密》有一章講錢。對小朋友嚟講，呢章嘅秘密可以叫做「豐盛」，即係覺得自己擁有好多，而唔係成日覺得唔夠。',
+  '有啲人成日諗「我冇呢樣、我冇嗰樣」、「點解人哋有，我冇」。咁樣諗，就算擁有好多，都會覺得唔夠，個心好似穿咗個窿。',
+  '試下戴上「豐盛眼鏡」：睇下你已經有幾多寶物？有屋企、有書讀、有玩具、有人錫你、有一對識跑識跳嘅腳。原來你好富有！',
+  '書入面教，收到錢或者禮物嘅時候，真心講聲多謝；俾錢買嘢嘅時候，都可以開心咁諗：「多謝呢啲錢幫我買到需要嘅嘢。」',
+  '豐盛仲有一個秘密：分享。當你肯同人分享零食、借文具俾同學，你會發覺自己個心好似變大咗，好滿足。',
+  '當然，豐盛唔係亂咁使錢。學識儲錢、珍惜物件、分清楚「需要」同「想要」，都係好叻嘅豐盛習慣。'],
+ key:'戴上豐盛眼鏡：數下擁有、學識分享、珍惜同儲蓄。',
+ game:[{type:'sort',title:'👓 豐盛眼鏡分類',instr:'每張卡寫住一句說話。佢係「豐盛諗法」定係「缺乏諗法」？撳啱嗰個籃。',
+   binA:'💎 豐盛諗法',binB:'🕳️ 缺乏諗法',
+   a:['我好感恩我有書讀','我儲緊錢，慢慢就夠買','我可以同朋友分享','我擁有嘅已經好多','多謝媽媽買呢件衫俾我'],
+   b:['我乜都冇','點解佢有我冇，好唔公平','冇新玩具我就唔開心','我永遠都唔夠錢','人哋一定比我好'],
+   hint:['再諗下：呢句係喺度數緊自己擁有嘅嘢、感恩或者分享，係豐盛諗法呀！','再諗下：呢句係覺得自己唔夠、同人比較，係缺乏諗法。唔緊要，我哋可以學識轉換佢！'],
+   win:'好叻！你已經識分豐盛同缺乏諗法。下次聽到自己講「我冇」，試下轉做「我好感恩我有」！'}],
+ quiz:[
+  {q:'咩係「豐盛」？',o:['覺得自己擁有好多，心存感恩','擁有全世界最多玩具','唔俾人分享自己嘅嘢'],a:0,why:'豐盛係一種感覺：覺得自己擁有好多，同埋心存感恩。'},
+  {q:'邊個係豐盛習慣？',o:['見到咩都要買','儲錢同珍惜物件','同人比較邊個多'],a:1,why:'儲錢同珍惜，令你真正擁有更多。'},
+  {q:'分享會令你覺得點？',o:['個心好似變大咗，好滿足','好蝕底','好嬲'],a:0,why:'分享係豐盛嘅秘密，個心會好滿足。'}],
+ mission:'今日戴上「豐盛眼鏡」：數下你擁有嘅十樣寶物（唔一定係錢買到嘅），再同一個人分享一樣嘢。'},
+
+{id:6,ch:'第六章 · 人際關係嘅秘密',title:'關係嘅秘密',sub:'友誼之光',icon:'🤝',seal:'友',
+ guide:'點樣同朋友、屋企人相處得更好？呢度有三個秘密！',
+ lesson:[
+  '呢章講我哋同屋企人、朋友、同學點樣相處。第一個秘密係：你想人點樣對你，你就先點樣對人。',
+  '如果你想有朋友關心你，你可以先去關心人；想人講多謝，你可以先講多謝。善意就好似回力鏢，擲出去，好多時會飛返嚟。',
+  '第二個秘密：留意人哋嘅優點。每個人都有好嘅地方。當你專心欣賞佢嘅優點，你會發覺佢愈嚟愈可愛，你哋都會相處得好啲。',
+  '第三個秘密：我哋控制唔到人哋點諗、點做，但我哋可以揀自己點樣回應。如果有人對你唔好，好多時係佢自己有唔開心，唔代表你唔好。',
+  '不過要記住：如果有人成日蝦你、打你、或者令你好驚，一定要話俾爸爸媽媽、老師或者你信任嘅大人知。保護自己唔係打小報告，係勇敢同愛自己嘅表現。',
+  '最後，書入面話，最重要係先好好愛自己。好似飛機安全示範咁，大人要自己先戴好氧氣罩，先至可以幫人。一個愛自己嘅人，先至有更多愛分俾人。'],
+ key:'善意好似回力鏢；欣賞別人優點；有人令你驚，一定要話俾大人知。',
+ game:[{type:'scenario',title:'🤝 友誼之光',instr:'每個情況，揀一個最有愛、又保護到自己嘅做法。',items:[
+   {s:'新同學第一日返學，一個人坐喺度。',o:[op('同佢打招呼，問佢想唔想一齊玩',1,'你擲出咗一個善意回力鏢！'),op('覺得同自己無關',0,'如果係你第一日返學，你會唔會想有人同你打招呼？'),op('同其他人一齊笑佢',0,'笑人會令人好傷心。試下用善意嘅方法。')]},
+   {s:'好朋友今日唔睬你，你好唔開心。',o:[op('即刻話以後都唔同佢玩',0,'可能佢有自己嘅心事。唔好咁快下結論。'),op('問佢：「你今日係咪唔開心？我可以陪你」',1,'好溫暖！你冇將佢嘅行為當成係你唔好。'),op('喺背後講佢壞話',0,'講壞話會令友誼受傷。可以直接溫柔咁問佢。')]},
+   {s:'有同學連續幾日喺小息搶你嘢食，仲話唔准話俾人知。',o:[op('唔出聲，驚佢會更加蝦你',0,'呢個唔係你嘅錯。但收埋唔講，會令你一直受苦。'),op('話俾老師同爸爸媽媽知',1,'好勇敢！保護自己就係愛自己。大人有責任幫你。'),op('搶返佢嘅嘢食',0,'以牙還牙會令事情更危險。搵大人幫手最好。')]},
+   {s:'你同家姐為咗睇邊個電視節目嗌交。',o:[op('大聲喊到佢讓為止',0,'咁樣大家都唔開心。試下一齊諗辦法。'),op('一齊諗辦法，例如今日你揀，聽日佢揀',1,'好叻！你搵到一個大家都開心嘅方法。'),op('收埋個遙控器',0,'收埋遙控器會令家姐更嬲。傾吓計會好啲。')]}]}],
+ quiz:[
+  {q:'「善意回力鏢」係咩意思？',o:['你對人好，好多時好意會飛返嚟','掟嘢打人','回力鏢好危險'],a:0,why:'你擲出善意，好多時善意會返嚟你身邊。'},
+  {q:'有人成日蝦你，應該點？',o:['收埋唔講','話俾信任嘅大人知','蝦返人'],a:1,why:'話俾大人知唔係打小報告，係保護自己。'},
+  {q:'點解要先愛自己？',o:['因為咁樣先有更多愛可以分俾人','因為其他人唔重要','因為愛自己就唔使理人'],a:0,why:'愛自己嘅人，先至有更多愛可以分俾身邊嘅人。'}],
+ mission:'今日搵一個人，講出一個你欣賞佢嘅地方。例如：「我好欣賞你好有耐性教我做功課。」'},
+
+{id:7,ch:'第七章 · 健康嘅秘密',title:'健康嘅秘密',sub:'多謝我嘅身體',icon:'🌿',seal:'康',
+ guide:'你嘅身體係一部超級神奇嘅機器，我哋一齊多謝佢！',
+ lesson:[
+  '你嘅身體係一部超級神奇嘅機器！心臟每日跳十萬次，從來冇放過假；你嘅腦識思考、識記嘢、仲識發夢。',
+  '《秘密》話，諗法同感覺會影響身體。你有冇試過好緊張嘅時候，個肚會痛痛哋？或者好驚嘅時候，個心會跳得好快？呢啲就係心同身體連埋一齊嘅證據。',
+  '所以照顧個心，都係照顧身體。多啲笑、多啲深呼吸、多啲同身體講多謝，身體會放鬆啲、舒服啲。',
+  '書入面提到，笑係好好嘅良藥。同屋企人講笑話、同朋友玩，都可以令身體好開心。',
+  '不過有樣嘢一定要記住：生病或者受傷，一定要話俾大人知，同埋睇醫生、食藥。正面嘅諗法係幫手，但唔可以代替醫生㗎！',
+  '每日照顧身體嘅好習慣：瞓得夠、食得有營養、多飲水、多郁動、多笑。加埋一顆感恩嘅心，你就係健康小勇士！'],
+ key:'心同身體連埋一齊；多謝身體；病咗一定要話俾大人知、睇醫生。',
+ game:[{type:'breath',title:'🫧 泡泡呼吸',cycles:4,instr:'跟住個泡泡：泡泡變大就用鼻慢慢吸氣，停一停，泡泡變細就用口慢慢呼氣。呼氣長啲，身體會更加放鬆。一共做四次。'},
+  {type:'body',title:'💗 多謝我嘅身體',instr:'逐個撳你身體嘅部分，同佢講聲多謝！全部撳晒就過關。',
+   parts:[['👀','眼睛','多謝你，眼睛，俾我睇到藍天、花朵同屋企人嘅笑容。'],['👂','耳仔','多謝你，耳仔，俾我聽到音樂、笑聲同雀仔唱歌。'],['👄','嘴巴','多謝你，嘴巴，俾我食好味嘅嘢，同講出我嘅感受。'],['🧠','腦袋','多謝你，腦袋，幫我諗嘢、學新嘢、發好夢。'],['❤️','心臟','多謝你，心臟，日日夜夜跳個不停，保護住我。'],['🫁','肺','多謝你，肺，幫我吸入新鮮空氣。'],['🙌','雙手','多謝你，雙手，俾我畫畫、寫字、攬住我愛嘅人。'],['🦶','雙腳','多謝你，雙腳，帶我跑、帶我跳、帶我去好多地方。']]}],
+ quiz:[
+  {q:'點解緊張嘅時候，個肚可能會痛？',o:['因為心同身體係連埋一齊','因為食錯嘢','因為肚仔唔鍾意你'],a:0,why:'心同身體連埋一齊，緊張會令身體都有感覺。'},
+  {q:'生病嘅時候應該點做？',o:['淨係諗開心嘢就得，唔使睇醫生','話俾大人知、睇醫生，同埋保持開心心情','收埋唔講'],a:1,why:'正面諗法係幫手，但一定要睇醫生。'},
+  {q:'邊個係健康好習慣？',o:['成晚唔瞓打機','瞓得夠、多飲水、多郁動','只食零食'],a:1,why:'瞓得夠、多飲水、多郁動，再加多啲笑！'}],
+ mission:'今日同你嘅身體講三次多謝，同埋開懷大笑一次（可以同屋企人講笑話！）。'},
+
+{id:8,ch:'第八章 · 世界嘅秘密',title:'世界嘅秘密',sub:'做一點光',icon:'🌍',seal:'光',
+ guide:'你咁細個，可以幫到成個世界咩？可以㗎！一齊睇下點樣做！',
+ lesson:[
+  '呢章講我哋同成個世界嘅關係。你可能會諗：我咁細個，可以幫到世界咩？答案係：可以㗎！',
+  '書入面有個好重要嘅提醒：專注喺你「支持」嘅嘢，多過你「反對」嘅嘢。例如與其大叫「我討厭污糟」，不如話「我支持乾淨嘅公園」，然後執起地上嘅垃圾。',
+  '書入面提到一位好有愛心、成世幫助窮人嘅修女。有人請佢參加反對戰爭嘅遊行，佢話唔去；但佢話如果係支持和平嘅聚會，佢就一定會去。佢將專注力放喺「和平」上面。',
+  '有時新聞會講好多可怕嘅事，你可能會驚。驚係正常嘅。你可以同大人傾下，然後諗下：「我可以做啲咩好事？」',
+  '每一個細細嘅好行為，都好似點起一枝蠟燭。一枝蠟燭可以點着另一枝，光就會愈嚟愈多。你講一句好說話、幫人開門、愛護動物，都係喺度為世界點光。',
+  '記住：你唔需要一個人改變晒成個世界，你只需要成為一點光。'],
+ key:'專注你「支持」嘅嘢，用細細嘅好行為，做一點光。',
+ game:[{type:'sort',title:'🕯️ 支持定反對？',instr:'每張卡寫住一句說話。佢係「反對講法」定係「支持講法」？撳啱嗰個籃。',
+   binA:'✋ 反對講法',binB:'🌟 支持講法',
+   a:['我反對打交','我討厭污糟','唔准欺凌','我憎人浪費食物'],
+   b:['我支持和平','我支持乾淨嘅公園','我支持大家友善相處','我支持珍惜食物'],
+   hint:['再諗下：呢句講緊你「唔鍾意、反對」嘅嘢，係反對講法。','再諗下：呢句講緊你「想要、支持」嘅嘢，係支持講法！'],
+   win:'你發現未？兩組講嘅其實係同一件事，但「支持講法」令人充滿力量，更想去做好事！'}],
+ quiz:[
+  {q:'《秘密》建議我哋將專注力放喺邊度？',o:['我哋反對嘅嘢','我哋支持嘅嘢','邊個做錯'],a:1,why:'專注你支持嘅嘢，會令你更有力量去行動。'},
+  {q:'睇到可怕嘅新聞覺得驚，可以點？',o:['同大人傾下，再諗下自己可以做咩好事','以後唔好瞓覺','扮睇唔到'],a:0,why:'驚係正常嘅，同大人傾下會安心啲。'},
+  {q:'點樣為世界點一點光？',o:['講一句好說話、幫人一把','等大人去做就得','要好有錢先得'],a:0,why:'每一個細細嘅好行為，都係一點光。'}],
+ mission:'今日做一件「點光」好事：幫手執垃圾、幫人開門，或者寫一張多謝卡。'},
+
+{id:9,ch:'第九章 · 你嘅秘密',title:'你嘅秘密',sub:'獨一無二嘅我',icon:'🌟',seal:'我',
+ guide:'呢一關係講你嘅！全世界得一個你，你知唔知你幾咁特別？',
+ lesson:[
+  '呢一章係講你！全世界有八十幾億人，但係冇一個同你一模一樣。你嘅笑容、你嘅諗法、你嘅夢想，都係獨一無二。',
+  '《秘密》話，你同成個宇宙都連埋一齊，你入面有好大嘅力量。呢份力量唔係超能力，而係你嘅諗法、你嘅選擇，同埋你嘅勇氣。',
+  '你每日都會同自己講好多說話，呢啲叫做「自我對話」。如果你成日同自己講「我好差」，就好似有個人日日喺你耳邊鬧你，你會好攰。',
+  '所以要學識好似同好朋友傾偈咁，同自己講嘢。如果你好朋友考試唔合格，你會唔會話佢「你好蠢」？唔會！你會話「唔緊要，我哋下次一齊溫」。對自己都要咁好。',
+  '做錯嘢唔代表你唔好。錯誤係學習嘅梯級，每個叻人都係由錯誤度學返嚟。你可以講：「我仲未識，但我可以學。」',
+  '最後，每日對住鏡講幾句「我係……」嘅說話，例如「我係勇敢嘅」、「我係值得被愛嘅」。講得多，你就會愈嚟愈相信自己。'],
+ key:'好似同好朋友咁同自己講嘢：「我仲未識，但我可以學。」',
+ game:[{type:'scenario',title:'💛 好朋友講法',instr:'將批評自己嘅說話，改成你會同好朋友講嘅溫柔說話。揀最好嘅一句。',items:[
+   {s:'「我畫得好醜，我乜都做唔好。」',o:[op('今次畫得唔似我想像，不過我可以再練，我都有做得好嘅地方',1,'好溫柔！你好似好朋友咁同自己講嘢。'),op('冇錯，我真係好廢',0,'呢句好重。你會唔會咁樣講你嘅好朋友？'),op('我以後都唔畫',0,'放棄會令你失去鍾意嘅嘢。練習會令你進步！')]},
+   {s:'「我又唔記得帶功課，我好蠢。」',o:[op('我好蠢，冇得救',0,'唔記得嘢唔代表蠢。我哋可以諗辦法。'),op('我唔記得咗，好正常。今晚我可以寫張提示貼喺門口',1,'好叻！你冇鬧自己，仲諗到解決方法。'),op('都係媽媽唔提我',0,'怪人唔會令下次記得。諗一個自己做得到嘅方法會好啲。')]},
+   {s:'「我跑步跑最尾，好丟架。」',o:[op('我跑咗全程，冇放棄！多啲練習我會更快',1,'好棒！你留意到自己嘅努力。'),op('我以後都唔參加',0,'逃避會令你少咗進步嘅機會。'),op('大家一定笑緊我',0,'呢個係探射燈照錯方向。其實好多人都欣賞你冇放棄！')]}]},
+  {type:'affirm',title:'🪞 鏡子魔法',instr:'揀三句你最想同自己講嘅「我係……」說話，然後去鏡子前面，大聲講俾自己聽！',
+   cards:['我係勇敢嘅','我係值得被愛嘅','我係獨一無二嘅','我可以慢慢學','我係善良嘅','我有能力令自己開心','我嘅感覺係重要嘅','我每日都進步緊','我唔完美，但我好好','我係自己最好嘅朋友']}],
+ quiz:[
+  {q:'咩係「自我對話」？',o:['自己同自己講嘅說話','同電話講嘢','唔出聲'],a:0,why:'自我對話就係你每日同自己講嘅說話。'},
+  {q:'做錯嘢嘅時候，邊句最好？',o:['我係失敗者','我仲未識，但我可以學','都係人哋嘅錯'],a:1,why:'錯誤係學習嘅梯級！'},
+  {q:'點樣同自己講嘢最好？',o:['好似同好朋友傾偈咁溫柔','好似鬧人咁大聲','唔好同自己講嘢'],a:0,why:'對自己，要好似對好朋友咁溫柔。'}],
+ mission:'今晚刷牙嘅時候，對住鏡講三句「我係……」嘅說話，講完俾一個微笑自己。'},
+
+{id:10,ch:'第十章 · 生命嘅秘密',title:'生命嘅秘密',sub:'我係人生小畫家',icon:'🎨',seal:'生',
+ guide:'最後一個封印喇！解開佢，你就會成為秘密守護者！',
+ lesson:[
+  '嚟到最後一關喇！《秘密》最後話俾我哋知：你就好似一個畫家，而你嘅人生就係一張好大嘅畫紙。',
+  '每一朝起身，都係一張新嘅畫紙。琴日畫得唔好都唔緊要，今日可以用新嘅顏色再畫過。',
+  '你已經學識晒所有秘密寶物：思想磁石、感覺指南針、三步魔法加行動、感恩同想像、豐盛眼鏡、善意回力鏢、多謝身體、做一點光，同埋好朋友式嘅自我對話。',
+  '秘密唔係睇一次就識，而係要日日練習，好似練琴、練波咁。練得愈多，你個心就會愈強大。',
+  '強大嘅心，唔係話永遠唔會唔開心。強大嘅心係：唔開心嘅時候，你知道點樣照顧自己，知道可以搵邊個幫手，然後再次企起身。',
+  '由今日開始，你就係「秘密守護者」。記住，呢份秘密嘅力量，一直都喺你心入面。'],
+ key:'每日都係新畫紙；日日練習，個心就會強大。',
+ game:[{type:'routine',title:'🗓️ 我嘅秘密日程',instr:'設計你自己嘅每日秘密練習！早上、日間、夜晚，每個時段最少揀一樣。',
+   m:['起身講三樣感恩嘅事','對住鏡講一句「我係……」','想像今日會好順利','做三次泡泡呼吸'],
+   d:['留意自己嘅諗法','唔開心時用秘密轉換器','做一件點光好事','欣賞一個人嘅優點'],
+   n:['放三粒星入感恩罐','回顧今日一個小進步','播一套心靈電影','同自己講一段溫柔說話']}],
+ quiz:[
+  {q:'《秘密》話你嘅人生好似咩？',o:['一張可以每日重新畫嘅畫紙','一本已經寫好嘅書','一場考試'],a:0,why:'每日都係新畫紙，你可以揀新嘅顏色。'},
+  {q:'點樣令個心變得強大？',o:['睇一次就得','日日練習秘密寶物','永遠唔可以唔開心'],a:1,why:'好似練琴練波咁，日日練習先會強大。'},
+  {q:'強大嘅心係點樣？',o:['永遠都唔會喊','唔開心時識照顧自己、識搵人幫手，然後再企起身','唔需要任何人'],a:1,why:'強大唔係唔喊，而係識得照顧自己同再次企起身。'}],
+ mission:'揀一個你最鍾意嘅秘密寶物，教俾一個屋企人或者朋友聽！'}
+];
+
+const DAILY=['講出三樣你今日感恩嘅事','留意一個「重」嘅諗法，將佢變輕','做三次泡泡呼吸','同一個人講「多謝你」','對住鏡講「我係勇敢嘅」','閉埋眼想像一件你想做到嘅事','幫屋企人做一件小事','同你嘅身體講多謝','講一句「支持」嘅說話，例如「我支持大家友善」','做一樣你秘密轉換器入面嘅事'];
+
+const EMOS=[
+ ['😢','傷心','傷心係因為你好在乎。想喊就喊出嚟，眼淚會幫個心洗一洗。小光喺度陪住你。'],
+ ['😠','嬲','嬲係一種好大力嘅感覺，好似火山咁。你嬲，一定有你嘅原因。我哋先一齊令火山冷靜少少，記住唔好傷害自己同人。'],
+ ['😨','驚','驚係你個腦想保護你。我哋一齊慢慢呼吸，話俾身體知：我喺度，我會照顧你。如果有真嘅危險，要即刻搵大人幫手。'],
+ ['😟','擔心','擔心好似個腦一直播緊「如果……點算」嘅電影。我哋可以停一停，諗下而家可以做嘅一小步。'],
+ ['🥺','寂寞','寂寞係個心想同人連埋一齊。你唔係一個人，好多人都試過咁。我哋諗下可以搵邊個傾下。'],
+ ['😞','失望','失望係因為你好想做好。你嘅努力係有價值嘅，就算今次唔似預期。'],
+ ['😩','攰','你可能太攰喇。休息唔係懶，係幫自己充電。'],
+ ['🌫️','亂','有時唔知自己咩感覺，個心好亂，都好正常。我哋可以先呼吸，慢慢感受。']
+];
+const LADDER=[
+ ['😊','開心、有力量','我覺得好好！我可以將呢份力量分享俾身邊嘅人。'],
+ ['🙂','覺得OK','我可以做一件自己鍾意嘅事，令今日更好。'],
+ ['🌱','有少少希望','可能會慢慢好返，我可以試一小步。'],
+ ['😐','少少平靜','我可以休息一陣，我唔使即刻解決晒所有嘢。'],
+ ['😣','好難受','我而家好辛苦，呢個感覺係可以有嘅，我會陪住自己。']
+];
+const DANGER=/(想死|去死|自殺|跳樓|唔想生存|唔想活|唔想再活|傷害自己|割手|𠝹手|界手|打我|虐待|摸我|私人部位|離家出走|冇人要我|想消失)/;
+
+/* =========================================================
+   背景：three.js 神秘金色星河
+   ========================================================= */
+const BG={boost:0,burst(){this.boost=1}};
+function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');const r=g.createRadialGradient(32,32,0,32,32,32);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.25,'rgba(255,235,180,.9)');r.addColorStop(.6,'rgba(255,180,80,.25)');r.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=r;g.fillRect(0,0,64,64);return c}
+function initBG(){
+  const cv=$('#bg');
+  if(!window.THREE){fallbackBG(cv);return}
+  try{
+    const R=new THREE.WebGLRenderer({canvas:cv,antialias:false,alpha:true});
+    R.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+    const S=new THREE.Scene(),C=new THREE.PerspectiveCamera(60,1,.1,200);C.position.set(0,2.4,7.5);C.lookAt(0,0,0);
+    const tex=new THREE.CanvasTexture(glowTex());
+    const N=2600,pos=new Float32Array(N*3),col=new Float32Array(N*3);
+    const c1=new THREE.Color('#ffd98a'),c2=new THREE.Color('#ff8a3c'),c3=new THREE.Color('#fff6e0');
+    for(let i=0;i<N;i++){const arm=i%3,rr=Math.pow(Math.random(),.6)*6.5+.25,ang=rr*1.05+arm*2.094+(Math.random()-.5)*.7;
+      pos[i*3]=Math.cos(ang)*rr;pos[i*3+1]=(Math.random()-.5)*.6*(1.6-rr/6.5);pos[i*3+2]=Math.sin(ang)*rr;
+      const c=c1.clone().lerp(rr<2?c3:c2,Math.random());col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b}
+    const gG=new THREE.BufferGeometry();gG.setAttribute('position',new THREE.BufferAttribute(pos,3));gG.setAttribute('color',new THREE.BufferAttribute(col,3));
+    const gal=new THREE.Points(gG,new THREE.PointsMaterial({size:.09,map:tex,vertexColors:true,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false}));
+    S.add(gal);
+    const M=900,fp=new Float32Array(M*3);for(let i=0;i<M;i++){const r=25+Math.random()*30,t=Math.random()*Math.PI*2,p=Math.acos(2*Math.random()-1);fp[i*3]=r*Math.sin(p)*Math.cos(t);fp[i*3+1]=r*Math.cos(p);fp[i*3+2]=r*Math.sin(p)*Math.sin(t)}
+    const fG=new THREE.BufferGeometry();fG.setAttribute('position',new THREE.BufferAttribute(fp,3));
+    const far=new THREE.Points(fG,new THREE.PointsMaterial({size:.25,map:tex,color:0xfff2d0,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));S.add(far);
+    const orb=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:0xffe6a8,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));orb.scale.set(2.6,2.6,1);S.add(orb);
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,color:0xff7a2a,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false}));halo.scale.set(7,7,1);S.add(halo);
+    let px=0,py=0,tx=0,ty=0,run=true,t0=performance.now();
+    addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-.5);ty=(e.clientY/innerHeight-.5)},{passive:true});
+    const size=()=>{const w=innerWidth,h=innerHeight;R.setSize(w,h,false);C.aspect=w/h;C.updateProjectionMatrix()};size();addEventListener('resize',size);
+    document.addEventListener('visibilitychange',()=>{run=!document.hidden;if(run)requestAnimationFrame(loop)});
+    function loop(now){if(!run)return;const t=(now-t0)/1000;BG.boost*=.97;
+      gal.rotation.y+=.0012+BG.boost*.03;far.rotation.y-=.0002;
+      const s=2.6+Math.sin(t*1.3)*.25+BG.boost*3;orb.scale.set(s,s,1);halo.material.opacity=.3+Math.sin(t*.7)*.08+BG.boost*.4;
+      px+=(tx-px)*.03;py+=(ty-py)*.03;C.position.x=px*2;C.position.y=2.4-py*1.2;C.lookAt(0,0,0);
+      R.render(S,C);requestAnimationFrame(loop)}
+    requestAnimationFrame(loop);
+  }catch(e){fallbackBG(cv)}
+}
+function fallbackBG(cv){const g=cv.getContext('2d');const draw=()=>{cv.width=innerWidth;cv.height=innerHeight;const r=g.createRadialGradient(cv.width/2,cv.height*.4,0,cv.width/2,cv.height*.4,cv.width*.7);r.addColorStop(0,'#5a3210');r.addColorStop(1,'#0a0503');g.fillStyle=r;g.fillRect(0,0,cv.width,cv.height);for(let i=0;i<300;i++){g.fillStyle=`rgba(255,${200+Math.random()*55|0},150,${Math.random()})`;g.beginPath();g.arc(Math.random()*cv.width,Math.random()*cv.height,Math.random()*1.8,0,7);g.fill()}};draw();addEventListener('resize',draw)}
+
+/* =========================================================
+   路由
+   ========================================================= */
+function go(view,arg){
+  stopAll();runCleanup();closeModal();
+  $('#top').style.display=view==='splash'?'none':'flex';
+  ({splash:renderSplash,intro:renderIntro,map:renderMap,level:renderLevel,calm:renderCalm,tree:renderTree,box:renderBox,cert:renderCert,parents:renderParents})[view](arg);
+  window.scrollTo(0,0);updateGems();
+}
+
+/* ---------- 開場 ---------- */
+function renderSplash(){
+  V.innerHTML=`<div class="splash">
+   <div class="bigseal">${seal('秘',150)}</div>
+   <h1 class="title-gold">秘 密</h1>
+   <div class="sub">THE SECRET · 小朋友探險版</div>
+   <div class="whisper-wrap"><div id="whisper">有一個流傳咗好耐好耐嘅秘密……</div></div>
+   <button class="btn red mt" style="font-size:22px;min-height:66px;padding:12px 36px" onclick="openSecret()">🔓 打開秘密卷軸</button>
+   <p style="opacity:.75;font-size:15px;margin-top:18px">🔊 請開大聲 · 每段文字都有廣東話語音</p></div>`;
+  const w=['有一個流傳咗好耐好耐嘅秘密……','佢可以令你個心變得更強大……','佢可以陪你渡過唔開心嘅日子……','而家，佢等緊你去打開……'];let i=0;
+  const t=setInterval(()=>{const el=$('#whisper');if(!el)return;i=(i+1)%w.length;el.style.opacity=0;setTimeout(()=>{el.textContent=w[i];el.style.opacity=1},500)},3600);
+  cleanupFn=()=>clearInterval(t);
+}
+function openSecret(){SFX.magic();BG.burst();
+  if(P.seenIntro){go('map');TTS.speak('歡迎返嚟，秘密探險家！')}else{go('intro');TTS.speak('歡迎你，秘密探險家！撳「全部讀出嚟」，聽小光講個秘密嘅故事。')}}
+
+function renderIntro(){
+  V.innerHTML=`<div class="parch">
+   <div class="center">${seal('秘',90)}<h2>序章：秘密卷軸</h2></div>
+   <div id="introText">${INTRO.map(t=>para(t)).join('')}</div>
+   <div class="row center-row mt"><button class="btn ghost" onclick="readAll('#introText')">▶ 全部讀出嚟</button>
+   <button class="btn red" onclick="P.seenIntro=true;save();go('map')">開始探險 →</button></div></div>`;
+}
+
+/* ---------- 地圖 ---------- */
+function lvlCard(L){const s=lvState(L.id),lk=!unlocked(L.id);const st=[s.game,s.quiz,s.mission].map(x=>x?'★':'☆').join('');
+  return `<button class="parch lvl ${lk?'locked':''} ${s.done?'done':''}" onclick="${lk?'lockedTap()':`go('level',${L.id})`}"><div>${seal(L.seal,74)}</div><div><div class="lvl-ch">${esc(L.ch)}</div><div class="lvl-t">${L.icon} ${esc(L.title)}</div><div class="lvl-s">${esc(L.sub)}</div><div class="stars">${st}</div></div>${lk?'<div class="lock">🔒</div>':''}</button>`}
+function lockedTap(){SFX.soft();const m='呢個封印仲未打得開。要先完成上一關，先可以解開佢！';toast('🔒 '+m);TTS.speak(m)}
+function tile(ic,t,s,act){return `<button class="tile" onclick="${act}"><b>${ic}</b>${t}${s?`<small>${s}</small>`:''}</button>`}
+function renderMap(){
+  const n=gemCount();const tip=DAILY[Math.floor(Date.now()/864e5)%DAILY.length];
+  V.innerHTML=`<div class="center"><h2 class="title-gold" style="font-size:32px">📜 秘密卷軸地圖</h2></div>
+  <div class="guide"><div class="face">✨</div><div>${para(n>=10?'你已經集齊十粒秘密寶石，你係真正嘅秘密守護者！記得日日練習，隨時返嚟重溫。':'我係小光，你嘅秘密嚮導！每一個封印入面，都藏住《秘密》一章嘅智慧。由第一個開始，逐個解開佢，集齊十粒秘密寶石！')}</div></div>
+  <div class="prog"><div style="width:${n*10}%"></div></div>
+  <div class="parch" style="padding:8px 16px">${para('🌞 今日秘密小練習：'+tip)}</div>
+  <div class="map">${LEVELS.map(lvlCard).join('')}</div>
+  <h3 class="title-gold mt" style="font-size:24px">🧰 秘密工具箱</h3>
+  <div class="toolgrid">
+   ${tile('💗','心靈角落','唔開心時嚟呢度',"go('calm')")}
+   ${tile('🌳','秘密樹窿','講出心底話',"go('tree')")}
+   ${tile('🏺','我嘅寶箱','感恩罐、願望卡……',"go('box')")}
+   ${tile('📜','重溫序章','',"go('intro')")}
+   ${n>=10?tile('🏅','我嘅證書','秘密守護者',"go('cert')"):''}
+   ${tile('👨‍👩‍👧','家長須知','',"go('parents')")}
+  </div>
+  <p class="foot">內容根據 Rhonda Byrne《The Secret》章節架構，以兒童正向心理學重新演繹。插圖為原創設計。</p>`;
+}
+
+/* ---------- 關卡 ---------- */
+let LV=null,STEP=0;
+const STEPS=['📜 學習','🎮 遊戲','❓ 考考你','🌟 任務'];
+function renderLevel(id){LV=LEVELS.find(l=>l.id===id);STEP=Math.min(lvState(id).reach,3);if(STEP===3&&lvState(id).done)STEP=0;drawLevel()}
+function drawLevel(){
+  const s=lvState(LV.id);const ok=[s.reach>0,s.game,s.quiz,s.mission];
+  V.innerHTML=`<div class="row" style="justify-content:space-between"><button class="btn ghost small" onclick="go('map')">← 地圖</button><div class="stars">${[s.game,s.quiz,s.mission].map(x=>x?'★':'☆').join('')}</div></div>
+  <div class="center"><div class="lvl-ch" style="color:#e9c46a">${esc(LV.ch)}</div><h2 class="title-gold" style="font-size:clamp(24px,5vw,32px)">${LV.icon} ${esc(LV.title)}：${esc(LV.sub)}</h2></div>
+  <div class="steps">${STEPS.map((x,i)=>`<button class="step ${i===STEP?'on':''} ${ok[i]?'ok':''}" ${i>s.reach?'disabled':''} onclick="setStep(${i})">${x}</button>`).join('')}</div>
+  <section id="stage"></section>`;
+  [stLearn,stGame,stQuiz,stMission][STEP]();
+}
+function setStep(i){stopAll();runCleanup();STEP=i;const s=lvState(LV.id);if(i>s.reach){s.reach=i;save()}drawLevel();window.scrollTo(0,0)}
+function stLearn(){
+  $('#stage').innerHTML=`<div class="vision">${LV.icon}</div>
+  <div class="guide"><div class="face">✨</div><div>${para('小光：'+LV.guide)}</div></div>
+  <div class="parch"><div id="lesson">${LV.lesson.map(t=>para(t)).join('')}</div>
+  <div class="key">${para('🔑 秘密重點：'+LV.key)}</div>
+  <div class="row center-row mt"><button class="btn ghost" onclick="readAll('#stage')">▶ 全部讀出嚟</button><button class="btn red" onclick="setStep(1)">我明白喇，去玩遊戲 🎮</button></div></div>`;
+  autoSay('小光：'+LV.guide+' 你可以撳每段前面嘅喇叭，或者撳「全部讀出嚟」。');
+}
+function stGame(){
+  const games=LV.game;let gi=0;const st=$('#stage');
+  const run=()=>{runCleanup();
+    if(gi>=games.length){const s=lvState(LV.id);const first=!s.game;s.game=true;if(s.reach<2)s.reach=2;save();SFX.win();BG.burst();
+      const m=first?'好叻呀！你完成咗遊戲，得到一粒星星！':'好叻呀！你又完成咗一次遊戲！';
+      st.innerHTML=`<div class="parch center"><div class="gemboom">🎉</div>${para(m)}<button class="btn red" onclick="setStep(2)">去考考你 ❓</button></div>`;TTS.speak(m);return}
+    const g=games[gi++];st.innerHTML='<div id="gbox"></div>';GAMES[g.type]($('#gbox'),g,()=>{window.scrollTo(0,0);run()})};
+  run();
+}
+function stQuiz(){
+  const Q=LV.quiz;let i=0,score=0;const st=$('#stage');
+  const show=()=>{
+    if(i>=Q.length){const pass=score>=2;const s=lvState(LV.id);let m;
+      if(pass){const first=!s.quiz;s.quiz=true;if(s.reach<3)s.reach=3;save();SFX.win();
+        m=`你一次就答啱咗 ${score} 題（共 ${Q.length} 題）！${first?'得到一粒星星！':''}好叻呀！`;
+        st.innerHTML=`<div class="parch center"><div class="gemboom">🌟</div>${para(m)}<button class="btn red" onclick="setStep(3)">去接受生活任務 🌟</button></div>`}
+      else{m=`你一次就答啱咗 ${score} 題。唔緊要，錯咗先學得識！重溫一下，再試一次，好唔好？`;
+        st.innerHTML=`<div class="parch center"><div class="gemboom">💪</div>${para(m)}<div class="row center-row"><button class="btn ghost" onclick="setStep(0)">📜 重溫學習</button><button class="btn red" onclick="setStep(2)">再試一次 🔁</button></div></div>`}
+      TTS.speak(m);return}
+    const q=Q[i];let tried=false;const ord=shuffle(q.o.map((t,k)=>({t,k})));
+    const sayText=q.q+'。'+ord.map((o,j)=>'選擇'+'ABC'[j]+'，'+o.t).join('。');
+    st.innerHTML=`<div class="parch"><div class="lvl-ch">第 ${i+1} / ${Q.length} 題</div><h3 class="say">${spk(sayText)}<span>${esc(q.q)}</span></h3>
+    <div class="opts">${ord.map((o,j)=>`<button class="opt" data-k="${o.k}"><b>${'ABC'[j]}.</b> ${esc(o.t)}</button>`).join('')}</div>
+    <div class="fb" id="fb"></div><div class="row mt" id="nx" style="display:none"><button class="btn red">${i<Q.length-1?'下一題 →':'睇結果 🌟'}</button></div></div>`;
+    autoSay(sayText);
+    $$('.opt',st).forEach(b=>b.onclick=()=>{const k=+b.dataset.k,fb=$('#fb');
+      if(k===q.a){if(!tried)score++;b.classList.add('right');$$('.opt',st).forEach(x=>x.disabled=true);SFX.ok();const m='答啱！'+q.why;fb.className='fb show good';fb.innerHTML=para('✅ '+m);TTS.speak(m);$('#nx').style.display='flex'}
+      else{tried=true;b.classList.add('wrong');b.disabled=true;SFX.soft();const m='唔係呢個呀，再諗下？';fb.className='fb show try';fb.innerHTML=para('🤔 '+m);TTS.speak(m)}});
+    $('#nx button').onclick=()=>{i++;show()};
+  };show();
+}
+function stMission(){
+  const s=lvState(LV.id);
+  $('#stage').innerHTML=`<div class="parch center"><div class="vision" style="font-size:64px">🌟</div><h3>生活任務</h3>${para(LV.mission)}
+  ${para('秘密要喺真實生活入面用，先會變成你嘅超能力！做完之後，可以同屋企人分享你嘅發現。')}
+  <button class="btn red mt" id="acc">${s.done?'我再挑戰一次 ✋':'我接受挑戰！✋'}</button></div>`;
+  autoSay('生活任務。'+LV.mission);
+  $('#acc').onclick=()=>{const first=!s.done;s.mission=true;s.done=true;save();completeLevel(first)};
+}
+function completeLevel(first){
+  SFX.win();BG.burst();updateGems();const n=gemCount();
+  const m=first?`恭喜你！你解開咗「${LV.title}」嘅封印，得到第 ${n} 粒秘密寶石！`:`好叻！你再次完成咗「${LV.title}」！`;
+  const cert=n>=10;
+  openModal(`<div class="parch center"><div class="gemboom">💎</div>${seal(LV.seal,90)}<h2>封印解開！</h2>${para(m)}${cert?para('你集齊晒十粒秘密寶石！快啲去領取你嘅「秘密守護者證書」！'):''}
+  <div class="row center-row mt">${cert?`<button class="btn red" onclick="go('cert')">🏅 領取證書</button>`:''}<button class="btn ${cert?'ghost':'red'}" onclick="go('map')">返地圖 📜</button></div></div>`);
+  TTS.speak(m+(cert?'你集齊晒十粒秘密寶石！快啲去領取你嘅秘密守護者證書！':''));
+}
+
+/* =========================================================
+   小遊戲
+   ========================================================= */
+const GAMES={
+ bubbles(el,g,done){
+  el.innerHTML=gHead(g.title,g.instr)+`<div class="arena" id="arena"><div class="magnet">🧲</div><div class="hud" id="hud">吸咗 0 / ${g.goal}</div><div class="bstart" id="bstart"><button class="btn red" style="font-size:22px">▶ 開始</button></div></div>`;
+  autoSay(g.instr);
+  const ar=$('#arena');let bubs=[],score=0,raf=0,spawnT=0,last=0,running=false,li=0,hi=0;
+  const L=shuffle(g.light),H=shuffle(g.heavy);
+  function spawn(){if(bubs.length>=6)return;const good=Math.random()<.6;const t=good?L[li++%L.length]:H[hi++%H.length];
+    const b=document.createElement('div');b.className='bub';b.textContent='💭 '+t;ar.appendChild(b);
+    const W=ar.clientWidth,Hh=ar.clientHeight,bw=b.offsetWidth;
+    const o={el:b,x:Math.random()*Math.max(10,W-bw-10)+5,y:Hh+10,vy:(34+Math.random()*22)*(Hh/520),good,t,dead:false,wob:Math.random()*6};
+    b.style.transform=`translate(${o.x}px,${o.y}px)`;b.addEventListener('pointerdown',e=>{e.preventDefault();hit(o)});bubs.push(o)}
+  function hit(o){if(o.dead||!running)return;o.dead=true;
+    if(o.good){score++;SFX.ok();TTS.speak(o.t);const W=ar.clientWidth;o.el.style.transition='transform .5s ease-in,opacity .5s';o.el.style.transform=`translate(${W/2-o.el.offsetWidth/2}px,20px) scale(.2)`;o.el.style.opacity='0';setTimeout(()=>o.el.remove(),520);$('#hud').textContent=`吸咗 ${score} / ${g.goal}`;if(score>=g.goal)finish()}
+    else{SFX.soft();TTS.speak(g.heavyFb);o.el.style.transition='opacity .7s,filter .7s';o.el.style.filter='grayscale(1) blur(2px)';o.el.style.opacity='0';setTimeout(()=>o.el.remove(),720)}}
+  function loop(ts){if(!running)return;const dt=Math.min(.05,(ts-(last||ts))/1000);last=ts;spawnT-=dt;if(spawnT<=0){spawn();spawnT=1.5+Math.random()*.6}
+    bubs.forEach(o=>{if(o.dead)return;o.y-=o.vy*dt;o.wob+=dt*1.6;o.el.style.transform=`translate(${o.x+Math.sin(o.wob)*10}px,${o.y}px)`;if(o.y<-60){o.dead=true;o.el.remove()}});
+    bubs=bubs.filter(o=>!o.dead);raf=requestAnimationFrame(loop)}
+  function finish(){running=false;cancelAnimationFrame(raf);SFX.win();setTimeout(()=>{$$('.bub',ar).forEach(b=>b.remove());done()},1000)}
+  $('#bstart button').onclick=()=>{$('#bstart').remove();running=true;last=0;spawnT=0;raf=requestAnimationFrame(loop)};
+  cleanupFn=()=>{running=false;cancelAnimationFrame(raf)};
+ },
+ scenario(el,g,done){
+  let i=0;
+  const show=()=>{if(i>=g.items.length){done();return}
+    const it=g.items[i];const ord=shuffle(it.o.map((o,k)=>({...o,k})));
+    const sayText=it.s+'。選擇有：'+ord.map((o,j)=>'第'+(j+1)+'，'+o.t).join('。');
+    el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><div class="lvl-ch">情境 ${i+1} / ${g.items.length}</div>${para('🎬 '+it.s,sayText)}
+    <div class="opts">${ord.map(o=>`<button class="opt" data-k="${o.k}">${esc(o.t)}</button>`).join('')}</div>
+    <div class="fb" id="fb"></div><div class="row mt" id="nx" style="display:none"><button class="btn red">下一個 →</button></div></div>`;
+    autoSay((i===0?g.instr+'。':'')+sayText);
+    $$('.opt',el).forEach(b=>b.onclick=()=>{const o=it.o[+b.dataset.k],fb=$('#fb');
+      if(o.good){b.classList.add('right');$$('.opt',el).forEach(x=>x.disabled=true);SFX.ok();const m=o.fb||'好叻！呢個做法幫到你。';fb.className='fb show good';fb.innerHTML=para('👍 '+m);TTS.speak(m);$('#nx').style.display='flex'}
+      else{b.classList.add('wrong');b.disabled=true;SFX.soft();const m=(o.fb||'呢個做法可能會令事情更難。')+' 再揀一次？';fb.className='fb show try';fb.innerHTML=para('🤔 '+m);TTS.speak(m)}});
+    $('#nx button').onclick=()=>{i++;show();window.scrollTo(0,0)}};
+  show();
+ },
+ shifters(el,g,done){
+  const draw=()=>{
+   el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><div class="row"><input id="shIn" class="inp" maxlength="40" placeholder="例如：聽我最鍾意嘅歌"><button class="btn small" id="shAdd">加入 ➕</button></div>
+   <div class="chips">${g.sugg.map(s=>`<button class="chip">${esc(s)}</button>`).join('')}</div>
+   <h3>我嘅秘密轉換器（${P.happy.length} 樣）</h3>
+   <ul class="list">${P.happy.map((h,k)=>`<li>${para('🎵 '+h)}<button class="x" data-k="${k}" aria-label="刪除">✕</button></li>`).join('')||'<li class="note">未有，快啲加入第一樣！</li>'}</ul>
+   <div class="row center-row mt"><button class="btn red" id="shDone" ${P.happy.length<3?'disabled':''}>完成 ✓（最少三樣）</button></div></div>`;
+   const add=v=>{v=(v||'').trim();if(!v)return;if(!P.happy.includes(v)){P.happy.push(v);save();SFX.ok();TTS.speak(v)}draw()};
+   $('#shAdd').onclick=()=>add($('#shIn').value);$('#shIn').onkeydown=e=>{if(e.key==='Enter')add(e.target.value)};
+   $$('.chip',el).forEach(c=>c.onclick=()=>add(c.textContent));
+   $$('.x',el).forEach(x=>x.onclick=()=>{P.happy.splice(+x.dataset.k,1);save();draw()});
+   $('#shDone').onclick=done};
+  draw();autoSay(g.instr);
+ },
+ order(el,g,done){
+  let got=0;const sh=shuffle(g.steps.map((t,k)=>({t,k})));
+  el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><ol class="seq" id="seq"></ol><div class="opts" id="pool">${sh.map(o=>`<button class="opt" data-k="${o.k}">${esc(o.t)}</button>`).join('')}</div><div class="fb" id="fb"></div></div>`;
+  autoSay(g.instr);
+  $$('#pool .opt',el).forEach(b=>b.onclick=()=>{const k=+b.dataset.k;
+    if(k===got){SFX.ok();TTS.speak(g.steps[k]);b.remove();$('#seq').insertAdjacentHTML('beforeend',`<li class="seqi">${esc(g.steps[k])}</li>`);got++;
+      if(got===g.steps.length){$('#fb').className='fb show good';$('#fb').innerHTML=para('🎉 '+g.win)+'<div class="row center-row"><button class="btn red" id="odn">繼續 →</button></div>';TTS.speak(g.win);$('#odn').onclick=done}}
+    else{b.classList.remove('wrong');void b.offsetWidth;b.classList.add('wrong');SFX.soft();TTS.speak('再諗下，下一步應該係邊個？')}});
+ },
+ wish(el,g,done){
+  el.innerHTML=gHead(g.title,g.instr)+`<div class="parch">
+   <div class="lab">${para('第一步，要求：我想……（用正面講法）')}</div><input id="w1" class="inp" maxlength="60" placeholder="例如：我想上堂有信心咁舉手">
+   <div class="chips">${g.sugg.map(s=>`<button class="chip">${esc(s)}</button>`).join('')}</div>
+   <div class="fb" id="wfb"></div>
+   <div class="lab">${para('第二步，相信：講一句相信自己嘅說話')}</div><input id="w2" class="inp" maxlength="60" placeholder="例如：我相信我可以慢慢做到">
+   <div class="lab">${para('第三步，接收：做到嗰陣，我會覺得……')}</div><input id="w4" class="inp" maxlength="60" placeholder="例如：好自豪、好開心">
+   <div class="lab">${para('最後，行動：今日我可以行嘅一小步係……')}</div><input id="w3" class="inp" maxlength="60" placeholder="例如：今日喺屋企練習大聲讀一次">
+   <div class="row center-row mt"><button class="btn red" id="wOK">製作我嘅願望卡 ✨</button></div></div>`;
+  autoSay(g.instr);let warned=false;
+  $$('.chip',el).forEach(c=>c.onclick=()=>{$('#w1').value=c.textContent;TTS.speak(c.textContent)});
+  $('#wOK').onclick=()=>{const w=$('#w1').value.trim(),b=$('#w2').value.trim()||'我相信我可以慢慢做到',f=$('#w4').value.trim()||'好開心',a=$('#w3').value.trim();
+    if(!w||!a){const m='記得寫低你嘅願望，同埋今日可以行嘅一小步呀！';toast(m);TTS.speak(m);return}
+    if(!warned&&/(唔|冇|無|不|別|咪)/.test(w)){warned=true;const m='小光提提你：你嘅願望入面有「唔」或者「冇」呢類字。試下改成講你「想要」咩，例如將「我唔想遲到」改成「我想準時返學」。改好再撳一次；想保留原本都得㗎。';$('#wfb').className='fb show try';$('#wfb').innerHTML=para('💡 '+m);TTS.speak(m);return}
+    P.wishes.unshift({w,b,f,a,d:today()});save();SFX.magic();BG.burst();
+    const m=`我嘅願望：${w}。我相信：${b}。做到嗰陣，我會覺得${f}。今日我嘅一小步：${a}。`;
+    el.innerHTML=`<div class="parch"><div class="wishcard">${seal('願',80)}<h2>🌠 我嘅願望卡</h2>${para('🎯 要求：'+w)}${para('💫 相信：'+b)}${para('🎁 接收：做到嗰陣，我會覺得'+f)}${para('👣 行動：'+a)}<p class="note">已經放入「我嘅寶箱」</p></div><div class="row center-row mt"><button class="btn red" id="wd">繼續 →</button></div></div>`;
+    TTS.speak(m);$('#wd').onclick=done};
+ },
+ jar(el,g,done){
+  let added=0;
+  const draw=()=>{const n=P.gratitude.length;
+   el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><div class="jarwrap"><div class="jar">${Array.from({length:Math.min(n,70)},(_,k)=>`<span class="jstar" style="left:${(rnd(k,1)*78+4).toFixed(1)}%;bottom:${Math.min(86,Math.floor(k/6)*8+rnd(k,2)*5+2).toFixed(1)}%">⭐</span>`).join('')}</div><div class="jarlabel">我嘅感恩罐 · ${n} 粒星</div></div>
+   <div class="row"><input id="gIn" class="inp" maxlength="60" placeholder="我好感恩……"><button class="btn small" id="gAdd">放入罐 ⭐</button></div>
+   <div class="chips">${g.sugg.map(s=>`<button class="chip">${esc(s)}</button>`).join('')}</div>
+   ${para(`今次已經放咗 ${added} 粒，目標係三粒。`)}
+   ${added>=3?'<div class="row center-row"><button class="btn red" id="gDone">完成 ✓</button></div>':''}</div>`;
+   const add=()=>{const t=$('#gIn').value.trim();if(!t){TTS.speak('寫低一樣你感恩嘅嘢，或者撳下面嘅提示。');return}P.gratitude.unshift({t,d:today()});added++;save();SFX.ok();TTS.speak(t+'。好感恩呀！');draw()};
+   $('#gAdd').onclick=add;$('#gIn').onkeydown=e=>{if(e.key==='Enter')add()};
+   $$('.chip',el).forEach(c=>c.onclick=()=>{$('#gIn').value=c.textContent;$('#gIn').focus()});
+   if($('#gDone'))$('#gDone').onclick=done};
+  draw();autoSay(g.instr);
+ },
+ visualize(el,g,done){
+  el.innerHTML=gHead(g.title,g.instr)+`<div class="vizbox"><div class="vizorb"></div><p class="viztext" id="vt">準備好，就撳「開始」</p><div class="dots" id="vdots">${g.script.map(()=>'<i></i>').join('')}</div><div class="row center-row" id="vbtns"><button class="btn red" id="vgo">▶ 開始心靈電影</button><button class="btn ghost small" id="vskip">跳過</button></div></div>`;
+  autoSay(g.instr);let i=0,timer=0,fbt=0,on=false;
+  const step=()=>{if(!on)return;if(i>=g.script.length){fin();return}const t=g.script[i];$('#vt').textContent=t;$('#vdots').children[i].classList.add('on');i++;
+    let ended=false;const nxt=()=>{if(ended||!on)return;ended=true;clearTimeout(fbt);timer=setTimeout(step,2800)};
+    TTS.speak(t,{onend:nxt});fbt=setTimeout(nxt,4000+t.length*280)};
+  const fin=()=>{on=false;$('#vt').textContent='🎬 完成！你播咗一套好靚嘅心靈電影。';$('#vbtns').innerHTML='<button class="btn red" id="vdn">繼續 →</button>';$('#vdn').onclick=done;SFX.win()};
+  $('#vgo').onclick=()=>{on=true;$('#vgo').style.display='none';step()};
+  $('#vskip').onclick=()=>{on=false;clearTimeout(timer);clearTimeout(fbt);stopAll();done()};
+  cleanupFn=()=>{on=false;clearTimeout(timer);clearTimeout(fbt)};
+ },
+ sort(el,g,done){
+  const items=shuffle([...g.a.map(t=>({t,b:0})),...g.b.map(t=>({t,b:1}))]);let i=0;
+  const show=()=>{
+   if(i>=items.length){el.innerHTML=gHead(g.title,g.instr)+`<div class="parch center"><div class="gemboom">🏆</div>${para(g.win)}<button class="btn red" id="sdn">繼續 →</button></div>`;TTS.speak(g.win);SFX.win();$('#sdn').onclick=done;return}
+   const it=items[i];
+   el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><div class="lvl-ch center">第 ${i+1} / ${items.length} 張</div><div class="sortcard" id="sc">${spk(it.t)}<span>${esc(it.t)}</span></div>
+   <div class="bins"><button class="bin" data-b="0">${g.binA}</button><button class="bin" data-b="1">${g.binB}</button></div><div class="fb" id="fb"></div></div>`;
+   autoSay((i===0?g.instr+'。第一張：':'')+it.t);
+   $$('.bin',el).forEach(b=>b.onclick=()=>{if(+b.dataset.b===it.b){SFX.ok();$$('.bin',el).forEach(x=>x.disabled=true);$('#sc').classList.add('fly'+it.b);i++;setTimeout(show,480)}
+     else{SFX.soft();const m=g.hint[it.b];$('#fb').className='fb show try';$('#fb').innerHTML=para('🤔 '+m);TTS.speak(m)}})};
+  show();
+ },
+ breath(el,g,done){
+  el.innerHTML=gHead(g.title,g.instr)+`<div class="breath-wrap"><div class="bb" id="bb">準備</div></div><div class="center" id="bcount"></div><div class="row center-row"><button class="btn red" id="bgo">▶ 開始</button></div>`;
+  autoSay(g.instr);let c=0,on=false,tm=[];
+  const phase=(txt,sec,scale,cb)=>{const b=$('#bb');if(!b||!on)return;b.textContent=txt;b.style.transition=`transform ${sec}s ease-in-out`;b.style.transform=`scale(${scale})`;TTS.speak(txt);tm.push(setTimeout(cb,sec*1000))};
+  const cyc=()=>{if(!on)return;
+    if(c>=g.cycles){on=false;$('#bb').textContent='😌';$('#bb').style.transform='scale(1)';const m='好叻！你個身體而家平靜咗啲喇。';TTS.speak(m);SFX.win();$('#bcount').innerHTML=para(m);const b=$('#bgo');b.textContent='繼續 →';b.style.display='';b.onclick=done;return}
+    c++;$('#bcount').innerHTML=`<b>第 ${c} / ${g.cycles} 次</b>`;
+    phase('吸氣',4,1.9,()=>phase('停一停',2,1.9,()=>phase('慢慢呼氣',6,1,cyc)))};
+  $('#bgo').onclick=()=>{on=true;$('#bgo').style.display='none';cyc()};
+  cleanupFn=()=>{on=false;tm.forEach(clearTimeout)};
+ },
+ body(el,g,done){
+  const got=new Set();
+  el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><div class="bodygrid">${g.parts.map((p,k)=>`<button class="bpart" data-k="${k}"><b>${p[0]}</b>${esc(p[1])}</button>`).join('')}</div><p class="center" id="bc"><b>0 / ${g.parts.length}</b></p><div class="fb" id="fb"></div><div class="row center-row" id="bdone"></div></div>`;
+  autoSay(g.instr);
+  $$('.bpart',el).forEach(b=>b.onclick=()=>{const k=+b.dataset.k,p=g.parts[k];b.classList.add('on');got.add(k);SFX.ok();TTS.speak(p[2]);
+    $('#fb').className='fb show good';$('#fb').innerHTML=para('💗 '+p[2]);$('#bc').innerHTML=`<b>${got.size} / ${g.parts.length}</b>`;
+    if(got.size===g.parts.length&&!$('#bdn')){$('#bdone').innerHTML='<button class="btn red" id="bdn">我多謝晒我嘅身體喇！繼續 →</button>';$('#bdn').onclick=done}});
+ },
+ affirm(el,g,done){
+  const sel=[];let stream=null;
+  const pickStage=()=>{
+   el.innerHTML=gHead(g.title,g.instr)+`<div class="parch"><div class="cards">${g.cards.map((c,k)=>`<button class="acard ${sel.includes(k)?'on':''}" data-k="${k}">${esc(c)}</button>`).join('')}</div>
+   <p class="center"><b>已揀 ${sel.length} / 3</b></p><div class="row center-row"><button class="btn red" id="aNext" ${sel.length<3?'disabled':''}>去鏡子前面 🪞</button></div></div>`;
+   $$('.acard',el).forEach(b=>b.onclick=()=>{const k=+b.dataset.k;TTS.speak(g.cards[k]);const j=sel.indexOf(k);if(j>=0)sel.splice(j,1);else if(sel.length<3)sel.push(k);else{toast('最多揀三句，可以撳返已揀嘅取消');return}pickStage()});
+   $('#aNext').onclick=mirror};
+  const stopCam=()=>{if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}};
+  const mirror=()=>{let j=0;
+   el.innerHTML=`<div class="parch center"><h3>🪞 鏡子魔法</h3><div class="mirror"><video id="mv" playsinline autoplay muted></video><div class="mface" id="mface">🪞</div></div>
+   <button class="btn ghost small" id="cam">📷 打開鏡子（用相機）</button>
+   <h2 class="aword" id="aw"></h2><div id="aspk"></div>${para('對住鏡，望住自己對眼，大聲講出嚟！講完撳「我講咗喇」。')}
+   <button class="btn red mt" id="said">我講咗喇 ✓</button></div>`;
+   const showJ=()=>{const t=g.cards[sel[j]];$('#aw').textContent=t;$('#aspk').innerHTML=spk(t);TTS.speak('跟住我講：'+t)};
+   $('#cam').onclick=()=>{if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){toast('呢部機打唔開相機，你可以用真嘅鏡㗎！');return}
+     navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false}).then(s=>{stream=s;$('#mv').srcObject=s;$('#mface').style.display='none';$('#cam').style.display='none'}).catch(()=>toast('打唔開相機，你可以用真嘅鏡㗎！'))};
+   $('#said').onclick=()=>{SFX.ok();j++;if(j>=3){stopCam();const m='好叻！記住呢三句說話，佢哋係屬於你嘅魔法。';TTS.speak(m);toast('✨ '+m);done()}else showJ()};
+   showJ()};
+  cleanupFn=stopCam;pickStage();autoSay(g.instr);
+ },
+ routine(el,g,done){
+  const r=P.routine?JSON.parse(JSON.stringify(P.routine)):{m:[],d:[],n:[]};
+  const sec=(k,lab)=>`<h3>${lab}</h3><div class="chips">${g[k].map(x=>`<button class="chip ${r[k].includes(x)?'on':''}" data-s="${k}" data-v="${esc(x)}">${esc(x)}</button>`).join('')}</div>`;
+  const draw=()=>{const ok=r.m.length&&r.d.length&&r.n.length;
+   el.innerHTML=gHead(g.title,g.instr)+`<div class="parch">${sec('m','🌅 早上')}${sec('d','☀️ 日間')}${sec('n','🌙 夜晚')}<div class="row center-row mt"><button class="btn red" id="rOK" ${ok?'':'disabled'}>完成我嘅秘密日程 ✓</button></div></div>`;
+   $$('.chip',el).forEach(c=>c.onclick=()=>{const k=c.dataset.s,v=c.dataset.v,i=r[k].indexOf(v);if(i>=0)r[k].splice(i,1);else{r[k].push(v);TTS.speak(v)}draw()});
+   $('#rOK').onclick=()=>{P.routine=r;save();SFX.magic();const m='我嘅秘密日程：早上，'+r.m.join('、')+'。日間，'+r.d.join('、')+'。夜晚，'+r.n.join('、')+'。';
+     el.innerHTML=`<div class="parch"><h3>🗓️ 我嘅秘密日程</h3>${para('🌅 早上：'+r.m.join('、'))}${para('☀️ 日間：'+r.d.join('、'))}${para('🌙 夜晚：'+r.n.join('、'))}<p class="note">已經放入「我嘅寶箱」</p><div class="row center-row"><button class="btn red" id="rd">繼續 →</button></div></div>`;TTS.speak(m);$('#rd').onclick=done}};
+  draw();autoSay(g.instr);
+ }
+};
+
+/* =========================================================
+   心靈角落（唔開心嘅時候）
+   ========================================================= */
+let calmEmo=null;
+function emoName(){return calmEmo!=null?EMOS[calmEmo][1]:''}
+function calmBack(){return `<div class="row"><button class="btn ghost small" onclick="renderCalm()">← 心靈角落</button><button class="btn ghost small" onclick="go('map')">📜 地圖</button></div>`}
+function renderCalm(){
+  stopAll();runCleanup();$('#top').style.display='flex';
+  V.innerHTML=`<div class="center"><h2 class="title-gold" style="font-size:32px">💗 心靈角落</h2></div>
+  <div class="guide"><div class="face">✨</div><div>${para('小光喺度陪你。唔開心係冇問題㗎，每個人都會有。你而家覺得點？撳一個最似你嘅感覺。')}</div></div>
+  <div class="emos">${EMOS.map((e,k)=>`<button class="emo" onclick="calmPick(${k})"><b>${e[0]}</b>${e[1]}</button>`).join('')}</div>
+  <div class="parch mt">${para('如果有人傷害你，或者你有傷害自己嘅念頭，請即刻話俾一個你信任嘅大人知。')}<div class="row"><button class="btn small red" onclick="showSafety()">📞 求助資料</button></div></div>`;
+  autoSay('小光喺度陪你。唔開心係冇問題㗎，每個人都會有。你而家覺得點？撳一個最似你嘅感覺。');window.scrollTo(0,0);
+}
+function calmPick(k){calmEmo=k;const e=EMOS[k];stopAll();
+  V.innerHTML=calmBack()+`<div class="parch center"><div style="font-size:84px;animation:float 3s infinite">${e[0]}</div><h2>我而家覺得：${e[1]}</h2>${para(e[2])}${para('多謝你話俾我知。講得出自己嘅感覺，已經係好勇敢嘅第一步。')}
+  <div class="row center-row mt"><button class="btn red" onclick="calmBreath()">一齊做泡泡呼吸 🫧</button><button class="btn ghost" onclick="calmTools()">直接睇工具 🧰</button></div></div>`;
+  TTS.speak(e[2]+' 多謝你話俾我知。講得出自己嘅感覺，已經係好勇敢嘅第一步。');window.scrollTo(0,0)}
+function calmBreath(){stopAll();runCleanup();V.innerHTML=calmBack()+'<div id="cb"></div>';
+  GAMES.breath($('#cb'),{title:'🫧 泡泡呼吸',cycles:3,instr:'跟住個泡泡：泡泡變大就慢慢吸氣，停一停，泡泡變細就慢慢呼氣。一共做三次。'},calmTools)}
+function calmTools(){stopAll();runCleanup();
+  const T=[['🪜','感覺階梯','唔使一下子好返，爬上一級就得','calmLadder()'],['🎵','我嘅秘密轉換器','做一樣令你好少少嘅事','calmShifters()'],['🏺','感恩罐寶物','記返你擁有嘅好嘢','calmJar()'],['🕯️','同自己個心講說話','聽一段溫柔嘅自我對話','calmTalk()'],['🌳','去樹窿講出嚟','將心事講俾樹窿聽',"go('tree')"],['🧑‍🤝‍🧑','搵人幫手','你唔需要自己一個面對','showSafety()']];
+  V.innerHTML=calmBack()+`<div class="center"><h2 class="title-gold" style="font-size:30px">🧰 秘密工具箱</h2></div><div class="guide"><div class="face">✨</div><div>${para('你好叻，願意照顧自己。揀一樣工具試下，唔啱就再揀過另一樣。')}</div></div>
+  <div class="toolcards">${T.map(t=>`<button class="tile" onclick="${t[3]}"><b>${t[0]}</b>${t[1]}<small>${t[2]}</small></button>`).join('')}</div>`;
+  TTS.speak('你好叻，願意照顧自己。揀一樣工具試下，唔啱就再揀過另一樣。');window.scrollTo(0,0)}
+function calmLadder(){stopAll();
+  V.innerHTML=calmBack()+`<div class="parch"><h2>🪜 感覺階梯</h2>${para('《秘密》話，唔使一下子由好唔開心跳到好開心，只要向上爬一級就得。你而家喺邊一級？撳一下。')}
+  <div class="ladder">${LADDER.map((r,k)=>`<button class="rung" data-k="${k}"><b>${r[0]}</b>${r[1]}</button>`).join('')}</div><div class="fb" id="lfb"></div></div>`;
+  TTS.speak('《秘密》話，唔使一下子由好唔開心跳到好開心，只要向上爬一級就得。你而家喺邊一級？撳一下。');
+  $$('.rung').forEach(b=>b.onclick=()=>{const k=+b.dataset.k;$$('.rung').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+    const m=k===0?'你已經喺最高嗰級！好好享受呢份感覺，亦可以將佢分享俾人。':`你而家喺「${LADDER[k][1]}」。呢個感覺係可以有嘅。試下同自己慢慢講呢句，幫你爬上一級：${LADDER[k-1][2]}`;
+    $('#lfb').className='fb show good';$('#lfb').innerHTML=para('🪜 '+m);TTS.speak(m);SFX.ok()});window.scrollTo(0,0)}
+function calmShifters(){stopAll();
+  const def=['聽一首鍾意嘅歌','攬一攬公仔或者屋企人','諗一個好笑嘅回憶','畫一幅畫','飲杯水，行一個圈','同寵物玩','望下窗外嘅天空','唱一首歌'];
+  const list=P.happy.length?P.happy:def;
+  V.innerHTML=calmBack()+`<div class="parch"><h2>🎵 我嘅秘密轉換器</h2>${para(P.happy.length?'呢啲係你自己揀嘅快樂寶物。揀一樣而家做得到嘅，試下！':'你仲未製作自己嘅秘密轉換器，小光先借啲俾你。完成第二關就可以製作自己嘅！')}
+  <ul class="list">${list.map(h=>`<li>${para('🎵 '+h,'試下而家做：'+h)}</li>`).join('')}</ul><div class="row center-row"><button class="btn red" id="rand">🎲 幫我揀一樣</button></div><div class="fb" id="sfb"></div></div>`;
+  $('#rand').onclick=()=>{const h=list[Math.floor(Math.random()*list.length)];const m='小光幫你揀咗：'+h+'。試下做五分鐘，然後留意下個心有冇好少少。';$('#sfb').className='fb show good';$('#sfb').innerHTML=para('🎲 '+m);TTS.speak(m);SFX.magic()};
+  TTS.speak(P.happy.length?'呢啲係你自己揀嘅快樂寶物。揀一樣而家做得到嘅，試下！':'你仲未製作自己嘅秘密轉換器，小光先借啲俾你。');window.scrollTo(0,0)}
+function calmJar(){stopAll();
+  const src=P.gratitude.length?shuffle(P.gratitude).slice(0,3).map(x=>x.t):['有人好錫你','你今日有飯食','你有一對可以行路嘅腳'];
+  const m='記唔記得，你擁有呢啲好嘢：'+src.join('；')+'。就算今日唔開心，呢啲好嘢都仲喺度。';
+  V.innerHTML=calmBack()+`<div class="parch"><h2>🏺 感恩罐寶物</h2>${para('記唔記得，你擁有呢啲好嘢：')}${src.map(t=>para('⭐ '+t)).join('')}${para('就算今日唔開心，呢啲好嘢都仲喺度。')}
+  <div class="row"><input id="cjIn" class="inp" maxlength="60" placeholder="而家再加一樣感恩嘅嘢……"><button class="btn small" id="cjAdd">放入罐 ⭐</button></div></div>`;
+  $('#cjAdd').onclick=()=>{const t=$('#cjIn').value.trim();if(!t)return;P.gratitude.unshift({t,d:today()});save();SFX.ok();TTS.speak(t+'。好感恩呀！');$('#cjIn').value='';toast('⭐ 已經放入感恩罐')};
+  TTS.speak(m);window.scrollTo(0,0)}
+function selfTalkLocal(e){const f=e||'唔開心';return[`親愛嘅自己，我知道你而家覺得好${f}。`,'呢個感覺係可以有嘅，你冇做錯。','我陪住你，慢慢吸一啖氣……再慢慢呼出嚟。','我已經好努力，我為自己驕傲。','呢件事唔代表我唔好，我仍然係值得被愛嘅。','我感恩身邊仍然有關心我嘅人。','我可以諗一個細細嘅一小步，令自己好少少。','如果太辛苦，我可以搵一個信任嘅大人傾下。','每一日都係一張新嘅畫紙。','我係自己最好嘅朋友，我會一直陪住自己。']}
+function calmTalk(){stopAll();const lines=selfTalkLocal(emoName());
+  V.innerHTML=calmBack()+`<div class="parch"><h2>🕯️ 同自己個心講說話</h2>${para('搵個安靜嘅位，可以合埋手，好似祈禱咁。撳「陪我慢慢讀」，小光讀一句，你就跟住輕輕講一句。')}${talkHTML(lines,'ct')}</div>`;
+  TTS.speak('搵個安靜嘅位，可以合埋手，好似祈禱咁。撳陪我慢慢讀，小光讀一句，你就跟住輕輕講一句。');window.scrollTo(0,0)}
+function talkHTML(lines,id){return `<div class="talk" id="${id}">${lines.map(l=>`<p>${esc(l)}</p>`).join('')}</div><div class="row"><button class="btn small ghost" onclick="talkRead('${id}',false)">🔊 全部讀</button><button class="btn small" onclick="talkRead('${id}',true)">🕯️ 陪我慢慢讀</button><button class="btn small ghost" onclick="talkSave('${id}')">💾 收藏</button></div>`}
+function talkRead(id,slow){const ps=$$('#'+id+' p');const token=++readToken;let i=0;
+  const next=()=>{if(token!==readToken)return;if(i>=ps.length){if(slow){toast('好叻！你同自己個心講咗好多溫柔嘅說話 💛');SFX.magic()}return}
+    const p=ps[i++];TTS.speak(p.textContent,{onend:()=>{if(token!==readToken)return;p.classList.remove('reading');setTimeout(next,slow?1200+p.textContent.length*200:300)}});p.classList.add('reading');p.scrollIntoView({block:'center',behavior:'smooth'})};
+  next()}
+function talkSave(id){const lines=$$('#'+id+' p').map(p=>p.textContent);P.talks.unshift({d:today(),lines});save();SFX.ok();toast('💾 已經收藏喺「我嘅寶箱」')}
+function safetyBlock(){return `<h3>🛟 你嘅安全最重要</h3>
+ ${para('如果有人傷害你、令你好驚，或者你有傷害自己嘅念頭，呢啲都唔係你嘅錯。請即刻話俾一個你信任嘅大人知，例如爸爸媽媽、老師、學校社工或者親戚。')}
+ ${para('如果有即時危險，請打九九九。香港同英國都係打九九九。')}
+ ${para('香港：撒瑪利亞會二十四小時熱線，二八九六，零零零零。社會福利署熱線，二三四三，二二五五。仲有「Open噏」網上傾訴平台，openup.hk。')}
+ <p class="note">香港：撒瑪利亞會 2896 0000（24 小時）· 社署熱線 2343 2255 · Open噏 openup.hk</p>
+ ${para('英國：Childline 兒童熱線，零八零零，一一一一，免費，二十四小時。')}
+ <p class="note">英國：Childline 0800 1111（免費，24 小時）</p>`}
+function showSafety(){openModal(`<div class="parch safety" style="background:#fff5f7">${safetyBlock()}<div class="row center-row mt"><button class="btn red" onclick="closeModal()">我知道喇</button></div></div>`);TTS.speak('你嘅安全最重要。如果有人傷害你、令你好驚，或者你有傷害自己嘅念頭，呢啲都唔係你嘅錯。請即刻話俾一個你信任嘅大人知。如果有即時危險，請打九九九。')}
+
+/* =========================================================
+   秘密樹窿（AI）
+   ========================================================= */
+const SYS_PROMPT=`你係「小光」，一個溫柔、有智慧嘅「秘密樹窿」守護精靈，陪伴六至十四歲嘅香港小朋友。你熟悉 Rhonda Byrne《The Secret》嘅核心概念：吸引力法則（思想磁石、腦嘅探射燈）、感覺指南針、秘密轉換器（快樂清單）、要求－相信－接收再加一小步行動、感恩（感恩罐、感恩石）、想像（心靈電影）、豐盛、善意回力鏢、多謝身體、專注支持而唔係反對、好朋友式自我對話。你會用正向心理學同兒童心理學嘅方式，溫和咁運用呢啲概念。
+
+必須遵守：
+1. 全部用香港廣東話口語、繁體字。句子要短，用小學生明白嘅字，唔好用深奧詞語或者英文術語。
+2. 先同理：肯定佢嘅感受係正常、可以有嘅。永遠唔可以話係小朋友「吸引」咗壞事、係佢嘅錯，或者叫佢「唔好諗負面嘢」。
+3. 用小朋友明白嘅方式拆解件事，可以用比喻。
+4. 提供二至四個具體、安全、小朋友今日做得到嘅一小步。
+5. 如果內容涉及欺凌、被打、被人掂私人部位、被威脅要保守秘密、想傷害自己、想死、離家出走或者任何危險，將 safety 設為 true，溫柔但清楚咁叫佢即刻話俾信任嘅大人（爸媽、老師、社工）知，有即時危險打 999。千祈唔好叫佢保守秘密。
+6. 唔好作醫學或心理診斷。身體唔舒服，要叫佢話俾大人知同睇醫生。
+7. 自我對話逐字稿（selfTalk）：用第一身「我」寫，好似祈禱，或者同自己個心溫柔講嘢咁。八至十二句短句，每句一個元素，內容要包括：接納感受、安撫身體（呼吸）、肯定自己、感恩、一小步行動、盼望。
+
+只輸出一個 JSON 物件，唔好有其他文字，格式：
+{"hug":"同理說話，二至三句","understand":"一齊拆解發生咩事，二至四句","secret":"連繫一個秘密寶物，點樣用，二至三句","steps":["一小步","一小步"],"selfTalk":["句子","句子"],"safety":false,"adultTip":"建議佢可以同邊個傾，一句"}`;
+const LOCAL={
+ school:{u:'學嘢遇到困難好正常，唔代表你唔聰明。個腦好似肌肉咁，練得愈多就愈強。一次唔好，唔代表以後都唔好。',s:'試下用「三步魔法加行動」：講出你想要嘅，例如「我想下次溫得更有信心」，相信自己可以慢慢進步，然後今日行一小步。',st:['將要溫嘅嘢分成細細份，每次做十五分鐘','唔明嘅地方寫低，聽日問老師或者同學','做完一小份，同自己講「我做到喇」','瞓覺前播一套心靈電影，想像自己考試時好冷靜']},
+ friend:{u:'同朋友相處有時會唔開心，可能係誤會，可能係對方都有自己嘅心事。呢啲唔代表你唔好，亦唔代表冇人鍾意你。',s:'記得「善意回力鏢」同「探射燈」：試下留意身邊對你好嘅人，同埋主動送出一個細細嘅善意。',st:['先做三次泡泡呼吸，令自己平靜啲','諗下有邊個同學平時對你幾好，試下主動同佢打招呼','如果有人蝦你、笑你或者令你驚，一定要話俾老師同爸媽知','做一樣你秘密轉換器入面嘅事，幫個心充電']},
+ family:{u:'屋企人之間都會有嗌交、誤會嘅時候。大人有時太攰或者太心急，講嘢會大聲咗，但唔代表佢哋唔愛你。',s:'用「感覺指南針」：先講出自己嘅感覺，例如「我覺得好委屈」。再諗下你想要嘅係咩，例如「我想大家好好傾」。',st:['等大家冷靜咗，先同爸媽講「我有啲說話想同你講」','用「我覺得……因為……我希望……」嘅句式講','諗一樣你感恩屋企人為你做過嘅事','攬一攬屋企人，或者寫一張心意卡']},
+ general:{u:'有唔開心嘅感覺好正常，就好似天氣會有落雨嘅日子。雨會停，太陽會再出嚟。',s:'試下用「感覺階梯」：唔使一下子變到好開心，只要諗一個令自己好少少嘅諗法就得。',st:['做三次泡泡呼吸','用你嘅秘密轉換器，做一樣你鍾意嘅事','寫低三樣今日感恩嘅事','同一個你信任嘅人講下你嘅感受']}
+};
+function localReply(txt,emo){const E=EMOS.find(x=>x[1]===emo);let t='general';
+  if(/功課|考試|測驗|默書|成績|分數|溫書|老師/.test(txt))t='school';else if(/朋友|同學|冇人|小息|蝦|欺負|笑我|唔睬/.test(txt))t='friend';else if(/爸|媽|屋企|家姐|哥哥|細佬|妹|嗌交|鬧我/.test(txt))t='family';
+  const T=LOCAL[t];return{hug:(E?E[2]+' ':'')+'多謝你願意講出嚟，講出嚟本身已經好勇敢。',understand:T.u,secret:T.s,steps:T.st,selfTalk:selfTalkLocal(emo),safety:false,adultTip:'你可以將今日同樹窿講嘅嘢，同爸爸媽媽、老師或者一個你信任嘅大人傾下，佢哋好想幫你。'}}
+function aiCfg(){return{base:(localStorage.getItem('ss_base')||'https://api.z.ai/api/paas/v4').trim().replace(/\/+$/,''),model:(localStorage.getItem('ss_model')||'glm-5.3').trim(),key:(localStorage.getItem('ss_key')||'').trim()}}
+async function callAI(msgs,maxTok=1800){
+  const c=aiCfg();if(!c.key)throw new Error('未輸入 API Key');
+  const url=/\/chat\/completions$/.test(c.base)?c.base:c.base+'/chat/completions';
+  const body={model:c.model,messages:msgs,temperature:.7,max_tokens:maxTok,stream:false};
+  if(/z\.ai|bigmodel/i.test(c.base))body.thinking={type:'disabled'};
+  const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),90000);
+  let res;try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify(body),signal:ctl.signal})}
+  catch(e){clearTimeout(to);throw new Error(e.name==='AbortError'?'等太耐冇回應':'網絡或者 CORS 問題，連唔到伺服器')}
+  clearTimeout(to);
+  if(!res.ok){let t='';try{t=await res.text()}catch(e){}throw new Error('HTTP '+res.status+' '+t.slice(0,160))}
+  const j=await res.json();const m=j.choices&&j.choices[0]&&j.choices[0].message;return (m&&(m.content||''))||'';
+}
+function parseAI(raw){let s=String(raw||'').replace(/```json|```/gi,'');const a=s.indexOf('{'),b=s.lastIndexOf('}');
+  if(a>=0&&b>a){try{return normAI(JSON.parse(s.slice(a,b+1)))}catch(e){}}
+  return{hug:s.trim().slice(0,1500)||'小光聽到你講嘅嘢喇。',understand:'',secret:'',steps:[],selfTalk:selfTalkLocal(''),safety:false,adultTip:''}}
+function normAI(j){const arr=x=>Array.isArray(x)?x.map(String).map(s=>s.trim()).filter(Boolean):(x?String(x).split(/\n+/).map(s=>s.trim()).filter(Boolean):[]);
+  const st=arr(j.selfTalk);return{hug:String(j.hug||''),understand:String(j.understand||''),secret:String(j.secret||''),steps:arr(j.steps),selfTalk:st.length?st:selfTalkLocal(''),safety:!!j.safety,adultTip:String(j.adultTip||'')}}
+let treeHist=[],treeEmo=null,treeCards='';
+function renderTree(){
+  const hasAI=!!aiCfg().key;
+  V.innerHTML=`<div class="center"><div class="tree">🌳</div><h2 class="title-gold" style="font-size:32px">秘密樹窿</h2></div>
+  <div class="guide"><div class="face">🦉</div><div>${para('呢度係一個好安全嘅樹窿。你可以將唔開心嘅事、心入面嘅說話講俾樹窿聽。小光會陪你一齊拆解，仲會送你一段同自己個心講嘅說話。你講嘅嘢唔會自動儲存。')}</div></div>
+  <div class="parch"><div class="lab">${para('我而家嘅感覺（可以唔揀）：')}</div>
+  <div class="chips" id="temo">${EMOS.map((e,k)=>`<button class="chip ${treeEmo===k?'on':''}" data-k="${k}">${e[0]} ${e[1]}</button>`).join('')}</div>
+  <div class="lab">${para('我想同樹窿講……')}</div>
+  <textarea id="tIn" class="inp" rows="5" maxlength="1500" placeholder="例如：今日小息冇人同我玩，我覺得好寂寞……"></textarea>
+  <div class="row mt"><button class="btn ghost small" id="mic">🎤 用把口講</button><button class="btn red" id="tSend">💌 講俾樹窿聽</button></div>
+  <p class="note">${hasAI?'✨ 已連接 AI 小光（'+esc(aiCfg().model)+'）。你講嘅嘢會傳送去你設定嘅 AI 服務。':'💡 未設定 AI：小光會用基本方式陪你。家長可以喺右上角 ⚙️ 設定 AI。'}</p>
+  ${treeHist.length?'<div class="row"><button class="btn ghost small" onclick="treeHist=[];treeCards=\'\';renderTree()">🧹 清除今次對話</button></div>':''}</div>
+  <div id="tOut">${treeCards}</div>`;
+  autoSay('呢度係一個好安全嘅樹窿。你可以將唔開心嘅事講俾樹窿聽。可以打字，或者撳咪高峰用把口講。');
+  $$('#temo .chip').forEach(c=>c.onclick=()=>{const k=+c.dataset.k;treeEmo=treeEmo===k?null:k;$$('#temo .chip').forEach(x=>x.classList.toggle('on',+x.dataset.k===treeEmo));if(treeEmo!=null)TTS.speak(EMOS[k][1])});
+  if(calmEmo!=null&&treeEmo==null){treeEmo=calmEmo;const c=$(`#temo .chip[data-k="${calmEmo}"]`);if(c)c.classList.add('on')}
+  $('#mic').onclick=e=>startMic(e.currentTarget);$('#tSend').onclick=sendTree;
+}
+function startMic(btn){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast('呢部機唔支援網頁語音輸入。可以撳 iPad 鍵盤上面嘅 🎤，揀廣東話講嘢。',6000);return}
+  stopAll();const r=new SR();r.lang='zh-HK';r.interimResults=true;r.continuous=false;const ta=$('#tIn');const base=ta.value;btn.textContent='👂 聽緊……';
+  r.onresult=e=>{let s='';for(let i=0;i<e.results.length;i++)s+=e.results[i][0].transcript;ta.value=base+s};
+  r.onend=()=>{btn.textContent='🎤 用把口講'};r.onerror=()=>{btn.textContent='🎤 用把口講';toast('聽唔清楚，可以再試，或者打字')};
+  try{r.start()}catch(e){btn.textContent='🎤 用把口講'}}
+async function sendTree(){
+  const ta=$('#tIn');const txt=ta.value.trim();
+  if(!txt){const m='你想講咩呀？可以打字，或者撳咪高峰用把口講。';toast(m);TTS.speak(m);return}
+  stopAll();const emo=treeEmo!=null?EMOS[treeEmo][1]:'';const danger=DANGER.test(txt);const id='r'+Date.now();
+  $('#tOut').insertAdjacentHTML('afterbegin',`<div class="parch" id="${id}"><div class="you">🧒 你講：${esc(txt)}</div>${danger?`<div class="safety">${safetyBlock()}</div>`:''}<div class="thinking">🌳 樹窿聽緊……小光諗緊點樣幫你 <span class="dots3"><i></i><i></i><i></i></span></div></div>`);
+  $('#'+id).scrollIntoView({block:'start',behavior:'smooth'});
+  if(danger)TTS.speak('多謝你講出嚟。你嘅安全最重要，請即刻話俾一個你信任嘅大人知。');
+  ta.value='';const sb=$('#tSend');sb.disabled=true;
+  let data=null,note='';
+  if(aiCfg().key){const user=(emo?'我而家嘅感覺：'+emo+'\n':'')+'我想講：'+txt;treeHist.push({role:'user',content:user});
+    try{const raw=await callAI([{role:'system',content:SYS_PROMPT},...treeHist.slice(-8)]);treeHist.push({role:'assistant',content:raw});data=parseAI(raw)}
+    catch(err){treeHist.pop();note='（AI 暫時連唔到：'+err.message+'。小光先用基本方式陪你。）'}}
+  if(!data)data=localReply(txt,emo);if(danger)data.safety=true;
+  renderReply(id,txt,data,note,danger);if($('#tSend'))$('#tSend').disabled=false;
+  treeCards=$('#tOut')?$('#tOut').innerHTML:treeCards;
+  if(!danger)TTS.speak(data.hug);
+}
+function renderReply(id,txt,d,note,shown){const el=$('#'+id);if(!el)return;const tid='t'+id;
+  el.innerHTML=`<div class="you">🧒 你講：${esc(txt)}</div>${d.safety?`<div class="safety">${safetyBlock()}</div>`:''}
+  ${d.hug?`<h3>🤗 小光抱抱你</h3>${para(d.hug)}`:''}
+  ${d.understand?`<h3>🔍 一齊拆解</h3>${para(d.understand)}`:''}
+  ${d.secret?`<h3>✨ 用得着嘅秘密寶物</h3>${para(d.secret)}`:''}
+  ${d.steps.length?`<h3>👣 你可以試下嘅一小步</h3>${d.steps.map((s,k)=>para(`${k+1}. ${s}`)).join('')}`:''}
+  <h3>🕯️ 我同我個心講嘅說話（逐字稿）</h3>${para('好似祈禱咁，靜靜哋、慢慢讀俾自己聽。撳「陪我慢慢讀」，小光讀一句，你跟住講一句。')}${talkHTML(d.selfTalk,tid)}
+  ${d.adultTip?para('💬 '+d.adultTip):''}${note?`<p class="note">${esc(note)}</p>`:''}
+  <div class="row mt"><button class="btn ghost small" onclick="readAll('#${id}')">▶ 全部讀出嚟</button></div>`}
+
+/* =========================================================
+   我嘅寶箱
+   ========================================================= */
+let boxTab='g';
+function renderBox(tab){if(tab)boxTab=tab;
+  const tabs=[['g','🏺 感恩罐'],['h','🎵 轉換器'],['w','🌠 願望卡'],['r','🗓️ 日程'],['t','🕯️ 心靈說話']];
+  let body='';
+  if(boxTab==='g')body=P.gratitude.length?`${para(`你嘅感恩罐一共有 ${P.gratitude.length} 粒星！`)}<ul class="list">${P.gratitude.map((x,k)=>`<li>${para('⭐ '+x.t)}<small class="note">${esc(x.d)}</small><button class="x" onclick="boxDel('gratitude',${k})">✕</button></li>`).join('')}</ul>`:para('感恩罐仲係空㗎。去第四關放第一粒星星啦！');
+  if(boxTab==='h')body=P.happy.length?`<ul class="list">${P.happy.map((x,k)=>`<li>${para('🎵 '+x)}<button class="x" onclick="boxDel('happy',${k})">✕</button></li>`).join('')}</ul>`:para('未有秘密轉換器。去第二關製作你嘅快樂清單啦！');
+  if(boxTab==='w')body=P.wishes.length?P.wishes.map((x,k)=>`<div class="wishcard" style="margin:10px 0">${para('🎯 '+x.w)}${para('💫 '+x.b)}${x.f?para('🎁 做到嗰陣，我會覺得'+x.f):''}${para('👣 '+x.a)}<small class="note">${esc(x.d)}</small> <button class="x" onclick="boxDel('wishes',${k})">✕</button></div>`).join(''):para('未有願望卡。去第三關嘅願望工作坊啦！');
+  if(boxTab==='r')body=P.routine?`${para('🌅 早上：'+P.routine.m.join('、'))}${para('☀️ 日間：'+P.routine.d.join('、'))}${para('🌙 夜晚：'+P.routine.n.join('、'))}`:para('未有秘密日程。完成第十關就可以設計！');
+  if(boxTab==='t')body=P.talks.length?P.talks.map((x,k)=>`<div style="margin:10px 0"><small class="note">${esc(x.d)}</small> <button class="x" onclick="boxDel('talks',${k})">✕</button>${talkHTML(x.lines,'bt'+k).replace(/<button class="btn small ghost" onclick="talkSave[^<]*<\/button>/,'')}</div>`).join(''):para('未有收藏嘅心靈說話。喺樹窿或者心靈角落撳「收藏」就會放喺呢度。');
+  V.innerHTML=`<div class="center"><h2 class="title-gold" style="font-size:32px">🏺 我嘅寶箱</h2></div>
+  <div class="tabs">${tabs.map(t=>`<button class="${boxTab===t[0]?'on':''}" onclick="renderBox('${t[0]}')">${t[1]}</button>`).join('')}</div>
+  <div class="parch">${body}</div>`;window.scrollTo(0,0)}
+function boxDel(k,i){if(!confirm('確定要刪除呢一項？'))return;P[k].splice(i,1);save();renderBox()}
+
+/* =========================================================
+   證書 · 家長須知 · 設定
+   ========================================================= */
+function renderCert(){
+  const n=gemCount();
+  if(n<10){V.innerHTML=`<div class="parch center"><div class="gemboom">🔒</div>${para(`你而家有 ${n} 粒秘密寶石。集齊十粒，就可以領取「秘密守護者證書」！`)}<button class="btn red" onclick="go('map')">返地圖 📜</button></div>`;return}
+  const d=new Date().toLocaleDateString('zh-HK',{year:'numeric',month:'long',day:'numeric'});
+  const m=`秘密守護者證書。茲證明${P.name||'你'}，已經完成《秘密》十個關卡，學識用諗法、感覺、感恩、想像同行動，令自己個心變得更強大。恭喜你！`;
+  V.innerHTML=`<div class="parch cert">${seal('秘',110)}<h1>秘密守護者證書</h1><p>茲證明</p><div class="cname">${esc(P.name||'＿＿＿＿＿')}</div>
+  <p style="max-width:560px;margin:14px auto">已經完成《秘密》十個關卡，學識用諗法、感覺、感恩、想像同行動，令自己個心變得更強大。</p>
+  <div style="font-size:30px;letter-spacing:4px">💎💎💎💎💎💎💎💎💎💎</div><p>日期：${esc(d)}</p><p>簽發：秘密嚮導 小光 ✨</p><div class="noprint">${spk(m)}</div></div>
+  <div class="row center-row noprint"><input class="inp" id="cn" maxlength="20" placeholder="寫低你嘅名" value="${esc(P.name)}" style="max-width:260px"><button class="btn small" onclick="P.name=$('#cn').value.trim();save();renderCert()">更新名字</button><button class="btn small red" onclick="window.print()">🖨️ 列印</button></div>`;
+  SFX.win();BG.burst();TTS.speak(m);
+}
+function renderParents(){
+  const sec=(t,arr)=>`<h3>${t}</h3>${arr.map(x=>para(x)).join('')}`;
+  V.innerHTML=`<div class="center"><h2 class="title-gold" style="font-size:30px">👨‍👩‍👧 家長須知</h2></div><div class="parch">
+  ${sec('呢個 App 係咩',['內容跟足 Rhonda Byrne《The Secret》嘅十個章節架構：秘密揭曉、秘密好簡單、點樣用秘密、強大嘅方法、金錢、人際關係、健康、世界、你、生命。每章變成一個關卡，用小朋友明白嘅廣東話重新講。'])}
+  ${sec('我哋點樣演繹',['我哋強調「諗法、感覺，再加行動」，而唔係「諗諗下就會成真」。','我哋清楚話俾小朋友知：唔開心嘅感覺係正常嘅，壞事發生唔係佢嘅錯；生病一定要睇醫生；被欺凌或者有危險，一定要話俾大人知。','「健康」同「金錢」兩章，分別演繹成「多謝身體同好習慣」同「豐盛、感恩、分享同儲蓄」，避免誤導。'])}
+  ${sec('兒童學習心理學設計',['每個關卡分四步：學習、遊戲、考考你、生活任務。短段落加語音，照顧未識字或者閱讀較慢嘅小朋友。','即時而溫和嘅回饋、星星同寶石獎勵，建立動機；答錯可以再試，培養成長型思維。','生活任務幫小朋友將學到嘅嘢用喺真實生活；感恩罐、願望卡、秘密日程會儲低，方便日日練習。','心靈角落用上情緒命名、泡泡呼吸（呼氣較長，有助平靜）、感覺階梯、秘密轉換器同自我慈悲說話，係小朋友唔開心時嘅即時工具。'])}
+  ${sec('秘密樹窿同 AI',['樹窿可以接駁任何 OpenAI 相容嘅 AI 服務（預設 GLM 5.3 國際版）。小朋友打嘅內容會傳送去你設定嘅服務供應商。','AI 會用溫柔廣東話同理、拆解問題、建議一小步，並寫一段自我對話逐字稿。如偵測到危險字眼，App 會即時顯示求助資料。','AI 唔係專業輔導。如果小朋友持續情緒低落、失眠、唔想返學或者提及傷害自己，請盡快聯絡學校社工、醫生或者輔導員。建議家長陪同使用樹窿。'])}
+  ${sec('廣東話語音',['App 用裝置內置嘅語音。iPad：設定，輔助使用，朗讀內容，聲音，中文，選擇中文（香港），下載一個聲音（建議增強版）。之後可以喺 App 嘅設定揀聲音同語速。'])}
+  ${sec('私隱',['學習進度、感恩罐、願望卡同 API Key，只會儲存喺呢部機嘅瀏覽器（Local Storage）。樹窿對話唔會自動儲存，除非小朋友撳「收藏」。唔好喺公用電腦儲存 API Key。'])}
+  ${sec('關於插圖',['為尊重版權，App 冇使用原著書本嘅插圖，而係用原創嘅羊皮紙卷軸、紅色蠟封同金色星河，營造原著嗰種神秘感。'])}
+  <div class="safety">${safetyBlock()}</div></div>`;
+}
+function openSettings(){
+  stopAll();const c=aiCfg();const vs=(TTS.voices||[]).filter(v=>/^(zh|yue)/i.test(v.lang));
+  openModal(`<div class="parch"><div class="row" style="justify-content:space-between"><h2>⚙️ 設定</h2><button class="btn ghost small" onclick="closeModal()">✕ 關閉</button></div>
+  <h3>🔊 廣東話語音</h3>
+  <div class="field"><label>聲音</label><select id="sVoice" class="inp">${vs.length?vs.map(v=>`<option value="${esc(v.name)}" ${TTS.voice&&v.name===TTS.voice.name?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join(''):'<option value="">（搵唔到中文聲音）</option>'}</select>
+  <p class="note">揀「zh-HK」或者「yue」嘅聲音先係廣東話。iPad：設定 › 輔助使用 › 朗讀內容 › 聲音 › 中文 › 中文（香港）下載。</p></div>
+  <div class="field"><label>語速：<span id="rv">${TTS.rate.toFixed(2)}</span></label><input type="range" id="sRate" min="0.6" max="1.3" step="0.05" value="${TTS.rate}" style="width:100%"></div>
+  <label class="switch"><input type="checkbox" id="sAuto" ${TTS.auto?'checked':''}> 入到新頁面自動讀出指示</label>
+  <label class="switch"><input type="checkbox" id="sSnd" ${P.sound?'checked':''}> 音效</label>
+  <button class="btn small" onclick="applyVoice();TTS.speak('你好！我係小光，你嘅秘密嚮導。')">🔊 試聽</button>
+  <h3 class="mt">🤖 AI 設定（秘密樹窿）</h3>
+  <div class="field"><label>Base URL</label><input id="aBase" class="inp" value="${esc(c.base)}" placeholder="https://api.z.ai/api/paas/v4"></div>
+  <div class="field"><label>Model</label><input id="aModel" class="inp" value="${esc(c.model)}" placeholder="glm-5.3"></div>
+  <div class="field"><label>API Key</label><div class="row"><input id="aKey" class="inp" type="password" value="${esc(c.key)}" placeholder="貼上你嘅 API Key" autocomplete="off"><button class="btn small ghost" onclick="const k=$('#aKey');k.type=k.type==='password'?'text':'password'">👁️</button></div></div>
+  <p class="note">暫存喺呢部機嘅 Local Storage。GLM 國際版：Base URL 用 https://api.z.ai/api/paas/v4，Model 用 glm-5.3。其他 OpenAI 相容服務都可以用。</p>
+  <div class="row"><button class="btn small red" onclick="saveAI()">💾 儲存</button><button class="btn small" onclick="testAI()">🧪 測試連線</button><button class="btn small ghost" onclick="clearAI()">🗑️ 清除 AI 設定</button></div>
+  <p class="note" id="aiMsg"></p>
+  <h3 class="mt">👨‍👩‍👧 家長</h3>
+  <label class="switch"><input type="checkbox" id="sUnlock" ${P.unlockAll?'checked':''}> 解鎖所有關卡</label>
+  <div class="row"><button class="btn small ghost" onclick="go('parents')">📖 家長須知</button><button class="btn small ghost" onclick="resetAll()">♻️ 重設所有進度</button></div></div>`);
+  $('#sRate').oninput=e=>{TTS.rate=parseFloat(e.target.value);$('#rv').textContent=TTS.rate.toFixed(2);localStorage.setItem('ss_rate',TTS.rate)};
+  $('#sAuto').onchange=e=>{TTS.auto=e.target.checked;localStorage.setItem('ss_auto',TTS.auto?'1':'0')};
+  $('#sSnd').onchange=e=>{P.sound=e.target.checked;save()};
+  $('#sVoice').onchange=applyVoice;
+  $('#sUnlock').onchange=e=>{P.unlockAll=e.target.checked;save();toast(P.unlockAll?'已解鎖所有關卡':'已恢復逐關解鎖')};
+}
+function applyVoice(){const s=$('#sVoice');if(!s||!s.value)return;const v=(TTS.voices||[]).find(x=>x.name===s.value);if(v){TTS.voice=v;localStorage.setItem('ss_voice',v.name)}}
+function saveAI(){localStorage.setItem('ss_base',$('#aBase').value.trim());localStorage.setItem('ss_model',$('#aModel').value.trim());localStorage.setItem('ss_key',$('#aKey').value.trim());$('#aiMsg').textContent='✅ 已儲存';toast('✅ AI 設定已儲存')}
+async function testAI(){saveAI();const m=$('#aiMsg');m.textContent='⏳ 測試緊……';
+  try{const r=await callAI([{role:'user',content:'請只用一句廣東話講：「你好，我係小光！」'}],200);m.textContent='✅ 連線成功：'+(r||'（收到空白回覆，請檢查 Model 名稱）').slice(0,80)}
+  catch(e){m.textContent='❌ '+e.message+'。如果顯示 CORS 問題，即係個服務唔俾瀏覽器直接連，要用支援 CORS 嘅 Base URL 或者自己嘅代理。'}}
+function clearAI(){['ss_base','ss_model','ss_key'].forEach(k=>localStorage.removeItem(k));closeModal();openSettings();toast('已清除 AI 設定')}
+function resetAll(){if(!confirm('確定要清除所有學習進度、感恩罐、願望卡同收藏？（AI 設定會保留）'))return;P=Object.assign({},DEF,{levels:{}, gratitude:[],happy:[],wishes:[],talks:[]});save();treeHist=[];treeCards='';closeModal();go('splash')}
+
+/* ---------- 啟動 ---------- */
+$('#brandSeal').innerHTML=seal('秘',34);
+TTS.init();initBG();go('splash');
+</script>
+</body>
+</html>
