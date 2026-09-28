@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>心靈小勇士 — 強大內心大冒險（第二集）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2b2340; --paper:#fffaf3; --sun:#ffd23f; --heart:#ff6fae; --grass:#7ee081;
+  --teal:#2ec4b6; --lav:#c9b8ff; --storm:#4a3f63;
+  --b:4px solid var(--ink);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#aee3ff;color:var(--ink);
+  font-family:"Noto Sans HK","PingFang HK","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hidden{display:none!important}
+button{font-family:inherit;color:var(--ink)}
+button:focus-visible{outline:4px dashed var(--heart);outline-offset:3px}
+
+.btn{font-weight:900;font-size:clamp(18px,2.3vw,23px);border:var(--b);border-radius:999px;padding:10px 24px;
+  background:#fff;box-shadow:0 5px 0 var(--ink);cursor:pointer;min-height:56px;transition:transform .08s,box-shadow .08s;line-height:1.2}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn.primary{background:var(--sun)}
+.btn.go{background:var(--grass)}
+.btn.pink{background:var(--heart);color:#fff}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.spk{width:54px;height:54px;flex:0 0 54px;border-radius:50%;border:var(--b);background:var(--teal);
+  font-size:25px;box-shadow:0 4px 0 var(--ink);cursor:pointer;display:grid;place-items:center;padding:0;line-height:1}
+.spk:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.spk.sm{width:44px;height:44px;flex-basis:44px;font-size:20px;border-width:3px}
+.spk.playing{background:var(--sun);animation:pulse .6s ease-in-out infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.13)}}
+
+.screen{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;
+  padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));background:rgba(43,35,64,.28)}
+.panel{background:var(--paper);border:var(--b);border-radius:30px;box-shadow:0 10px 0 var(--ink);
+  width:min(780px,100%);max-height:100%;overflow:auto;padding:26px 26px 30px;-webkit-overflow-scrolling:touch}
+.title{margin:0;font-weight:900;font-size:clamp(44px,8vw,78px);line-height:1.05;letter-spacing:.04em;
+  color:var(--heart);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink);text-align:center}
+.subtitle{text-align:center;margin:12px 0 0;font-size:clamp(19px,2.6vw,25px);font-weight:900}
+.weatherstrip{text-align:center;font-size:40px;margin:14px 0 0;letter-spacing:10px}
+.intro-row{display:flex;gap:14px;align-items:flex-start;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:14px;margin-top:16px}
+.intro-row p{margin:0;font-size:clamp(18px,2.3vw,21px);line-height:1.6;font-weight:700}
+.voice{margin-top:14px;border-radius:16px;padding:10px 14px;font-weight:700;font-size:16px;line-height:1.55;border:3px dashed var(--ink)}
+.voice.good{background:#dcf9d6}.voice.bad{background:#ffe1e5}
+.voice summary{cursor:pointer;font-weight:900}.voice ol{margin:6px 0 0;padding-left:22px}
+.speed{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:16px;font-weight:900;font-size:18px;flex-wrap:wrap}
+.seg{display:inline-flex;border:3px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:#fff;font-weight:900;font-size:18px;padding:8px 18px;cursor:pointer;min-height:46px}
+.seg button.on{background:var(--sun)}
+.cta{display:flex;justify-content:center;margin-top:20px}
+.cta .btn{font-size:clamp(22px,3vw,28px);padding:14px 40px}
+.fine{text-align:center;margin:14px 0 0;font-size:15px;font-weight:700;opacity:.75}
+
+.pickhead{display:flex;gap:12px;align-items:center;justify-content:center}
+.pickhead h2{margin:0;font-size:clamp(24px,3.4vw,32px);font-weight:900}
+.avgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+@media (max-width:560px){.avgrid{grid-template-columns:repeat(2,1fr)}}
+.avcard{background:#fff;border:var(--b);border-radius:22px;padding:14px 6px 12px;cursor:pointer;box-shadow:0 5px 0 var(--ink);text-align:center;transition:transform .12s}
+.avcard.on{background:var(--sun);transform:translateY(-6px) rotate(-2deg)}
+.avcard b{display:block;margin-top:8px;font-size:21px}
+.av{width:86px;height:112px;position:relative;margin:0 auto}
+.av .body{position:absolute;left:50%;bottom:4px;width:58px;height:50px;transform:translateX(-50%);background:var(--shirt);border:3px solid var(--ink);border-radius:24px 24px 12px 12px}
+.av .head{position:absolute;left:50%;top:8px;width:58px;height:58px;transform:translateX(-50%);background:#ffd7b5;border:3px solid var(--ink);border-radius:50%;z-index:1}
+.av .head::before,.av .head::after{content:"";position:absolute;top:26px;width:8px;height:10px;background:var(--ink);border-radius:50%}
+.av .head::before{left:14px}.av .head::after{right:14px}
+.av .hair{position:absolute;left:50%;top:4px;width:64px;height:28px;transform:translateX(-50%);background:var(--hair);border:3px solid var(--ink);border-radius:34px 34px 10px 10px;z-index:2}
+.av.pony .hair::after{content:"";position:absolute;right:-18px;top:8px;width:20px;height:30px;background:var(--hair);border:3px solid var(--ink);border-radius:50%}
+.av.bob .hair::before,.av.bob .hair::after{content:"";position:absolute;top:14px;width:14px;height:32px;background:var(--hair);border:3px solid var(--ink);border-radius:8px}
+.av.bob .hair::before{left:-6px}.av.bob .hair::after{right:-6px}
+.av.twin .hair::before,.av.twin .hair::after{content:"";position:absolute;top:10px;width:22px;height:22px;background:var(--hair);border:3px solid var(--ink);border-radius:50%}
+.av.twin .hair::before{left:-18px}.av.twin .hair::after{right:-18px}
+.av.spiky .hair{border-radius:12px 12px 8px 8px;height:24px}
+
+#hud{position:fixed;z-index:15;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+  padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left));pointer-events:none}
+#hud > *{pointer-events:auto}
+.hud-l{background:var(--paper);border:var(--b);border-radius:22px;box-shadow:0 5px 0 var(--ink);padding:8px 14px;display:flex;flex-direction:column;gap:6px}
+.energy{display:flex;align-items:center;gap:8px;font-weight:900;font-size:16px}
+#weather{font-size:28px;line-height:1}
+.ebar{width:150px;height:20px;border:3px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden}
+#efill{height:100%;width:50%;background:linear-gradient(90deg,#ff6fae,#ffd23f);transition:width .6s}
+#tslots{display:flex;gap:4px}
+.tslot{width:30px;height:30px;border-radius:50%;border:3px solid var(--ink);background:#fff;display:grid;place-items:center;font-size:15px;font-style:normal;filter:grayscale(1);opacity:.35}
+.tslot.on{filter:none;opacity:1;background:#ffe6f2}
+@media (max-width:620px){.ebar{width:96px}.tslot{width:24px;height:24px;font-size:12px;border-width:2px}}
+.hud-r{display:flex;gap:8px}
+.hbtn{width:74px;border:var(--b);border-radius:18px;background:#fff;box-shadow:0 4px 0 var(--ink);padding:6px 2px 5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.hbtn span{font-size:26px;line-height:1.1}.hbtn small{font-size:13px;font-weight:900;white-space:nowrap}
+.hbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+@media (max-width:520px){.hbtn{width:58px}.hbtn small{font-size:11px}}
+#hintbar{position:fixed;z-index:14;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:12px;background:var(--paper);border:var(--b);border-radius:999px;box-shadow:0 5px 0 var(--ink);
+  padding:6px 20px 6px 8px;font-weight:900;font-size:clamp(16px,2.1vw,20px);max-width:94vw}
+#hintbar p{margin:0;line-height:1.35}
+
+#dlg{position:fixed;z-index:20;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));width:min(940px,96vw);
+  transform:translate(-50%,130%);transition:transform .38s cubic-bezier(.2,1.3,.4,1)}
+#dlg.show{transform:translate(-50%,0)}
+.who{display:inline-flex;align-items:center;gap:8px;background:var(--c);color:#fff;border:var(--b);border-bottom:0;
+  border-radius:18px 18px 0 0;padding:4px 18px 4px 8px;margin-left:24px;font-weight:900;font-size:21px}
+.who .face{width:38px;height:38px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:24px;border:3px solid var(--ink)}
+.card{background:var(--paper);border:var(--b);border-radius:26px;box-shadow:0 8px 0 var(--ink);padding:16px 18px 18px;
+  max-height:min(64vh,660px);overflow:auto;-webkit-overflow-scrolling:touch}
+.line{display:flex;gap:14px;align-items:flex-start;animation:pop .3s ease-out}
+.line p{margin:4px 0 0;font-size:clamp(20px,2.7vw,27px);line-height:1.55;font-weight:700;flex:1}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.row{display:flex;justify-content:flex-end;gap:12px;margin-top:14px;flex-wrap:wrap}
+.q{font-weight:900!important}
+.hint{margin-top:12px;background:var(--heart);color:#fff;border:3px solid var(--ink);border-radius:18px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;animation:pop .3s}
+.hint p{margin:2px 0 0;font-size:clamp(17px,2.2vw,21px);line-height:1.55;font-weight:700}
+.choice{display:flex;gap:12px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:10px 12px;margin-top:12px;animation:pop .3s both}
+.choice .letter{flex:0 0 38px;height:38px;border-radius:12px;border:3px solid var(--ink);display:grid;place-items:center;font-weight:900;font-size:20px;background:#ffe6f2}
+.choice .ctext{flex:1;margin:0;font-size:clamp(18px,2.3vw,22px);line-height:1.5;font-weight:700;cursor:pointer}
+.choice .btn{font-size:18px;padding:8px 16px;min-height:50px;white-space:nowrap}
+.choice.tried{opacity:.5}.choice.tried .ctext{text-decoration:line-through}
+@media (max-width:600px){.choice{flex-wrap:wrap}.choice .ctext{flex-basis:calc(100% - 120px)}.choice .btn{width:100%}}
+.result{border:3px solid var(--ink);border-radius:20px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;animation:pop .3s}
+.result.wise{background:#d6f7cf}.result.ok{background:#fff1b8}.result.trap{background:#ffd3da}
+.result h3{margin:0 0 4px;font-size:clamp(22px,3vw,28px);font-weight:900}
+.result p{margin:0;font-size:clamp(18px,2.3vw,22px);line-height:1.55;font-weight:700}
+.feel{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.feel button{border:var(--b);border-radius:20px;background:#fff;box-shadow:0 4px 0 var(--ink);cursor:pointer;padding:8px 4px;font-weight:900;font-size:19px}
+.feel button span{display:block;font-size:44px;line-height:1.15}
+.feel button.yes{background:var(--grass)}.feel button.no{background:#ffd3da}
+.tipcard{border:4px solid var(--ink);border-radius:22px;background:var(--sun);padding:14px 16px;display:flex;gap:14px;align-items:flex-start;animation:pop .35s}
+.tipcard h3{margin:0 0 4px;font-size:24px;font-weight:900}
+.tipcard p{margin:0;font-size:clamp(19px,2.5vw,24px);line-height:1.55;font-weight:700}
+.newtool{margin-top:12px;display:flex;align-items:center;gap:12px;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px 14px;font-weight:900;font-size:20px;animation:pop .4s .2s both}
+.newtool > span{font-size:40px}
+
+.mg-title{font-weight:900!important}
+.breath{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:10px}
+.bball{width:170px;height:170px;border-radius:50%;border:5px solid var(--ink);background:radial-gradient(circle at 40% 35%,#fff0f7,#ff9fcd);
+  display:grid;place-items:center;font-size:66px;cursor:pointer;touch-action:none;box-shadow:0 6px 0 var(--ink);transition:transform 3s ease-in-out}
+.bball.in{transform:scale(1.32)}
+.bball.out{transform:scale(1);transition-duration:3.5s;background:radial-gradient(circle at 40% 35%,#fff9e0,#ffd23f)}
+.bmsg{margin:0;font-size:clamp(20px,2.6vw,24px);font-weight:900;text-align:center;min-height:1.5em}
+.bdots{font-size:26px;letter-spacing:8px}
+.thought{display:flex;gap:10px;align-items:center;border:3px solid var(--ink);border-radius:20px;padding:10px 12px;margin-top:10px;background:var(--storm);color:#fff;transition:background .5s,color .5s}
+.thought p{flex:1;margin:0;font-size:clamp(18px,2.3vw,22px);font-weight:700;line-height:1.45}
+.thought .tag{font-size:13px;font-weight:900;border-radius:999px;padding:2px 10px;background:#fff;color:var(--ink);white-space:nowrap}
+.thought.flip{background:#fff3b0;color:var(--ink)}
+.thought.flip .tag{background:var(--grass)}
+.thought .btn{font-size:17px;padding:6px 14px;min-height:48px;white-space:nowrap}
+@media (max-width:600px){.thought{flex-wrap:wrap}.thought .btn{width:100%}}
+.sortcard{margin-top:12px;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:14px;display:flex;gap:12px;align-items:center;animation:pop .3s}
+.sortcard p{margin:0;flex:1;font-size:clamp(20px,2.6vw,25px);font-weight:900;line-height:1.45}
+.prog{font-weight:900;font-size:16px;opacity:.7;margin-top:10px}
+.sortbtns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.sortbtns button{border:var(--b);border-radius:20px;box-shadow:0 5px 0 var(--ink);font-weight:900;font-size:clamp(18px,2.4vw,22px);padding:12px 6px;cursor:pointer;background:#fff}
+.sortbtns button span{display:block;font-size:36px}
+.sortbtns button.no{background:#ffd3da}.sortbtns button.yes{background:var(--grass)}
+.fb{margin-top:12px}
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px}
+.toolbtn{border:var(--b);border-radius:20px;background:#fff;box-shadow:0 4px 0 var(--ink);padding:10px 6px;font-weight:900;font-size:18px;cursor:pointer}
+.toolbtn span{display:block;font-size:36px;line-height:1.2}
+.toolbtn.no{background:#ffd3da;opacity:.75}.toolbtn.yes{background:var(--grass)}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.scard{border:var(--b);border-radius:18px;background:#fff;box-shadow:0 4px 0 var(--ink);padding:10px 6px;font-weight:900;font-size:clamp(16px,2.1vw,19px);cursor:pointer;line-height:1.3}
+.scard span{display:block;font-size:32px}
+.scard.on{background:var(--sun);transform:translateY(-3px)}
+
+#toast{position:fixed;z-index:18;left:50%;top:calc(116px + env(safe-area-inset-top));transform:translate(-50%,-20px);opacity:0;pointer-events:none;
+  transition:opacity .25s,transform .25s;width:min(620px,92vw)}
+#toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast-in{display:flex;gap:12px;align-items:center;background:#fff;border:var(--b);border-radius:22px;box-shadow:0 5px 0 var(--ink);padding:10px 12px}
+.toast-in .tf{flex:0 0 46px;height:46px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;font-size:26px}
+.toast-in div{flex:1}.toast-in b{font-size:17px}.toast-in p{margin:2px 0 0;font-size:19px;font-weight:700;line-height:1.45}
+.fly{position:fixed;z-index:30;font-weight:900;font-size:40px;color:var(--heart);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;
+  pointer-events:none;animation:rise 1.6s ease-out forwards;left:50%;top:40%;white-space:nowrap}
+@keyframes rise{0%{opacity:0;transform:translate(-50%,20px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-90px) scale(1)}}
+
+.bookhead{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.bookhead h2{margin:0;font-size:clamp(26px,3.6vw,34px);font-weight:900}
+.xbtn{width:52px;height:52px;border-radius:50%;border:var(--b);background:#fff;font-size:24px;font-weight:900;cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+.list{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:12px;align-items:center;background:#fff;border:3px solid var(--ink);border-radius:18px;padding:10px 12px}
+.item .ic{flex:0 0 48px;height:48px;border-radius:50%;border:3px solid var(--ink);background:#ffe6f2;display:grid;place-items:center;font-size:26px}
+.item div{flex:1}.item b{font-size:19px}.item p{margin:2px 0 0;font-size:17px;font-weight:700;line-height:1.5}
+.item.locked{background:#eee;color:#888}.item.locked .ic{filter:grayscale(1);opacity:.5}
+.sec{margin:18px 0 0;font-size:22px;font-weight:900}
+.cert{margin-top:16px;border:5px double var(--ink);border-radius:24px;background:#fff;padding:18px;text-align:center}
+.cert h2{margin:0;font-size:clamp(26px,4vw,38px);font-weight:900;color:var(--heart);-webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill}
+.cert .tags{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px}
+.cert .tags span{background:var(--sun);border:3px solid var(--ink);border-radius:999px;padding:4px 14px;font-weight:900;font-size:18px}
+.cert .icons{font-size:30px;margin-top:10px;letter-spacing:4px}
+.endtxt{display:flex;gap:12px;align-items:flex-start;margin-top:16px;background:#fff;border:3px solid var(--ink);border-radius:20px;padding:14px}
+.endtxt p{margin:0;font-size:clamp(18px,2.4vw,22px);line-height:1.6;font-weight:700}
+.btnrow{display:flex;justify-content:center;gap:14px;margin-top:20px;flex-wrap:wrap}
+#nothree{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;background:#aee3ff;padding:20px;text-align:center;font-size:22px;font-weight:900}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" class="hidden">
+  <div class="hud-l">
+    <div class="energy"><span id="weather">⛅</span><span>心靈能量</span><div class="ebar"><div id="efill"></div></div></div>
+    <div id="tslots"></div>
+  </div>
+  <div class="hud-r">
+    <button class="hbtn" id="bBag" aria-label="法寶袋"><span>🧰</span><small>法寶袋</small></button>
+    <button class="hbtn" id="bAuto" aria-label="自動讀出"><span>🗣️</span><small>自動讀：開</small></button>
+    <button class="hbtn" id="bHelp" aria-label="玩法"><span>❓</span><small>玩法</small></button>
+  </div>
+</div>
+<div id="hintbar" class="hidden"></div>
+<div id="toast"></div>
+<div id="dlg"></div>
+
+<section id="sStart" class="screen"><div class="panel" id="startPanel"></div></section>
+<section id="sPick" class="screen hidden"><div class="panel" id="pickPanel"></div></section>
+<section id="sBag" class="screen hidden"><div class="panel" id="bagPanel"></div></section>
+<section id="sEnd" class="screen hidden"><div class="panel" id="endPanel"></div></section>
+<div id="nothree">載入唔到 3D 遊戲引擎。請確認部機已經連接互聯網，然後重新開啟呢個檔案。</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(s){ return document.querySelector(s); };
+var $$=function(s,root){ return Array.prototype.slice.call((root||document).querySelectorAll(s)); };
+if(!window.THREE){ $('#nothree').style.display='flex'; return; }
+var PI=Math.PI, V3=THREE.Vector3;
+var EPISODE1='校園智慧小偵探.html';
+
+/* =====================================================================
+   角色 / 法寶 / 劇本
+   ===================================================================== */
+var PEOPLE={
+  narr:{name:'旁白',face:'📖',color:'#2b2340',pitch:1.0,rate:0.95},
+  you:{name:'你',face:'💗',color:'#ff6fae',pitch:1.25},
+  '嘉欣':{face:'👧',color:'#7b2cbf',pitch:1.35},
+  '俊希':{face:'👦',color:'#06a77d',pitch:1.15},
+  '何老師':{face:'👨‍🏫',color:'#2b3a67',pitch:0.85,rate:0.95},
+  '凱琳':{face:'👧',color:'#e67e00',pitch:1.45},
+  '家怡':{face:'👧',color:'#43aa8b',pitch:1.5},
+  '詠琪':{face:'👧',color:'#d63384',pitch:1.4},
+  '陳老師':{face:'👩‍🏫',color:'#577590',pitch:1.05,rate:0.95},
+  '李姑娘':{face:'👩',color:'#169c90',pitch:1.1,rate:0.95},
+  '子欣':{face:'👧',color:'#c98a00',pitch:1.5},
+  '張老師':{face:'👩‍🎨',color:'#d64561',pitch:1.0,rate:0.95},
+  '媽媽':{face:'👩',color:'#e0569a',pitch:1.05,rate:0.95},
+  '同學':{face:'🧒',color:'#8338ec',pitch:1.4}
+};
+
+var AVATARS=[
+  {name:'阿桃',css:'#ff5d8f',hairCss:'#5a3825',shirt:0xff5d8f,hair:0x5a3825,style:'pony',pants:0x3d3b8e},
+  {name:'阿藍',css:'#4d8dff',hairCss:'#2b2340',shirt:0x4d8dff,hair:0x2b2340,style:'bob',pants:0x2b3a67},
+  {name:'阿紫',css:'#9b5de5',hairCss:'#3b2a1a',shirt:0x9b5de5,hair:0x3b2a1a,style:'twin',pants:0x34405a},
+  {name:'阿綠',css:'#2ec4b6',hairCss:'#1b1b1b',shirt:0x2ec4b6,hair:0x1b1b1b,style:'spiky',pants:0x34405a}
+];
+
+var TOOLS=[
+  {id:'breath',icon:'🌸',name:'深呼吸',color:0xff9fcd,desc:'聞花咁慢慢吸氣，吹蠟燭咁慢慢呼氣，令身體冷靜落嚟。'},
+  {id:'coach',icon:'🧠',name:'教練聲',color:0xffd23f,desc:'將心入面嘅「批評聲」，換成鼓勵自己嘅「教練聲」。'},
+  {id:'boundary',icon:'🚧',name:'溫柔界線',color:0xff9f1c,desc:'對人好，同時都可以講「唔」。你唔使為其他人嘅情緒負晒全責。'},
+  {id:'facts',icon:'🗣️',name:'冷靜講事實',color:0x4d8dff,desc:'俾人冤枉嘅時候，平靜咁講出真相，再提出方法證明。'},
+  {id:'adult',icon:'🙋',name:'搵大人幫手',color:0x2ec4b6,desc:'一次又一次嘅欺凌或者恐嚇，要話俾老師、社工或者屋企人知。報告係保護，唔係告狀。'},
+  {id:'circle',icon:'⭕',name:'控制圈',color:0x7ee081,desc:'將心機放喺自己控制得到嘅事情上，例如點樣溫習、點樣同自己講嘢。'},
+  {id:'separate',icon:'✂️',name:'分開事同人',color:0x9b5de5,desc:'人哋批評嘅係「件事」，唔係「你成個人」。你可以問：我可以點樣改進？'},
+  {id:'feel',icon:'💬',name:'講出感受',color:0xff6fae,desc:'用「我覺得……因為……我希望……」講出心入面嘅感受。'}
+];
+function toolById(id){ for(var i=0;i<TOOLS.length;i++) if(TOOLS[i].id===id) return TOOLS[i]; return null; }
+
+var IDEAS=[
+  ['☁️','情緒好似天氣','有感覺係正常嘅。情緒會來，亦會走。'],
+  ['🗯️','別人嘅說話唔係事實','人哋講你，係佢哋嘅諗法，唔代表你真係咁。'],
+  ['📝','表現唔好唔代表你唔好','錯誤係學習嘅一部分。你嘅價值唔係用分數嚟計。'],
+  ['💖','你值得被尊重同保護','被欺負唔係你嘅錯。有需要，一定要搵大人幫手。']
+];
+
+var STRENGTHS=[
+  ['💗','我好有愛心'],['🦁','我好勇敢'],['💪','我好肯努力'],
+  ['🎨','我好有創意'],['🤝','我識得關心人'],['🐢','我好有耐性'],
+  ['🌟','我好誠實'],['😂','我好幽默'],['🔍','我好有好奇心']
+];
+
+/* 登場人物：vis = 由第幾關到第幾關會出現 */
+var CAST=[
+  {id:'jx1',name:'嘉欣',pos:[1.8,15.0],kid:{shirt:0x7b2cbf,hair:0x2b2340,style:'pony',pants:0x2b2340},vis:[0,0]},
+  {id:'f1',name:'同學',pos:[3.6,16.2],kid:{shirt:0xc77dff,hair:0x5a3825,style:'bob'},vis:[0,0],link:0,talk:['嘻嘻，嘉欣好好笑呀……','……']},
+  {id:'f2',name:'同學',pos:[0.1,16.8],kid:{shirt:0xe0aaff,hair:0x2b2340,style:'twin'},vis:[0,0],link:0,talk:['哈哈，龜速妹！','……']},
+  {id:'ho',name:'何老師',pos:[-10.6,10.6],kid:{shirt:0x2b3a67,hair:0x2b2340,style:'short',pants:0x34405a,adult:true},vis:[0,99]},
+  {id:'jh',name:'俊希',pos:[-12.9,12.6],kid:{shirt:0x06a77d,hair:0x1b1b1b,style:'spiky'},vis:[0,99],link:1,talk:['數學堂好悶呀……','對唔住，我頭先唔應該笑你。']},
+  {id:'kl',name:'凱琳',pos:[-15,0.6],kid:{shirt:0xff9f1c,hair:0x3b2a1a,style:'twin'},vis:[0,99]},
+  {id:'jy',name:'家怡',pos:[-16.6,-2.6],kid:{shirt:0x43aa8b,hair:0x5a3825,style:'pony'},vis:[0,99],link:2,talk:['一陣小息一齊去跳繩呀！','多謝你過嚟一齊跳繩！']},
+  {id:'wk',name:'詠琪',pos:[-10.6,-10.6],kid:{shirt:0xf15bb5,hair:0x2b2340,style:'bob'},vis:[0,99]},
+  {id:'chan',name:'陳老師',pos:[-12.8,-12.2],kid:{shirt:0x577590,hair:0x3b2a1a,style:'bun',pants:0x2b2340,adult:true},vis:[0,99],link:3,talk:['同學，準備上堂喇。','多謝你咁冷靜，講得好清楚。']},
+  {id:'jx2',name:'嘉欣',pos:[0.9,-14.6],kid:{shirt:0x7b2cbf,hair:0x2b2340,style:'pony',pants:0x2b2340},vis:[4,99]},
+  {id:'f3',name:'同學',pos:[2.8,-13.6],kid:{shirt:0xc77dff,hair:0x5a3825,style:'bob'},vis:[4,99],link:4,talk:['嘉欣話唔好同你玩……','其實我哋都唔想咁做。對唔住。']},
+  {id:'f4',name:'同學',pos:[2.6,-16.3],kid:{shirt:0xe0aaff,hair:0x2b2340,style:'twin'},vis:[4,99],link:4,talk:['……','下次我哋一齊玩，好唔好？']},
+  {id:'lee',name:'李姑娘',pos:[-3.4,-16.4],kid:{shirt:0x2ec4b6,hair:0x2b2340,style:'pony',pants:0x34405a,adult:true},vis:[0,99],link:4,
+   talk:['我係駐校社工李姑娘。有咩唔開心，都可以嚟搵我傾偈。','記住，你隨時都可以嚟搵我。']},
+  {id:'zy',name:'子欣',pos:[10.6,-10.6],kid:{shirt:0xffbe0b,hair:0x3b2a1a,style:'pony'},vis:[0,99]},
+  {id:'cheung',name:'張老師',pos:[15,0.4],kid:{shirt:0xef476f,hair:0x5a3825,style:'bob',pants:0x2b2340,adult:true},vis:[0,99]},
+  {id:'mum',name:'媽媽',pos:[10.6,10.6],kid:{shirt:0xff70a6,hair:0x2b2340,style:'bun',pants:0x4a4e69,adult:true},vis:[0,99]}
+];
+
+var CHAPTERS=[
+/* ---------- 1 改花名 ---------- */
+{ id:'nick', npc:'jx1', zone:'校門', tool:'breath',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','朝早，你喺校門口排隊。嘉欣同佢兩個朋友行過嚟，指住你大聲笑。'],
+      ['嘉欣','喂，龜速妹！跑步跑得咁慢，好似隻烏龜咁！哈哈哈！']]},
+    {t:'arrows',from:'jx1',words:['龜速妹！','烏龜！','哈哈哈！']},
+    {t:'lines',lines:[
+      ['narr','旁邊啲同學都笑咗出嚟。你塊面熱辣辣，心跳得好快。'],
+      ['narr','你睇下，天空變暗咗，你嘅保護罩都暗咗落嚟。'],
+      ['narr','身體好激動嘅時候，要先令自己冷靜。我哋學第一件法寶：深呼吸！']]},
+    {t:'breathe',rounds:3},
+    {t:'lines',lines:[['narr','好！你冷靜返啲喇。記住，佢講嘅唔係事實，你唔使相信。而家諗下你會點回應？']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'改花名嘅人，好多時係想睇你嬲或者喊。你企直身、望住佢、用平靜清楚嘅聲音講出要求，佢就攞唔到想要嘅反應。',
+  choices:[
+    {g:'wise',t:'（企直身，望住佢）我有自己嘅名，唔係龜速妹。我唔鍾意你咁叫我，請你停手。',
+     reply:[['嘉欣','吓……咁認真做咩啫……'],['narr','嘉欣覺得無癮，同朋友行開咗。佢啲說話射唔穿你嘅保護罩！']],
+     why:'你用咗「勇氣站姿」：企直身、望住對方、聲音平靜又清楚。你冇鬧返佢，亦冇收埋自己，而係堅定咁講出界線。如果佢之後再咁叫你，就要話俾大人知。'},
+    {g:'ok',t:'唔理佢，自己行開。',say:'（你冇理佢，自己行開咗。）',
+     reply:[['嘉欣','哈！佢唔敢出聲呀！'],['narr','行開可以避免衝突，有時都係一個好方法。不過你心入面仲係好唔舒服。']],
+     why:'偶然一次俾人笑，唔理佢、行開係可以嘅。不過如果你一直將感受收埋，心入面會越嚟越重。試下平靜又堅定咁講出你嘅界線？'},
+    {g:'trap',t:'你先係肥豬！你全家都係烏龜！',
+     reply:[['嘉欣','哇！你鬧人呀！我話俾老師知！'],['narr','你哋嗌到好大聲，結果兩個人都俾老師罰。嘉欣仲好開心，因為佢成功令你爆咗。']],
+     why:'以牙還牙，會令事情越搞越大，仲會令笑你嘅人覺得成功激嬲你。你可以好勇敢，但唔使變成好似佢咁。'}],
+  tip:'俾人改花名，先深呼吸冷靜，再企直身、平靜咁講：「我唔鍾意你咁叫我，請你停手。」佢講嘅唔係事實，你唔使相信。',
+  thanks:'（嘉欣已經行咗去。）'},
+
+/* ---------- 2 答錯被笑 ---------- */
+{ id:'laugh', npc:'ho', zone:'課室', tool:'coach',
+  steps:[
+    {t:'lines',lines:[
+      ['何老師','邊位同學可以答我，七乘八係幾多？'],
+      ['narr','你鼓起勇氣舉手答：五十四！'],
+      ['俊希','哈哈！五十四？咁都唔識，好蠢呀！']]},
+    {t:'arrows',from:'jh',words:['好蠢！','咁都唔識！']},
+    {t:'lines',lines:[
+      ['narr','全班都望住你。你心入面有把聲響起：我真係好蠢，我以後都唔好再舉手喇……'],
+      ['narr','呢把聲叫「批評聲」。佢好大聲，但係佢講嘅唔一定係真。'],
+      ['narr','我哋學第二件法寶：教練聲！將批評聲，換成一把會鼓勵你嘅聲音。']]},
+    {t:'reframe',list:[
+      ['我好蠢。','我今次計錯咗，唔代表我蠢。'],
+      ['我以後都唔好舉手喇。','敢舉手已經好勇敢，下次我會再試。'],
+      ['全班都覺得我好差。','笑我嘅只係一兩個人，其他人未必咁諗。'],
+      ['我乜都做唔好。','我有好多嘢做得好，呢條數我可以再學。']]},
+    {t:'lines',lines:[['narr','你心入面而家多咗一把教練聲。你會點做？']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'被人笑嘅時候，最傷人嘅往往唔係人哋把聲，而係自己心入面嗰把批評聲。用教練聲同自己講嘢，你就可以企返起身。',
+  choices:[
+    {g:'wise',t:'我計錯咗，七乘八係五十六。多謝老師，下一題我再試！',
+     reply:[['何老師','答得好！肯舉手、肯改正，就係最好嘅學習態度。俊希，笑同學係唔啱嘅。'],['narr','下一條問題，你又再舉手喇。']],
+     why:'答錯係學習嘅一部分。你冇俾人哋嘅笑聲決定你嘅價值，仲繼續勇敢舉手。'},
+    {g:'ok',t:'低頭唔出聲，之後都唔再舉手。',say:'（你低頭唔出聲，成堂都冇再舉手。）',
+     reply:[['narr','你心入面好唔開心。俊希就繼續同隔籬位講笑。']],
+     why:'覺得尷尬係好正常嘅。不過如果因為一次俾人笑就收埋自己，你會錯過好多學習機會。試下用教練聲同自己講嘢？'},
+    {g:'trap',t:'喺心入面一直鬧自己：我真係好蠢，我乜都做唔好。',say:'（你成日都同自己講：我真係好蠢，我乜都做唔好。）',
+     reply:[['narr','嗰日你成日都好冇精神。連最鍾意嘅美勞堂，你都覺得自己畫得唔好。']],
+     why:'批評聲講得越多，你就越相信佢。其實你只係計錯一條數，唔代表你蠢。'}],
+  tip:'俾人笑嘅時候，換一把「教練聲」同自己講：「我今次錯咗，唔代表我唔得。我可以再學。」',
+  thanks:'記住，肯舉手就係勇敢！'},
+
+/* ---------- 3 耗電型朋友 ---------- */
+{ id:'drain', npc:'kl', zone:'鞦韆', tool:'boundary',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','小息，你啱啱想同家怡去跳繩，凱琳就拉住你。'],
+      ['凱琳','你唔准去！你係我最好嘅朋友，你只可以陪我！'],
+      ['凱琳','我今日好唔開心呀，你一定要聽我講。尋日你同家怡玩，我已經好嬲你喇。'],
+      ['narr','你話你今次默書攞咗一百分，凱琳就話：'],
+      ['凱琳','有咩咁巴閉啫，默書好易咋嘛。']]},
+    {t:'arrows',from:'kl',words:['你只可以陪我！','有咩咁巴閉？']},
+    {t:'lines',lines:[['narr','每次同凱琳一齊，你都覺得好攰。']]},
+    {t:'feel',q:'同凱琳一齊之後，你覺得自己嘅心靈電池係點？',
+     opts:[['🔋','充滿電'],['🪫','冇晒電'],['😐','冇變化'],['🤩','好興奮']],ok:[1],
+     yes:'你好識留意自己嘅感覺！有啲朋友會幫你「充電」，令你開心、有信心；有啲朋友會「耗電」，令你好攰，仲覺得自己唔夠好。',
+     no:'再諗下？佢唔俾你同其他人玩，又話你攞一百分冇咩巴閉，你真係覺得好有電咩？'},
+    {t:'lines',lines:[['narr','我哋學第三件法寶：溫柔界線。你可以對人好，同時都可以講「唔」。']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'耗電型朋友會想控制你同邊個玩、令你內疚，或者貶低你嘅開心事。你可以繼續對佢好，但唔使乜都聽佢講。',
+  choices:[
+    {g:'wise',t:'我好鍾意同你做朋友，但係我都可以同其他人玩。而家我去跳繩，你想嘅話一齊嚟！',
+     reply:[['凱琳','吓……咁……我都嚟啦。'],['家怡','好呀！多個人跳，仲好玩！'],['narr','你哋三個一齊跳繩。原來同多啲人玩，凱琳都好開心。']],
+     why:'你用咗溫柔界線：對人好，但唔俾人控制你同邊個玩。真正嘅朋友會想你開心，唔會要你只屬於佢一個。'},
+    {g:'ok',t:'之後成日避開凱琳，唔同佢講嘢。',say:'（之後你成日避開凱琳，唔同佢講嘢。）',
+     reply:[['凱琳','你做咩唔理我……'],['narr','你冇再俾佢耗電，但係凱琳好傷心，唔明發生咩事。']],
+     why:'保護自己嘅電池係啱嘅！不過一聲唔出就避開佢，佢唔會知道問題喺邊。試下溫柔但清楚咁講出界線？'},
+    {g:'trap',t:'好啦……我唔去喇，我陪你。',
+     reply:[['narr','你放棄咗跳繩，成個小息聽凱琳呻。第二日、第三日都係咁。'],['narr','你越嚟越攰，仲開始覺得自己唔可以有其他朋友。']],
+     why:'為咗令人開心而一直委屈自己，你嘅電池會用晒。你唔使為其他人嘅情緒負晒全責。'}],
+  tip:'留意邊啲朋友幫你充電、邊啲朋友耗你電。你可以有禮貌咁講：「我鍾意同你做朋友，但係我都想同其他人玩。」如果有人一直控制你、令你好唔開心，要話俾大人知。',
+  thanks:'原來同多啲人玩都好開心！多謝你。'},
+
+/* ---------- 4 亂告狀 ---------- */
+{ id:'accuse', npc:'wk', zone:'走廊', tool:'facts',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','上堂前，詠琪突然大聲講：'],
+      ['詠琪','陳老師！佢偷咗我塊獨角獸擦膠呀！'],
+      ['narr','有同學細細聲講：小偷……偷嘢……']]},
+    {t:'arrows',from:'wk',words:['小偷！','偷嘢！']},
+    {t:'lines',lines:[
+      ['narr','你根本冇拎過佢嘅擦膠！'],
+      ['陳老師','係咪真㗎？你有冇拎過詠琪嘅擦膠？'],
+      ['narr','你好嬲，又好委屈，眼淚就快流出嚟。']]},
+    {t:'toolpick',q:'呢一刻，你會先用邊件法寶幫自己？',
+     ok:{breath:'啱喇！俾人冤枉嘅時候，情緒會好大。先深呼吸，令自己冷靜，先可以講得清楚。我哋一齊做一次。',
+         coach:'教練聲都幫到手！同自己講：我冇做過，我講事實就得。'},
+     no:{boundary:'溫柔界線係用嚟同朋友講「唔」嘅。而家你最需要嘅，係先令自己冷靜。再揀過？'},
+     then:{breath:1}},
+    {t:'lines',lines:[['narr','你冷靜返喇。我哋學第四件法寶：冷靜講事實。你會點同陳老師講？']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'俾人冤枉嘅時候，大人最想知道嘅係事實。越冷靜、越清楚，大人就越容易相信你。鬧人或者一直喊，都會令真相更難講清楚。',
+  choices:[
+    {g:'wise',t:'陳老師，我冇拎過詠琪嘅擦膠。我可以打開筆袋同書包俾你睇，我哋一齊幫佢搵。',
+     reply:[['陳老師','好，多謝你咁冷靜。'],['narr','最後，大家喺詠琪張枱底搵返塊擦膠。'],['詠琪','對唔住……我以為係你拎咗。'],['陳老師','詠琪，下次未搵清楚，唔好咁快話人偷嘢。']],
+     why:'俾人冤枉嘅時候，冷靜講事實，再提出方法證明，大人會更加信你。你冇俾人哋嘅指控搞亂你個心。'},
+    {g:'ok',t:'唔出聲，一直喊。',say:'（你唔出聲，一直喊。）',
+     reply:[['陳老師','你唔出聲，老師好難知道發生咩事……'],['narr','雖然最後都搵返塊擦膠，但係你成日都覺得好委屈。']],
+     why:'俾人冤枉會好傷心，喊係正常嘅。不過如果可以，試下冷靜講出事實，你就可以幫自己澄清。'},
+    {g:'trap',t:'你講大話！你成日都係咁衰，冇人鍾意你！',
+     reply:[['陳老師','唔可以咁講同學！'],['narr','本來你冇做錯，但係而家因為鬧人，你反而要同詠琪講對唔住。']],
+     why:'好嬲嘅時候鬧人，會令大人淨係見到你嘅脾氣，睇唔到真相。'}],
+  tip:'俾人亂告狀：先深呼吸，再冷靜講事實：「我冇做過。」然後提出可以點樣證明。唔好鬧返人，亦唔使自己收埋喊。',
+  thanks:'對唔住，下次我會搵清楚先講。'},
+
+/* ---------- 5 重複欺凌、搵大人 ---------- */
+{ id:'report', npc:'jx2', zone:'小食部', tool:'adult',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','一個星期過去，嘉欣仍然日日叫你龜速妹，仲叫其他人唔好同你玩。'],
+      ['嘉欣','大家唔好同佢玩呀！同佢玩就會變烏龜㗎！'],
+      ['嘉欣','你敢話俾老師知，我就叫全班都唔理你！']]},
+    {t:'arrows',from:'jx2',words:['唔好同佢玩！','烏龜！','唔准講！']},
+    {t:'lines',lines:[
+      ['narr','你已經試過冷靜咁叫佢停手，但係佢一次又一次都唔停。'],
+      ['narr','呢個已經唔係一次嘅玩笑，而係欺凌。遇到欺凌，你唔使自己一個人面對。'],
+      ['narr','我哋學第五件法寶：搵大人幫手！不過，搵大人幫手同「告狀」有咩分別？我哋嚟分下！']]},
+    {t:'sort',kind:'report',title:'要搵大人？定自己處理？',
+     intro:'聽下每件事，諗下應該搵大人幫手，定係自己可以處理。',
+     a:['🙋','搵大人'],b:['💪','自己處理'],
+     items:[
+      {t:'有人一次又一次改你花名，叫佢停都唔停。',ans:'a',why:'重複嘅嘲笑就係欺凌，要搵大人幫手。'},
+      {t:'同學排隊嗰陣，唔小心打尖咗一次。',ans:'b',why:'呢啲小事，你可以有禮貌咁提佢：「唔該，我排緊呢度。」'},
+      {t:'有人恐嚇你：「你講出去就死梗！」',ans:'a',why:'恐嚇一定要話俾大人知，越叫你唔好講，就越要講。'},
+      {t:'朋友借咗你支筆，未記得還。',ans:'b',why:'你可以自己提佢：「可唔可以還支筆俾我？」'},
+      {t:'有人喺網上群組講你壞話，仲叫人唔好同你玩。',ans:'a',why:'網上欺凌都係欺凌，要截圖留低證據，再搵大人。'},
+      {t:'有同學喺操場打人，有人受傷。',ans:'a',why:'有人受傷，一定要即刻搵大人，咁係保護大家嘅安全。'}]},
+    {t:'lines',lines:[['narr','報告，係為咗保護自己或者其他人嘅安全；告狀，係為咗令人惹麻煩。遇到欺凌、恐嚇、有人受傷，就一定要搵大人。']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'欺凌嘅人最希望你唔敢講。佢越係叫你唔准講，你就越需要搵信任嘅大人，例如老師、社工同屋企人。',
+  choices:[
+    {g:'wise',t:'我去搵李姑娘同老師，講清楚嘉欣做過啲咩、幾時發生。返到屋企，我都會話俾媽媽知。',
+     reply:[['李姑娘','多謝你話我知，你好勇敢。呢啲唔係你嘅錯。'],['李姑娘','我會同老師一齊處理，亦會同嘉欣傾。如果佢再咁做，你隨時嚟搵我。'],['narr','有大人喺你身邊，你覺得安心好多。']],
+     why:'被欺凌唔係你嘅錯。一次又一次嘅欺凌同恐嚇，就要話俾信任嘅大人知，例如老師、社工同屋企人。咁唔係告狀，係保護自己。'},
+    {g:'ok',t:'同好朋友講，但係唔話俾大人知。',
+     reply:[['narr','你嘅好朋友好支持你，陪住你。不過嘉欣仍然日日咁做。']],
+     why:'同朋友講出嚟係好事，有人陪會舒服啲！不過朋友未必有能力令欺凌停止。呢個時候，一定要搵大人。'},
+    {g:'trap',t:'唔敢講，自己忍住，驚講咗會更慘。',say:'（你唔敢講，自己忍住。）',
+     reply:[['narr','你日日都好驚返學，晚晚都瞓得唔好。'],['narr','嘉欣見你唔出聲，就越嚟越過分。']],
+     why:'欺凌嘅人最希望你唔敢講。收埋唔講，只會令你自己一個人好辛苦。你值得被保護。'}],
+  tip:'被欺凌唔係你嘅錯。一次又一次嘅嘲笑、排擠、恐嚇，要話俾老師、社工或者屋企人知。報告係保護，唔係告狀。',
+  thanks:'……對唔住，我以後唔會再咁叫你。'},
+
+/* ---------- 6 自己表現 ---------- */
+{ id:'score', npc:'zy', zone:'圖書館', tool:'circle',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','你喺圖書館打開啱啱派返嘅數學測驗卷：六十二分。'],
+      ['子欣','嘩！我攞咗九十五分呀！你攞幾多分？'],
+      ['narr','你即刻收埋份卷。心入面嘅批評聲又出現：我好蠢！媽媽一定好失望！我點做都冇用！']]},
+    {t:'arrows',from:'self',words:['我好蠢！','媽媽一定好失望！','我點做都冇用！']},
+    {t:'lines',lines:[['narr','有時候，最大聲批評你嘅人，係你自己。']]},
+    {t:'toolpick',q:'你會用邊件法寶，應付心入面嘅批評聲？',
+     ok:{coach:'啱喇！換成教練聲：我今次錯得多，唔代表我蠢，我可以搵方法進步。',
+         breath:'都得！先深呼吸，令自己冷靜，再慢慢諗。'},
+     no:{boundary:'溫柔界線係同其他人用嘅。而家批評你嘅，係你自己心入面把聲。再揀過？',
+         facts:'冷靜講事實係俾人冤枉嗰陣用嘅。而家要處理嘅，係你心入面把聲。再揀過？',
+         adult:'搵大人傾下都好好！不過而家最快幫到你嘅，係你心入面嘅法寶。再揀過？'}},
+    {t:'lines',lines:[['narr','好多事情我哋控制唔到；但係有啲事情，我哋一定控制得到。我哋學第六件法寶：控制圈！']]},
+    {t:'sort',kind:'circle',title:'控制圈：控制得到？定控制唔到？',
+     intro:'聽下每件事，諗下係咪你自己控制得到。控制得到嘅，就放入個圈入面。',
+     a:['✋','控制得到'],b:['☁️','控制唔到'],
+     items:[
+      {t:'我之後點樣溫習。',ans:'a',why:'溫習方法係你自己揀嘅，當然控制得到！'},
+      {t:'其他同學攞幾多分。',ans:'b',why:'人哋攞幾多分，係佢哋嘅事，你控制唔到，所以唔使同人比較。'},
+      {t:'我唔明嘅時候，會唔會問老師。',ans:'a',why:'問唔問，係你自己決定嘅。'},
+      {t:'已經考完嘅分數。',ans:'b',why:'考完嘅分數改變唔到，但係下一次點樣準備，你控制得到。'},
+      {t:'我點樣同自己講嘢。',ans:'a',why:'你可以揀用批評聲，定係教練聲同自己講嘢。'},
+      {t:'媽媽第一下會唔會失望。',ans:'b',why:'媽媽嘅感受你控制唔到，但係你可以揀點樣同佢傾。'}]},
+    {t:'choice'},{t:'tip'}],
+  hint:'分數唔好嘅時候，好容易同人比較，或者想收埋份卷。將心機放喺控制得到嘅事情上，你就會搵到方向。',
+  choices:[
+    {g:'wise',t:'我睇清楚錯咗邊幾題，再去問老師，下次用新方法溫習。',
+     reply:[['narr','你發現大部分錯處都係乘數。何老師教咗你一個記乘數表嘅口訣。'],['子欣','我都可以同你一齊溫，我哋互相考下！']],
+     why:'你將心機放喺控制得到嘅事情上：睇錯處、問老師、改變溫習方法。分數只係話你知邊度要加油，唔代表你嘅價值。'},
+    {g:'ok',t:'同自己講：算啦，唔好諗喇。然後去玩。',
+     reply:[['narr','你暫時開心咗，不過下次測驗，同一類題目你又錯咗。']],
+     why:'唔俾自己困喺唔開心度係好事！不過都要睇下錯處，先可以進步。'},
+    {g:'trap',t:'偷偷將份卷掉咗，唔俾媽媽知。',
+     reply:[['narr','你成晚都好驚媽媽發現。'],['narr','第二日老師問起，你要講大話，心入面更加唔舒服。']],
+     why:'收埋份卷只會令你更驚、更辛苦。分數唔好唔係羞家嘅事，勇敢面對先可以解決。'}],
+  tip:'表現唔好嘅時候，唔好同人比較。將心機放喺「控制得到」嘅事：睇錯處、問老師、改方法。分數唔代表你係一個點樣嘅人。',
+  thanks:'我哋聽日一齊溫乘數表呀！'},
+
+/* ---------- 7 老師批評 ---------- */
+{ id:'art', npc:'cheung', zone:'美術室', tool:'separate',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','美術堂，你好用心咁畫咗一幅海底世界。'],
+      ['張老師','你幅畫顏色太亂喇，一啲都唔整齊。你係咪冇用心呀？重畫！']]},
+    {t:'arrows',from:'cheung',words:['太亂！','冇用心！']},
+    {t:'lines',lines:[
+      ['narr','你明明好用心，但係老師咁講，你好失望。'],
+      ['narr','大人嘅說話都好有力量。不過，老師批評嘅係「呢幅畫」，唔係「你成個人」。']]},
+    {t:'toolpick',q:'好失望嘅時候，你會先用邊件法寶？',
+     ok:{breath:'好！先深呼吸，令自己冷靜落嚟。',coach:'好！同自己講：老師唔鍾意呢幅畫，唔代表我唔好。',circle:'好！老師點諗你控制唔到，但係你點樣回應，你控制得到。'},
+     no:{boundary:'溫柔界線係同朋友用嘅。而家你要先照顧自己嘅失望。再揀過？',adult:'之後同屋企人傾下都得！不過而家喺堂上，先用一件幫到自己冷靜嘅法寶？',facts:'老師冇冤枉你做錯事，只係唔鍾意幅畫。先照顧自己嘅失望，再揀過？'}},
+    {t:'lines',lines:[['narr','我哋學第七件法寶：分開事同人。你會點同張老師講？']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'批評可以幫你進步，但唔可以決定你係咪一個好嘅人。平靜咁講出自己嘅努力，再問點樣改進，就係最好嘅回應。',
+  choices:[
+    {g:'wise',t:'張老師，我其實好用心畫㗎。我想知道點樣可以令顏色整齊啲？',
+     reply:[['張老師','哦……原來你好用心。你試下每一個區域用一種主色，唔好撈埋一齊。'],['張老師','老師頭先講得太急。其實你嘅構圖好有創意。'],['narr','你重新畫過，今次你好鍾意自己幅畫。']],
+     why:'你冇俾批評打沉，而係平靜咁講出自己嘅努力，再問點樣改進。批評可以幫你進步，但唔可以決定你係咪一個好嘅人。'},
+    {g:'ok',t:'「知道，老師。」然後將畫收埋，唔想再畫。',
+     reply:[['narr','你之後美術堂都好冇心機，連最鍾意嘅畫畫都唔鍾意喇。']],
+     why:'聽老師講係有禮貌嘅。不過因為一次批評就放棄自己鍾意嘅嘢，好可惜。試下問老師點樣改進？'},
+    {g:'trap',t:'將幅畫撕爛，大聲講：我唔畫喇！',
+     reply:[['張老師','你咁樣發脾氣係唔啱嘅。'],['narr','你撕爛咗自己用心畫嘅畫，事後好後悔。']],
+     why:'好失望嘅時候發脾氣，最後傷害嘅係自己同自己嘅作品。先深呼吸，再講出感受同問題。'}],
+  tip:'老師或者大人批評你，佢哋講嘅係「件事」，唔係「你成個人」。你可以問：「我可以點樣改進？」',
+  thanks:'你嘅構圖好有創意，繼續畫落去！'},
+
+/* ---------- 8 父母期望 ---------- */
+{ id:'home', npc:'mum', zone:'屋企', tool:'feel',
+  steps:[
+    {t:'lines',lines:[
+      ['narr','放學返到屋企，你將測驗卷俾媽媽簽名。'],
+      ['媽媽','六十二分？你睇下表姐，次次都一百分！'],
+      ['媽媽','你係咪又淨係掛住玩呀？']]},
+    {t:'arrows',from:'mum',words:['你睇下表姐！','淨係掛住玩！']},
+    {t:'lines',lines:[
+      ['narr','你好想媽媽知道你已經好努力，但係又唔知點講。'],
+      ['narr','媽媽好愛你，所以先會緊張你。不過佢未必知道，佢嘅說話令你有咩感覺。']]},
+    {t:'feel',q:'你而家心入面係咩感覺？',
+     opts:[['😢','傷心'],['😔','委屈'],['😠','嬲'],['😆','好開心']],ok:[0,1,2],
+     yes:'你識得講出自己嘅感受，好叻！講得出感受，情緒就冇咁容易控制你。',
+     no:'再諗下？俾人拎嚟同表姐比較，真係會好開心咩？'},
+    {t:'lines',lines:[['narr','我哋學第八件法寶：講出感受。用呢個句子：我覺得……因為……我希望……']]},
+    {t:'choice'},{t:'tip'}],
+  hint:'好多時大人唔係唔愛你，而係唔知道你嘅感受。用「我覺得、因為、我希望」講出嚟，冇駁嘴，亦冇收埋，媽媽就會明白。',
+  choices:[
+    {g:'wise',t:'媽媽，我覺得好傷心，因為我已經好努力溫習。我希望你睇到我嘅努力，同我一齊諗點樣進步。',
+     reply:[['媽媽','……原來你咁諗。對唔住，媽媽唔應該將你同表姐比較。'],['媽媽','你肯努力，媽媽已經好開心。今晚我哋一齊溫乘數表，好唔好？'],['narr','媽媽攬住你。你心入面嘅天空，出返太陽喇。']],
+     why:'你用「我覺得、因為、我希望」講出感受，冇駁嘴，亦冇收埋自己。好多時大人唔係唔愛你，而係唔知道你嘅感受。'},
+    {g:'ok',t:'「知道喇……」然後返房自己喊。',
+     reply:[['narr','你一個人喺房入面喊。媽媽喺出面都好擔心，但係唔知發生咩事。']],
+     why:'傷心嘅時候自己靜一靜係可以嘅。不過如果一直唔講，媽媽就冇機會明白你。靜落嚟之後，試下講出感受？'},
+    {g:'trap',t:'你成日都偏心表姐！你根本唔鍾意我！（大力閂門）',
+     reply:[['narr','你大力閂門。媽媽好愕然，亦好傷心。'],['narr','兩個人都好唔開心，但係問題一啲都冇解決。']],
+     why:'好激動嘅時候講出嚟嘅說話，會傷害愛你嘅人。先深呼吸，再用「我覺得、因為、我希望」講出嚟。'}],
+  tip:'同爸爸媽媽講感受，可以用：「我覺得……因為……我希望……」你嘅價值唔係用分數同比較嚟計，你本身已經好珍貴。',
+  thanks:'媽媽永遠都愛你。今晚一齊溫書呀！'}
+];
+
+var TUTORIAL=[
+  ['narr','歡迎嚟到心靈島！呢度有你嘅學校、你嘅屋企，亦係你心入面嘅世界。'],
+  ['narr','你有冇留意，天空會跟住你嘅心情變？心情好就出太陽，唔開心就會落雨。'],
+  ['narr','有啲人講嘢好似一支支箭，會射向你個心。不過唔使驚，你身邊有一個心靈保護罩！'],
+  ['narr','今日你會經歷八個挑戰，收集八件心靈法寶，令你嘅保護罩越嚟越強。'],
+  ['narr','記住：強大嘅內心，唔係冇感覺。而係就算有感覺，你都可以揀點樣做。'],
+  ['narr','撳地面就可以行路。行去有黃色光柱嘅地方，挑戰就會開始。每句說話旁邊都有小喇叭，撳一下就可以再聽。出發啦！']
+];
+var START_TALK='歡迎嚟到心靈小勇士！呢個係校園智慧小偵探嘅第二集。今次你要學識點樣面對難纏嘅人同欺凌，仲要練成一個強大嘅內心，唔會輕易俾朋友、老師、爸爸媽媽，或者自己嘅表現影響心情。揀好語速之後，撳「開始冒險」出發啦！';
+var PICK_TALK='揀一個你鍾意嘅小勇士。撳一下公仔就可以揀，揀好就撳「就係佢」。';
+
+/* =====================================================================
+   語音（廣東話 Web Speech）
+   ===================================================================== */
+var EMO;
+try{ EMO=new RegExp('\\p{Extended_Pictographic}|\\uFE0F|\\u200D','gu'); }
+catch(e){ EMO=/[\uD83C-\uDBFF][\uDC00-\uDFFF]|[☀-➿]|️|‍/g; }
+var Speech={
+  ok:('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window),
+  voice:null,speed:0.9,auto:true,token:0,q:[],cur:null,
+  init:function(){
+    var self=this; if(!this.ok){ voiceStatus(); return; }
+    var pick=function(){
+      var vs=[]; try{ vs=speechSynthesis.getVoices()||[]; }catch(e){}
+      var hk=vs.filter(function(v){ return /zh[-_]hk|yue/i.test(v.lang)||/cantonese|粵|廣東|sin-?ji|hiugaai|hiumaan|wanlung/i.test(v.name); });
+      var sc=function(v){ return (/natural|neural|online|premium|enhanced/i.test(v.name)?4:0)+(/google/i.test(v.name)?2:0)+(/sin-?ji/i.test(v.name)?2:0); };
+      hk.sort(function(a,b){ return sc(b)-sc(a); });
+      self.voice=hk[0]||null; voiceStatus();
+    };
+    pick();
+    if(speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged',pick); else speechSynthesis.onvoiceschanged=pick;
+    [300,1000,2500,5000].forEach(function(ms){ setTimeout(pick,ms); });
+  },
+  clean:function(t){
+    return String(t).replace(EMO,'').replace(/[（）()「」『』【】]/g,'，').replace(/……|…/g,'，')
+      .replace(/，+/g,'，').replace(/，([。！？])/g,'$1').replace(/([。！？])，/g,'$1')
+      .replace(/^[，\s]+/,'').replace(/[，\s]+$/,'').trim();
+  },
+  mark:function(btn){ if(this.cur) this.cur.classList.remove('playing'); this.cur=btn||null; if(this.cur) this.cur.classList.add('playing'); },
+  speak:function(text,who,btn){
+    if(!this.ok) return;
+    var self=this,s=window.speechSynthesis,p=PEOPLE[who]||PEOPLE.narr,tk=++this.token,clean=this.clean(text);
+    this.mark(btn); if(!clean){ this.mark(null); return; }
+    var parts=clean.match(/[^。！？!?]+[。！？!?]*/g)||[clean];
+    var go=function(){
+      if(tk!==self.token) return;
+      self.q=parts.map(function(str,i){
+        var u=new SpeechSynthesisUtterance(str); u.lang='zh-HK'; if(self.voice) u.voice=self.voice;
+        u.pitch=p.pitch||1; u.rate=Math.min(2,(p.rate||1)*self.speed); u.volume=1;
+        if(i===parts.length-1) u.onend=u.onerror=function(){ if(tk===self.token) self.mark(null); };
+        return u;
+      });
+      try{ s.resume(); }catch(e){}
+      self.q.forEach(function(u){ s.speak(u); });
+    };
+    if(s.speaking||s.pending){ s.cancel(); setTimeout(go,90); } else go();
+  },
+  stop:function(){ this.token++; if(this.ok){ try{ speechSynthesis.cancel(); }catch(e){} } this.mark(null); }
+};
+var SAY=[];
+function sayBtn(text,who,cls){ var id=SAY.push({text:text,who:who||'narr'})-1; return '<button class="spk '+(cls||'')+'" data-sid="'+id+'" aria-label="讀出嚟">🔊</button>'; }
+function sidOf(text,who){ return SAY.push({text:text,who:who||'narr'})-1; }
+document.addEventListener('click',function(e){
+  var el=e.target.closest?e.target.closest('[data-sid]'):null; if(!el) return;
+  var s=SAY[+el.getAttribute('data-sid')]; if(!s) return;
+  var btn=el.classList.contains('spk')?el:(el.parentElement&&el.parentElement.querySelector('.spk'));
+  Speech.speak(s.text,s.who,btn);
+});
+function autoSay(text,who,container){ if(!Speech.auto) return; Speech.speak(text,who,container?container.querySelector('.spk'):null); }
+
+/* =====================================================================
+   音效
+   ===================================================================== */
+var SFX={ctx:null,
+  init:function(){ try{ if(!this.ctx) this.ctx=new (window.AudioContext||window.webkitAudioContext)(); if(this.ctx.state==='suspended') this.ctx.resume(); }catch(e){} },
+  tone:function(f,d,type,v,when){
+    if(!this.ctx) return; var t=this.ctx.currentTime+(when||0), o=this.ctx.createOscillator(), g=this.ctx.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(f,t); g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(v||0.1,t+0.015); g.gain.exponentialRampToValueAtTime(0.0001,t+(d||0.12));
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t+(d||0.12)+0.03);
+  },
+  tap:function(){ this.tone(700,0.07,'triangle',0.06); },
+  good:function(){ var s=this; [523,659,784,1047].forEach(function(f,i){ s.tone(f,0.28,'triangle',0.09,i*0.09); }); },
+  bad:function(){ this.tone(260,0.25,'square',0.035); this.tone(196,0.35,'square',0.035,0.16); },
+  pop:function(){ this.tone(420,0.08,'sine',0.08); this.tone(900,0.12,'sine',0.06,0.05); },
+  hit:function(){ this.tone(160,0.18,'sawtooth',0.05); },
+  ding:function(){ this.tone(1320,0.15,'sine',0.07); this.tone(1760,0.2,'sine',0.05,0.06); },
+  magic:function(){ var s=this; [392,523,659,784,988].forEach(function(f,i){ s.tone(f,0.18,'sine',0.05,i*0.05); }); },
+  breathIn:function(){ var s=this; [330,392,440].forEach(function(f,i){ s.tone(f,0.9,'sine',0.03,i*0.9); }); },
+  breathOut:function(){ var s=this; [440,392,330].forEach(function(f,i){ s.tone(f,1.1,'sine',0.03,i*1.1); }); }
+};
+
+/* =====================================================================
+   Three.js 世界：心靈島
+   ===================================================================== */
+var canvas=$('#c');
+var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+renderer.setSize(window.innerWidth,window.innerHeight);
+renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+var scene=new THREE.Scene();
+var SKY_LOW=new THREE.Color(0x6a7087), SKY_HIGH=new THREE.Color(0xaee3ff), skyCol=new THREE.Color(0xaee3ff);
+scene.background=skyCol; scene.fog=new THREE.Fog(0xaee3ff,55,110);
+var camera=new THREE.PerspectiveCamera(45,window.innerWidth/window.innerHeight,0.1,260);
+var hemi=new THREE.HemisphereLight(0xffffff,0x7fae5a,0.75); scene.add(hemi);
+var sun=new THREE.DirectionalLight(0xffffff,0.85); sun.position.set(14,28,12); sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+(function(c){ c.left=-30;c.right=30;c.top=30;c.bottom=-30;c.near=1;c.far=80; })(sun.shadow.camera);
+sun.shadow.bias=-0.0008; scene.add(sun);
+
+function mat(c,o){ var p={color:c,roughness:0.82,metalness:0}; if(o) for(var k in o) p[k]=o[k]; return new THREE.MeshStandardMaterial(p); }
+function mesh(geo,m,x,y,z,parent,noShadow){ var me=new THREE.Mesh(geo,m); me.position.set(x||0,y||0,z||0); if(!noShadow){ me.castShadow=true; me.receiveShadow=true; } (parent||scene).add(me); return me; }
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath(); }
+var FONT='"Noto Sans HK","PingFang HK","Microsoft JhengHei",sans-serif';
+function makeLabel(text,o){
+  o=o||{}; var fs=o.size||46,pad=18,c=document.createElement('canvas'),x=c.getContext('2d');
+  x.font='900 '+fs+'px '+FONT;
+  var w=Math.ceil(x.measureText(text).width)+pad*2+8, h=Math.ceil(fs*1.45)+8;
+  c.width=w; c.height=h; x.font='900 '+fs+'px '+FONT;
+  roundRect(x,4,4,w-8,h-8,o.square?14:(h-8)/2); x.fillStyle=o.bg||'#ffffff'; x.fill();
+  x.lineWidth=6; x.strokeStyle='#2b2340'; x.stroke();
+  x.fillStyle=o.fg||'#2b2340'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(text,w/2,h/2+2);
+  var tex=new THREE.CanvasTexture(c); tex.minFilter=THREE.LinearFilter;
+  var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:o.depthTest!==false,depthWrite:false}));
+  var s=o.scale||0.0105; sp.scale.set(w*s,h*s,1); sp.renderOrder=5; return sp;
+}
+function markerTex(done){
+  var c=document.createElement('canvas'); c.width=c.height=128; var x=c.getContext('2d');
+  x.beginPath(); x.arc(64,64,54,0,PI*2); x.fillStyle=done?'#7ee081':'#ffd23f'; x.fill(); x.lineWidth=10; x.strokeStyle='#2b2340'; x.stroke();
+  x.fillStyle='#2b2340'; x.strokeStyle='#2b2340';
+  if(done){ x.beginPath(); x.moveTo(38,66); x.lineTo(56,84); x.lineTo(92,44); x.lineWidth=15; x.lineCap='round'; x.lineJoin='round'; x.stroke(); }
+  else { roundRect(x,55,24,18,50,8); x.fill(); x.beginPath(); x.arc(64,94,10,0,PI*2); x.fill(); }
+  var t=new THREE.CanvasTexture(c); t.minFilter=THREE.LinearFilter; return t;
+}
+var TEX_EXCL=markerTex(false), TEX_DONE=markerTex(true);
+
+/* 島 */
+var ISLAND_R=27;
+mesh(new THREE.CylinderGeometry(ISLAND_R,ISLAND_R-2,3,56),mat(0x8fd16a),0,-1.5,0,null,true);
+mesh(new THREE.ConeGeometry(ISLAND_R-2,16,40),mat(0x9c6b4a,{flatShading:true}),0,-11,0,null,true).rotation.x=PI;
+var ground=new THREE.Mesh(new THREE.CircleGeometry(ISLAND_R,56),mat(0x8fd16a)); ground.rotation.x=-PI/2; ground.position.y=0.001; ground.receiveShadow=true; ground.userData.ground=true; scene.add(ground);
+var pathRing=new THREE.Mesh(new THREE.RingGeometry(13.6,16.4,64),mat(0xf2dfb4)); pathRing.rotation.x=-PI/2; pathRing.position.y=0.02; pathRing.receiveShadow=true; scene.add(pathRing);
+[0,PI/2,PI,PI*1.5].forEach(function(a){ var p=new THREE.Mesh(new THREE.PlaneGeometry(2.2,10),mat(0xf2dfb4)); p.rotation.x=-PI/2; p.rotation.z=a; p.position.set(Math.sin(a)*9,0.015,Math.cos(a)*9); p.receiveShadow=true; scene.add(p); });
+
+function signPost(text,x,z){
+  var g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+  mesh(new THREE.CylinderGeometry(0.1,0.1,2.6,8),mat(0x8b5a2b),0,1.3,0,g);
+  var l=makeLabel(text,{bg:'#fff3b0',size:40,square:true,scale:0.012}); l.position.y=3.0; g.add(l);
+}
+function tree(x,z,s,col){
+  var g=new THREE.Group(); g.position.set(x,0,z); g.scale.setScalar(s||1); scene.add(g);
+  mesh(new THREE.CylinderGeometry(0.22,0.34,2,8),mat(0x8b5a2b),0,1,0,g);
+  mesh(new THREE.IcosahedronGeometry(1.4,0),mat(col||0x5cc15c,{flatShading:true}),0,2.8,0,g);
+}
+[[20,20,1],[-20,19,0.9],[22,-15,1],[-22,-14,1.1],[-6,23,0.8],[6,-23,0.9],[24,4,0.8],[-24,-3,0.8],[-4,-24,0.8],[16,-20,0.8],[-17,-19,0.9],[23,-7,0.7]].forEach(function(t,i){ tree(t[0],t[1],t[2],[0x5cc15c,0x4caf50,0xff9fcd][i%3]); });
+
+(function(){
+  var n=90, im=new THREE.InstancedMesh(new THREE.SphereGeometry(0.18,8,6),mat(0xffffff),n), m4=new THREE.Matrix4(), col=new THREE.Color(), cols=[0xff5d73,0xffd23f,0xff9ff3,0xffffff,0xc9b8ff];
+  for(var i=0;i<n;i++){ var a=Math.random()*PI*2, r=18+Math.random()*7; m4.makeTranslation(Math.sin(a)*r,0.25,Math.cos(a)*r); im.setMatrixAt(i,m4); col.setHex(cols[i%cols.length]); im.setColorAt(i,col); }
+  scene.add(im);
+})();
+
+/* 各區佈景 */
+(function(){
+  // 校門
+  var g=new THREE.Group(); g.position.set(0,0,20); scene.add(g);
+  var brick=mat(0xe07a5f), cream=mat(0xfff1d6);
+  mesh(new THREE.BoxGeometry(1.2,4.4,1.2),brick,-3.4,2.2,0,g); mesh(new THREE.BoxGeometry(1.2,4.4,1.2),brick,3.4,2.2,0,g);
+  mesh(new THREE.BoxGeometry(8.2,1,1.3),cream,0,4.8,0,g);
+  var c=document.createElement('canvas'); c.width=512; c.height=128; var cx=c.getContext('2d');
+  roundRect(cx,6,6,500,116,26); cx.fillStyle='#ff6fae'; cx.fill(); cx.lineWidth=10; cx.strokeStyle='#2b2340'; cx.stroke();
+  cx.fillStyle='#fff'; cx.font='900 68px '+FONT; cx.textAlign='center'; cx.textBaseline='middle'; cx.fillText('心靈小學',256,68);
+  var s1=mesh(new THREE.PlaneGeometry(5.6,1.4),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,side:THREE.DoubleSide}),0,4.8,-0.7,g,true);
+  s1.rotation.y=PI;
+  // 課室（黑板喺外邊，面向島中心）
+  var cl=new THREE.Group(); cl.position.set(-14.2,0,14.2); cl.rotation.y=-PI/4; scene.add(cl);
+  mesh(new THREE.BoxGeometry(8,0.25,6),mat(0xd4a373),0,0.12,1.2,cl);
+  mesh(new THREE.BoxGeometry(6.4,3,0.12),mat(0x8b5a2b),0,2.4,3.3,cl);
+  mesh(new THREE.BoxGeometry(6,2.6,0.2),mat(0x2f5d50),0,2.4,3.2,cl);
+  var bc=document.createElement('canvas'); bc.width=256; bc.height=128; var bx=bc.getContext('2d');
+  bx.fillStyle='#2f5d50'; bx.fillRect(0,0,256,128); bx.fillStyle='#fff'; bx.font='900 56px '+FONT; bx.textAlign='center'; bx.textBaseline='middle'; bx.fillText('7 × 8 = ?',128,66);
+  var bt=mesh(new THREE.PlaneGeometry(5,2.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(bc)}),0,2.4,3.09,cl,true); bt.rotation.y=PI;
+  [[-2,2.2],[0.2,2.2],[2.2,2.2],[-1,0.8],[1.2,0.8]].forEach(function(p){
+    mesh(new THREE.BoxGeometry(1.4,0.1,0.9),mat(0xffd9a0),p[0],0.95,p[1],cl);
+    mesh(new THREE.BoxGeometry(1.2,0.7,0.7),mat(0x8d99ae),p[0],0.55,p[1],cl);
+  });
+  // 鞦韆
+  var sw=new THREE.Group(); sw.position.set(-19.5,0,0); sw.rotation.y=PI/2; scene.add(sw);
+  var pole=mat(0x4d8dff);
+  [[-2.2,-0.8],[-2.2,0.8],[2.2,-0.8],[2.2,0.8]].forEach(function(p){ var m=mesh(new THREE.CylinderGeometry(0.1,0.1,3.8,8),pole,p[0],1.8,p[1],sw); m.rotation.x=p[1]>0?-0.2:0.2; });
+  mesh(new THREE.CylinderGeometry(0.1,0.1,4.6,8),pole,0,3.6,0,sw).rotation.z=PI/2;
+  [-1,1].forEach(function(x){
+    mesh(new THREE.BoxGeometry(0.9,0.1,0.45),mat(0xff5d73),x,0.8,0,sw);
+    mesh(new THREE.CylinderGeometry(0.02,0.02,2.8,4),mat(0x555555),x-0.35,2.2,0,sw); mesh(new THREE.CylinderGeometry(0.02,0.02,2.8,4),mat(0x555555),x+0.35,2.2,0,sw);
+  });
+  // 走廊儲物櫃
+  var lk=new THREE.Group(); lk.position.set(-14.8,0,-14.8); lk.rotation.y=PI/4; scene.add(lk);
+  for(var i=0;i<5;i++){ mesh(new THREE.BoxGeometry(1,2.4,0.9),mat([0x4d8dff,0xffd23f,0xff5d73,0x2ec4b6,0x9b5de5][i]),(i-2)*1.05,1.2,0,lk); }
+  // 小食部 + 社工室
+  var kiosk=new THREE.Group(); kiosk.position.set(0,0,-20); scene.add(kiosk);
+  mesh(new THREE.BoxGeometry(5,2.4,2.2),mat(0xfff1d6),2,1.2,0,kiosk);
+  var aw=mesh(new THREE.BoxGeometry(5.4,0.2,2.8),mat(0xff5d73),2,2.7,0.3,kiosk); aw.rotation.x=0.15;
+  mesh(new THREE.BoxGeometry(4,2.8,2.2),mat(0xc9b8ff),-3.5,1.4,-0.4,kiosk);
+  mesh(new THREE.BoxGeometry(1.2,2,0.1),mat(0x8b5a2b),-3.5,1,0.72,kiosk);
+  var ss=makeLabel('社工室',{bg:'#2ec4b6',fg:'#fff',size:36,square:true,scale:0.011}); ss.position.set(-3.5,3.3,0.8); kiosk.add(ss);
+  var ks=makeLabel('小食部',{bg:'#ffd23f',size:36,square:true,scale:0.011}); ks.position.set(2,3.4,1.2); kiosk.add(ks);
+  // 圖書館
+  var lib=new THREE.Group(); lib.position.set(15,0,-15); lib.rotation.y=-PI/4; scene.add(lib);
+  [-1.8,0,1.8].forEach(function(x){
+    mesh(new THREE.BoxGeometry(1.6,2.8,0.6),mat(0x8b5a2b),x,1.4,0,lib);
+    for(var s=0;s<3;s++) for(var b=0;b<5;b++) mesh(new THREE.BoxGeometry(0.22,0.6,0.4),mat([0xff5d73,0x4d8dff,0xffd23f,0x2ec4b6,0x9b5de5][(b+s)%5]),x-0.55+b*0.27,0.6+s*0.85,0.12,lib,true);
+  });
+  // 美術室畫架
+  var ea=new THREE.Group(); ea.position.set(17.4,0,2.2); ea.rotation.y=-PI/2+0.4; scene.add(ea);
+  mesh(new THREE.CylinderGeometry(0.06,0.06,2.8,6),mat(0x8b5a2b),-0.6,1.4,0,ea).rotation.z=0.12;
+  mesh(new THREE.CylinderGeometry(0.06,0.06,2.8,6),mat(0x8b5a2b),0.6,1.4,0,ea).rotation.z=-0.12;
+  var pc=document.createElement('canvas'); pc.width=pc.height=128; var px=pc.getContext('2d');
+  if(px.createLinearGradient){ var grd=px.createLinearGradient(0,0,0,128); grd.addColorStop(0,'#8ee3ff'); grd.addColorStop(1,'#1b6ca8'); px.fillStyle=grd; }
+  px.fillRect(0,0,128,128);
+  ['#ff5d73','#ffd23f','#7ee081','#ff9f1c','#c9b8ff'].forEach(function(cc,i){ px.fillStyle=cc; px.beginPath(); if(px.ellipse) px.ellipse(20+i*22,40+(i%2)*40,14,8,0,0,PI*2); px.fill(); });
+  mesh(new THREE.PlaneGeometry(1.6,1.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(pc)}),0,1.9,0.08,ea,true);
+  // 屋企
+  var hs=new THREE.Group(); hs.position.set(15.5,0,15.5); hs.rotation.y=PI/4+PI; scene.add(hs);
+  mesh(new THREE.BoxGeometry(5,3.2,4),mat(0xfff1d6),0,1.6,0,hs);
+  var rf=mesh(new THREE.ConeGeometry(4.2,2.2,4),mat(0xff6fae),0,4.3,0,hs); rf.rotation.y=PI/4;
+  mesh(new THREE.BoxGeometry(1.2,2,0.1),mat(0x8b5a2b),0,1,2.02,hs);
+  mesh(new THREE.BoxGeometry(1,0.9,0.1),mat(0x9ad7ff),-1.6,2,2.02,hs); mesh(new THREE.BoxGeometry(1,0.9,0.1),mat(0x9ad7ff),1.6,2,2.02,hs);
+  mesh(new THREE.BoxGeometry(2.4,0.5,0.9),mat(0x4d8dff),0,0.35,3.3,hs); mesh(new THREE.BoxGeometry(2.4,0.7,0.25),mat(0x4d8dff),0,0.8,3.7,hs);
+  // 路牌
+  var R=19;
+  [['課室',-45],['鞦韆',-90],['走廊',-135],['小食部',180],['圖書館',135],['美術室',90],['屋企',45]].forEach(function(z){
+    var a=z[1]*PI/180; signPost(z[0],Math.sin(a)*R+Math.cos(a)*3,Math.cos(a)*R-Math.sin(a)*3);
+  });
+})();
+
+/* 心靈之樹 */
+var heartTree=new THREE.Group(); scene.add(heartTree);
+mesh(new THREE.CylinderGeometry(0.6,1,4,10),mat(0x8b5a2b),0,2,0,heartTree);
+var canopyMat=mat(0xc9b8ff,{flatShading:true,emissive:0x7b5cff,emissiveIntensity:0.05});
+[[0,5.2,0,2.6],[1.7,4.4,0.6,1.8],[-1.7,4.5,-0.4,1.9],[0.3,6.5,-0.3,1.6]].forEach(function(c){ mesh(new THREE.IcosahedronGeometry(c[3],1),canopyMat,c[0],c[1],c[2],heartTree); });
+var buds=[];
+[[0,7.9,0.5],[2.4,5.8,1.6],[-2.5,5.9,1.2],[1.2,4.1,2.6],[-1.3,4.2,2.5],[3.2,4.2,-0.4],[-3.3,4.4,-0.8],[0.4,6.4,2.4]].forEach(function(p){
+  var m=new THREE.Mesh(new THREE.SphereGeometry(0.32,14,10),mat(0x9a9a9a,{emissive:0x000000})); m.position.set(p[0],p[1],p[2]); m.scale.setScalar(0.6);
+  heartTree.add(m); buds.push(m);
+});
+var treeHalo=new THREE.Mesh(new THREE.SphereGeometry(5.2,24,16),new THREE.MeshBasicMaterial({color:0xfff3b0,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+treeHalo.position.y=5.3; heartTree.add(treeHalo);
+var treeHit=new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.2,8,12),new THREE.MeshBasicMaterial({visible:false})); treeHit.position.y=4; treeHit.userData.tree=true; heartTree.add(treeHit);
+var treeMarker=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX_EXCL,depthTest:false,transparent:true})); treeMarker.scale.set(0.9,0.9,1); treeMarker.position.y=9.6; treeMarker.visible=false; treeMarker.renderOrder=6; heartTree.add(treeMarker);
+var treeLabel=makeLabel('心靈之樹',{bg:'#c9b8ff',size:40}); treeLabel.position.y=8.8; heartTree.add(treeLabel);
+var treeMats=[]; heartTree.traverse(function(o){ if(o.material && o!==treeHit && o!==treeHalo && treeMats.indexOf(o.material)<0){ o.material.transparent=true; treeMats.push(o.material); } });
+var treeFade=1;
+
+/* 彩虹 */
+var rainbow=new THREE.Group(); rainbow.position.set(0,-2,-30); scene.add(rainbow); rainbow.visible=false;
+[0xff5d73,0xff9f1c,0xffd23f,0x7ee081,0x4d8dff,0x7b5cff].forEach(function(c,i){
+  rainbow.add(new THREE.Mesh(new THREE.TorusGeometry(24-i*0.9,0.45,8,60,PI),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:0.85})));
+});
+
+/* 雲、雨 */
+var clouds=[], cloudMat=mat(0xffffff,{roughness:1});
+for(var ci=0;ci<9;ci++){
+  var cg=new THREE.Group();
+  for(var k=0;k<4;k++){ var sp=new THREE.Mesh(new THREE.SphereGeometry(1.4+Math.random(),12,10),cloudMat); sp.position.set(k*1.5-2,Math.random()*0.6,Math.random()*0.8); cg.add(sp); }
+  cg.position.set(-60+ci*15,(ci%3===0?-8:16)+Math.random()*6,-45+Math.random()*80); cg.userData.v=0.5+Math.random()*0.8; scene.add(cg); clouds.push(cg);
+}
+var RAIN_N=700, rainGeo=new THREE.BufferGeometry(), rainPos=new Float32Array(RAIN_N*3);
+for(var ri=0;ri<RAIN_N;ri++){ rainPos[ri*3]=(Math.random()-0.5)*56; rainPos[ri*3+1]=Math.random()*20; rainPos[ri*3+2]=(Math.random()-0.5)*56; }
+rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));
+var rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0xbfd9ff,size:0.18,transparent:true,opacity:0.8})); rain.visible=false; scene.add(rain);
+
+/* =====================================================================
+   公仔
+   ===================================================================== */
+function makeKid(o){
+  var g=new THREE.Group(), P={};
+  var skin=mat(o.skin||0xffd7b5), shirt=mat(o.shirt), pants=mat(o.pants||0x34405a), hairM=mat(o.hair||0x2b2340), shoe=mat(0x2b2340), ink=new THREE.MeshBasicMaterial({color:0x2b2340});
+  function leg(x){ var p=new THREE.Group(); p.position.set(x,0.64,0); g.add(p); mesh(new THREE.CylinderGeometry(0.12,0.11,0.52,10),pants,0,-0.26,0,p); mesh(new THREE.BoxGeometry(0.22,0.13,0.32),shoe,0,-0.57,0.05,p); return p; }
+  P.legL=leg(-0.15); P.legR=leg(0.15);
+  if(o.style==='pony'||o.style==='twin'||o.style==='bob'||o.style==='bun') mesh(new THREE.CylinderGeometry(0.28,0.46,0.8,16),shirt,0,0.98,0,g);
+  else mesh(new THREE.CylinderGeometry(0.3,0.39,0.74,16),shirt,0,1.0,0,g);
+  function arm(s){ var p=new THREE.Group(); p.position.set(0.4*s,1.28,0); p.rotation.z=0.15*s; g.add(p); mesh(new THREE.CylinderGeometry(0.09,0.08,0.5,8),shirt,0,-0.25,0,p); mesh(new THREE.SphereGeometry(0.1,10,8),skin,0,-0.54,0,p); return p; }
+  P.armL=arm(-1); P.armR=arm(1);
+  var head=new THREE.Group(); head.position.y=1.74; g.add(head); P.head=head;
+  mesh(new THREE.SphereGeometry(0.42,22,16),skin,0,0,0,head);
+  [-1,1].forEach(function(s){
+    mesh(new THREE.SphereGeometry(0.062,10,8),ink,0.14*s,0.05,0.375,head,true);
+    mesh(new THREE.SphereGeometry(0.022,6,6),new THREE.MeshBasicMaterial({color:0xffffff}),0.14*s+0.02,0.075,0.43,head,true);
+    var ck=mesh(new THREE.SphereGeometry(0.07,10,8),new THREE.MeshBasicMaterial({color:0xff9aa2}),0.25*s,-0.08,0.32,head,true); ck.scale.z=0.4;
+  });
+  P.mouth=mesh(new THREE.TorusGeometry(0.085,0.022,6,14,PI),ink,0,-0.1,0.395,head,true);
+  var cap=mesh(new THREE.SphereGeometry(0.45,22,12,0,PI*2,0,PI*0.5),hairM,0,0.04,-0.02,head); cap.rotation.x=-0.42;
+  if(o.style==='bob') mesh(new THREE.CylinderGeometry(0.46,0.49,0.5,20,1,true,PI*0.33,PI*1.34),mat(o.hair,{side:THREE.DoubleSide}),0,-0.1,0,head);
+  else if(o.style==='pony'){ mesh(new THREE.SphereGeometry(0.15,10,8),hairM,0,0.12,-0.46,head); var tail=mesh(new THREE.SphereGeometry(0.14,10,8),hairM,0,-0.14,-0.52,head); tail.scale.y=1.7; mesh(new THREE.TorusGeometry(0.1,0.03,6,12),mat(0xffd23f),0,0.02,-0.5,head).rotation.x=PI/2; }
+  else if(o.style==='twin'){ [-1,1].forEach(function(s){ mesh(new THREE.SphereGeometry(0.17,10,8),hairM,0.44*s,0.05,-0.12,head); mesh(new THREE.SphereGeometry(0.06,8,6),mat(0xff6fae),0.36*s,0.14,-0.08,head); }); }
+  else if(o.style==='bun'){ mesh(new THREE.SphereGeometry(0.2,12,10),hairM,0,0.36,-0.28,head); }
+  else if(o.style==='spiky'){ [[0,0.44,0.05,0],[0.2,0.38,0.05,-0.5],[-0.2,0.38,0.05,0.5],[0,0.36,-0.22,0]].forEach(function(q){ var c=mesh(new THREE.ConeGeometry(0.12,0.3,6),hairM,q[0],q[1],q[2],head); c.rotation.z=q[3]; }); }
+  var hit=new THREE.Mesh(new THREE.CylinderGeometry(1,1,2.9,10),new THREE.MeshBasicMaterial({visible:false})); hit.position.y=1.45; g.add(hit); P.hit=hit;
+  if(o.adult) g.scale.setScalar(1.3);
+  g.userData.parts=P;
+  g.userData.anim={walking:false,phase:Math.random()*6,seed:Math.random()*10,ry:0,talk:0,cheer:0,mood:'happy'};
+  setMood(g,'happy'); return g;
+}
+function setMood(k,m){
+  var P=k.userData.parts; k.userData.anim.mood=m;
+  if(m==='sad'){ P.mouth.rotation.z=0; P.mouth.position.y=-0.2; P.mouth.scale.set(1,1,1); }
+  else if(m==='neutral'){ P.mouth.rotation.z=PI; P.mouth.position.y=-0.08; P.mouth.scale.set(0.8,0.35,1); }
+  else { P.mouth.rotation.z=PI; P.mouth.position.y=-0.06; P.mouth.scale.set(1,1,1); }
+}
+function faceTo(k,pt){ k.userData.anim.ry=Math.atan2(pt.x-k.position.x,pt.z-k.position.z); }
+function lerpAngle(a,b,t){ var d=((b-a+PI)%(2*PI)+2*PI)%(2*PI)-PI; return a+d*t; }
+function animKid(k,dt,t){
+  var P=k.userData.parts,a=k.userData.anim;
+  k.rotation.y=lerpAngle(k.rotation.y,a.ry,Math.min(1,dt*8));
+  if(a.walking){ a.phase+=dt*11; var s=Math.sin(a.phase)*0.65; P.legL.rotation.x=s; P.legR.rotation.x=-s; P.armL.rotation.x=-s*0.8; P.armR.rotation.x=s*0.8; k.position.y=Math.abs(Math.sin(a.phase))*0.06; }
+  else { P.legL.rotation.x*=0.8; P.legR.rotation.x*=0.8; P.armL.rotation.x*=0.8; P.armR.rotation.x*=0.8; k.position.y=0; }
+  if(a.cheer>0){ a.cheer-=dt; k.position.y=Math.abs(Math.sin(a.cheer*9))*0.55; P.armL.rotation.z=-2.6; P.armR.rotation.z=2.6; }
+  else { P.armL.rotation.z+=(-0.15-P.armL.rotation.z)*Math.min(1,dt*8); P.armR.rotation.z+=(0.15-P.armR.rotation.z)*Math.min(1,dt*8); }
+  var hx=a.mood==='sad'?0.3:0; if(a.talk>0){ a.talk-=dt; hx+=Math.sin(t*12)*0.07; }
+  P.head.rotation.x+=(hx-P.head.rotation.x)*Math.min(1,dt*8);
+  P.head.rotation.z=Math.sin(t*1.6+a.seed)*0.05; P.head.position.y=1.74+Math.sin(t*2.2+a.seed)*0.015;
+}
+
+/* 登場人物 */
+var pickables=[ground,treeHit];
+CAST.forEach(function(c){
+  var k=makeKid(c.kid); k.position.set(c.pos[0],0,c.pos[1]);
+  var ry=Math.atan2(-c.pos[0],-c.pos[1]); k.rotation.y=ry; k.userData.anim.ry=ry; c.homeRy=ry;
+  scene.add(k); c.k=k;
+  var lab=makeLabel(c.name,{bg:(PEOPLE[c.name]||PEOPLE.narr).color,fg:'#fff',size:38}); lab.position.y=c.kid.adult?2.1:2.55; k.add(lab);
+  var mk=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX_EXCL,depthTest:false,transparent:true})); mk.scale.set(0.75,0.75,1); mk.position.y=c.kid.adult?2.6:3.3; mk.renderOrder=6; mk.visible=false; k.add(mk); c.marker=mk;
+  k.userData.parts.hit.userData.cast=c; pickables.push(k.userData.parts.hit);
+});
+function castById(id){ for(var i=0;i<CAST.length;i++) if(CAST[i].id===id) return CAST[i]; return null; }
+function kidByName(n){ for(var i=0;i<CAST.length;i++) if(CAST[i].name===n && CAST[i].k.visible) return CAST[i].k; return null; }
+CHAPTERS.forEach(function(ch,i){ ch.index=i; ch.cast=castById(ch.npc); ch.cast.chapter=i; });
+
+/* 玩家、保護罩、烏雲 */
+var player=null, shield=null;
+function buildPlayer(av){
+  if(player) scene.remove(player);
+  player=makeKid({shirt:av.shirt,hair:av.hair,style:av.style,pants:av.pants});
+  player.position.set(1.1,0,9); player.rotation.y=PI; player.userData.anim.ry=PI;
+  var lab=makeLabel('你',{bg:'#ffd23f',size:40}); lab.position.y=2.5; player.add(lab);
+  shield=new THREE.Mesh(new THREE.SphereGeometry(1.3,28,20),new THREE.MeshStandardMaterial({color:0xa8f0ff,emissive:0x7fdfff,emissiveIntensity:0.4,transparent:true,opacity:0.2,depthWrite:false,roughness:0.2}));
+  shield.position.y=1.15; shield.userData={flash:0,flashCol:new THREE.Color(),base:new THREE.Color(0x7fdfff),scale:1};
+  player.add(shield);
+  scene.add(player);
+  PEOPLE.you.color=av.css;
+}
+var storm=new THREE.Group(); scene.add(storm);
+(function(){ var m=mat(0x5b5670,{roughness:1}); [[0,0,0,0.9],[0.8,0.1,0.2,0.7],[-0.8,0.05,-0.1,0.75],[0.2,0.4,-0.2,0.6]].forEach(function(p){ mesh(new THREE.SphereGeometry(p[3],12,10),m,p[0],p[1],p[2],storm,true); }); })();
+storm.visible=false;
+
+/* 特效 */
+var FX=[], sparkGeo=new THREE.BoxGeometry(0.16,0.16,0.16), confGeo=new THREE.PlaneGeometry(0.22,0.14);
+function burst(pos,color,n){ for(var i=0;i<(n||24);i++){ var m=new THREE.Mesh(sparkGeo,new THREE.MeshBasicMaterial({color:i%3?color:0xffd23f,transparent:true})); m.position.copy(pos); scene.add(m); FX.push({m:m,v:new V3((Math.random()-0.5)*7,Math.random()*5+2,(Math.random()-0.5)*7),life:1.1,max:1.1,g:9,drag:1}); } }
+function confetti(center,n){ var cols=[0xff5d73,0xffd23f,0x2ec4b6,0x7b5cff,0x4d8dff,0x7ee081,0xff6fae];
+  for(var i=0;i<n;i++){ var m=new THREE.Mesh(confGeo,new THREE.MeshBasicMaterial({color:cols[i%cols.length],side:THREE.DoubleSide,transparent:true}));
+    m.position.set(center.x+(Math.random()-0.5)*14,center.y+7+Math.random()*7,center.z+(Math.random()-0.5)*12); m.rotation.set(Math.random()*6,Math.random()*6,0); scene.add(m);
+    FX.push({m:m,v:new V3((Math.random()-0.5)*1.5,-1-Math.random()*1.5,(Math.random()-0.5)*1.5),life:5,max:5,g:0.4,drag:0.99,spin:true}); } }
+var ring=new THREE.Mesh(new THREE.RingGeometry(0.35,0.52,32),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0,depthWrite:false})); ring.rotation.x=-PI/2; ring.position.y=0.05; scene.add(ring); var ringT=0;
+var beacon=new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,9,24,1,true),new THREE.MeshBasicMaterial({color:0xffd23f,transparent:true,opacity:0.25,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending}));
+beacon.position.y=4.5; beacon.visible=false; scene.add(beacon);
+var circleRing=new THREE.Mesh(new THREE.RingGeometry(2.6,2.95,48),new THREE.MeshBasicMaterial({color:0x7ee081,transparent:true,opacity:0,depthWrite:false,side:THREE.DoubleSide}));
+circleRing.rotation.x=-PI/2; circleRing.position.y=0.06; scene.add(circleRing);
+
+/* 話語箭：hit = 射中保護罩；bounce = 俾保護罩反彈 */
+var ARROWS=[];
+function fireWords(fromPos,words,mode){
+  var dmg=mode==='hit'?Math.max(6,Math.round((state.energy-28)/words.length)):0;
+  words.forEach(function(w,i){
+    var sp=makeLabel(mode==='bounce'?w:'⚡'+w,{bg:mode==='bounce'?'#6b6480':'#3d2b4f',fg:'#ffb3c1',size:40,scale:0.011,depthTest:false});
+    sp.visible=false; sp.renderOrder=8; scene.add(sp);
+    ARROWS.push({sp:sp,from:fromPos.clone(),t:-i*0.5,dur:1.15,mode:mode,dmg:dmg});
+  });
+}
+function arrowOrigin(from){ return from==='self' ? player.position.clone().add(new V3(0,4.2,0)) : castById(from).k.position.clone().add(new V3(0,1.9,0)); }
+function shieldFlash(good){ if(!shield) return; shield.userData.flash=0.6; shield.userData.flashCol.setHex(good?0xffd23f:0xff4d6d); }
+
+/* 思想雲（教練聲） */
+var thoughts=[];
+function spawnThoughts(list){
+  clearThoughts();
+  list.forEach(function(t,i){ var sp=makeLabel('☁ '+t[0],{bg:'#4a3f63',fg:'#ffffff',size:34,scale:0.0078,depthTest:false}); sp.renderOrder=7; scene.add(sp); thoughts.push({sp:sp,a:i/list.length*PI*2,done:false}); });
+}
+function clearThoughts(){ thoughts.forEach(function(t){ scene.remove(t.sp); }); thoughts=[]; }
+/* 控制圈光球 */
+var orbs=[];
+function spawnOrb(inside,color){
+  if(!player) return;
+  var m=new THREE.Mesh(new THREE.SphereGeometry(0.28,14,10),new THREE.MeshBasicMaterial({color:color,transparent:true}));
+  var p=player.position, a=Math.random()*PI*2, r=inside?1.2+Math.random()*1.2:2.2;
+  m.position.set(p.x+Math.sin(a)*r,4,p.z+Math.cos(a)*r); scene.add(m);
+  orbs.push({m:m,inside:inside,t:0,a:a});
+}
+function clearOrbs(){ orbs.forEach(function(o){ scene.remove(o.m); }); orbs=[]; }
+var strengthOrbs=[];
+
+/* =====================================================================
+   狀態 / UI
+   ===================================================================== */
+var state={started:false,dialog:false,modal:false,energy:70,eShow:100,chapter:0,tools:[],avatar:0,target:null,pending:null,focus:null,breath:null,firstChoice:true,keys:{},finished:false,strengths:[],nearCool:0};
+var dlg=$('#dlg');
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function $all(s){ return $$(s,dlg); }
+
+function voiceStatus(){
+  var el=$('#voiceBox'); if(!el) return;
+  if(!Speech.ok){ el.className='voice bad'; el.innerHTML='⚠️ 呢個瀏覽器唔支援語音朗讀。建議用 iPad 嘅 Safari、Google Chrome 或者 Microsoft Edge 開啟。'; return; }
+  if(Speech.voice){ el.className='voice good'; el.innerHTML='✅ 已經搵到廣東話語音：'+esc(Speech.voice.name); return; }
+  el.className='voice bad';
+  el.innerHTML='⚠️ 暫時搵唔到廣東話語音，讀出嚟可能唔係廣東話。<details><summary>點樣加入廣東話語音？</summary><ol>'+
+    '<li>iPad／iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 揀「中文（香港）」，下載一個聲音（例如 Sinji）。</li>'+
+    '<li>Windows 電腦：用 Microsoft Edge 開啟效果最好；或者去 設定 → 時間與語言 → 語言與地區 → 新增「中文（香港特別行政區）」並安裝語音。</li>'+
+    '<li>Mac：系統設定 → 輔助使用 → 朗讀內容 → 系統聲音 → 管理聲音 → 加入「中文（香港）」。</li>'+
+    '<li>加完之後，重新開啟呢個檔案就得。</li></ol></details>';
+}
+
+function renderStart(){
+  $('#startPanel').innerHTML=
+    '<h1 class="title">心靈小勇士</h1>'+
+    '<p class="subtitle">💗 強大內心大冒險．第二集</p>'+
+    '<p class="weatherstrip">🌧️⛅☀️🌈</p>'+
+    '<div class="intro-row">'+sayBtn(START_TALK,'narr')+'<p>面對嘲笑、改花名、亂告狀同耗電型朋友，練成一個唔會輕易俾人影響嘅強大內心。收集八件心靈法寶，令心靈島重見彩虹！</p></div>'+
+    '<div id="voiceBox" class="voice"></div>'+
+    '<div class="speed">語速：<span class="seg"><button data-speed="0.9" class="on">正常</button><button data-speed="0.72">慢啲</button></span></div>'+
+    '<div class="cta"><button class="btn pink" id="bStart">開始冒險 ▶</button></div>'+
+    '<p class="fine">適合 6 至 12 歲．建議家長陪同一齊玩，玩完可以傾下偈</p>';
+  voiceStatus();
+  $$('[data-speed]').forEach(function(b){ b.onclick=function(){ $$('[data-speed]').forEach(function(x){ x.classList.remove('on'); }); b.classList.add('on'); Speech.speed=parseFloat(b.getAttribute('data-speed')); Speech.speak(b.textContent==='慢啲'?'好，我會講慢啲。':'好，用正常速度。','narr'); }; });
+  $('#bStart').onclick=function(){ SFX.init(); SFX.tap(); $('#sStart').classList.add('hidden'); renderPick(); };
+}
+function renderPick(){
+  var cards=AVATARS.map(function(a,i){ return '<div class="avcard'+(i===state.avatar?' on':'')+'" data-av="'+i+'"><div class="av '+a.style+'" style="--shirt:'+a.css+';--hair:'+a.hairCss+'"><i class="hair"></i><i class="head"></i><i class="body"></i></div><b>'+a.name+'</b></div>'; }).join('');
+  $('#pickPanel').innerHTML='<div class="pickhead">'+sayBtn(PICK_TALK,'narr')+'<h2>揀你嘅小勇士</h2></div><div class="avgrid">'+cards+'</div><div class="cta"><button class="btn go" id="bPick">就係佢！▶</button></div>';
+  $('#sPick').classList.remove('hidden');
+  Speech.speak(PICK_TALK,'narr',$('#pickPanel .spk'));
+  $$('.avcard').forEach(function(c){ c.onclick=function(){ state.avatar=+c.getAttribute('data-av'); $$('.avcard').forEach(function(x){ x.classList.remove('on'); }); c.classList.add('on'); SFX.pop(); Speech.speak('你揀咗'+AVATARS[state.avatar].name+'！','narr'); }; });
+  $('#bPick').onclick=function(){
+    SFX.good(); $('#sPick').classList.add('hidden');
+    buildPlayer(AVATARS[state.avatar]);
+    state.started=true; state.eShow=state.energy;
+    $('#hud').classList.remove('hidden'); renderHud(); refreshWorld();
+    openDialog(null); playLines(TUTORIAL,closeDialog);
+  };
+}
+function renderHud(){
+  $('#efill').style.width=state.energy+'%';
+  var e=state.energy; $('#weather').textContent=e>=80?'☀️':e>=55?'⛅':e>=35?'☁️':'🌧️';
+  $('#tslots').innerHTML=TOOLS.map(function(t){ return '<i class="tslot'+(state.tools.indexOf(t.id)>=0?' on':'')+'" title="'+t.name+'">'+t.icon+'</i>'; }).join('');
+}
+function changeEnergy(d){ state.energy=Math.max(5,Math.min(100,state.energy+d)); renderHud(); }
+function currentTarget(){ return state.chapter<CHAPTERS.length ? CHAPTERS[state.chapter] : null; }
+function refreshWorld(){
+  CAST.forEach(function(c){
+    c.k.visible = state.chapter>=c.vis[0] && state.chapter<=c.vis[1];
+    var ch=c.chapter;
+    if(ch===undefined){ c.marker.visible=false; return; }
+    if(ch===state.chapter){ c.marker.visible=true; c.marker.material.map=TEX_EXCL; }
+    else if(ch<state.chapter){ c.marker.visible=true; c.marker.material.map=TEX_DONE; }
+    else c.marker.visible=false;
+    c.marker.material.needsUpdate=true;
+  });
+  var cur=currentTarget();
+  if(cur){ beacon.visible=true; beacon.position.x=cur.cast.pos[0]; beacon.position.z=cur.cast.pos[1]; treeMarker.visible=false; }
+  else if(!state.finished){ beacon.visible=true; beacon.position.x=0; beacon.position.z=0; treeMarker.visible=true; }
+  else { beacon.visible=false; treeMarker.visible=false; }
+  buds.forEach(function(b,i){
+    var on=i<state.tools.length, t=on?toolById(state.tools[i]):null;
+    b.material.color.setHex(on?t.color:0x9a9a9a); b.material.emissive.setHex(on?t.color:0x000000); b.material.emissiveIntensity=on?0.6:0;
+    b.userData.target=on?1.2:0.6;
+  });
+}
+function showHintBar(){
+  var cur=currentTarget(), txt, say;
+  if(state.finished){ $('#hintbar').classList.add('hidden'); return; }
+  if(cur){ txt='👆 撳地面行路，去有黃色光柱嘅「'+cur.zone+'」開始挑戰（第 '+(cur.index+1)+'／8 關）'; say='撳地面就可以行路。行去有黃色光柱嘅'+cur.zone+'，開始第'+(cur.index+1)+'個挑戰。'; }
+  else { txt='🌳 收集齊八件法寶喇！行去島中間嘅心靈之樹'; say='你收集齊八件法寶喇！行去島中間嘅心靈之樹吧。'; }
+  $('#hintbar').innerHTML=sayBtn(say,'narr','sm')+'<p>'+txt+'</p>';
+  $('#hintbar').classList.remove('hidden');
+}
+
+/* ---------- 對話框 ---------- */
+function openDialog(ch){
+  state.dialog=true; state.target=null; state.pending=null; $('#hintbar').classList.add('hidden'); hideToast();
+  if(player) player.userData.anim.walking=false;
+  state.focusDir=null;
+  if(ch && player){
+    var np=ch.cast.k.position, pp=player.position; state.focus=new V3((pp.x+np.x)/2,0.3,(pp.z+np.z)/2); faceTo(player,np); faceTo(ch.cast.k,pp);
+    // 鏡頭喺兩個人側邊，兩個人都睇得到
+    var dx=np.x-pp.x, dz=np.z-pp.z, dl=Math.hypot(dx,dz)||1, fd=new V3(-dz/dl,0,dx/dl), mr=Math.hypot(state.focus.x,state.focus.z)||1;
+    if(fd.x*(-state.focus.x/mr)+fd.z*(-state.focus.z/mr)<0) fd.negate();
+    state.focusDir=fd;
+  }
+  else if(player){ state.focus=new V3(player.position.x,0.3,player.position.z); }
+  dlg.classList.add('show');
+}
+function closeDialog(){
+  state.dialog=false; state.focus=null; state.breath=null; state.nearCool=1.5;
+  dlg.classList.remove('show'); Speech.stop(); clearThoughts(); clearOrbs(); circleRing.userData.on=false;
+  var nb=$('#dNext'); if(nb) nb.onclick=null;
+  setTimeout(function(){ if(!state.dialog) dlg.innerHTML=''; },400);
+  showHintBar();
+}
+function whoTag(who){ var p=PEOPLE[who]||PEOPLE.narr; return '<div class="who" style="--c:'+p.color+'"><span class="face">'+p.face+'</span><span>'+(p.name||who)+'</span></div>'; }
+function showLine(line,onNext,label){
+  var who=line[0],text=line[1];
+  dlg.innerHTML=whoTag(who)+'<div class="card"><div class="line">'+sayBtn(text,who)+'<p data-sid="'+sidOf(text,who)+'">'+esc(text)+'</p></div><div class="row"><button class="btn primary" id="dNext">'+label+'</button></div></div>';
+  $('#dNext').onclick=function(){ SFX.tap(); onNext(); };
+  autoSay(text,who,dlg);
+  var k=who==='you'?player:kidByName(who); if(k) k.userData.anim.talk=1.6;
+}
+function playLines(lines,done){ var i=0; (function step(){ if(i>=lines.length){ done(); return; } var l=lines[i++]; showLine(l,step,i>=lines.length?'繼續 ▶':'下一句 ▶'); })(); }
+function nextRow(label,cls){ return '<div class="row"><button class="btn '+(cls||'primary')+'" id="dNext">'+label+'</button></div>'; }
+
+/* ---------- 關卡流程 ---------- */
+function startChapter(ch){
+  openDialog(ch); SFX.pop();
+  ch.tried=[]; ch.order=[0,1,2].sort(function(){ return Math.random()-0.5; });
+  runSteps(ch,0);
+}
+function runSteps(ch,i){
+  if(i>=ch.steps.length) return;
+  var st=ch.steps[i], next=function(){ runSteps(ch,i+1); };
+  switch(st.t){
+    case 'lines': playLines(st.lines,next); break;
+    case 'arrows': fireWords(arrowOrigin(st.from),st.words,'hit'); ch.lastArrows=st; next(); break;
+    case 'breathe': runBreathe(st.rounds,next); break;
+    case 'reframe': runReframe(st.list,next); break;
+    case 'feel': runFeel(st,next); break;
+    case 'sort': runSort(st,next); break;
+    case 'toolpick': runToolPick(st,next); break;
+    case 'choice': showChoices(ch,next); break;
+    case 'tip': showTip(ch); break;
+  }
+}
+
+/* 選擇 */
+function showChoices(ch,next){
+  var prompt=state.firstChoice?'你會點做？每個選擇旁邊都有小喇叭，撳一下就可以聽。唔肯定嘅話，可以先撳心靈提示。諗清楚，先撳「揀呢個」！':'你會點做？諗清楚先揀呀！';
+  state.firstChoice=false;
+  var html=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(prompt,'narr')+'<p class="q">你會點做？</p><button class="btn pink" id="dHint">💡 心靈提示</button></div><div id="hintBox"></div>';
+  ch.order.forEach(function(ci,k){
+    var c=ch.choices[ci], tried=ch.tried.indexOf(ci)>=0, sid=sidOf(c.t,'you');
+    html+='<div class="choice'+(tried?' tried':'')+'"><span class="letter">'+'ABC'[k]+'</span><button class="spk sm" data-sid="'+sid+'" aria-label="讀出嚟">🔊</button><p class="ctext" data-sid="'+sid+'">'+esc(c.t)+'</p><button class="btn go" data-ci="'+ci+'"'+(tried?' disabled':'')+'>'+(tried?'試過喇':'揀呢個 ✔')+'</button></div>';
+  });
+  dlg.innerHTML=html+'</div>';
+  autoSay(prompt,'narr',dlg.querySelector('.line'));
+  $('#dHint').onclick=function(){
+    var text='心靈提示：'+ch.hint; SFX.magic();
+    $('#hintBox').innerHTML='<div class="hint">'+sayBtn(text,'narr','sm')+'<p>💡 '+esc(ch.hint)+'</p></div>';
+    $('#dHint').classList.add('hidden'); autoSay(text,'narr',$('#hintBox'));
+  };
+  $all('[data-ci]').forEach(function(b){ b.onclick=function(){ SFX.tap(); pickChoice(ch,+b.getAttribute('data-ci'),next); }; });
+}
+function pickChoice(ch,ci,next){
+  var c=ch.choices[ci];
+  if(c.g!=='wise' && ch.tried.indexOf(ci)<0) ch.tried.push(ci);
+  playLines([['you',c.say||c.t]].concat(c.reply),function(){ showResult(ch,c,next); });
+}
+function showResult(ch,c,next){
+  var head={wise:'💗 內心好強大！',ok:'🙂 都唔錯，不過……',trap:'⛈️ 俾情緒捉住咗！'}[c.g];
+  var extra=c.g==='wise'?'你睇下，啲話語箭而家射唔穿你嘅保護罩，仲反彈咗出去！':'';
+  var speakText=head+c.why+extra+(c.g==='wise'?'':(c.g==='ok'?'再試下搵個更好嘅方法啦！':'唔緊要，再試多次！'));
+  if(c.g==='wise'){
+    SFX.good(); changeEnergy(15); setMood(player,'happy'); player.userData.anim.cheer=1.3; setMood(ch.cast.k,'happy');
+    if(ch.lastArrows) fireWords(arrowOrigin(ch.lastArrows.from),ch.lastArrows.words,'bounce');
+  } else if(c.g==='trap'){ SFX.bad(); changeEnergy(-8); setMood(player,'sad'); }
+  else { SFX.pop(); changeEnergy(-2); setMood(player,'neutral'); }
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="result '+c.g+'">'+sayBtn(speakText,'narr')+'<div><h3>'+head+'</h3><p>'+esc(c.why)+'</p>'+
+    (extra?'<p style="margin-top:6px">🛡️ '+extra+'</p>':'')+'</div></div>'+
+    nextRow(c.g==='wise'?'繼續 ▶':'🔄 '+(c.g==='ok'?'試下更好嘅方法':'再試多次'))+'</div>';
+  autoSay(speakText,'narr',dlg);
+  $('#dNext').onclick=function(){ SFX.tap(); setMood(player,'happy'); if(c.g==='wise') next(); else showChoices(ch,next); };
+}
+
+/* 感受 */
+function runFeel(f,next){
+  var q='換位思考：'+f.q+'撳一個表情。';
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(q,'narr')+'<p class="q">💭 '+esc(f.q)+'</p></div><div class="feel">'+
+    f.opts.map(function(o,i){ return '<button data-f="'+i+'"><span>'+o[0]+'</span>'+o[1]+'</button>'; }).join('')+'</div><div id="feelRes"></div>'+
+    '<div class="row"><button class="btn primary hidden" id="dNext">繼續 ▶</button></div></div>';
+  autoSay(q,'narr',dlg);
+  $all('[data-f]').forEach(function(b){ b.onclick=function(){
+    var i=+b.getAttribute('data-f'), good=f.ok.indexOf(i)>=0, reply=good?f.yes:f.no, msg=f.opts[i][1]+'。'+reply;
+    b.classList.add(good?'yes':'no'); if(good){ SFX.good(); changeEnergy(4); } else SFX.pop();
+    $('#feelRes').innerHTML='<div class="result '+(good?'wise':'ok')+'" style="margin-top:12px">'+sayBtn(msg,'narr','sm')+'<div><p>'+esc(reply)+'</p></div></div>';
+    autoSay(msg,'narr',$('#feelRes'));
+    if(good){ $all('[data-f]').forEach(function(x){ x.disabled=true; }); var n=$('#dNext'); n.classList.remove('hidden'); n.onclick=function(){ SFX.tap(); next(); }; }
+  }; });
+}
+
+/* 深呼吸：按住吸氣、放手呼氣 */
+function runBreathe(rounds,next){
+  var r=0, phase='ready', timer=null;
+  var intro='深呼吸：聞花、吹蠟燭。按住個大波波，好似聞花咁慢慢吸氣。見到蠟燭就放手，好似吹蠟燭咁慢慢呼氣。'+(rounds>1?'一共做'+rounds+'次。':'做一次就得。');
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(intro,'narr')+'<p class="mg-title">🌸 深呼吸：聞花、吹蠟燭</p></div>'+
+    '<div class="breath"><div class="bball" id="bball" role="button" aria-label="按住吸氣"><span id="bicon">🌸</span></div><p class="bmsg" id="bmsg">👇 按住個波波，慢慢吸氣</p><div class="bdots" id="bdots"></div></div><div id="bNextWrap"></div></div>';
+  var ball=$('#bball'), icon=$('#bicon');
+  var msg=function(t,speak){ $('#bmsg').textContent=t; if(speak&&Speech.auto) Speech.speak(speak,'narr'); };
+  var dots=function(){ var s=''; for(var i=0;i<rounds;i++) s+=i<r?'💗':'⚪'; $('#bdots').textContent=s; };
+  dots(); autoSay(intro,'narr',dlg);
+  var press=function(e){
+    if(e&&e.preventDefault) e.preventDefault(); if(phase!=='ready') return;
+    SFX.init(); phase='in'; ball.classList.remove('out'); ball.classList.add('in'); icon.textContent='🌸'; state.breath='in';
+    msg('吸氣……聞下朵花 🌸（繼續按住）','慢慢吸氣，聞下朵花。'); SFX.breathIn();
+    timer=setTimeout(function(){ phase='full'; icon.textContent='🕯️'; msg('好！放手，慢慢吹蠟燭 🕯️','放手，慢慢呼氣，吹熄蠟燭。'); SFX.ding(); },3000);
+  };
+  var release=function(){
+    if(phase==='in'){ clearTimeout(timer); phase='ready'; ball.classList.remove('in'); state.breath=null; msg('再慢啲、長啲，按住多一陣先放手。','再慢啲，按住多一陣先放手。'); return; }
+    if(phase!=='full') return;
+    phase='out'; ball.classList.remove('in'); ball.classList.add('out'); state.breath='out'; msg('呼……慢慢吹熄蠟燭'); SFX.breathOut();
+    setTimeout(function(){
+      r++; dots(); changeEnergy(6); state.breath=null; if(player) burst(player.position.clone().add(new V3(0,1.5,0)),0xff9fcd,14);
+      if(r>=rounds){
+        phase='done'; ball.classList.remove('out'); icon.textContent='😌'; msg('做得好！你嘅身體冷靜返喇。','做得好！你嘅身體冷靜返喇。'); SFX.good();
+        $('#bNextWrap').innerHTML=nextRow('繼續 ▶'); $('#dNext').onclick=function(){ SFX.tap(); next(); };
+      } else { phase='ready'; ball.classList.remove('out'); icon.textContent='🌸'; msg('第 '+(r+1)+' 次：再按住，慢慢吸氣','第'+(r+1)+'次，再按住，慢慢吸氣。'); }
+    },3500);
+  };
+  ball.addEventListener('pointerdown',press);
+  ball.addEventListener('pointerup',release);
+  ball.addEventListener('pointercancel',release);
+  ball.addEventListener('pointerleave',release);
+  ball.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  ball._press=press; ball._release=release;
+}
+
+/* 教練聲 */
+function runReframe(list,next){
+  var intro='將每一句批評聲，換成教練聲。撳小喇叭聽下批評聲講咩，再撳「換成教練聲」。';
+  var html=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(intro,'narr')+'<p class="mg-title">🧠 批評聲 ➜ 教練聲</p></div>';
+  list.forEach(function(t,i){ html+='<div class="thought" data-th="'+i+'"><span class="tag">批評聲</span>'+sayBtn(t[0],'narr','sm')+'<p>'+esc(t[0])+'</p><button class="btn primary" data-tb="'+i+'">✨ 換成教練聲</button></div>'; });
+  dlg.innerHTML=html+'<div id="rfNext"></div></div>';
+  autoSay(intro,'narr',dlg); spawnThoughts(list);
+  var done=0;
+  $all('[data-tb]').forEach(function(b){ b.onclick=function(){
+    var i=+b.getAttribute('data-tb'), card=dlg.querySelector('[data-th="'+i+'"]'), coach=list[i][1];
+    card.classList.add('flip'); card.querySelector('.tag').textContent='教練聲';
+    card.querySelector('p').textContent=coach; card.querySelector('.spk').setAttribute('data-sid',sidOf(coach,'you'));
+    b.remove(); SFX.ding(); changeEnergy(4); Speech.speak(coach,'you',card.querySelector('.spk'));
+    var th=thoughts[i]; if(th && !th.done){ th.done=true; burst(th.sp.position.clone(),0xffd23f,16); scene.remove(th.sp); }
+    done++;
+    if(done>=list.length){ $('#rfNext').innerHTML=nextRow('繼續 ▶'); $('#dNext').onclick=function(){ SFX.tap(); clearThoughts(); next(); }; }
+  }; });
+}
+
+/* 分類（控制圈／搵大人） */
+function runSort(cfg,next){
+  var idx=0, intro=cfg.title+'。'+cfg.intro;
+  if(cfg.kind==='circle') circleRing.userData.on=true;
+  function render(){
+    if(idx>=cfg.items.length){ circleRing.userData.on=false; next(); return; }
+    var it=cfg.items[idx];
+    dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(intro,'narr','sm')+'<p class="mg-title">'+esc(cfg.title)+'</p></div>'+
+      '<div class="prog">第 '+(idx+1)+'／'+cfg.items.length+' 題</div>'+
+      '<div class="sortcard">'+sayBtn(it.t,'narr')+'<p>'+esc(it.t)+'</p></div>'+
+      '<div class="sortbtns"><button data-s="a"><span>'+cfg.a[0]+'</span>'+cfg.a[1]+'</button><button data-s="b"><span>'+cfg.b[0]+'</span>'+cfg.b[1]+'</button></div><div id="fb" class="fb"></div></div>';
+    if(Speech.auto) Speech.speak((idx===0?intro:'')+it.t,'narr',dlg.querySelector('.sortcard .spk'));
+    $all('[data-s]').forEach(function(b){ b.onclick=function(){
+      var good=b.getAttribute('data-s')===it.ans, text=(good?'啱喇！':'再諗下……')+it.why;
+      b.classList.add(good?'yes':'no');
+      $('#fb').innerHTML='<div class="result '+(good?'wise':'ok')+'">'+sayBtn(text,'narr','sm')+'<div><p>'+esc(text)+'</p></div></div>'+(good?nextRow(idx+1>=cfg.items.length?'完成 ✔':'下一題 ▶'):'');
+      autoSay(text,'narr',$('#fb'));
+      if(good){
+        SFX.good(); changeEnergy(2);
+        $all('[data-s]').forEach(function(x){ x.disabled=true; });
+        if(cfg.kind==='circle') spawnOrb(it.ans==='a',it.ans==='a'?0x7ee081:0xb8b8c8);
+        else if(player) burst(player.position.clone().add(new V3(0,2,0)),it.ans==='a'?0x2ec4b6:0xffd23f,10);
+        $('#dNext').onclick=function(){ SFX.tap(); idx++; render(); };
+      } else SFX.pop();
+    }; });
+  }
+  render();
+}
+
+/* 揀法寶 */
+function runToolPick(cfg,next){
+  var q=cfg.q+'撳一件法寶。';
+  var tools=TOOLS.filter(function(t){ return state.tools.indexOf(t.id)>=0; });
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(q,'narr')+'<p class="q">🧰 '+esc(cfg.q)+'</p></div><div class="toolgrid">'+
+    tools.map(function(t){ return '<button class="toolbtn" data-tool="'+t.id+'"><span>'+t.icon+'</span>'+t.name+'</button>'; }).join('')+'</div><div id="tpRes"></div></div>';
+  autoSay(q,'narr',dlg);
+  $all('[data-tool]').forEach(function(b){ b.onclick=function(){
+    var id=b.getAttribute('data-tool'), t=toolById(id), ok=cfg.ok[id];
+    var body=ok||((cfg.no&&cfg.no[id])||'呢件法寶喺呢度未必最啱用。諗下而家你最需要啲咩，再揀過？');
+    b.classList.add(ok?'yes':'no');
+    $('#tpRes').innerHTML='<div class="result '+(ok?'wise':'ok')+'" style="margin-top:12px">'+sayBtn(t.name+'。'+body,'narr','sm')+'<div><p>'+esc(body)+'</p></div></div>'+(ok?nextRow('用法寶 ✨','pink'):'');
+    autoSay(t.name+'。'+body,'narr',$('#tpRes'));
+    if(ok){
+      SFX.magic(); $all('[data-tool]').forEach(function(x){ x.disabled=true; });
+      $('#dNext').onclick=function(){ SFX.tap(); changeEnergy(5); if(cfg.then&&cfg.then[id]) runBreathe(cfg.then[id],next); else next(); };
+    } else SFX.pop();
+  }; });
+}
+
+/* 錦囊 + 新法寶 */
+function showTip(ch){
+  var t=toolById(ch.tool), text='心靈錦囊：'+ch.tip+'你得到新法寶：'+t.name+'！'+t.desc;
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="tipcard">'+sayBtn(text,'narr')+'<div><h3>🎒 心靈錦囊</h3><p>'+esc(ch.tip)+'</p></div></div>'+
+    '<div class="newtool"><span>'+t.icon+'</span><div>你得到新法寶：'+t.name+'！<br><small style="font-weight:700">'+esc(t.desc)+'</small></div></div>'+nextRow('收埋法寶 ✨','go')+'</div>';
+  SFX.magic(); autoSay(text,'narr',dlg);
+  $('#dNext').onclick=function(){ completeChapter(ch); };
+}
+function completeChapter(ch){
+  ARROWS=ARROWS.filter(function(A){ if(A.mode==='hit'){ scene.remove(A.sp); return false; } return true; });
+  if(state.tools.indexOf(ch.tool)<0) state.tools.push(ch.tool);
+  state.chapter=ch.index+1; changeEnergy(Math.max(10,88-state.energy));
+  closeDialog();
+  var t=toolById(ch.tool);
+  var bud=buds[state.tools.length-1]; if(bud){ var wp=new V3(); bud.getWorldPosition(wp); burst(wp,t.color,30); }
+  if(player) burst(player.position.clone().add(new V3(0,2,0)),t.color,20);
+  SFX.good();
+  var f=document.createElement('div'); f.className='fly'; f.textContent=t.icon+' '+t.name; document.body.appendChild(f); setTimeout(function(){ f.remove(); },1700);
+  refreshWorld(); showHintBar();
+  setTimeout(function(){
+    if(state.dialog) return;
+    var nx=currentTarget();
+    if(nx) toast('narr','心靈之樹開咗一朵新嘅花！下一站：'+nx.zone+'。跟住黃色光柱行啦！');
+    else toast('narr','你收集齊八件心靈法寶喇！快啲去島中間嘅心靈之樹吧！');
+  },1400);
+}
+
+/* 結局：優點卡 */
+function startFinale(){
+  openDialog(null); if(player) faceTo(player,new V3(0,0,0));
+  state.focus=new V3(player.position.x*0.5,2.2,player.position.z*0.5); state.finaleCam=true;
+  playLines([
+    ['narr','你收集齊八件心靈法寶！心靈之樹開滿咗花，發出溫暖嘅光。'],
+    ['narr','最後一件事：記住你自己有幾好。強大嘅內心，就係知道自己嘅價值，唔使靠人哋讚你先覺得自己好。']
+  ],runStrengths);
+}
+function runStrengths(){
+  var q='揀三張最似你嘅優點卡。撳一下就會讀出嚟，揀夠三張就撳完成。', picked=[];
+  dlg.innerHTML=whoTag('narr')+'<div class="card"><div class="line">'+sayBtn(q,'narr')+'<p class="q">🌟 揀三張最似你嘅優點卡</p></div><div class="sgrid">'+
+    STRENGTHS.map(function(s,i){ return '<button class="scard" data-st="'+i+'"><span>'+s[0]+'</span>'+s[1]+'</button>'; }).join('')+'</div>'+
+    '<div class="row"><button class="btn go" id="dNext" disabled>完成（0／3）</button></div></div>';
+  autoSay(q,'narr',dlg);
+  $all('[data-st]').forEach(function(b){ b.onclick=function(){
+    var i=+b.getAttribute('data-st'), k=picked.indexOf(i);
+    if(k>=0){ picked.splice(k,1); b.classList.remove('on'); }
+    else { if(picked.length>=3) return; picked.push(i); b.classList.add('on'); SFX.ding(); Speech.speak(STRENGTHS[i][1]+'！','you'); }
+    var n=$('#dNext'); n.textContent='完成（'+picked.length+'／3）'; n.disabled=picked.length!==3;
+  }; });
+  $('#dNext').onclick=function(){
+    state.strengths=picked.map(function(i){ return STRENGTHS[i]; });
+    strengthOrbs.forEach(function(o){ scene.remove(o); }); strengthOrbs=[];
+    state.strengths.forEach(function(s,i){ var l=makeLabel(s[1],{bg:'#ffd23f',size:34,scale:0.009,depthTest:false}); l.renderOrder=9; l.userData.a=i/3*PI*2; scene.add(l); strengthOrbs.push(l); });
+    var names=state.strengths.map(function(s){ return s[1]; });
+    playLines([['you',names.join('！')+'！'],['narr','記住，就算有人唔欣賞你，呢啲優點都一直喺度。佢哋會好似星星咁，圍住你、陪住你。']],finishGame);
+  };
+}
+function finishGame(){
+  state.finaleCam=false; state.finished=true; state.energy=100; renderHud(); closeDialog(); refreshWorld();
+  rainbow.position.z = player.position.z>0 ? -30 : 30; rainbow.rotation.y = player.position.z>0 ? 0 : PI;
+  rainbow.visible=true; confetti(player.position,180); SFX.good(); setTimeout(function(){ SFX.magic(); },600);
+  setTimeout(showEnd,2200);
+}
+function showEnd(){
+  state.modal=true;
+  var ideasText=IDEAS.map(function(d){ return d[1]+'。'+d[2]; }).join('');
+  var text='恭喜你！你成為咗心靈小勇士！你收集齊八件心靈法寶：'+TOOLS.map(function(t){ return t.name; }).join('、')+'。記住四句說話：'+ideasText+'強大嘅內心唔係冇感覺，而係有感覺都可以揀點樣做。你本身已經好珍貴！';
+  $('#endPanel').innerHTML='<h1 class="title" style="font-size:clamp(34px,6vw,56px)">心靈小勇士！</h1>'+
+    '<div class="cert"><h2>🏅 心靈小勇士證書</h2><div class="icons">'+TOOLS.map(function(t){ return t.icon; }).join('')+'</div>'+
+    '<div class="tags">'+state.strengths.map(function(s){ return '<span>'+s[0]+' '+s[1]+'</span>'; }).join('')+'</div></div>'+
+    '<div class="endtxt">'+sayBtn(text,'narr')+'<p>🌈 你令心靈島重見彩虹！記住：強大嘅內心唔係冇感覺，而係有感覺都可以揀點樣做。你本身已經好珍貴！</p></div>'+
+    '<div class="btnrow"><button class="btn" id="eBag">🧰 睇法寶袋</button><button class="btn primary" id="eAgain">🔄 再玩一次</button><button class="btn go" id="eEp1">🔍 玩第一集</button></div>';
+  $('#sEnd').classList.remove('hidden');
+  autoSay(text,'narr',$('#endPanel .endtxt'));
+  $('#eBag').onclick=function(){ SFX.tap(); $('#sEnd').classList.add('hidden'); openBag(); };
+  $('#eAgain').onclick=function(){ SFX.tap(); resetGame(); };
+  $('#eEp1').onclick=function(){ Speech.stop(); window.location.href=EPISODE1; };
+}
+function resetGame(){
+  Speech.stop();
+  state.chapter=0; state.tools=[]; state.energy=70; state.finished=false; state.firstChoice=true; state.modal=false; state.strengths=[];
+  strengthOrbs.forEach(function(o){ scene.remove(o); }); strengthOrbs=[];
+  rainbow.visible=false; $('#sEnd').classList.add('hidden'); $('#sBag').classList.add('hidden');
+  CAST.forEach(function(c){ setMood(c.k,'happy'); c.k.userData.anim.ry=c.homeRy; });
+  player.position.set(1.1,0,9); state.target=null; state.pending=null;
+  renderHud(); refreshWorld(); showHintBar();
+  toast('narr','新一輪冒險開始！心靈島嘅天空又有啲烏雲，出發啦！');
+}
+
+/* 法寶袋 */
+function openBag(){
+  state.modal=true;
+  var intro='法寶袋。呢度有你收集咗嘅心靈法寶，同埋四句要記住嘅說話。唔開心嘅時候，隨時都可以喺度練習深呼吸。';
+  var tools=TOOLS.map(function(t){
+    var on=state.tools.indexOf(t.id)>=0;
+    return '<div class="item'+(on?'':' locked')+'"><span class="ic">'+t.icon+'</span><div><b>'+(on?t.name:'未收集')+'</b><p>'+(on?esc(t.desc):'完成挑戰就可以收集呢件法寶。')+'</p></div>'+(on?sayBtn(t.name+'。'+t.desc,'narr','sm'):'')+'</div>';
+  }).join('');
+  var ideas=IDEAS.map(function(d){ return '<div class="item"><span class="ic">'+d[0]+'</span><div><b>'+d[1]+'</b><p>'+d[2]+'</p></div>'+sayBtn(d[1]+'。'+d[2],'narr','sm')+'</div>'; }).join('');
+  var canPractice=state.tools.indexOf('breath')>=0 && state.started && !state.finished;
+  $('#bagPanel').innerHTML='<div class="bookhead">'+sayBtn(intro,'narr')+'<h2>🧰 法寶袋</h2><button class="xbtn" id="bClose" aria-label="關閉">✕</button></div>'+
+    (canPractice?'<div class="row" style="justify-content:flex-start"><button class="btn pink" id="bPractice">🌸 而家練習深呼吸</button></div>':'')+
+    '<p class="sec">我嘅法寶</p><div class="list">'+tools+'</div><p class="sec">要記住嘅四句說話</p><div class="list">'+ideas+'</div>';
+  $('#sBag').classList.remove('hidden');
+  autoSay(intro,'narr',$('#bagPanel .bookhead'));
+  $('#bClose').onclick=function(){ SFX.tap(); Speech.stop(); $('#sBag').classList.add('hidden'); state.modal=false; if(state.finished) $('#sEnd').classList.remove('hidden'), state.modal=true; };
+  var pr=$('#bPractice'); if(pr) pr.onclick=function(){ SFX.tap(); $('#sBag').classList.add('hidden'); state.modal=false; openDialog(null); runBreathe(3,closeDialog); };
+}
+
+/* toast */
+var toastTimer=null;
+function toast(who,text){
+  var p=PEOPLE[who]||PEOPLE.narr, el=$('#toast');
+  el.innerHTML='<div class="toast-in"><span class="tf" style="background:'+p.color+'">'+p.face+'</span><div><b>'+(p.name||who)+'</b><p>'+esc(text)+'</p></div>'+sayBtn(text,who,'sm')+'</div>';
+  el.classList.add('show'); autoSay(text,who,el);
+  var k=kidByName(who); if(k) k.userData.anim.talk=1.6;
+  clearTimeout(toastTimer); toastTimer=setTimeout(hideToast,Math.max(5000,text.length*260));
+}
+function hideToast(){ $('#toast').classList.remove('show'); }
+
+/* HUD 按鈕 */
+$('#bBag').onclick=function(){ if(state.dialog) return; SFX.tap(); openBag(); };
+$('#bAuto').onclick=function(){ Speech.auto=!Speech.auto; $('#bAuto small').textContent='自動讀：'+(Speech.auto?'開':'關'); SFX.tap(); Speech.speak(Speech.auto?'自動讀出已經開咗。每句說話都會自動讀出嚟。':'自動讀出已經關咗。想聽嘅話，可以撳小喇叭。','narr'); };
+$('#bHelp').onclick=function(){ if(state.dialog||state.modal) return; SFX.tap(); openDialog(null); playLines(TUTORIAL,closeDialog); };
+
+/* =====================================================================
+   點擊 / 移動
+   ===================================================================== */
+var raycaster=new THREE.Raycaster(), ndc=new THREE.Vector2(), downPt=null;
+canvas.addEventListener('pointerdown',function(e){ downPt={x:e.clientX,y:e.clientY}; });
+canvas.addEventListener('pointerup',function(e){ if(!downPt) return; var d=Math.hypot(e.clientX-downPt.x,e.clientY-downPt.y); downPt=null; if(d>14) return; handleTap(e.clientX,e.clientY); });
+function isShown(o){ while(o){ if(!o.visible) return false; o=o.parent; } return true; }
+function approach(np){
+  var dir=new V3(player.position.x-np.x,0,player.position.z-np.z); if(dir.length()<0.1) dir.set(-np.x,0,-np.z); dir.normalize();
+  return np.clone().add(dir.multiplyScalar(1.9));
+}
+function handleTap(x,y){
+  if(!state.started||state.dialog||state.modal||!player) return;
+  SFX.init();
+  ndc.set(x/window.innerWidth*2-1,-(y/window.innerHeight)*2+1); raycaster.setFromCamera(ndc,camera);
+  var hits=raycaster.intersectObjects(pickables,false).filter(function(h){ return h.object.userData.ground||(h.object.userData.tree?heartTree.visible:isShown(h.object.parent)); });
+  if(!hits.length) return;
+  var h=hits[0], ud=h.object.userData;
+  if(ud.cast){
+    var c=ud.cast;
+    if(c.chapter!==undefined){
+      if(c.chapter===state.chapter){ moveTo(approach(c.k.position),CHAPTERS[c.chapter]); SFX.tap(); return; }
+      if(c.chapter<state.chapter){ faceTo(c.k,player.position); toast(c.name,CHAPTERS[c.chapter].thanks); return; }
+      toast('narr','呢度嘅挑戰遲啲先開始。先去有黃色光柱嘅地方吖！'); return;
+    }
+    faceTo(c.k,player.position);
+    if(c.talk) toast(c.name,state.chapter>c.link?c.talk[1]:c.talk[0]);
+    SFX.tap(); return;
+  }
+  if(ud.tree){
+    if(!state.finished && state.chapter>=CHAPTERS.length){ moveTo(treeSpot(),'tree'); SFX.tap(); return; }
+    toast('narr', state.finished?'心靈之樹開滿咗花，好似你嘅心一樣，又強大又溫暖。':'心靈之樹：每收集一件法寶，就會開一朵花。而家已經開咗'+state.tools.length+'朵。'); return;
+  }
+  if(ud.ground){ moveTo(h.point.clone(),null); ring.position.set(h.point.x,0.05,h.point.z); ringT=0.6; SFX.tap(); }
+}
+function treeSpot(){ var dp=new V3(player.position.x,0,player.position.z); if(dp.length()<0.1) dp.set(0,0,1); return dp.normalize().multiplyScalar(4.2); }
+function clampPos(p){ var r=Math.hypot(p.x,p.z), max=ISLAND_R-2.5; if(r>max){ p.x*=max/r; p.z*=max/r; } var r2=Math.hypot(p.x,p.z); if(r2<3.2){ var k=3.2/Math.max(0.01,r2); p.x*=k; p.z*=k; } p.y=0; return p; }
+function moveTo(p,target){ state.target=clampPos(p); state.pending=target; }
+window.addEventListener('keydown',function(e){
+  state.keys[e.key.toLowerCase()]=true;
+  if(e.key==='Enter'&&state.dialog){ var n=$('#dNext'); if(n&&!n.disabled&&!n.classList.contains('hidden')){ e.preventDefault(); n.click(); } }
+});
+window.addEventListener('keyup',function(e){ state.keys[e.key.toLowerCase()]=false; });
+
+/* 行近挑戰點就自動開始 */
+function checkNearby(dt){
+  if(state.nearCool>0){ state.nearCool-=dt; return; }
+  if(!player||state.dialog||state.modal||state.finished) return;
+  var cur=currentTarget(), pp=player.position;
+  if(cur){ var np=cur.cast.k.position; if(Math.hypot(pp.x-np.x,pp.z-np.z)<2.6){ state.target=null; state.pending=null; startChapter(cur); } }
+  else if(Math.hypot(pp.x,pp.z)<5){ state.target=null; state.pending=null; startFinale(); }
+}
+
+/* =====================================================================
+   主迴圈
+   ===================================================================== */
+var camPos=new V3(0,20,40), camLook=new V3(0,2,0), clock=new THREE.Clock(), camDir=new V3(-0.3,0,-0.95).normalize(), camWant=new V3();
+function update(dt,t){
+  if(player&&state.started){
+    var a=player.userData.anim, K=state.keys, kx=0, kz=0;
+    if(!state.dialog&&!state.modal){ if(K['arrowleft']||K['a']) kx-=1; if(K['arrowright']||K['d']) kx+=1; if(K['arrowup']||K['w']) kz-=1; if(K['arrowdown']||K['s']) kz+=1; }
+    if(kx||kz){
+      state.target=null; state.pending=null;
+      var fx=-camDir.x, fz=-camDir.z, mx=-fz*kx+fx*(-kz), mz=fx*kx+fz*(-kz), len=Math.hypot(mx,mz)||1;
+      player.position.x+=mx/len*5.5*dt; player.position.z+=mz/len*5.5*dt; clampPos(player.position); a.ry=Math.atan2(mx,mz); a.walking=true;
+    }
+    else if(state.target){
+      var dx=state.target.x-player.position.x, dz=state.target.z-player.position.z, dist=Math.hypot(dx,dz);
+      if(dist>0.08){ var step=Math.min(dist,5.5*dt); player.position.x+=dx/dist*step; player.position.z+=dz/dist*step; a.ry=Math.atan2(dx,dz); a.walking=true; }
+      else { state.target=null; a.walking=false; if(state.pending){ var pd=state.pending; state.pending=null; if(pd==='tree') startFinale(); else startChapter(pd); } }
+    } else a.walking=false;
+    checkNearby(dt);
+    animKid(player,dt,t);
+    var su=shield.userData, w=state.eShow/100;
+    var bs=state.breath==='in'?1.35:1; su.scale+=(bs-su.scale)*Math.min(1,dt*(state.breath==='in'?1:0.9));
+    shield.scale.setScalar(su.scale*(1+Math.sin(t*2)*0.02));
+    shield.material.opacity=0.08+0.22*w+(su.flash>0?su.flash*0.5:0);
+    if(su.flash>0){ su.flash-=dt; shield.material.emissive.copy(su.flashCol); } else shield.material.emissive.copy(su.base);
+    shield.material.emissiveIntensity=0.2+0.5*w;
+    var ss=Math.max(0,Math.min(1,(52-state.eShow)/30));
+    storm.visible=ss>0.03; storm.position.set(player.position.x,4.7+Math.sin(t*1.5)*0.1,player.position.z); storm.scale.setScalar(0.35+ss*0.75);
+  }
+  // 心靈能量 → 天氣
+  var goal=state.started?state.energy:100;
+  state.eShow+=(goal-state.eShow)*Math.min(1,dt*1.5);
+  var w2=state.eShow/100;
+  skyCol.copy(SKY_LOW).lerp(SKY_HIGH,w2); scene.fog.color.copy(skyCol);
+  hemi.intensity=0.45+0.35*w2; sun.intensity=0.3+0.6*w2;
+  cloudMat.color.setRGB(0.55+0.45*w2,0.55+0.45*w2,0.6+0.4*w2);
+  rain.visible=state.eShow<38;
+  if(rain.visible){ var arr=rainGeo.attributes.position.array; for(var i=0;i<RAIN_N;i++){ arr[i*3+1]-=dt*16; if(arr[i*3+1]<0) arr[i*3+1]=18+Math.random()*4; } rainGeo.attributes.position.needsUpdate=true; }
+  CAST.forEach(function(c){ if(c.k.visible) animKid(c.k,dt,t); c.marker.position.y=(c.kid.adult?2.6:3.3)+Math.sin(t*3)*0.1; });
+  beacon.material.opacity=0.18+Math.sin(t*3)*0.07; beacon.rotation.y+=dt*0.5;
+  treeMarker.position.y=9.6+Math.sin(t*3)*0.15;
+  buds.forEach(function(b){ var tg=b.userData.target||0.6; b.scale.setScalar(b.scale.x+(tg-b.scale.x)*Math.min(1,dt*3)); });
+  canopyMat.emissiveIntensity=0.05+state.tools.length/8*0.35; treeHalo.material.opacity=state.finished?0.12+Math.sin(t*2)*0.04:0;
+  // 話語箭
+  for(var j=ARROWS.length-1;j>=0;j--){
+    var A=ARROWS[j]; A.t+=dt; if(A.t<0) continue; A.sp.visible=true;
+    var to=player?player.position.clone().add(new V3(0,1.3,0)):A.from, p=Math.min(1,A.t/A.dur);
+    if(A.mode==='hit'){
+      A.sp.position.copy(A.from).lerp(to,p); A.sp.position.y+=Math.sin(p*PI)*1.2;
+      if(p>=1){ shieldFlash(false); changeEnergy(-A.dmg); SFX.hit(); burst(A.sp.position.clone(),0x3d2b4f,10); scene.remove(A.sp); ARROWS.splice(j,1); }
+    } else {
+      if(p<0.6){ var q=p/0.6, stop=A.from.clone().lerp(to,0.82); A.sp.position.copy(A.from).lerp(stop,q); A.sp.position.y+=Math.sin(q*PI)*1.0; }
+      else if(!A.bounced){ A.bounced=true; shieldFlash(true); SFX.ding(); burst(A.sp.position.clone(),0xffd23f,14); A.back=A.from.clone().sub(A.sp.position).normalize(); }
+      else { A.sp.position.addScaledVector(A.back,dt*9); A.sp.position.y+=dt*4; A.sp.material.opacity=Math.max(0,1-(p-0.6)/0.4); }
+      if(p>=1){ scene.remove(A.sp); ARROWS.splice(j,1); }
+    }
+  }
+  // 思想雲
+  thoughts.forEach(function(th,i){ if(th.done||!player) return; th.a+=dt*0.5; th.sp.position.set(player.position.x+Math.sin(th.a)*2.2,3.4+Math.sin(t*2+i)*0.2+(i%2)*0.5,player.position.z+Math.cos(th.a)*1.2); });
+  // 控制圈
+  var cOn=circleRing.userData.on&&player; circleRing.material.opacity+=((cOn?0.9:0)-circleRing.material.opacity)*Math.min(1,dt*4);
+  if(player){ circleRing.position.x=player.position.x; circleRing.position.z=player.position.z; }
+  for(var o=orbs.length-1;o>=0;o--){ var ob=orbs[o]; ob.t+=dt;
+    if(ob.inside){ ob.m.position.y=Math.max(0.3,4-ob.t*5); }
+    else { ob.m.position.y=4+ob.t*3; ob.m.position.x+=Math.sin(ob.a)*dt*2; ob.m.material.opacity=Math.max(0,1-ob.t/2); if(ob.t>2){ scene.remove(ob.m); orbs.splice(o,1); } }
+  }
+  strengthOrbs.forEach(function(l){ if(!player) return; l.userData.a+=dt*0.8; l.position.set(player.position.x+Math.sin(l.userData.a)*2.2,2.6+Math.sin(t*2+l.userData.a)*0.2,player.position.z+Math.cos(l.userData.a)*2.2); });
+  for(var i2=FX.length-1;i2>=0;i2--){ var f=FX[i2]; f.life-=dt; f.v.y-=f.g*dt; f.v.multiplyScalar(f.drag); f.m.position.addScaledVector(f.v,dt); f.m.rotation.x+=dt*(f.spin?4:6); f.m.rotation.y+=dt*3; f.m.material.opacity=Math.min(1,f.life/f.max*2); if(f.life<=0){ scene.remove(f.m); f.m.material.dispose(); FX.splice(i2,1); } }
+  if(ringT>0){ ringT-=dt; var rs=1+(0.6-ringT)*1.8; ring.scale.set(rs,rs,rs); ring.material.opacity=Math.max(0,ringT/0.6); }
+  clouds.forEach(function(c){ c.position.x+=c.userData.v*dt; if(c.position.x>70) c.position.x=-70; });
+  // 鏡頭
+  var look,pos,port=camera.aspect<0.85;
+  if(player){ var pr=Math.hypot(player.position.x,player.position.z); if(pr>4.5){ var sg=(state.chapter>=CHAPTERS.length&&!state.finished)?1:-1; camWant.set(sg*player.position.x/pr,0,sg*player.position.z/pr); camDir.lerp(camWant,Math.min(1,dt*1.2)).normalize(); } }
+  if(!state.started){ var ang=t*0.06; look=new V3(0,2,0); pos=new V3(Math.sin(ang)*38,20,Math.cos(ang)*38); }
+  else if(state.focus&&state.finaleCam){ look=state.focus.clone(); pos=look.clone().addScaledVector(camDir,port?-15:-12); pos.y+=port?6:4.5; }
+  else if(state.focus){ look=state.focus.clone(); pos=look.clone().addScaledVector(state.focusDir||camDir,port?11.8:8.6); pos.y+=port?4.9:3.8; }
+  else if(state.finished){ var sz=player.position.z>0?1:-1; pos=new V3(0,14,30*sz); look=new V3(0,5,0); }
+  else if(state.chapter>=CHAPTERS.length){ look=player.position.clone().add(new V3(0,1,0)).lerp(new V3(0,4,0),0.4); pos=look.clone().addScaledVector(camDir,port?18:15); pos.y+=port?11:8; }
+  else { look=player.position.clone().add(new V3(0,1,0)); pos=look.clone().addScaledVector(camDir,port?16:12.5); pos.y+=port?15:11; }
+  var kk=1-Math.exp(-dt*(state.started?3.2:1.2)); camPos.lerp(pos,kk); camLook.lerp(look,kk);
+  camera.position.copy(camPos); camera.lookAt(camLook);
+  // 鏡頭經過心靈之樹上面嘅時候，將棵樹變透明，唔會遮住畫面
+  var cr=Math.hypot(camPos.x,camPos.z), want=(state.finaleCam||state.finished||!state.started)?1:Math.max(0,Math.min(1,(cr-4.5)/5));
+  if(Math.abs(want-treeFade)>0.005){ treeFade+=(want-treeFade)*Math.min(1,dt*5); treeMats.forEach(function(m){ m.opacity=treeFade; m.depthWrite=treeFade>0.95; }); heartTree.visible=treeFade>0.04; }
+}
+function loop(){ requestAnimationFrame(loop); var dt=Math.min(0.05,clock.getDelta()); update(dt,clock.elapsedTime); renderer.render(scene,camera); }
+function onResize(){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth,window.innerHeight); }
+window.addEventListener('resize',onResize);
+window.addEventListener('orientationchange',function(){ setTimeout(onResize,300); });
+document.addEventListener('visibilitychange',function(){ if(document.hidden) Speech.stop(); });
+
+renderStart(); Speech.init(); refreshWorld(); loop();
+})();
+</script>
+</body>
+</html>
