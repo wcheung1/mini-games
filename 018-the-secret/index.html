@@ -220,6 +220,10 @@ select.inp{appearance:auto}
 <div id="modal" onclick="if(event.target===this)closeModal()"><div class="box" id="modalBox"></div></div>
 <div id="toast"></div>
 
+<!-- 背景音樂 -->
+<audio id="bgm1" loop preload="auto"></audio>
+<audio id="bgm2" loop preload="auto"></audio>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* =========================================================
@@ -237,7 +241,7 @@ const V=$('#view');
 
 /* ---------- 儲存 ---------- */
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
-const DEF={levels:{},gratitude:[],happy:[],wishes:[],routine:null,talks:[],name:'',seenIntro:false,unlockAll:false,sound:true};
+const DEF={levels:{},gratitude:[],happy:[],wishes:[],routine:null,talks:[],name:'',seenIntro:false,unlockAll:false,sound:true,bgmEnabled:true,bgmVolume:0.3};
 let P=Object.assign({},DEF,LS.get('ss_progress',{}));
 function save(){LS.set('ss_progress',P)}
 function lvState(id){return P.levels[id]||(P.levels[id]={game:false,quiz:false,mission:false,done:false,reach:0})}
@@ -255,6 +259,14 @@ function seal(ch,size=64){
 /* ---------- 音效 ---------- */
 const SFX={ctx:null,t(fr,dur=.15,type='sine',gap=.09,vol=.13){if(!P.sound)return;try{this.ctx=this.ctx||new(window.AudioContext||window.webkitAudioContext)();const c=this.ctx;if(c.state==='suspended')c.resume();fr.forEach((f,i)=>{const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;const st=c.currentTime+i*gap;g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(vol,st+.02);g.gain.exponentialRampToValueAtTime(.001,st+dur);o.connect(g);g.connect(c.destination);o.start(st);o.stop(st+dur+.05)})}catch(e){}},
 ok(){this.t([660,880,1320])},soft(){this.t([392,330],.22,'triangle',.12,.09)},win(){this.t([523,659,784,1047,1319],.4,'sine',.1,.13)},magic(){this.t([880,1175,1568,2093,2637],.6,'sine',.08,.07)}};
+
+/* ---------- 背景音樂 ---------- */
+const BGM={a1:$('#bgm1'),a2:$('#bgm2'),current:0,init(){this.a1.src='audio/01.mp3';this.a2.src='audio/02.mp3';this.a1.volume=P.bgmVolume;this.a2.volume=P.bgmVolume;this.updateVolume();if(P.bgmEnabled){this.play()}this.a1.onended=()=>{this.current=1;this.a2.play()};this.a2.onended=()=>{this.current=0;this.a1.play()}},
+play(){if(P.bgmEnabled){try{if(this.current===0)this.a1.play();else this.a2.play()}catch(e){}}},
+pause(){try{this.a1.pause();this.a2.pause()}catch(e){}},
+setVolume(v){P.bgmVolume=Math.max(0,Math.min(1,v));this.a1.volume=P.bgmVolume;this.a2.volume=P.bgmVolume;save()},
+updateVolume(){this.a1.volume=P.bgmVolume;this.a2.volume=P.bgmVolume},
+toggle(enable){P.bgmEnabled=enable;save();if(enable){this.play()}else{this.pause()}}};
 
 /* ---------- 廣東話語音 (Web Speech API) ---------- */
 const EMOJI_RE=/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2190}-\u{21FF}\u{2460}-\u{24FF}\u{FE0F}\u{200D}\u{20E3}]/gu;
@@ -1087,6 +1099,10 @@ function renderParents(){
 function openSettings(){
   stopAll();const c=aiCfg();const vs=(TTS.voices||[]).filter(v=>/^(zh|yue)/i.test(v.lang));
   openModal(`<div class="parch"><div class="row" style="justify-content:space-between"><h2>⚙️ 設定</h2><button class="btn ghost small" onclick="closeModal()">✕ 關閉</button></div>
+  <h3>🎵 背景音樂</h3>
+  <label class="switch"><input type="checkbox" id="sBgm" ${P.bgmEnabled?'checked':''}> 開啟背景音樂</label>
+  <div class="field"><label>音量：<span id="bv">${(P.bgmVolume*100).toFixed(0)}%</span></label><input type="range" id="sBgmVol" min="0" max="100" step="5" value="${P.bgmVolume*100}" style="width:100%"></div>
+  <p class="note">背景音樂由 audio 資料夾入面嘅 01.mp3 及 02.mp3 組成，會自動循環播放。唔影響廣東話語音。</p>
   <h3>🔊 廣東話語音</h3>
   <div class="field"><label>聲音</label><select id="sVoice" class="inp">${vs.length?vs.map(v=>`<option value="${esc(v.name)}" ${TTS.voice&&v.name===TTS.voice.name?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join(''):'<option value="">（搵唔到中文聲音）</option>'}</select>
   <p class="note">揀「zh-HK」或者「yue」嘅聲音先係廣東話。iPad：設定 › 輔助使用 › 朗讀內容 › 聲音 › 中文 › 中文（香港）下載。</p></div>
@@ -1104,6 +1120,8 @@ function openSettings(){
   <h3 class="mt">👨‍👩‍👧 家長</h3>
   <label class="switch"><input type="checkbox" id="sUnlock" ${P.unlockAll?'checked':''}> 解鎖所有關卡</label>
   <div class="row"><button class="btn small ghost" onclick="go('parents')">📖 家長須知</button><button class="btn small ghost" onclick="resetAll()">♻️ 重設所有進度</button></div></div>`);
+  $('#sBgm').onchange=e=>{BGM.toggle(e.target.checked)};
+  $('#sBgmVol').oninput=e=>{BGM.setVolume(parseInt(e.target.value)/100);$('#bv').textContent=(P.bgmVolume*100).toFixed(0)+'%'};
   $('#sRate').oninput=e=>{TTS.rate=parseFloat(e.target.value);$('#rv').textContent=TTS.rate.toFixed(2);localStorage.setItem('ss_rate',TTS.rate)};
   $('#sAuto').onchange=e=>{TTS.auto=e.target.checked;localStorage.setItem('ss_auto',TTS.auto?'1':'0')};
   $('#sSnd').onchange=e=>{P.sound=e.target.checked;save()};
@@ -1120,7 +1138,7 @@ function resetAll(){if(!confirm('確定要清除所有學習進度、感恩罐�
 
 /* ---------- 啟動 ---------- */
 $('#brandSeal').innerHTML=seal('秘',34);
-TTS.init();initBG();go('splash');
+TTS.init();BGM.init();initBG();go('splash');
 </script>
 </body>
 </html>
