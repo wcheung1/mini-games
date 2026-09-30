@@ -1,30 +1,71 @@
 rules_version = '2';
 // 秘密探險隊 · 樹窿記錄嘅保安規則
-// 家長帳戶：可以讀取、刪除自己屋企嘅記錄，管理已配對裝置。
-// 小朋友部機（匿名登入 + 已配對）：只可以新增記錄，唔可以讀、改或者刪除。
+// 家長（Google 或電郵登入）：讀取、刪除自己屋企嘅記錄；產生配對碼；管理裝置同家長成員。
+// 小朋友部機（匿名登入 + 用配對碼配對）：只可以新增記錄，唔可以讀、改或者刪除。
 // 其他人：乜都做唔到。
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+    function notAnon() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+    // 屋企擁有者，或者用邀請碼加入咗嘅另一位家長
     function isParent(fid) {
-      return request.auth != null && request.auth.uid == fid;
+      return notAnon() && (request.auth.uid == fid
+        || exists(/databases/$(database)/documents/families/$(fid)/members/$(request.auth.uid)));
     }
     function isPairedDevice(fid) {
-      return request.auth != null
+      return signedIn()
         && exists(/databases/$(database)/documents/families/$(fid)/devices/$(request.auth.uid));
     }
-
-    match /families/{fid}/devices/{did} {
-      allow read, write: if isParent(fid);
-      // 小朋友部機只可以檢查自己有冇配對
-      allow get: if request.auth != null && request.auth.uid == did;
+    // 檢查配對碼 / 邀請碼：屬於呢個屋企、用途啱、未過期
+    function codeOk(fid, role) {
+      let c = get(/databases/$(database)/documents/pairCodes/$(request.resource.data.code)).data;
+      return c.fid == fid && c.role == role && c.exp > request.time;
     }
 
+    // 配對碼：家長產生，15 分鐘內有效；知道個碼先讀得到（唔可以列出全部）
+    match /pairCodes/{code} {
+      allow get: if signedIn();
+      allow create: if isParent(request.resource.data.fid)
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.role in ['device', 'parent']
+        && request.resource.data.exp is timestamp
+        && request.resource.data.exp < request.time + duration.value(1, 'h')
+        && request.resource.data.keys().hasOnly(['fid', 'role', 'name', 'by', 'exp']);
+      allow delete: if signedIn() && resource.data.by == request.auth.uid;
+    }
+
+    // 小朋友部機
+    match /families/{fid}/devices/{did} {
+      allow read, update, delete: if isParent(fid);
+      allow get: if signedIn() && request.auth.uid == did;
+      allow create: if isParent(fid)
+        || (signedIn() && request.auth.uid == did
+            && request.resource.data.keys().hasOnly(['name', 'code', 'at'])
+            && codeOk(fid, 'device'));
+    }
+
+    // 另一位家長
+    match /families/{fid}/members/{mid} {
+      allow read: if isParent(fid);
+      allow get: if signedIn() && request.auth.uid == mid;
+      allow delete: if notAnon() && (request.auth.uid == fid || request.auth.uid == mid);
+      allow create: if notAnon() && request.auth.uid == mid && mid != fid
+        && request.resource.data.keys().hasOnly(['name', 'code', 'at'])
+        && codeOk(fid, 'parent');
+    }
+
+    // 樹窿記錄
     match /families/{fid}/logs/{lid} {
       allow read, delete: if isParent(fid);
       allow create: if isPairedDevice(fid)
         && request.resource.data.device == request.auth.uid
         && request.resource.data.id == lid
-        && request.resource.data.keys().hasOnly(['id','t','type','src','emo','text','reply','safety','shared','mode','ai','child','grp','device','at'])
+        && request.resource.data.keys().hasOnly(['id', 't', 'type', 'src', 'emo', 'text', 'reply', 'safety', 'shared', 'mode', 'ai', 'child', 'grp', 'device', 'at'])
         && request.resource.data.type in ['tree', 'mood']
         && request.resource.data.t is int
         && request.resource.data.text is string

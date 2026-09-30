@@ -214,6 +214,17 @@ select.inp{appearance:auto}
 .guidebox{margin-top:10px;background:#eef6ff;color:#1d2f4a;border-left:6px solid #3a7bd5;border-radius:12px;padding:8px 14px;white-space:pre-wrap;line-height:1.7;font-size:16px}
 .mode{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:2px solid #b8862b55;border-radius:14px;margin:8px 0;background:#fffaf0;cursor:pointer}
 .mode.on{border-color:#9e1b1b;background:#fff3dc}.mode input{width:22px;height:22px;margin-top:4px;flex:none}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:15px;line-height:1.5}
+.sample{background:#1b0f07;color:#ffe29a;padding:12px 14px;border-radius:12px;overflow:auto;white-space:pre;margin:6px 0}
+.cfgcheck{margin-top:8px;background:#fffaf0;border:1px solid #b8862b66;border-radius:12px;padding:8px 12px;font-size:15px}
+.cfgcheck code,.note code{background:#5a2e0e14;padding:1px 6px;border-radius:6px;word-break:break-all}
+.cfgcheck .ok{color:#2e7d32;font-weight:700;margin-top:4px}.cfgcheck .bad{color:#b0204f;font-weight:700;margin-top:4px}
+.codebig{font:900 clamp(34px,9vw,52px)/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.12em;text-align:center;background:#fff;border:3px dashed #9e1b1b;border-radius:16px;padding:12px 6px;margin:10px 0 4px;color:#9e1b1b}
+.codein{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;text-transform:uppercase;letter-spacing:.15em;max-width:260px}
+.gbtn{background:#fff;color:#3c4043;border:1px solid #dadce0;box-shadow:0 2px 6px #0003}.gbtn .g{font:900 22px/1 Arial,sans-serif;color:#4285f4}
+.rolebar button{flex:1;min-width:150px}
+.parch .tabs button:not(.on){background:#5a2e0e12;color:#5a2e0e;border-color:#b8862b99}
+details summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
 .foot{text-align:center;font-size:13px;opacity:.6;margin-top:30px}
 
 /* ---------- 背景音樂 ---------- */
@@ -780,7 +791,7 @@ function fallbackBG(cv){const g=cv.getContext('2d');const draw=()=>{cv.width=inn
 function go(view,arg){
   // BGM deliberately continues across in-app pages.
   BGM.stop();stopAll();runCleanup();closeModal();
-  if(view!=='parent'){PZ.unlocked=false;PZ.cloud=null;PZ.guides={}}
+  if(view!=='parent'){PZ.unlocked=false;PZ.cloud=null;PZ.guides={};PZ.tab='sum';PZ.filter='all';PZ.src='local';codeShown=null}
   $('#top').style.display=view==='splash'?'none':'flex';
   ({splash:renderSplash,intro:renderIntro,map:renderMap,level:renderLevel,calm:renderCalm,tree:renderTree,box:renderBox,cert:renderCert,parents:renderParents,parent:renderParentZone})[view](arg);
   window.scrollTo(0,0);updateGems();
@@ -1371,11 +1382,25 @@ function shareTree(id,yes){const f=treePending[id],box=$('#sh_'+id);if(!f||!box)
   else{m=`🤫 冇問題，呢段說話唔會留低。記住，你隨時都可以親口同${g}講。`;SFX.ok()}
   box.innerHTML=para(m);TTS.speak(m);treeCards=$('#tOut')?$('#tOut').innerHTML:treeCards}
 
-/* ---------- Firebase（可選） ---------- */
+/* ---------- Firebase（可選） ----------
+   想每部機都唔使貼設定？可以將 Firebase 俾你嗰段設定直接寫喺下面，例如：
+   const FIREBASE_CONFIG_BUILTIN = {
+     apiKey: "AIza……",
+     authDomain: "secret-kids.firebaseapp.com",
+     projectId: "secret-kids",
+     storageBucket: "secret-kids.firebasestorage.app",
+     messagingSenderId: "123456789012",
+     appId: "1:123456789012:web:……"
+   };
+   （呢啲設定唔係密碼，放喺網頁入面係正常做法；真正保護資料嘅係 firestore.rules。） */
+const FIREBASE_CONFIG_BUILTIN = null;
+const FBKEYS=['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId','measurementId','databaseURL'];
 const FB={v:'12.19.0',m:null,inst:{},
- cfg(){return LS.get('ss_fb_cfg',null)},
+ cfg(){return LS.get('ss_fb_cfg',null)||FIREBASE_CONFIG_BUILTIN||null},
+ builtin(){return !LS.get('ss_fb_cfg',null)&&!!FIREBASE_CONFIG_BUILTIN},
  fam(){return localStorage.getItem('ss_fb_family')||''},
  on(){return !!(this.cfg()&&this.fam())},
+ role(){const r=localStorage.getItem('ss_fb_role');return r==='child'||r==='parent'?r:(this.fam()?'child':'parent')},
  async load(){if(this.m)return this.m;const b='https://www.gstatic.com/firebasejs/'+this.v+'/';
    const [app,auth,fs]=await Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]);this.m={app,auth,fs};return this.m},
  async get(name){
@@ -1394,25 +1419,50 @@ const FB={v:'12.19.0',m:null,inst:{},
    try{const uid=await this.childUid();const f=this.m.fs;const data=Object.assign({},rec,{device:uid,at:f.serverTimestamp()});
      await f.setDoc(f.doc(this.inst.child.db,'families',this.fam(),'logs',rec.id),data);LOGS.mark(rec.id,{cloud:1})}
    catch(e){LOGS.mark(rec.id,{cloud:-1});console.warn('雲端上載失敗',e&&e.code||e)}},
- async parentUser(){const {auth}=await this.get('parent');return auth.currentUser},
- async login(email,pw){const {auth}=await this.get('parent');await this.m.auth.signInWithEmailAndPassword(auth,email,pw);return auth.currentUser},
+ /* ---- 家長 ---- */
+ async parentUser(){const {auth}=await this.get('parent');const u=auth.currentUser;return u&&!u.isAnonymous?u:null},
+ pfam(u){const m=LS.get('ss_fb_pfam',{});return u?(m[u.uid]||u.uid):''},
+ /* 一定要喺撳掣嗰下即刻叫（中間唔可以 await），否則 Safari 會當係冇撳過掣，擋咗登入視窗 */
+ loginGoogle(){const i=this.inst.parent;if(!i)return Promise.reject(new Error('Firebase 仲準備緊，請等一兩秒再撳'));
+   const A=this.m.auth,p=new A.GoogleAuthProvider();p.setCustomParameters({prompt:'select_account'});return A.signInWithPopup(i.auth,p).then(r=>r.user)},
+ async loginEmail(email,pw){const {auth}=await this.get('parent');await this.m.auth.signInWithEmailAndPassword(auth,email,pw);return auth.currentUser},
  async logout(){if(!this.cfg())return;try{const {auth}=await this.get('parent');await this.m.auth.signOut(auth)}catch(e){}},
- async pair(name){const u=await this.parentUser();if(!u)throw new Error('請先登入家長帳戶');const cu=await this.childUid();const f=this.m.fs;
-   await f.setDoc(f.doc(this.inst.parent.db,'families',u.uid,'devices',cu),{name:name||'小朋友部機',at:f.serverTimestamp()});localStorage.setItem('ss_fb_family',u.uid);return cu},
+ newCode(){const A='23456789ABCDEFGHJKMNPQRSTUVWXYZ';const r=crypto.getRandomValues(new Uint32Array(8));let c='';for(const x of r)c+=A[x%A.length];return c},
+ async makeCode(role,name){const u=await this.parentUser();if(!u)throw new Error('請先登入家長帳戶');const f=this.m.fs;const code=this.newCode(),exp=Date.now()+15*60000;
+   await f.setDoc(f.doc(this.inst.parent.db,'pairCodes',code),{fid:this.pfam(u),role,name:name||'',by:u.uid,exp:f.Timestamp.fromMillis(exp)});return{code,exp}},
+ async readCode(db,code){const f=this.m.fs;let s;try{s=await f.getDoc(f.doc(db,'pairCodes',code))}catch(e){throw new Error('讀唔到呢個碼（'+fbErr(e)+'）')}
+   if(!s.exists())throw new Error('搵唔到呢個碼，請檢查有冇打錯');const d=s.data();if(d.exp.toMillis()<Date.now())throw new Error('呢個碼已經過咗 15 分鐘，請產生一個新嘅');return d},
+ async pairWithCode(raw){const code=cleanCode(raw);if(code.length!==8)throw new Error('配對碼係 8 個字，例如 ABCD-2345');
+   const uid=await this.childUid();const f=this.m.fs,db=this.inst.child.db;const d=await this.readCode(db,code);
+   if(d.role!=='device')throw new Error('呢個係「家長邀請碼」，唔係小朋友配對碼');
+   const ref=f.doc(db,'families',d.fid,'devices',uid);let ex=false;try{ex=(await f.getDoc(ref)).exists()}catch(e){}
+   if(!ex)await f.setDoc(ref,{name:d.name||'小朋友嘅 iPad',code,at:f.serverTimestamp()});localStorage.setItem('ss_fb_family',d.fid);return d.name},
+ async joinFamily(raw){const u=await this.parentUser();if(!u)throw new Error('請先登入');const code=cleanCode(raw);if(code.length!==8)throw new Error('邀請碼係 8 個字');
+   const f=this.m.fs,db=this.inst.parent.db;const d=await this.readCode(db,code);
+   if(d.role!=='parent')throw new Error('呢個係小朋友配對碼，要喺小朋友部 iPad 輸入');if(d.fid===u.uid)throw new Error('呢個係你自己產生嘅邀請碼，要俾另一位家長用');
+   const ref=f.doc(db,'families',d.fid,'members',u.uid);let ex=false;try{ex=(await f.getDoc(ref)).exists()}catch(e){}
+   if(!ex)await f.setDoc(ref,{name:u.displayName||u.email||'家長',code,at:f.serverTimestamp()});const m=LS.get('ss_fb_pfam',{});m[u.uid]=d.fid;LS.set('ss_fb_pfam',m)},
+ leaveFamily(u){const m=LS.get('ss_fb_pfam',{});delete m[u.uid];LS.set('ss_fb_pfam',m)},
  async pairStatus(){if(!this.on())return 'off';
    try{const cu=await this.childUid();const f=this.m.fs;const s=await f.getDoc(f.doc(this.inst.child.db,'families',this.fam(),'devices',cu));return s.exists()?'ok':'no'}
    catch(e){return 'err:'+(e.code||e.message)}},
  async fetch(){const u=await this.parentUser();if(!u)throw new Error('未登入家長帳戶');const f=this.m.fs;
-   const q=f.query(f.collection(this.inst.parent.db,'families',u.uid,'logs'),f.orderBy('t','desc'),f.limit(1000));
+   const q=f.query(f.collection(this.inst.parent.db,'families',this.pfam(u),'logs'),f.orderBy('t','desc'),f.limit(1000));
    const s=await f.getDocs(q);return s.docs.map(d=>{const x=d.data();delete x.at;return x})},
- async devices(){const u=await this.parentUser();const f=this.m.fs;const s=await f.getDocs(f.collection(this.inst.parent.db,'families',u.uid,'devices'));return s.docs.map(d=>Object.assign({id:d.id},d.data()))},
- async delDevice(id){const u=await this.parentUser();const f=this.m.fs;await f.deleteDoc(f.doc(this.inst.parent.db,'families',u.uid,'devices',id))},
- async delLog(id){const u=await this.parentUser();if(!u)throw new Error('未登入家長帳戶');const f=this.m.fs;await f.deleteDoc(f.doc(this.inst.parent.db,'families',u.uid,'logs',id))}
+ async list(sub){const u=await this.parentUser();const f=this.m.fs;const s=await f.getDocs(f.collection(this.inst.parent.db,'families',this.pfam(u),sub));return s.docs.map(d=>Object.assign({id:d.id},d.data()))},
+ async delSub(sub,id){const u=await this.parentUser();if(!u)throw new Error('未登入家長帳戶');const f=this.m.fs;await f.deleteDoc(f.doc(this.inst.parent.db,'families',this.pfam(u),sub,id))},
+ delLog(id){return this.delSub('logs',id)}
 };
-function fbErr(e){const c=(e&&e.code)||'';const map={'auth/invalid-credential':'電郵或者密碼唔啱','auth/wrong-password':'密碼唔啱','auth/user-not-found':'搵唔到呢個帳戶','auth/invalid-email':'電郵格式唔啱','auth/too-many-requests':'試太多次，請遲啲再試','auth/network-request-failed':'網絡問題，連唔到 Firebase','auth/operation-not-allowed':'Firebase 未開啟呢種登入方式（請檢查 Authentication）','auth/admin-restricted-operation':'Firebase 未開啟匿名登入（請喺 Authentication 開啟 Anonymous）','permission-denied':'冇權限（請檢查 Firestore 規則同配對）','unavailable':'暫時連唔到 Firebase'};
+function cleanCode(s){return String(s||'').toUpperCase().replace(/[^0-9A-Z]/g,'')}
+function fmtCode(c){return c.slice(0,4)+'-'+c.slice(4)}
+function fbErr(e){const c=(e&&e.code)||'';const map={'auth/invalid-credential':'電郵或者密碼唔啱','auth/wrong-password':'密碼唔啱','auth/user-not-found':'搵唔到呢個帳戶','auth/invalid-email':'電郵格式唔啱','auth/too-many-requests':'試太多次，請遲啲再試','auth/network-request-failed':'網絡問題，連唔到 Firebase','auth/operation-not-allowed':'Firebase 未開啟呢種登入方式（Authentication › Sign-in method）','auth/admin-restricted-operation':'Firebase 未開啟匿名登入（Authentication › Sign-in method › Anonymous）','auth/popup-blocked':'瀏覽器擋咗登入視窗，請容許彈出視窗之後再撳一次','auth/popup-closed-by-user':'登入視窗閂咗，請再試一次','auth/cancelled-popup-request':'登入視窗閂咗，請再試一次','auth/unauthorized-domain':'呢個網址未加入 Firebase 授權網域（Authentication › Settings › Authorized domains）','auth/operation-not-supported-in-this-environment':'呢度唔支援彈出式登入，請用 Safari／Chrome 開 https 網址','auth/account-exists-with-different-credential':'呢個電郵之前用咗另一種方式登入','permission-denied':'冇權限（請檢查 Firestore 規則有冇發佈、碼有冇過期）','unavailable':'暫時連唔到 Firebase'};
   if(/api-key-not-valid/.test(c))return 'apiKey 唔啱，請重新貼上 firebaseConfig';return map[c]||((e&&e.message)||String(e))}
-function parseFbCfg(t){t=String(t||'');try{const j=JSON.parse(t);if(j&&j.apiKey&&j.projectId)return j}catch(e){}
-  const o={};t.replace(/(\w+)\s*:\s*["'`]([^"'`]+)["'`]/g,(_,k,v)=>{o[k]=v});return o.apiKey&&o.projectId?o:null}
+function parseFbCfg(t){t=String(t||'').replace(/[“”„″]/g,'"').replace(/[‘’′]/g,"'");
+  let body=t;const i=t.indexOf('firebaseConfig');if(i>=0){const a=t.indexOf('{',i),b=t.indexOf('}',a);if(a>=0&&b>a)body=t.slice(a,b+1)}
+  const pick=o=>{const r={};FBKEYS.forEach(k=>{if(o[k])r[k]=String(o[k]).trim()});return r.apiKey&&r.projectId?r:null};
+  try{const j=JSON.parse(body);if(j&&typeof j==='object')return pick(j)}catch(e){}
+  const o={};body.replace(/["']?(\w+)["']?\s*:\s*["'`]([^"'`]+)["'`]/g,(_,k,v)=>{o[k]=v});return pick(o)}
+function cfgText(c){return 'const firebaseConfig = {\n'+FBKEYS.filter(k=>c[k]).map(k=>`  ${k}: "${c[k]}"`).join(',\n')+'\n};'}
 /* 已配對嘅小朋友部機：開 App 時靜靜哋準備好雲端連線 */
 setTimeout(()=>{if(FB.on())FB.childUid().catch(()=>{})},2500);
 
@@ -1429,13 +1479,13 @@ function renderParentZone(){if(PZ.unlocked)return pzDraw();
   <p class="note" id="pinMsg"></p><button class="btn ghost small mt" onclick="go('map')">← 返回</button></div>`;
   const msg=t=>{$('#pinMsg').textContent=t};
   if(has){const tryIt=()=>{if(Date.now()<PZ.lockUntil){msg('試錯太多次，請等一陣再試。');return}
-      if(pinHash($('#pin1').value)===localStorage.getItem('ss_pin')){PZ.unlocked=true;PZ.fails=0;stopAll();pzDraw()}
+      if(pinHash($('#pin1').value)===localStorage.getItem('ss_pin')){PZ.unlocked=true;PZ.fails=0;stopAll();pzDraw();pzAuto()}
       else{PZ.fails++;$('#pin1').value='';if(PZ.fails>=5){PZ.lockUntil=Date.now()+60000;PZ.fails=0;msg('試錯太多次，請一分鐘後再試。')}else msg('PIN 唔啱。')}};
     $('#pinGo').onclick=tryIt;$('#pin1').onkeydown=e=>{if(e.key==='Enter')tryIt()};
     $('#pinForgot').onclick=async()=>{if(!confirm('重設 PIN 會同時刪除呢部機上面所有樹窿記錄，並登出雲端家長帳戶。雲端上面嘅記錄唔受影響。確定？'))return;
       localStorage.removeItem('ss_pin');LOGS.clear();await FB.logout();renderParentZone()}}
   else $('#pinSet').onclick=()=>{const a=$('#pin1').value,b=$('#pin2').value;if(!/^\d{4,8}$/.test(a)){msg('PIN 要係 4 至 8 個數字。');return}if(a!==b){msg('兩次輸入唔一樣。');return}
-    localStorage.setItem('ss_pin',pinHash(a));PZ.unlocked=true;toast('✅ 已設定家長 PIN');pzDraw()};
+    localStorage.setItem('ss_pin',pinHash(a));PZ.unlocked=true;toast('✅ 已設定家長 PIN');pzDraw();pzAuto()};
   setTimeout(()=>{const i=$('#pin1');if(i)i.focus()},100)}
 
 function pzDraw(){if(!PZ.unlocked)return renderParentZone();
@@ -1537,33 +1587,75 @@ function pzExport(fmt){let list=pzView(pzData());if(PZ.range!=='all'){const d=Da
   toast('📤 已匯出 '+list.length+' 項記錄')}
 
 /* ---------- 雲端同步設定 ---------- */
-async function pzCloud(){const c=FB.cfg(),B=$('#pzBody');
-  B.innerHTML=`<div class="parch"><h3>☁️ 雲端同步（Firebase，可選）</h3><p class="note">用途：小朋友喺 iPad 用樹窿，你喺自己部手機或者電腦都睇到記錄。唔設定都得，你可以喺小朋友部機嘅家長專區直接睇同匯出。設定步驟見 README。請用 GitHub Pages 網址（https）開啟，唔好直接撳開 .html 檔。</p>
-  <h3>① Firebase 設定</h3><textarea id="fbCfg" class="inp" rows="6" placeholder="將 Firebase Console 俾你嘅 const firebaseConfig = { ... }; 成段貼喺度">${c?esc(JSON.stringify(c,null,2)):''}</textarea>
-  <div class="row mt"><button class="btn small red" onclick="pzSaveCfg()">💾 儲存設定</button>${c?'<button class="btn small ghost" onclick="pzClearCfg()">🗑️ 清除</button>':''}</div>${c?`<p class="note">✅ 已設定專案：${esc(c.projectId)}</p>`:''}</div>
-  <div class="parch" id="fbAcct">${c?'<p>⏳ 讀取緊帳戶狀態……</p>':'<p class="note">先完成 ① 先。</p>'}</div>`;
-  if(!c)return;let u=null;
-  try{u=await FB.parentUser()}catch(e){const el=$('#fbAcct');if(el)el.innerHTML=`<p>❌ 載入唔到 Firebase：${esc(fbErr(e))}</p>`;return}
-  const st=await FB.pairStatus();const el=$('#fbAcct');if(!el||PZ.tab!=='cloud')return;
-  const fails=LOGS.all().filter(x=>x.cloud===-1).length;
-  el.innerHTML=`<h3>② 家長帳戶</h3>${u?`<p>✅ 已登入：${esc(u.email||u.uid)}</p><div class="row"><button class="btn small red" onclick="pzFetch().then(()=>{PZ.tab='logs';pzDraw()})">🔄 載入雲端記錄</button><button class="btn small ghost" onclick="pzLogout()">登出</button></div>`
-   :`<input id="fbEmail" class="inp" type="email" placeholder="家長電郵" autocomplete="username"><div style="height:8px"></div><input id="fbPw" class="inp" type="password" placeholder="密碼" autocomplete="current-password"><div class="row mt"><button class="btn small red" onclick="pzLogin()">🔑 登入</button></div>`}
-  <h3 class="mt">③ 呢部機</h3><p>${st==='ok'?'✅ 呢部機已經配對，小朋友嘅記錄會自動上載。':st==='no'?'⚠️ 呢部機之前配對過，但家長已經喺雲端移除咗。':st==='off'?'呢部機未配對（唔會上載記錄）。':'⚠️ 檢查唔到配對狀態：'+esc(st)}</p>
-  ${FB.fam()?`<p class="note">上載失敗嘅記錄：${fails} 項（仍然保存喺呢部機，可以用「匯出」備份）</p>`:''}
-  ${u?`<p class="note">如果呢部係小朋友用嘅 iPad，就撳下面配對。如果係你自己部手機或者電腦，唔使配對。</p><input id="devName" class="inp" maxlength="30" value="小朋友嘅 iPad"><label class="switch"><input type="checkbox" id="autoOut" checked> 配對完自動登出家長帳戶（喺小朋友部機建議剔）</label>
-   <div class="row"><button class="btn small red" onclick="pzPair()">🔗 將呢部機設為小朋友部機</button>${FB.fam()?'<button class="btn small ghost" onclick="pzUnpairThis()">解除呢部機</button>':''}</div>
-   <h3 class="mt">④ 已配對嘅裝置</h3><div id="devList">⏳</div>`:(FB.fam()?'<div class="row"><button class="btn small ghost" onclick="pzUnpairThis()">解除呢部機</button></div>':'<p class="note">登入家長帳戶之後，先可以配對。</p>')}`;
-  if(u){try{const ds=await FB.devices();const dl2=$('#devList');if(dl2)dl2.innerHTML=ds.length?ds.map(d=>`<div class="row" style="justify-content:space-between"><span>📱 ${esc(d.name||d.id)}</span><button class="x" onclick="pzDelDevice('${esc(d.id)}')" aria-label="移除">✕</button></div>`).join(''):'<p class="note">未有。</p>'}catch(e){const dl2=$('#devList');if(dl2)dl2.textContent='❌ '+fbErr(e)}}}
-async function pzSaveCfg(){const c=parseFbCfg($('#fbCfg').value);if(!c){toast('讀唔到設定。請貼上包含 apiKey 同 projectId 嘅 firebaseConfig。',5000);return}
+const FB_SAMPLE=`const firebaseConfig = {
+  apiKey: "AIzaSyA1b2C3d4E5f6G7h8I9j0KlMnOpQrStUvW",
+  authDomain: "secret-kids.firebaseapp.com",
+  projectId: "secret-kids",
+  storageBucket: "secret-kids.firebasestorage.app",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:a1b2c3d4e5f6a7b8c9d0e1"
+};`;
+function cfgCheckHTML(t){if(!String(t||'').trim())return '';const c=parseFbCfg(t)||{};const need=['apiKey','authDomain','projectId','appId'];const ok=need.every(k=>c[k]);
+  return `<div class="cfgcheck">${need.map(k=>`<div>${c[k]?'✅':'❌'} <code>${k}</code> ${c[k]?esc(k==='apiKey'?c[k].slice(0,8)+'……':c[k]):'搵唔到'}</div>`).join('')}
+  <div class="${ok?'ok':'bad'}">${ok?'👍 格式啱晒，可以撳「儲存設定」':'請將 Firebase 俾你嗰段，由 const firebaseConfig = { 開始，到 }; 為止，成段貼入嚟'}</div></div>`}
+function standalone(){return !!(navigator.standalone||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches))}
+let codeShown=null;
+function codeBoxHTML(role){if(!codeShown||codeShown.role!==role||codeShown.exp<Date.now())return '';const t=new Date(codeShown.exp).toLocaleTimeString('zh-HK',{hour:'2-digit',minute:'2-digit',hour12:false});
+  return `<div class="codebig">${fmtCode(codeShown.code)}</div><p class="note center">${t} 之前有效（15 分鐘）。${role==='device'?'喺小朋友部 iPad 輸入。':'俾另一位家長喺佢部機輸入。'}</p>`}
+async function pzCloud(){const c=FB.cfg(),B=$('#pzBody'),role=FB.role();
+  B.innerHTML=`<div class="parch"><h3>☁️ 雲端同步（Firebase）</h3><p class="note">小朋友喺 iPad 用樹窿，家長喺自己嘅電腦或者手機（Android／iPhone）睇記錄同匯出。請用 GitHub Pages 網址（https）開啟，唔好直接撳開 .html 檔。詳細步驟見 README。</p>
+  <h3>① Firebase 設定</h3>${FB.builtin()?`<p>✅ 已經內置喺 index.html（專案：${esc(c.projectId)}），唔使再貼。</p>`:`
+  <p class="note">喺 Firebase 複製嗰段 <code>const firebaseConfig = { … };</code>，成段貼入下面。縮排、空格、換行都唔緊要，App 會自動讀。</p>
+  <textarea id="fbCfg" class="inp mono" rows="9" spellcheck="false" autocapitalize="off" autocorrect="off" autocomplete="off" placeholder="喺度貼上 const firebaseConfig = { … };">${c?esc(cfgText(c)):''}</textarea>
+  <div id="cfgChk">${c?cfgCheckHTML(cfgText(c)):''}</div>
+  <div class="row mt"><button class="btn small red" onclick="pzSaveCfg()">💾 儲存設定</button><button class="btn small ghost" onclick="pzSample()">📄 睇範例</button>${c?'<button class="btn small ghost" onclick="pzClearCfg()">🗑️ 清除</button>':''}</div><div id="cfgSample"></div>`}</div>
+  ${c?`<div class="parch"><h3>② 呢部機係邊個用？</h3><div class="tabs rolebar">${[['parent','👨‍👩‍👧 家長（電腦／手機）'],['child','🧒 小朋友（iPad）']].map(r=>`<button class="${role===r[0]?'on':''}" onclick="localStorage.setItem('ss_fb_role','${r[0]}');pzDraw()">${r[1]}</button>`).join('')}</div><div id="fbRole"><p>⏳ 讀取緊……</p></div></div>`:''}`;
+  const ta=$('#fbCfg');if(ta)ta.oninput=()=>{$('#cfgChk').innerHTML=cfgCheckHTML(ta.value)};
+  if(!c)return;
+  const box=()=>{const el=$('#fbRole');return el&&PZ.unlocked&&PZ.tab==='cloud'?el:null};
+  if(role==='child'){const st=await FB.pairStatus();const el=box();if(!el)return;const fails=LOGS.all().filter(x=>x.cloud===-1).length;
+    el.innerHTML=`<p>${st==='ok'?'✅ 呢部機已經配對，小朋友嘅樹窿記錄會自動上載俾家長。':st==='no'?'⚠️ 家長已經喺雲端移除咗呢部機，請重新配對。':st==='off'?'呢部機未配對，記錄只會留喺呢部機。':'⚠️ 檢查唔到配對狀態：'+esc(st)}</p>
+    ${FB.fam()?`<p class="note">上載失敗嘅記錄：${fails} 項（仍然保存喺呢部機）</p>`:''}
+    <p class="note">喺家長部電腦／手機：家長專區 › ☁️ 雲端同步 › 「產生配對碼」，然後喺度輸入。呢部 iPad 唔使登入任何帳戶。</p>
+    <div class="row"><input id="pairCode" class="inp codein" maxlength="9" placeholder="XXXX-XXXX" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false"><button class="btn small red" onclick="pzPairCode()">🔗 配對</button></div>
+    ${FB.fam()?'<div class="row mt"><button class="btn small ghost" onclick="pzUnpairThis()">解除呢部機</button></div>':''}
+    <p class="note">💡 如果小朋友係用「加入主畫面」嘅 icon 開 App，請喺嗰個 icon 入面做配對，因為佢同 Safari 嘅資料係分開儲存嘅。</p>`;return}
+  let u=null;try{u=await FB.parentUser()}catch(e){const el=box();if(el)el.innerHTML=`<p>❌ 載入唔到 Firebase：${esc(fbErr(e))}</p>`;return}
+  const el=box();if(!el)return;
+  if(!u){el.innerHTML=`<p>用家長嘅 Google 帳戶登入，就可以睇小朋友嘅記錄。</p><button class="btn gbtn" id="gLogin"><span class="g">G</span> 用 Google 登入</button>
+    ${standalone()?'<p class="note">⚠️ 你而家用緊「主畫面」App 模式，Google 登入視窗未必彈得出。如果唔得，請用 Safari／Chrome 直接開網址登入，或者用下面嘅電郵登入。</p>':''}
+    <details class="mt"><summary>用電郵同密碼登入（後備）</summary><div style="height:8px"></div><input id="fbEmail" class="inp" type="email" placeholder="家長電郵" autocomplete="username"><div style="height:8px"></div><input id="fbPw" class="inp" type="password" placeholder="密碼" autocomplete="current-password"><div class="row mt"><button class="btn small" onclick="pzLogin()">🔑 登入</button></div></details>`;
+    $('#gLogin').onclick=pzGoogle;return}
+  const owner=FB.pfam(u)===u.uid;
+  el.innerHTML=`<p>✅ 已登入：<b>${esc(u.displayName||u.email||u.uid)}</b>${u.email&&u.displayName?`<br><span class="note">${esc(u.email)}</span>`:''}</p><p class="note">${owner?'你係呢個屋企帳戶嘅擁有者。':'你已經加入咗另一位家長嘅屋企帳戶。'}</p>
+  <div class="row"><button class="btn small red" onclick="pzFetch().then(()=>{PZ.tab='logs';pzDraw()})">🔄 載入雲端記錄</button><button class="btn small ghost" onclick="pzLogout()">登出</button></div>
+  <h3 class="mt">🔗 配對小朋友部 iPad</h3><p class="note">撳「產生配對碼」，然後喺 iPad：⚙️ › 家長專區 › ☁️ 雲端同步 › 揀「🧒 小朋友」› 輸入個碼。</p>
+  <div class="row"><input id="devName" class="inp" maxlength="30" value="小朋友嘅 iPad" aria-label="部機名稱"><button class="btn small red" onclick="pzMakeCode('device')">產生配對碼</button></div><div>${codeBoxHTML('device')}</div>
+  <h3 class="mt">👥 另一位家長</h3>${owner?`<p class="note">想另一位家長都睇到？撳「產生家長邀請碼」，對方用佢自己嘅 Google 帳戶登入之後，喺「我收到邀請碼」輸入。</p><button class="btn small" onclick="pzMakeCode('parent')">產生家長邀請碼</button><div>${codeBoxHTML('parent')}</div>
+  <details class="mt"><summary>我收到另一位家長嘅邀請碼</summary><div class="row mt"><input id="joinCode" class="inp codein" maxlength="9" placeholder="XXXX-XXXX" autocapitalize="characters" autocomplete="off" spellcheck="false"><button class="btn small red" onclick="pzJoin()">加入</button></div></details>`
+   :'<button class="btn small ghost" onclick="pzLeave()">離開呢個屋企帳戶</button>'}
+  <h3 class="mt">📱 已配對嘅裝置</h3><div id="devList">⏳</div><h3 class="mt">👨‍👩‍👧 家長成員</h3><div id="memList">⏳</div>`;
+  const row=(ic,n,fn,id)=>`<div class="row" style="justify-content:space-between"><span>${ic} ${esc(n)}</span>${fn?`<button class="x" onclick="${fn}('${esc(id)}')" aria-label="移除">✕</button>`:''}</div>`;
+  try{const ds=await FB.list('devices');const d=$('#devList');if(d)d.innerHTML=ds.length?ds.map(x=>row('📱',x.name||x.id,'pzDelDevice',x.id)).join(''):'<p class="note">未有。</p>'}catch(e){const d=$('#devList');if(d)d.textContent='❌ '+fbErr(e)}
+  try{const ms=await FB.list('members');const d=$('#memList');if(d)d.innerHTML=(owner?row('👑',(u.displayName||u.email||'你')+'（擁有者）'):'')+ms.map(x=>row('👤',x.name||x.id,owner?'pzDelMember':'',x.id)).join('')}catch(e){const d=$('#memList');if(d)d.textContent='❌ '+fbErr(e)}}
+function pzSample(){const b=$('#cfgSample');if(!b)return;b.innerHTML=b.innerHTML?'':`<p class="note">範例（你嘅數值會唔同。成段照貼就得，包括第一行 <code>const firebaseConfig = {</code> 同最後嘅 <code>};</code>）：</p><pre class="mono sample">${esc(FB_SAMPLE)}</pre>`}
+async function pzSaveCfg(){const c=parseFbCfg($('#fbCfg').value);if(!c||!c.authDomain||!c.appId){toast('讀唔到完整設定。請貼上包含 apiKey、authDomain、projectId、appId 嘅 firebaseConfig。',6000);return}
   await FB.reset();LS.set('ss_fb_cfg',c);PZ.cloud=null;toast('✅ 已儲存 Firebase 設定');pzDraw()}
 async function pzClearCfg(){if(!confirm('確定清除 Firebase 設定？呢部機會停止上載記錄。'))return;await FB.logout();await FB.reset();localStorage.removeItem('ss_fb_cfg');localStorage.removeItem('ss_fb_family');PZ.cloud=null;PZ.src='local';pzDraw()}
+function pzGoogle(){FB.loginGoogle().then(()=>{toast('✅ 登入成功');PZ.cloud=null;pzDraw()}).catch(e=>toast('❌ 登入失敗：'+fbErr(e),7000))}
 async function pzLogin(){const e=$('#fbEmail').value.trim(),p=$('#fbPw').value;if(!e||!p){toast('請輸入電郵同密碼');return}
-  try{await FB.login(e,p);toast('✅ 登入成功');pzDraw()}catch(err){toast('❌ 登入失敗：'+fbErr(err),6000)}}
-async function pzLogout(){await FB.logout();PZ.cloud=null;PZ.src='local';pzDraw()}
-async function pzPair(){try{await FB.pair($('#devName').value.trim());const out=$('#autoOut').checked;if(out)await FB.logout();PZ.cloud=null;PZ.src='local';
-    toast('✅ 配對成功！呢部機嘅樹窿記錄會上載到雲端。'+(out?'已經自動登出家長帳戶。':''),6000);pzDraw()}catch(e){toast('❌ 配對失敗：'+fbErr(e),6000)}}
+  try{await FB.loginEmail(e,p);toast('✅ 登入成功');pzDraw()}catch(err){toast('❌ 登入失敗：'+fbErr(err),6000)}}
+async function pzLogout(){await FB.logout();PZ.cloud=null;PZ.src='local';codeShown=null;pzDraw()}
+async function pzMakeCode(role){try{const name=role==='device'?(($('#devName')||{}).value||'').trim()||'小朋友嘅 iPad':'';const r=await FB.makeCode(role,name);codeShown=Object.assign({role},r);SFX.ok();pzDraw()}catch(e){toast('❌ 產生唔到：'+fbErr(e),6000)}}
+async function pzPairCode(){try{const n=await FB.pairWithCode($('#pairCode').value);SFX.win();toast('✅ 配對成功！'+(n?'（'+n+'）':'')+'樹窿記錄會自動上載俾家長。',6000);pzDraw()}catch(e){toast('❌ 配對失敗：'+fbErr(e),7000)}}
+async function pzJoin(){try{await FB.joinFamily($('#joinCode').value);PZ.cloud=null;SFX.win();toast('✅ 已經加入屋企帳戶，可以睇小朋友嘅記錄喇');pzDraw()}catch(e){toast('❌ 加入唔到：'+fbErr(e),7000)}}
+async function pzLeave(){if(!confirm('離開之後就睇唔到呢個屋企嘅記錄。確定？'))return;const u=await FB.parentUser();if(u){try{await FB.delSub('members',u.uid)}catch(e){}FB.leaveFamily(u)}PZ.cloud=null;pzDraw()}
 function pzUnpairThis(){if(!confirm('解除之後，呢部機唔會再上載記錄。確定？'))return;localStorage.removeItem('ss_fb_family');pzDraw()}
-async function pzDelDevice(id){if(!confirm('移除呢部裝置？佢之後唔可以再上載記錄。'))return;try{await FB.delDevice(id);pzDraw()}catch(e){toast('❌ '+fbErr(e))}}
+async function pzDelDevice(id){if(!confirm('移除呢部裝置？佢之後唔可以再上載記錄。'))return;try{await FB.delSub('devices',id);pzDraw()}catch(e){toast('❌ '+fbErr(e))}}
+async function pzDelMember(id){if(!confirm('移除呢位家長？佢之後睇唔到記錄。'))return;try{await FB.delSub('members',id);pzDraw()}catch(e){toast('❌ '+fbErr(e))}}
+/* 家長部機：解鎖家長專區時自動載入雲端記錄 */
+async function pzAuto(){try{if(!FB.cfg()||FB.role()!=='parent')return;const u=await FB.parentUser();if(!u||!PZ.unlocked)return;
+  PZ.cloud=await FB.fetch();PZ.src='cloud';if(PZ.unlocked&&(PZ.tab==='sum'||PZ.tab==='logs')&&$('#pzBody'))pzDraw()}catch(e){}}
 
 /* ---------- 家長設定 ---------- */
 function pzSet(){const c=aiCfg(),m=logMode();
