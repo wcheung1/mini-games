@@ -1,0 +1,35 @@
+rules_version = '2';
+// 秘密探險隊 · 樹窿記錄嘅保安規則
+// 家長帳戶：可以讀取、刪除自己屋企嘅記錄，管理已配對裝置。
+// 小朋友部機（匿名登入 + 已配對）：只可以新增記錄，唔可以讀、改或者刪除。
+// 其他人：乜都做唔到。
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isParent(fid) {
+      return request.auth != null && request.auth.uid == fid;
+    }
+    function isPairedDevice(fid) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/families/$(fid)/devices/$(request.auth.uid));
+    }
+
+    match /families/{fid}/devices/{did} {
+      allow read, write: if isParent(fid);
+      // 小朋友部機只可以檢查自己有冇配對
+      allow get: if request.auth != null && request.auth.uid == did;
+    }
+
+    match /families/{fid}/logs/{lid} {
+      allow read, delete: if isParent(fid);
+      allow create: if isPairedDevice(fid)
+        && request.resource.data.device == request.auth.uid
+        && request.resource.data.id == lid
+        && request.resource.data.keys().hasOnly(['id','t','type','src','emo','text','reply','safety','shared','mode','ai','child','grp','device','at'])
+        && request.resource.data.type in ['tree', 'mood']
+        && request.resource.data.t is int
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.at == request.time;
+    }
+  }
+}

@@ -26,7 +26,7 @@ header#top{position:sticky;top:0;z-index:20;display:flex;align-items:center;just
 .gems{color:var(--gold2);font-weight:700;background:#ffffff14;border:1px solid #e9c46a55;border-radius:999px;padding:4px 12px;font-size:15px;white-space:nowrap}
 .sos{background:linear-gradient(135deg,#ff9cbc,#e0457b);color:#fff;border:0;border-radius:999px;padding:8px 14px;font-weight:700;font-size:16px;box-shadow:0 0 18px #ff6fa066;animation:breathe 3s ease-in-out infinite;white-space:nowrap}
 .icon{background:#ffffff14;border:1px solid #e9c46a55;color:#fff;border-radius:50%;width:44px;height:44px;font-size:20px;flex:none}
-main{max-width:980px;margin:0 auto;padding:6px 16px calc(50px + env(safe-area-inset-bottom))}
+main{max-width:980px;margin:0 auto;padding:6px 16px calc(96px + env(safe-area-inset-bottom))}
 h1,h2,h3{font-family:var(--serif);margin:.3em 0;line-height:1.35}
 .title-gold{background:linear-gradient(180deg,#fff6cf,#e9c46a 55%,#a8741f);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px #ffcf6a55)}
 .parch{position:relative;color:var(--ink);background:radial-gradient(ellipse at 50% 40%,#fbf1d4 0%,#f1dcaa 55%,#d7b474 100%);border-radius:var(--r);padding:20px 18px;box-shadow:inset 0 0 50px rgba(110,60,15,.45),inset 0 0 6px rgba(80,40,10,.5),0 14px 40px rgba(0,0,0,.55);margin:14px 0}
@@ -195,6 +195,25 @@ select.inp{appearance:auto}
 .cert{border:12px double #b8862b;text-align:center;padding:30px 20px}
 .cert h1{font-size:clamp(30px,6vw,46px);color:#7a1a12;margin:.2em 0}
 .cname{font-size:clamp(32px,7vw,54px);color:#9e1b1b;border-bottom:2px solid #b8862b;display:inline-block;padding:0 30px;margin:.2em 0}
+.pact{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:12px 0 4px;padding:4px 12px;border-radius:14px;background:#fff6dc;border:1px dashed #b8862b;color:var(--ink)}
+.pact .say{flex:1;min-width:220px;margin:6px 0;font-size:16px}
+.sharebox{margin-top:12px;padding:6px 14px 10px;border-radius:14px;background:#fff0f6;border:2px solid #e0457b88}
+.srcbar{align-items:center}.srcbar span{color:#fbe9c0;font-size:15px;margin-right:4px}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin:8px 0 14px}
+.stat{background:#fffaf0;border:2px solid #b8862b66;border-radius:14px;padding:10px 8px;text-align:center;font-size:15px}
+.stat b{display:block;font-size:32px;line-height:1.2;font-family:var(--serif);color:#5a2e0e}
+.stat.bad{border-color:#e0457b;background:#fff0f3}.stat.bad b{color:#b0204f}
+.barrow{display:grid;grid-template-columns:minmax(90px,120px) 1fr 32px;gap:8px;align-items:center;margin:6px 0;font-size:16px}
+.bar{height:14px;background:#5a2e0e18;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#c8962f,#e9c46a);border-radius:999px}
+.badge{display:inline-block;font-size:13px;padding:2px 10px;border-radius:999px;background:#5a2e0e14;color:#5a2e0e;margin:2px;white-space:nowrap}
+.badge.bad{background:#b0204f;color:#fff}.badge.good{background:#2e7d32;color:#fff}
+.logc.safe{box-shadow:inset 0 0 0 3px #e0457b,inset 0 0 50px rgba(110,60,15,.45),0 14px 40px rgba(0,0,0,.55)}
+.logc details{margin-top:8px;background:#fffaf0aa;border-radius:12px;padding:4px 12px}
+.logc summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
+.logc ol{margin:4px 0;padding-left:24px}
+.guidebox{margin-top:10px;background:#eef6ff;color:#1d2f4a;border-left:6px solid #3a7bd5;border-radius:12px;padding:8px 14px;white-space:pre-wrap;line-height:1.7;font-size:16px}
+.mode{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:2px solid #b8862b55;border-radius:14px;margin:8px 0;background:#fffaf0;cursor:pointer}
+.mode.on{border-color:#9e1b1b;background:#fff3dc}.mode input{width:22px;height:22px;margin-top:4px;flex:none}
 .foot{text-align:center;font-size:13px;opacity:.6;margin-top:30px}
 
 /* ---------- 背景音樂 ---------- */
@@ -280,7 +299,8 @@ const BGM={
   init(){
     this.audio=$('#bgmAudio');
     if(!this.audio)return;
-    this.audio.volume=Math.max(0,Math.min(1,isFinite(this.volume)?this.volume:.55));
+    this.volume=Math.max(0,Math.min(1,isFinite(this.volume)?this.volume:.55));
+    this.applyVol();
     this.audio.muted=this.muted;
     this.audio.src=this.tracks[this.index];
     this.audio.preload='auto';
@@ -288,6 +308,7 @@ const BGM={
     this.audio.setAttribute('playsinline','');
     this.audio.addEventListener('ended',()=>this.next());
     this.audio.addEventListener('error',()=>this.handleError());
+    this.audio.addEventListener('playing',()=>{this._errs=0});
     this.syncUI();
 
     const tryStart=()=>{
@@ -311,6 +332,8 @@ const BGM={
   async start(){
     if(!this.audio)return;
     if(!this.audio.src)this.audio.src=this.tracks[this.index];
+    this.ensureGraph();
+    if(this._ctx&&this._ctx.state==='suspended'){try{await this._ctx.resume()}catch(e){}}
     try{
       await this.audio.play();
       this.ready=true;
@@ -324,7 +347,7 @@ const BGM={
   },
   async toggle(){
     if(!this.audio)return;
-    if(this.audio.paused){
+    if(this.audio.paused||this.muted){
       this.muted=false;
       this.audio.muted=false;
       localStorage.setItem('ss_bgm_muted','0');
@@ -339,7 +362,7 @@ const BGM={
   setVolume(v){
     const n=Math.max(0,Math.min(1,parseFloat(v)||0));
     this.volume=n;
-    this.audio.volume=n;
+    this.applyVol();
     if(n>0){
       this.muted=false;
       this.audio.muted=false;
@@ -359,15 +382,30 @@ const BGM={
     }
     this.syncUI();
   },
+  _errs:0,
   handleError(){
-    // If a local MP3 is unavailable, try the other track.
-    if(this.tracks.length<2)return;
+    // If a local MP3 is unavailable, try the other track（兩首都搵唔到就停，避免不停重試）
+    if(this.tracks.length<2||++this._errs>=this.tracks.length)return;
     this.index=(this.index+1)%this.tracks.length;
     this.audio.src=this.tracks[this.index];
     this.audio.load();
     if(!this.muted)this.audio.play().catch(()=>{});
   },
   stop(){/* 刻意留空：SPA 換頁時唔停止背景音樂 */},
+  /* iPad / iPhone 唔俾網頁改 audio.volume，所以喺 iOS（https 網址）改用 Web Audio 增益控制音量 */
+  _ctx:null,_gain:null,_ducked:false,_duckT:0,
+  ensureGraph(){
+    if(this._gain||!this.audio||!/^https?:$/.test(location.protocol))return;
+    const iOS=/iP(ad|hone|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(!iOS&&localStorage.getItem('ss_bgm_webaudio')!=='1')return;
+    try{const C=window.AudioContext||window.webkitAudioContext;this._ctx=new C();const src=this._ctx.createMediaElementSource(this.audio);this._gain=this._ctx.createGain();src.connect(this._gain);this._gain.connect(this._ctx.destination);this.audio.volume=1;this.applyVol()}catch(e){this._gain=null}
+  },
+  applyVol(){
+    if(!this.audio)return;const v=Math.max(0,Math.min(1,this.volume))*(this._ducked?0.3:1);
+    if(this._gain){try{this._gain.gain.setTargetAtTime(v,this._ctx.currentTime,0.12)}catch(e){this._gain.gain.value=v}}else this.audio.volume=v;
+  },
+  /* 廣東話語音讀緊嘅時候，背景音樂自動調細，等小朋友聽得清楚 */
+  duck(on){clearTimeout(this._duckT);if(on){if(!this._ducked){this._ducked=true;this.applyVol()}}else{this._duckT=setTimeout(()=>{this._ducked=false;this.applyVol()},700)}},
   removeUnlockListeners(){
     const h=this._tryStartHandler;
     if(!h)return;
@@ -423,13 +461,13 @@ const TTS={
     if(!this.voice)this.pick();
     if(!this.voice&&!this.warned&&this.voices.length){this.warned=true;toast('搵唔到廣東話聲音。iPad：設定 › 輔助使用 › 朗讀內容 › 聲音 › 中文（香港），下載一個聲音。',7000)}
     if(opts.btn)opts.btn.classList.add('speaking');
-    const id=++this.seq;const cs=this.chunks(t);
+    const id=++this.seq;const cs=this.chunks(t);BGM.duck(true);
     cs.forEach((c,i)=>{const u=new SpeechSynthesisUtterance(c);u.lang=this.voice?this.voice.lang:'zh-HK';if(this.voice)u.voice=this.voice;u.rate=this.rate;u.pitch=1.05;
       if(i===cs.length-1){u.onend=()=>{if(id!==this.seq)return;this._clear();opts.onend&&opts.onend()};u.onerror=()=>{if(id!==this.seq)return;this._clear();opts.onend&&opts.onend()}}
       speechSynthesis.speak(u)});
   },
   stop(){this.seq++;if(this.ok){try{speechSynthesis.cancel()}catch(e){}}this._clear()},
-  _clear(){$$('.spk.speaking').forEach(b=>b.classList.remove('speaking'));$$('.reading').forEach(b=>b.classList.remove('reading'))}
+  _clear(){BGM.duck(false);$$('.spk.speaking').forEach(b=>b.classList.remove('speaking'));$$('.reading').forEach(b=>b.classList.remove('reading'))}
 };
 function stopAll(){readToken++;TTS.stop()}
 function autoSay(t){if(TTS.auto)TTS.speak(t)}
@@ -742,8 +780,9 @@ function fallbackBG(cv){const g=cv.getContext('2d');const draw=()=>{cv.width=inn
 function go(view,arg){
   // BGM deliberately continues across in-app pages.
   BGM.stop();stopAll();runCleanup();closeModal();
+  if(view!=='parent'){PZ.unlocked=false;PZ.cloud=null;PZ.guides={}}
   $('#top').style.display=view==='splash'?'none':'flex';
-  ({splash:renderSplash,intro:renderIntro,map:renderMap,level:renderLevel,calm:renderCalm,tree:renderTree,box:renderBox,cert:renderCert,parents:renderParents})[view](arg);
+  ({splash:renderSplash,intro:renderIntro,map:renderMap,level:renderLevel,calm:renderCalm,tree:renderTree,box:renderBox,cert:renderCert,parents:renderParents,parent:renderParentZone})[view](arg);
   window.scrollTo(0,0);updateGems();
 }
 
@@ -790,7 +829,7 @@ function renderMap(){
    ${tile('🏺','我嘅寶箱','感恩罐、願望卡……',"go('box')")}
    ${tile('📜','重溫序章','',"go('intro')")}
    ${n>=10?tile('🏅','我嘅證書','秘密守護者',"go('cert')"):''}
-   ${tile('👨‍👩‍👧','家長須知','',"go('parents')")}
+   ${tile('👨‍👩‍👧','家長專區','需要家長 PIN',"go('parent')")}
   </div>
   <p class="foot">內容根據 Rhonda Byrne《The Secret》章節架構，以兒童正向心理學重新演繹。插圖為原創設計。</p>`;
 }
@@ -1044,10 +1083,12 @@ function renderCalm(){
   V.innerHTML=`<div class="center"><h2 class="title-gold" style="font-size:32px">💗 心靈角落</h2></div>
   <div class="guide"><div class="face">✨</div><div>${para('小光喺度陪你。唔開心係冇問題㗎，每個人都會有。你而家覺得點？撳一個最似你嘅感覺。')}</div></div>
   <div class="emos">${EMOS.map((e,k)=>`<button class="emo" onclick="calmPick(${k})"><b>${e[0]}</b>${e[1]}</button>`).join('')}</div>
+  ${logMode()!=='safety'?`<div class="pact">${para(`💌 你揀嘅心情會留低俾${GUARD()}睇，等佢哋知道要多啲陪你。`)}</div>`:''}
   <div class="parch mt">${para('如果有人傷害你，或者你有傷害自己嘅念頭，請即刻話俾一個你信任嘅大人知。')}<div class="row"><button class="btn small red" onclick="showSafety()">📞 求助資料</button></div></div>`;
   autoSay('小光喺度陪你。唔開心係冇問題㗎，每個人都會有。你而家覺得點？撳一個最似你嘅感覺。');window.scrollTo(0,0);
 }
 function calmPick(k){calmEmo=k;const e=EMOS[k];stopAll();
+  if(logMode()!=='safety')recordLog({type:'mood',src:'calm',emo:e[1]});
   V.innerHTML=calmBack()+`<div class="parch center"><div style="font-size:84px;animation:float 3s infinite">${e[0]}</div><h2>我而家覺得：${e[1]}</h2>${para(e[2])}${para('多謝你話俾我知。講得出自己嘅感覺，已經係好勇敢嘅第一步。')}
   <div class="row center-row mt"><button class="btn red" onclick="calmBreath()">一齊做泡泡呼吸 🫧</button><button class="btn ghost" onclick="calmTools()">直接睇工具 🧰</button></div></div>`;
   TTS.speak(e[2]+' 多謝你話俾我知。講得出自己嘅感覺，已經係好勇敢嘅第一步。');window.scrollTo(0,0)}
@@ -1121,6 +1162,7 @@ const LOCAL={
  general:{u:'有唔開心嘅感覺好正常，就好似天氣會有落雨嘅日子。雨會停，太陽會再出嚟。',s:'試下用「感覺階梯」：唔使一下子變到好開心，只要諗一個令自己好少少嘅諗法就得。',st:['做三次泡泡呼吸','用你嘅秘密轉換器，做一樣你鍾意嘅事','寫低三樣今日感恩嘅事','同一個你信任嘅人講下你嘅感受']}
 };
 function localReply(txt,emo){const E=EMOS.find(x=>x[1]===emo);let t='general';
+  if(DANGER.test(txt)){const g=GUARD();return{hug:'多謝你咁勇敢講出嚟。你而家一定好辛苦，你嘅感受好重要，你唔係一個人。',understand:'有人傷害你，或者心入面痛到有傷害自己、唔想再活落去嘅諗法，呢啲都唔係你嘅錯。呢啲事太大，唔應該由你一個人扛，一定要有大人幫手。',secret:'今日最重要嘅秘密寶物係：搵人幫手。講出嚟唔係麻煩人，係保護自己，係最勇敢嘅一步。',steps:[`而家就去搵${g}、老師或者一個你信任嘅大人，話俾佢聽你講過嘅嘢`,'如果身邊冇大人，或者有即時危險，打 999','可以打求助熱線：香港撒瑪利亞會 2896 0000；英國 Childline 0800 1111','同大人一齊做三次泡泡呼吸，唔好自己一個人'],selfTalk:['親愛嘅自己，我知道你而家好辛苦。','呢啲感覺好大，但唔係我嘅錯。','我慢慢吸一啖氣……再慢慢呼出嚟。','我值得被保護，值得被愛。','我唔需要自己一個人面對。','我可以而家就去搵一個信任嘅大人。','講出嚟係勇敢，唔係麻煩人。','有人會幫我，我會一步一步好返。'],safety:true,adultTip:`請而家就去搵${g}或者老師，話俾佢哋聽。`}}
   if(/功課|考試|測驗|默書|成績|分數|溫書|老師/.test(txt))t='school';else if(/朋友|同學|冇人|小息|蝦|欺負|笑我|唔睬/.test(txt))t='friend';else if(/爸|媽|屋企|家姐|哥哥|細佬|妹|嗌交|鬧我/.test(txt))t='family';
   const T=LOCAL[t];return{hug:(E?E[2]+' ':'')+'多謝你願意講出嚟，講出嚟本身已經好勇敢。',understand:T.u,secret:T.s,steps:T.st,selfTalk:selfTalkLocal(emo),safety:false,adultTip:'你可以將今日同樹窿講嘅嘢，同爸爸媽媽、老師或者一個你信任嘅大人傾下，佢哋好想幫你。'}}
 function aiCfg(){return{base:(localStorage.getItem('ss_base')||'https://api.z.ai/api/paas/v4').trim().replace(/\/+$/,''),model:(localStorage.getItem('ss_model')||'glm-5.3').trim(),key:(localStorage.getItem('ss_key')||'').trim()}}
@@ -1145,19 +1187,21 @@ let treeHist=[],treeEmo=null,treeCards='';
 function renderTree(){
   const hasAI=!!aiCfg().key;
   V.innerHTML=`<div class="center"><div class="tree">🌳</div><h2 class="title-gold" style="font-size:32px">秘密樹窿</h2></div>
-  <div class="guide"><div class="face">🦉</div><div>${para('呢度係一個好安全嘅樹窿。你可以將唔開心嘅事、心入面嘅說話講俾樹窿聽。小光會陪你一齊拆解，仲會送你一段同自己個心講嘅說話。你講嘅嘢唔會自動儲存。')}</div></div>
+  <div class="guide"><div class="face">🦉</div><div>${para('呢度係一個好安全嘅樹窿。你可以將唔開心嘅事、心入面嘅說話講俾樹窿聽。小光會陪你一齊拆解，仲會送你一段同自己個心講嘅說話。')}</div></div>
   <div class="parch"><div class="lab">${para('我而家嘅感覺（可以唔揀）：')}</div>
   <div class="chips" id="temo">${EMOS.map((e,k)=>`<button class="chip ${treeEmo===k?'on':''}" data-k="${k}">${e[0]} ${e[1]}</button>`).join('')}</div>
   <div class="lab">${para('我想同樹窿講……')}</div>
   <textarea id="tIn" class="inp" rows="5" maxlength="1500" placeholder="例如：今日小息冇人同我玩，我覺得好寂寞……"></textarea>
   <div class="row mt"><button class="btn ghost small" id="mic">🎤 用把口講</button><button class="btn red" id="tSend">💌 講俾樹窿聽</button></div>
-  <p class="note">${hasAI?'✨ 已連接 AI 小光（'+esc(aiCfg().model)+'）。你講嘅嘢會傳送去你設定嘅 AI 服務。':'💡 未設定 AI：小光會用基本方式陪你。家長可以喺右上角 ⚙️ 設定 AI。'}</p>
+  <div class="pact">${para('🔐 '+pactShort())}<button class="btn ghost small" onclick="showPact()">🤝 樹窿嘅約定</button></div>
+  <p class="note">${hasAI?'✨ 已連接 AI 小光（'+esc(aiCfg().model)+'）。你講嘅嘢會傳送去 AI 小光嗰度，幫你諗辦法。':'💡 未設定 AI：小光會用基本方式陪你。家長可以喺 ⚙️ › 家長專區設定 AI。'}</p>
   ${treeHist.length?'<div class="row"><button class="btn ghost small" onclick="treeHist=[];treeCards=\'\';renderTree()">🧹 清除今次對話</button></div>':''}</div>
   <div id="tOut">${treeCards}</div>`;
   autoSay('呢度係一個好安全嘅樹窿。你可以將唔開心嘅事講俾樹窿聽。可以打字，或者撳咪高峰用把口講。');
   $$('#temo .chip').forEach(c=>c.onclick=()=>{const k=+c.dataset.k;treeEmo=treeEmo===k?null:k;$$('#temo .chip').forEach(x=>x.classList.toggle('on',+x.dataset.k===treeEmo));if(treeEmo!=null)TTS.speak(EMOS[k][1])});
   if(calmEmo!=null&&treeEmo==null){treeEmo=calmEmo;const c=$(`#temo .chip[data-k="${calmEmo}"]`);if(c)c.classList.add('on')}
   $('#mic').onclick=e=>startMic(e.currentTarget);$('#tSend').onclick=sendTree;
+  if(localStorage.getItem('ss_pact')!==pactKey())showPact();
 }
 function startMic(btn){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){toast('呢部機唔支援網頁語音輸入。可以撳 iPad 鍵盤上面嘅 🎤，揀廣東話講嘢。',6000);return}
@@ -1173,16 +1217,22 @@ async function sendTree(){
   $('#'+id).scrollIntoView({block:'start',behavior:'smooth'});
   if(danger)TTS.speak('多謝你講出嚟。你嘅安全最重要，請即刻話俾一個你信任嘅大人知。');
   ta.value='';const sb=$('#tSend');sb.disabled=true;
-  let data=null,note='';
+  let data=null,note='',aiUsed=false;
   if(aiCfg().key){const user=(emo?'我而家嘅感覺：'+emo+'\n':'')+'我想講：'+txt;treeHist.push({role:'user',content:user});
-    try{const raw=await callAI([{role:'system',content:SYS_PROMPT},...treeHist.slice(-8)]);treeHist.push({role:'assistant',content:raw});data=parseAI(raw)}
+    try{const raw=await callAI([{role:'system',content:SYS_PROMPT},...treeHist.slice(-8)]);treeHist.push({role:'assistant',content:raw});data=parseAI(raw);aiUsed=true}
     catch(err){treeHist.pop();note='（AI 暫時連唔到：'+err.message+'。小光先用基本方式陪你。）'}}
   if(!data)data=localReply(txt,emo);if(danger)data.safety=true;
-  renderReply(id,txt,data,note,danger);if($('#tSend'))$('#tSend').disabled=false;
+  /* 按家長揀嘅記錄模式儲存（小朋友喺「樹窿嘅約定」已經知道規則） */
+  const mode=logMode(),safe=!!data.safety,grp=newLogId();let ask=false,kept=false;
+  const full={type:'tree',src:'tree',emo,text:txt,reply:replySlim(data),safety:safe,ai:aiUsed,grp};
+  if(mode==='guard'){recordLog(Object.assign(full,{shared:true}))}
+  else if(safe){recordLog(Object.assign(full,{shared:false}));kept=true}
+  else if(mode==='trust'){recordLog({type:'mood',src:'tree',emo,grp,shared:false});treePending[id]=full;ask=true}
+  renderReply(id,txt,data,note,danger,{ask,kept});if($('#tSend'))$('#tSend').disabled=false;
   treeCards=$('#tOut')?$('#tOut').innerHTML:treeCards;
   if(!danger)TTS.speak(data.hug);
 }
-function renderReply(id,txt,d,note,shown){const el=$('#'+id);if(!el)return;const tid='t'+id;
+function renderReply(id,txt,d,note,shown,opt={}){const el=$('#'+id);if(!el)return;const tid='t'+id;const g=GUARD();
   el.innerHTML=`<div class="you">🧒 你講：${esc(txt)}</div>${d.safety?`<div class="safety">${safetyBlock()}</div>`:''}
   ${d.hug?`<h3>🤗 小光抱抱你</h3>${para(d.hug)}`:''}
   ${d.understand?`<h3>🔍 一齊拆解</h3>${para(d.understand)}`:''}
@@ -1190,6 +1240,8 @@ function renderReply(id,txt,d,note,shown){const el=$('#'+id);if(!el)return;const
   ${d.steps.length?`<h3>👣 你可以試下嘅一小步</h3>${d.steps.map((s,k)=>para(`${k+1}. ${s}`)).join('')}`:''}
   <h3>🕯️ 我同我個心講嘅說話（逐字稿）</h3>${para('好似祈禱咁，靜靜哋、慢慢讀俾自己聽。撳「陪我慢慢讀」，小光讀一句，你跟住講一句。')}${talkHTML(d.selfTalk,tid)}
   ${d.adultTip?para('💬 '+d.adultTip):''}${note?`<p class="note">${esc(note)}</p>`:''}
+  ${opt.kept?`<div class="sharebox">${para(`🛟 因為你嘅安全好重要，呢段說話會留低俾${g}睇。佢哋係想保護你，唔會鬧你。`)}</div>`:''}
+  ${opt.ask?`<div class="sharebox" id="sh_${id}">${para(`💌 想唔想將呢段心事交俾${g}？交咗之後，${g}可以更加明白你、陪住你。`)}<div class="row"><button class="btn small red" onclick="shareTree('${id}',true)">💌 交俾${esc(g)}</button><button class="btn small ghost" onclick="shareTree('${id}',false)">🤫 今次唔使</button></div></div>`:''}
   <div class="row mt"><button class="btn ghost small" onclick="readAll('#${id}')">▶ 全部讀出嚟</button></div>`}
 
 /* =========================================================
@@ -1230,8 +1282,9 @@ function renderParents(){
   ${sec('我哋點樣演繹',['我哋強調「諗法、感覺，再加行動」，而唔係「諗諗下就會成真」。','我哋清楚話俾小朋友知：唔開心嘅感覺係正常嘅，壞事發生唔係佢嘅錯；生病一定要睇醫生；被欺凌或者有危險，一定要話俾大人知。','「健康」同「金錢」兩章，分別演繹成「多謝身體同好習慣」同「豐盛、感恩、分享同儲蓄」，避免誤導。'])}
   ${sec('兒童學習心理學設計',['每個關卡分四步：學習、遊戲、考考你、生活任務。短段落加語音，照顧未識字或者閱讀較慢嘅小朋友。','即時而溫和嘅回饋、星星同寶石獎勵，建立動機；答錯可以再試，培養成長型思維。','生活任務幫小朋友將學到嘅嘢用喺真實生活；感恩罐、願望卡、秘密日程會儲低，方便日日練習。','心靈角落用上情緒命名、泡泡呼吸（呼氣較長，有助平靜）、感覺階梯、秘密轉換器同自我慈悲說話，係小朋友唔開心時嘅即時工具。'])}
   ${sec('秘密樹窿同 AI',['樹窿可以接駁任何 OpenAI 相容嘅 AI 服務（預設 GLM 5.3 國際版）。小朋友打嘅內容會傳送去你設定嘅服務供應商。','AI 會用溫柔廣東話同理、拆解問題、建議一小步，並寫一段自我對話逐字稿。如偵測到危險字眼，App 會即時顯示求助資料。','AI 唔係專業輔導。如果小朋友持續情緒低落、失眠、唔想返學或者提及傷害自己，請盡快聯絡學校社工、醫生或者輔導員。建議家長陪同使用樹窿。'])}
+  ${sec('🌳 樹窿記錄同家長專區',['家長可以喺 ⚙️ › 家長專區（要輸入 PIN）睇小朋友喺樹窿講過嘅說話、當時心情同安全警報，仲可以匯出做文字檔、Excel 或者備份檔，存喺電腦。','我哋刻意唔做「秘密監視」。小朋友第一次用樹窿，會見到「樹窿嘅約定」，清楚知道邊啲說話會交俾家長。小朋友一旦發現被偷睇，好容易對 App 同家長都失去信任，之後就乜都唔講。坦白嘅守護，長遠先會聽到更多真心話。','有三個模式：守護模式，全部交俾家長，建議六至十歲；信任模式，由小朋友揀要唔要分享，唔分享都會記低心情，建議十歲以上；只限安全警報。無論邊個模式，出現危險字眼都一定會記錄。','請遵守「樹窿特赦」：唔好因為小朋友喺樹窿講嘅嘢鬧佢或者罰佢，亦唔好喺其他人面前提起。以感謝同陪伴開始，例如「多謝你肯講出嚟，我好想陪你」。','App 唔會即時通知家長，請定期打開家長專區睇下，尤其係安全警報。'])}
   ${sec('廣東話語音',['App 用裝置內置嘅語音。iPad：設定，輔助使用，朗讀內容，聲音，中文，選擇中文（香港），下載一個聲音（建議增強版）。之後可以喺 App 嘅設定揀聲音同語速。'])}
-  ${sec('私隱',['學習進度、感恩罐、願望卡同 API Key，只會儲存喺呢部機嘅瀏覽器（Local Storage）。樹窿對話唔會自動儲存，除非小朋友撳「收藏」。唔好喺公用電腦儲存 API Key。'])}
+  ${sec('私隱',['學習進度、感恩罐、願望卡、樹窿記錄同 API Key，預設只儲存喺呢部機嘅瀏覽器。如果家長開啟雲端同步，樹窿記錄會上載到家長自己嘅 Firebase 專案，只有家長帳戶睇得到，小朋友部機只可以上載、唔可以讀返。清除瀏覽器資料會刪除本機記錄，請定期匯出備份。唔好喺公用電腦儲存 API Key。'])}
   ${sec('關於插圖',['為尊重版權，App 冇使用原著書本嘅插圖，而係用原創嘅羊皮紙卷軸、紅色蠟封同金色星河，營造原著嗰種神秘感。'])}
   <div class="safety">${safetyBlock()}</div></div>`;
 }
@@ -1249,16 +1302,9 @@ function openSettings(){
   <label class="switch"><input type="checkbox" id="sAuto" ${TTS.auto?'checked':''}> 入到新頁面自動讀出指示</label>
   <label class="switch"><input type="checkbox" id="sSnd" ${P.sound?'checked':''}> 音效</label>
   <button class="btn small" onclick="applyVoice();TTS.speak('你好！我係小光，你嘅秘密嚮導。')">🔊 試聽</button>
-  <h3 class="mt">🤖 AI 設定（秘密樹窿）</h3>
-  <div class="field"><label>Base URL</label><input id="aBase" class="inp" value="${esc(c.base)}" placeholder="https://api.z.ai/api/paas/v4"></div>
-  <div class="field"><label>Model</label><input id="aModel" class="inp" value="${esc(c.model)}" placeholder="glm-5.3"></div>
-  <div class="field"><label>API Key</label><div class="row"><input id="aKey" class="inp" type="password" value="${esc(c.key)}" placeholder="貼上你嘅 API Key" autocomplete="off"><button class="btn small ghost" onclick="const k=$('#aKey');k.type=k.type==='password'?'text':'password'">👁️</button></div></div>
-  <p class="note">暫存喺呢部機嘅 Local Storage。GLM 國際版：Base URL 用 https://api.z.ai/api/paas/v4，Model 用 glm-5.3。其他 OpenAI 相容服務都可以用。</p>
-  <div class="row"><button class="btn small red" onclick="saveAI()">💾 儲存</button><button class="btn small" onclick="testAI()">🧪 測試連線</button><button class="btn small ghost" onclick="clearAI()">🗑️ 清除 AI 設定</button></div>
-  <p class="note" id="aiMsg"></p>
   <h3 class="mt">👨‍👩‍👧 家長</h3>
-  <label class="switch"><input type="checkbox" id="sUnlock" ${P.unlockAll?'checked':''}> 解鎖所有關卡</label>
-  <div class="row"><button class="btn small ghost" onclick="go('parents')">📖 家長須知</button><button class="btn small ghost" onclick="resetAll()">♻️ 重設所有進度</button></div></div>`);
+  <p class="note">AI 設定、樹窿記錄、匯出同雲端同步都喺家長專區（需要 PIN）。</p>
+  <div class="row"><button class="btn small red" onclick="go('parent')">🔒 家長專區</button><button class="btn small ghost" onclick="go('parents')">📖 家長須知</button></div></div>`);
   $('#sRate').oninput=e=>{TTS.rate=parseFloat(e.target.value);$('#rv').textContent=TTS.rate.toFixed(2);localStorage.setItem('ss_rate',TTS.rate)};
   $('#sAuto').onchange=e=>{TTS.auto=e.target.checked;localStorage.setItem('ss_auto',TTS.auto?'1':'0')};
   $('#sBgmVol').oninput=e=>{
@@ -1274,15 +1320,272 @@ function openSettings(){
   };
   $('#sSnd').onchange=e=>{P.sound=e.target.checked;save()};
   $('#sVoice').onchange=applyVoice;
-  $('#sUnlock').onchange=e=>{P.unlockAll=e.target.checked;save();toast(P.unlockAll?'已解鎖所有關卡':'已恢復逐關解鎖')};
 }
 function applyVoice(){const s=$('#sVoice');if(!s||!s.value)return;const v=(TTS.voices||[]).find(x=>x.name===s.value);if(v){TTS.voice=v;localStorage.setItem('ss_voice',v.name)}}
 function saveAI(){localStorage.setItem('ss_base',$('#aBase').value.trim());localStorage.setItem('ss_model',$('#aModel').value.trim());localStorage.setItem('ss_key',$('#aKey').value.trim());$('#aiMsg').textContent='✅ 已儲存';toast('✅ AI 設定已儲存')}
 async function testAI(){saveAI();const m=$('#aiMsg');m.textContent='⏳ 測試緊……';
   try{const r=await callAI([{role:'user',content:'請只用一句廣東話講：「你好，我係小光！」'}],200);m.textContent='✅ 連線成功：'+(r||'（收到空白回覆，請檢查 Model 名稱）').slice(0,80)}
   catch(e){m.textContent='❌ '+e.message+'。如果顯示 CORS 問題，即係個服務唔俾瀏覽器直接連，要用支援 CORS 嘅 Base URL 或者自己嘅代理。'}}
-function clearAI(){['ss_base','ss_model','ss_key'].forEach(k=>localStorage.removeItem(k));closeModal();openSettings();toast('已清除 AI 設定')}
-function resetAll(){if(!confirm('確定要清除所有學習進度、感恩罐、願望卡同收藏？（AI 設定會保留）'))return;P=Object.assign({},DEF,{levels:{}, gratitude:[],happy:[],wishes:[],talks:[]});save();treeHist=[];treeCards='';closeModal();go('splash')}
+function clearAI(){['ss_base','ss_model','ss_key'].forEach(k=>localStorage.removeItem(k));pzDraw();toast('已清除 AI 設定')}
+function resetAll(){if(!confirm('確定要清除所有學習進度、感恩罐、願望卡同收藏？（AI 設定會保留）'))return;P=Object.assign({},DEF,{levels:{},gratitude:[],happy:[],wishes:[],talks:[],guardian:P.guardian||''});save();treeHist=[];treeCards='';closeModal();go('splash')}
+
+/* =========================================================
+   樹窿記錄 · 家長專區 · 匯出 · Firebase 雲端同步
+   ========================================================= */
+function GUARD(){return (P.guardian||'').trim()||'爸爸媽媽'}
+const MODES={
+ guard:{name:'守護模式',age:'建議 6–10 歲',desc:'樹窿全部對話都會交俾家長保管，小朋友會知道。'},
+ trust:{name:'信任模式',age:'建議 10 歲以上',desc:'每次講完，由小朋友揀要唔要交俾家長。唔交嘅只會記低心情（冇內容）。安全警報一定會記錄。'},
+ safety:{name:'只限安全警報',age:'',desc:'平時唔記錄任何嘢，只有出現危險內容先會記錄俾家長睇。'}
+};
+function logMode(){const m=localStorage.getItem('ss_logmode');return MODES[m]?m:'guard'}
+function pactKey(){return logMode()+'|'+GUARD()}
+function pactShort(){const g=GUARD(),m=logMode();
+  if(m==='guard')return `你講嘅說話，會交俾${g}保管。`;
+  if(m==='trust')return `講完之後，你可以揀要唔要交俾${g}。`;
+  return `你講嘅說話唔會留低，除非你有危險。`}
+function pactText(){const g=GUARD(),m=logMode();
+  if(m==='guard')return `你講俾樹窿聽嘅說話，樹窿會交俾最錫你嘅${g}保管。${g}唔會因為你講嘅嘢鬧你，佢哋只係想更加明白你，陪你一齊面對。`;
+  if(m==='trust')return `每次講完，你可以自己揀要唔要將說話交俾${g}。你唔揀嘅，樹窿唔會留低內容，只會話俾${g}知你嗰陣嘅心情。不過如果你有危險，樹窿一定會將說話留低俾${g}睇，因為保護你最重要。`;
+  return `你講嘅說話，樹窿唔會留低。不過如果你有危險，樹窿一定會將說話留低俾${g}睇，因為保護你最重要。`}
+function showPact(){const t=pactText();
+  openModal(`<div class="parch center"><div class="tree" style="font-size:70px">🌳</div><h2>🤝 樹窿嘅約定</h2>${para(t)}${para('喺樹窿冇講錯嘢呢回事。你準備好，就可以開始講喇。')}<button class="btn red mt" id="pactOK">我明白喇 👍</button></div>`);
+  TTS.speak(t);$('#pactOK').onclick=()=>{localStorage.setItem('ss_pact',pactKey());closeModal();stopAll()}}
+
+/* ---------- 本機記錄 ---------- */
+const LOGS={key:'ss_logs',max:600,
+ all(){return LS.get(this.key,[])},
+ put(r){const a=this.all();a.unshift(r);if(a.length>this.max)a.length=this.max;LS.set(this.key,a)},
+ mark(id,patch){const a=this.all();const x=a.find(r=>r.id===id);if(x){Object.assign(x,patch);LS.set(this.key,a)}},
+ del(id){LS.set(this.key,this.all().filter(x=>x.id!==id))},
+ clear(){try{localStorage.removeItem(this.key)}catch(e){}}};
+function newLogId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+function replySlim(d){return{hug:d.hug||'',understand:d.understand||'',secret:d.secret||'',steps:d.steps||[],selfTalk:d.selfTalk||[],adultTip:d.adultTip||''}}
+function recordLog(r){
+  const rec=Object.assign({id:newLogId(),t:Date.now(),type:'tree',src:'tree',emo:'',text:'',safety:false,shared:null,mode:logMode(),ai:false,child:P.name||'',grp:''},r);
+  if(!rec.reply)delete rec.reply;
+  LOGS.put(rec);FB.push(rec);return rec}
+const treePending={};
+function shareTree(id,yes){const f=treePending[id],box=$('#sh_'+id);if(!f||!box)return;delete treePending[id];const g=GUARD();let m;
+  if(yes){recordLog(Object.assign({},f,{shared:true}));m=`💌 已經交俾${g}喇。多謝你咁信任佢哋！`;SFX.magic()}
+  else{m=`🤫 冇問題，呢段說話唔會留低。記住，你隨時都可以親口同${g}講。`;SFX.ok()}
+  box.innerHTML=para(m);TTS.speak(m);treeCards=$('#tOut')?$('#tOut').innerHTML:treeCards}
+
+/* ---------- Firebase（可選） ---------- */
+const FB={v:'12.19.0',m:null,inst:{},
+ cfg(){return LS.get('ss_fb_cfg',null)},
+ fam(){return localStorage.getItem('ss_fb_family')||''},
+ on(){return !!(this.cfg()&&this.fam())},
+ async load(){if(this.m)return this.m;const b='https://www.gstatic.com/firebasejs/'+this.v+'/';
+   const [app,auth,fs]=await Promise.all([import(b+'firebase-app.js'),import(b+'firebase-auth.js'),import(b+'firebase-firestore.js')]);this.m={app,auth,fs};return this.m},
+ async get(name){
+   if(this.inst[name])return this.inst[name];
+   const c=this.cfg();if(!c)throw new Error('未設定 Firebase');const m=await this.load();
+   const app=m.app.getApps().find(a=>a.name===name)||m.app.initializeApp(c,name);
+   const auth=m.auth.getAuth(app);let db;
+   try{db=name==='child'?m.fs.initializeFirestore(app,{localCache:m.fs.persistentLocalCache()}):m.fs.getFirestore(app)}catch(e){db=m.fs.getFirestore(app)}
+   const emu=localStorage.getItem('ss_fb_emu');/* 只供測試：本機模擬器 */
+   if(emu){try{m.auth.connectAuthEmulator(auth,'http://'+emu+':9099',{disableWarnings:true});m.fs.connectFirestoreEmulator(db,emu,8080)}catch(e){}}
+   await auth.authStateReady();
+   return this.inst[name]={app,auth,db}},
+ async reset(){if(this.m){for(const k in this.inst){try{await this.m.app.deleteApp(this.inst[k].app)}catch(e){}}}this.inst={}},
+ async childUid(){const {auth}=await this.get('child');if(!auth.currentUser)await this.m.auth.signInAnonymously(auth);return auth.currentUser.uid},
+ async push(rec){if(!this.on())return;
+   try{const uid=await this.childUid();const f=this.m.fs;const data=Object.assign({},rec,{device:uid,at:f.serverTimestamp()});
+     await f.setDoc(f.doc(this.inst.child.db,'families',this.fam(),'logs',rec.id),data);LOGS.mark(rec.id,{cloud:1})}
+   catch(e){LOGS.mark(rec.id,{cloud:-1});console.warn('雲端上載失敗',e&&e.code||e)}},
+ async parentUser(){const {auth}=await this.get('parent');return auth.currentUser},
+ async login(email,pw){const {auth}=await this.get('parent');await this.m.auth.signInWithEmailAndPassword(auth,email,pw);return auth.currentUser},
+ async logout(){if(!this.cfg())return;try{const {auth}=await this.get('parent');await this.m.auth.signOut(auth)}catch(e){}},
+ async pair(name){const u=await this.parentUser();if(!u)throw new Error('請先登入家長帳戶');const cu=await this.childUid();const f=this.m.fs;
+   await f.setDoc(f.doc(this.inst.parent.db,'families',u.uid,'devices',cu),{name:name||'小朋友部機',at:f.serverTimestamp()});localStorage.setItem('ss_fb_family',u.uid);return cu},
+ async pairStatus(){if(!this.on())return 'off';
+   try{const cu=await this.childUid();const f=this.m.fs;const s=await f.getDoc(f.doc(this.inst.child.db,'families',this.fam(),'devices',cu));return s.exists()?'ok':'no'}
+   catch(e){return 'err:'+(e.code||e.message)}},
+ async fetch(){const u=await this.parentUser();if(!u)throw new Error('未登入家長帳戶');const f=this.m.fs;
+   const q=f.query(f.collection(this.inst.parent.db,'families',u.uid,'logs'),f.orderBy('t','desc'),f.limit(1000));
+   const s=await f.getDocs(q);return s.docs.map(d=>{const x=d.data();delete x.at;return x})},
+ async devices(){const u=await this.parentUser();const f=this.m.fs;const s=await f.getDocs(f.collection(this.inst.parent.db,'families',u.uid,'devices'));return s.docs.map(d=>Object.assign({id:d.id},d.data()))},
+ async delDevice(id){const u=await this.parentUser();const f=this.m.fs;await f.deleteDoc(f.doc(this.inst.parent.db,'families',u.uid,'devices',id))},
+ async delLog(id){const u=await this.parentUser();if(!u)throw new Error('未登入家長帳戶');const f=this.m.fs;await f.deleteDoc(f.doc(this.inst.parent.db,'families',u.uid,'logs',id))}
+};
+function fbErr(e){const c=(e&&e.code)||'';const map={'auth/invalid-credential':'電郵或者密碼唔啱','auth/wrong-password':'密碼唔啱','auth/user-not-found':'搵唔到呢個帳戶','auth/invalid-email':'電郵格式唔啱','auth/too-many-requests':'試太多次，請遲啲再試','auth/network-request-failed':'網絡問題，連唔到 Firebase','auth/operation-not-allowed':'Firebase 未開啟呢種登入方式（請檢查 Authentication）','auth/admin-restricted-operation':'Firebase 未開啟匿名登入（請喺 Authentication 開啟 Anonymous）','permission-denied':'冇權限（請檢查 Firestore 規則同配對）','unavailable':'暫時連唔到 Firebase'};
+  if(/api-key-not-valid/.test(c))return 'apiKey 唔啱，請重新貼上 firebaseConfig';return map[c]||((e&&e.message)||String(e))}
+function parseFbCfg(t){t=String(t||'');try{const j=JSON.parse(t);if(j&&j.apiKey&&j.projectId)return j}catch(e){}
+  const o={};t.replace(/(\w+)\s*:\s*["'`]([^"'`]+)["'`]/g,(_,k,v)=>{o[k]=v});return o.apiKey&&o.projectId?o:null}
+/* 已配對嘅小朋友部機：開 App 時靜靜哋準備好雲端連線 */
+setTimeout(()=>{if(FB.on())FB.childUid().catch(()=>{})},2500);
+
+/* ---------- 家長 PIN ---------- */
+function pinHash(p){let h1=0xdeadbeef^13,h2=0x41c6ce57^13;const s='secret-kids:'+p;for(let i=0;i<s.length;i++){const ch=s.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677)}
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)}
+const PZ={unlocked:false,tab:'sum',src:'local',cloud:null,guides:{},filter:'all',range:'all',fails:0,lockUntil:0};
+function pinInput(id,ph){return `<input id="${id}" class="inp" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="off" placeholder="${ph}">`}
+function renderParentZone(){if(PZ.unlocked)return pzDraw();
+  const has=!!localStorage.getItem('ss_pin');
+  V.innerHTML=`<div class="center"><h2 class="title-gold" style="font-size:30px">👨‍👩‍👧 家長專區</h2></div><div class="parch" style="max-width:520px;margin:14px auto">
+  ${has?`<p><b>請輸入家長 PIN：</b></p>${pinInput('pin1','PIN')}<div class="row mt"><button class="btn red" id="pinGo">🔓 進入</button><button class="btn ghost small" id="pinForgot">忘記 PIN？</button></div>`
+  :`<p><b>第一次使用：請設定家長 PIN（4 至 8 個數字）。</b></p><p class="note">小朋友唔知道呢個 PIN，就入唔到家長專區。</p>${pinInput('pin1','新 PIN')}<div style="height:8px"></div>${pinInput('pin2','再輸入一次')}<div class="row mt"><button class="btn red" id="pinSet">💾 設定 PIN</button></div>`}
+  <p class="note" id="pinMsg"></p><button class="btn ghost small mt" onclick="go('map')">← 返回</button></div>`;
+  const msg=t=>{$('#pinMsg').textContent=t};
+  if(has){const tryIt=()=>{if(Date.now()<PZ.lockUntil){msg('試錯太多次，請等一陣再試。');return}
+      if(pinHash($('#pin1').value)===localStorage.getItem('ss_pin')){PZ.unlocked=true;PZ.fails=0;stopAll();pzDraw()}
+      else{PZ.fails++;$('#pin1').value='';if(PZ.fails>=5){PZ.lockUntil=Date.now()+60000;PZ.fails=0;msg('試錯太多次，請一分鐘後再試。')}else msg('PIN 唔啱。')}};
+    $('#pinGo').onclick=tryIt;$('#pin1').onkeydown=e=>{if(e.key==='Enter')tryIt()};
+    $('#pinForgot').onclick=async()=>{if(!confirm('重設 PIN 會同時刪除呢部機上面所有樹窿記錄，並登出雲端家長帳戶。雲端上面嘅記錄唔受影響。確定？'))return;
+      localStorage.removeItem('ss_pin');LOGS.clear();await FB.logout();renderParentZone()}}
+  else $('#pinSet').onclick=()=>{const a=$('#pin1').value,b=$('#pin2').value;if(!/^\d{4,8}$/.test(a)){msg('PIN 要係 4 至 8 個數字。');return}if(a!==b){msg('兩次輸入唔一樣。');return}
+    localStorage.setItem('ss_pin',pinHash(a));PZ.unlocked=true;toast('✅ 已設定家長 PIN');pzDraw()};
+  setTimeout(()=>{const i=$('#pin1');if(i)i.focus()},100)}
+
+function pzDraw(){if(!PZ.unlocked)return renderParentZone();
+  const tabs=[['sum','📋 總覽'],['logs','🌳 樹窿記錄'],['exp','📤 匯出'],['cloud','☁️ 雲端同步'],['set','⚙️ 設定']];
+  V.innerHTML=`<div class="row" style="justify-content:space-between"><button class="btn ghost small" onclick="go('map')">🔒 鎖上並離開</button><button class="btn ghost small" onclick="go('parents')">📖 家長須知</button></div>
+  <div class="center"><h2 class="title-gold" style="font-size:30px">👨‍👩‍👧 家長專區</h2></div>
+  <div class="tabs">${tabs.map(t=>`<button class="${PZ.tab===t[0]?'on':''}" onclick="PZ.tab='${t[0]}';pzDraw()">${t[1]}</button>`).join('')}</div><div id="pzBody"></div>`;
+  ({sum:pzSum,logs:pzLogs,exp:pzExp,cloud:pzCloud,set:pzSet})[PZ.tab]()}
+function srcBar(){return `<div class="tabs srcbar"><span>資料來源：</span>${[['local','📱 呢部機'],['cloud','☁️ 雲端']].map(s=>`<button class="${PZ.src===s[0]?'on':''}" onclick="pzSrc('${s[0]}')">${s[1]}</button>`).join('')}</div>`}
+async function pzSrc(s){PZ.src=s;if(s==='cloud'&&!PZ.cloud)await pzFetch();pzDraw()}
+async function pzFetch(){try{if(!FB.cfg())throw new Error('未設定 Firebase');const u=await FB.parentUser();if(!u)throw new Error('未登入家長帳戶');
+    toast('⏳ 由雲端載入緊……');PZ.cloud=await FB.fetch();PZ.src='cloud';toast('☁️ 載入咗 '+PZ.cloud.length+' 項記錄')}
+  catch(e){PZ.cloud=null;PZ.src='local';toast('☁️ '+fbErr(e)+'。請去「雲端同步」設定。',5000)}}
+function pzData(){return (PZ.src==='cloud'?(PZ.cloud||[]):LOGS.all()).slice().sort((a,b)=>b.t-a.t)}
+function pzView(list){const full=new Set(list.filter(x=>x.type==='tree'&&x.grp).map(x=>x.grp));return list.filter(x=>!(x.type==='mood'&&x.src==='tree'&&x.grp&&full.has(x.grp)))}
+function emoIcon(k){const e=EMOS.find(x=>x[1]===k);return e?e[0]:'💭'}
+function fmtT(t){const d=new Date(t);return d.toLocaleDateString('zh-HK')+' '+d.toLocaleTimeString('zh-HK',{hour:'2-digit',minute:'2-digit',hour12:false})}
+function typeLabel(x){return x.type==='tree'?'樹窿對話':x.src==='calm'?'心靈角落（揀心情）':'樹窿（小朋友揀咗唔分享內容）'}
+const PTIPS=['樹窿特赦：無論小朋友喺樹窿講咗咩，都唔好因此鬧佢或者罰佢。一次被罰，佢就可能唔會再講。','先多謝，後關心：可以講「多謝你肯將心事講出嚟，我好想陪你」，而唔係「點解你唔同我講？」','並肩好過面對面：一齊散步、坐車、砌積木嗰陣傾，小朋友會放鬆好多。','聽多過講：先講返佢嘅感受，例如「聽落你嗰陣好委屈」，唔好急住俾建議。','唔好喺其他人面前提起樹窿內容，包括兄弟姊妹同親戚。','每星期定一個「心事時間」，十至十五分鐘，大家唔睇手機，淨係陪佢。','見到欺凌、傷害自己或者危險字眼，請即日處理，並聯絡學校社工或者醫生。'];
+function stat(ic,lab,n,cls){return `<div class="stat ${cls||''}"><b>${n}</b>${ic} ${lab}</div>`}
+function pzSum(){const list=pzView(pzData());const since=Date.now()-14*864e5;const rec=list.filter(x=>x.t>=since);
+  const trees=rec.filter(x=>x.type==='tree'),calm=rec.filter(x=>x.src==='calm'),safe=rec.filter(x=>x.safety),hid=rec.filter(x=>x.type==='mood'&&x.src==='tree');
+  const cnt={};rec.forEach(x=>{const k=x.emo||'冇揀';cnt[k]=(cnt[k]||0)+1});const max=Math.max(1,...Object.values(cnt));
+  const alerts=list.filter(x=>x.safety).slice(0,5);
+  $('#pzBody').innerHTML=srcBar()+
+  (alerts.length?`<div class="parch safety"><h3>🛟 安全警報（最近 ${alerts.length} 項）</h3>${alerts.map(x=>`<p><b>${fmtT(x.t)}</b>：${esc((x.text||'').slice(0,80))}${(x.text||'').length>80?'……':''}</p>`).join('')}
+    <p class="note">請今日就搵個輕鬆嘅時間同小朋友傾，確認佢安全。有即時危險請打 999。</p><button class="btn small red" onclick="PZ.tab='logs';PZ.filter='safe';pzDraw()">睇詳細內容</button></div>`:'')+
+  `<div class="parch"><h3>最近 14 日</h3><div class="statgrid">${stat('🌳','樹窿傾偈',trees.length)}${stat('💗','撳「我唔開心」',calm.length)}${stat('🛟','安全警報',safe.length,safe.length?'bad':'')}${stat('🤫','未分享嘅心事',hid.length)}</div>
+  <h3>心情分佈</h3>${Object.keys(cnt).length?Object.entries(cnt).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="barrow"><span>${emoIcon(k)} ${esc(k)}</span><div class="bar"><i style="width:${(v/max*100).toFixed(0)}%"></i></div><b>${v}</b></div>`).join(''):'<p class="note">暫時未有記錄。</p>'}
+  <p class="note">呢部機嘅記錄模式：${MODES[logMode()].name}${FB.on()?' · 已連接雲端':''}</p></div>
+  <div class="parch"><h3>💡 今日家長小貼士</h3><p>${esc(PTIPS[Math.floor(Date.now()/864e5)%PTIPS.length])}</p></div>`}
+function pzLogs(){let list=pzView(pzData());const F=PZ.filter;
+  if(F==='safe')list=list.filter(x=>x.safety);else if(F==='tree')list=list.filter(x=>x.type==='tree');else if(F==='mood')list=list.filter(x=>x.type==='mood');
+  $('#pzBody').innerHTML=srcBar()+`<div class="chips">${[['all','全部'],['tree','🌳 樹窿對話'],['mood','💗 心情記錄'],['safe','🛟 安全警報']].map(f=>`<button class="chip ${F===f[0]?'on':''}" onclick="PZ.filter='${f[0]}';pzDraw()">${f[1]}</button>`).join('')}</div>`+
+  (list.length?list.slice(0,300).map(logCard).join(''):'<div class="parch"><p>暫時未有記錄。</p></div>')}
+function guideHTML(g){return `<div class="guidebox"><b>💡 家長開導建議</b>\n${esc(g)}</div>`}
+function logCard(x){const r=x.reply||{},g=PZ.guides[x.id]||x.guide||'';
+  const badges=[x.safety?'<span class="badge bad">🛟 安全警報</span>':'',x.type==='mood'&&x.src==='tree'?'<span class="badge">🤫 未分享內容</span>':'',x.src==='calm'?'<span class="badge">💗 心靈角落</span>':'',x.type==='tree'?`<span class="badge">${x.ai?'🤖 AI 回應':'📘 基本回應'}</span>`:'',x.type==='tree'&&x.mode==='trust'&&x.shared===true?'<span class="badge good">💌 小朋友主動分享</span>':''].join('');
+  let body;
+  if(x.type==='mood')body=x.src==='calm'?`<p>撳咗「我唔開心」，揀咗心情：<b>${emoIcon(x.emo)} ${esc(x.emo||'冇揀')}</b></p>`
+    :`<p>用咗樹窿，但揀咗唔分享內容。心情：<b>${emoIcon(x.emo)} ${esc(x.emo||'冇揀')}</b></p><p class="note">可以溫和咁關心下佢今日點，但唔好追問佢喺樹窿講咗咩。</p>`;
+  else body=`<div class="you">🧒 ${esc(x.child||'小朋友')}講：${esc(x.text)}</div><details><summary>🌳 小光當時點樣回應</summary>
+    ${r.hug?`<p><b>抱抱：</b>${esc(r.hug)}</p>`:''}${r.understand?`<p><b>拆解：</b>${esc(r.understand)}</p>`:''}${r.secret?`<p><b>秘密寶物：</b>${esc(r.secret)}</p>`:''}
+    ${(r.steps||[]).length?`<p><b>一小步：</b></p><ol>${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}
+    ${(r.selfTalk||[]).length?`<p><b>自我對話：</b></p><div class="talk">${r.selfTalk.map(s=>`<p>${esc(s)}</p>`).join('')}</div>`:''}</details>`;
+  return `<div class="parch logc ${x.safety?'safe':''}"><div class="row" style="justify-content:space-between"><b>📅 ${fmtT(x.t)}${x.emo?' · '+emoIcon(x.emo)+' '+esc(x.emo):''}</b><span>${badges}</span></div>${body}
+  <div class="row mt">${x.type==='tree'||x.safety?`<button class="btn small" onclick="pzGuide('${x.id}')">💡 點樣開導？</button>`:''}<button class="btn small ghost" onclick="pzDel('${x.id}')">🗑️ 刪除</button></div><div id="gd_${x.id}">${g?guideHTML(g):''}</div></div>`}
+const PARENT_PROMPT=`你係一位熟悉兒童心理學嘅香港家長輔導員。家長會俾你睇佢小朋友（六至十四歲）喺學習 App「秘密樹窿」講過嘅說話同當時心情。小朋友知道家長可以睇到呢啲記錄。請用香港廣東話、繁體字，俾家長實用、溫和嘅建議。
+
+輸出純文字，唔好用 markdown 符號，格式：
+【小朋友可能嘅感受同需要】二至三句
+【點樣開口】兩三句自然、唔似審問嘅開場白，最好以多謝佢肯講出嚟開始
+【可以講】三點
+【避免】三點
+【幾時要搵專業幫手】一至兩句
+【今日可以一齊做嘅小事】一句
+
+原則：先接納同陪伴，唔好說教。唔好因為樹窿內容鬧或罰小朋友，亦唔好喺其他人面前提起。如內容涉及欺凌、虐待、自傷或危險，要清楚建議家長即日處理，並聯絡學校社工、醫生或熱線（香港撒瑪利亞會 2896 0000；英國 Childline 0800 1111；緊急 999）。唔好作診斷。`;
+function localGuide(x){const E=x.emo||'唔開心';const L=[
+ '【小朋友可能嘅感受同需要】',`佢當時覺得「${E}」。呢個年紀嘅小朋友，最需要嘅係被明白同被陪伴，多過即刻有答案。`,'',
+ '【點樣開口】',`揀一個輕鬆嘅時間，例如一齊散步、坐車或者瞓覺前，可以講：「多謝你肯喺樹窿講出心事。我見到你嗰陣好似好${E}，我好想聽你講，你想講幾多都得。」`,'',
+ '【可以講】','1. 「聽落你真係好辛苦／好委屈。」（先講返佢嘅感受）','2. 「唔係你嘅錯，我哋一齊諗辦法。」','3. 「你想我淨係聽住，定係想我幫你諗辦法？」','',
+ '【避免】','1. 即刻說教或者一次過俾一大堆建議。','2. 講「呢啲小事唔使唔開心」之類否定感受嘅說話。','3. 因為樹窿入面講嘅嘢而鬧佢或者罰佢。','',
+ '【幾時要搵專業幫手】','如果低落持續超過兩星期、影響食飯瞓覺返學，或者提到欺凌、傷害自己，請盡快聯絡學校社工、家庭醫生或者輔導員。','',
+ '【今日可以一齊做嘅小事】','一齊做三次泡泡呼吸，或者各自講一樣今日感恩嘅事。'];
+ if(x.safety)L.unshift('⚠️ 呢段記錄有安全警報，請今日就同小朋友傾，確認佢安全。有即時危險請打 999。香港：撒瑪利亞會 2896 0000；英國：Childline 0800 1111。','');
+ return L.join('\n')}
+async function pzGuide(id){const x=pzData().find(r=>r.id===id);const box=$('#gd_'+id);if(!x||!box)return;box.innerHTML='<p class="thinking">⏳ 諗緊點樣幫你……</p>';let g;
+  if(aiCfg().key){try{const r=x.reply||{};
+      const u=`小朋友名字：${x.child||'（未提供）'}\n當時心情：${x.emo||'冇揀'}\n安全警報：${x.safety?'有':'冇'}\n小朋友喺樹窿講：${x.text||'（冇內容，只記錄咗心情）'}\n樹窿當時嘅回應：${[r.hug,r.understand,r.secret].filter(Boolean).join(' ')}`;
+      g=(await callAI([{role:'system',content:PARENT_PROMPT},{role:'user',content:u}],1400)).replace(/\*\*|#{1,6}\s?/g,'').trim()||localGuide(x)}
+    catch(e){g=localGuide(x)+'\n\n（AI 暫時連唔到：'+e.message+'，以上係通用建議。）'}}
+  else g=localGuide(x)+'\n\n（未設定 AI，以上係通用建議。喺「設定」加入 AI 之後，會按內容度身建議。）';
+  PZ.guides[id]=g;if(PZ.src==='local')LOGS.mark(id,{guide:g});const b2=$('#gd_'+id);if(b2)b2.innerHTML=guideHTML(g)}
+async function pzDel(id){if(!confirm('確定刪除呢項記錄？刪除咗就搵唔返。'))return;
+  if(PZ.src==='cloud'){try{await FB.delLog(id);PZ.cloud=(PZ.cloud||[]).filter(x=>x.id!==id)}catch(e){toast('❌ '+fbErr(e));return}}else LOGS.del(id);pzDraw()}
+
+/* ---------- 匯出到電腦 ---------- */
+function pzExp(){$('#pzBody').innerHTML=srcBar()+`<div class="parch"><h3>📤 匯出記錄到電腦</h3><p>範圍：</p>
+  <div class="chips">${[['all','全部'],['30','最近 30 日'],['7','最近 7 日']].map(r=>`<button class="chip ${PZ.range===r[0]?'on':''}" onclick="PZ.range='${r[0]}';pzDraw()">${r[1]}</button>`).join('')}</div>
+  <div class="row mt"><button class="btn red" onclick="pzExport('txt')">📄 文字檔 (.txt)</button><button class="btn" onclick="pzExport('csv')">📊 Excel 表格 (.csv)</button><button class="btn ghost" onclick="pzExport('json')">💾 完整備份 (.json)</button></div>
+  <p class="note">電腦：檔案會存入「下載」資料夾。iPad：會問你開定儲存，揀「儲存到檔案」。</p>
+  <p class="note">⚠️ 呢啲係小朋友嘅私密心事，請存放喺安全嘅地方，唔好轉發俾其他人。</p></div>`}
+function dl(name,text,type){const blob=new Blob([text],{type});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},4000)}
+function csvCell(v){v=String(v==null?'':v);if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'}
+function pzExport(fmt){let list=pzView(pzData());if(PZ.range!=='all'){const d=Date.now()-(+PZ.range)*864e5;list=list.filter(x=>x.t>=d)}
+  if(!list.length){toast('呢個範圍冇記錄');return}
+  const gd=x=>PZ.guides[x.id]||x.guide||'';const src=PZ.src==='cloud'?'cloud':'device';const base=`secret-treehole_${src}_${new Date().toISOString().slice(0,10)}`;
+  if(fmt==='json'){dl(base+'.json',JSON.stringify({app:'秘密探險隊 The Secret 小朋友版',exported:new Date().toISOString(),source:src,count:list.length,records:list.map(x=>Object.assign({},x,{time:new Date(x.t).toISOString(),guide:gd(x)||undefined}))},null,2),'application/json');}
+  else if(fmt==='csv'){const H=['日期時間','類型','心情','安全警報','小朋友講','小光抱抱','小光拆解','秘密寶物','一小步','自我對話','家長開導建議'];
+    const rows=list.map(x=>{const r=x.reply||{};return[fmtT(x.t),typeLabel(x),x.emo||'',x.safety?'有':'',x.text||'',r.hug||'',r.understand||'',r.secret||'',(r.steps||[]).join('\n'),(r.selfTalk||[]).join('\n'),gd(x)].map(csvCell).join(',')});
+    dl(base+'.csv','﻿'+H.map(csvCell).join(',')+'\r\n'+rows.join('\r\n'),'text/csv;charset=utf-8')}
+  else{const L=['秘密樹窿記錄（'+(src==='cloud'?'雲端':'呢部機')+'）','匯出時間：'+fmtT(Date.now()),'共 '+list.length+' 項',''.padEnd(40,'=')];
+    list.forEach(x=>{const r=x.reply||{};L.push('',`【${fmtT(x.t)}】${typeLabel(x)}｜心情：${x.emo||'冇揀'}${x.safety?'｜⚠️ 安全警報':''}`);
+      if(x.type==='tree'){L.push('小朋友講：'+x.text);if(r.hug)L.push('小光抱抱：'+r.hug);if(r.understand)L.push('小光拆解：'+r.understand);if(r.secret)L.push('秘密寶物：'+r.secret);
+        if((r.steps||[]).length)L.push('一小步：',...r.steps.map((s,i)=>`  ${i+1}. ${s}`));if((r.selfTalk||[]).length)L.push('自我對話：',...r.selfTalk.map(s=>'  '+s))}
+      if(gd(x))L.push('','家長開導建議：',gd(x));L.push(''.padEnd(40,'-'))});
+    dl(base+'.txt',L.join('\r\n'),'text/plain;charset=utf-8')}
+  toast('📤 已匯出 '+list.length+' 項記錄')}
+
+/* ---------- 雲端同步設定 ---------- */
+async function pzCloud(){const c=FB.cfg(),B=$('#pzBody');
+  B.innerHTML=`<div class="parch"><h3>☁️ 雲端同步（Firebase，可選）</h3><p class="note">用途：小朋友喺 iPad 用樹窿，你喺自己部手機或者電腦都睇到記錄。唔設定都得，你可以喺小朋友部機嘅家長專區直接睇同匯出。設定步驟見 README。請用 GitHub Pages 網址（https）開啟，唔好直接撳開 .html 檔。</p>
+  <h3>① Firebase 設定</h3><textarea id="fbCfg" class="inp" rows="6" placeholder="將 Firebase Console 俾你嘅 const firebaseConfig = { ... }; 成段貼喺度">${c?esc(JSON.stringify(c,null,2)):''}</textarea>
+  <div class="row mt"><button class="btn small red" onclick="pzSaveCfg()">💾 儲存設定</button>${c?'<button class="btn small ghost" onclick="pzClearCfg()">🗑️ 清除</button>':''}</div>${c?`<p class="note">✅ 已設定專案：${esc(c.projectId)}</p>`:''}</div>
+  <div class="parch" id="fbAcct">${c?'<p>⏳ 讀取緊帳戶狀態……</p>':'<p class="note">先完成 ① 先。</p>'}</div>`;
+  if(!c)return;let u=null;
+  try{u=await FB.parentUser()}catch(e){const el=$('#fbAcct');if(el)el.innerHTML=`<p>❌ 載入唔到 Firebase：${esc(fbErr(e))}</p>`;return}
+  const st=await FB.pairStatus();const el=$('#fbAcct');if(!el||PZ.tab!=='cloud')return;
+  const fails=LOGS.all().filter(x=>x.cloud===-1).length;
+  el.innerHTML=`<h3>② 家長帳戶</h3>${u?`<p>✅ 已登入：${esc(u.email||u.uid)}</p><div class="row"><button class="btn small red" onclick="pzFetch().then(()=>{PZ.tab='logs';pzDraw()})">🔄 載入雲端記錄</button><button class="btn small ghost" onclick="pzLogout()">登出</button></div>`
+   :`<input id="fbEmail" class="inp" type="email" placeholder="家長電郵" autocomplete="username"><div style="height:8px"></div><input id="fbPw" class="inp" type="password" placeholder="密碼" autocomplete="current-password"><div class="row mt"><button class="btn small red" onclick="pzLogin()">🔑 登入</button></div>`}
+  <h3 class="mt">③ 呢部機</h3><p>${st==='ok'?'✅ 呢部機已經配對，小朋友嘅記錄會自動上載。':st==='no'?'⚠️ 呢部機之前配對過，但家長已經喺雲端移除咗。':st==='off'?'呢部機未配對（唔會上載記錄）。':'⚠️ 檢查唔到配對狀態：'+esc(st)}</p>
+  ${FB.fam()?`<p class="note">上載失敗嘅記錄：${fails} 項（仍然保存喺呢部機，可以用「匯出」備份）</p>`:''}
+  ${u?`<p class="note">如果呢部係小朋友用嘅 iPad，就撳下面配對。如果係你自己部手機或者電腦，唔使配對。</p><input id="devName" class="inp" maxlength="30" value="小朋友嘅 iPad"><label class="switch"><input type="checkbox" id="autoOut" checked> 配對完自動登出家長帳戶（喺小朋友部機建議剔）</label>
+   <div class="row"><button class="btn small red" onclick="pzPair()">🔗 將呢部機設為小朋友部機</button>${FB.fam()?'<button class="btn small ghost" onclick="pzUnpairThis()">解除呢部機</button>':''}</div>
+   <h3 class="mt">④ 已配對嘅裝置</h3><div id="devList">⏳</div>`:(FB.fam()?'<div class="row"><button class="btn small ghost" onclick="pzUnpairThis()">解除呢部機</button></div>':'<p class="note">登入家長帳戶之後，先可以配對。</p>')}`;
+  if(u){try{const ds=await FB.devices();const dl2=$('#devList');if(dl2)dl2.innerHTML=ds.length?ds.map(d=>`<div class="row" style="justify-content:space-between"><span>📱 ${esc(d.name||d.id)}</span><button class="x" onclick="pzDelDevice('${esc(d.id)}')" aria-label="移除">✕</button></div>`).join(''):'<p class="note">未有。</p>'}catch(e){const dl2=$('#devList');if(dl2)dl2.textContent='❌ '+fbErr(e)}}}
+async function pzSaveCfg(){const c=parseFbCfg($('#fbCfg').value);if(!c){toast('讀唔到設定。請貼上包含 apiKey 同 projectId 嘅 firebaseConfig。',5000);return}
+  await FB.reset();LS.set('ss_fb_cfg',c);PZ.cloud=null;toast('✅ 已儲存 Firebase 設定');pzDraw()}
+async function pzClearCfg(){if(!confirm('確定清除 Firebase 設定？呢部機會停止上載記錄。'))return;await FB.logout();await FB.reset();localStorage.removeItem('ss_fb_cfg');localStorage.removeItem('ss_fb_family');PZ.cloud=null;PZ.src='local';pzDraw()}
+async function pzLogin(){const e=$('#fbEmail').value.trim(),p=$('#fbPw').value;if(!e||!p){toast('請輸入電郵同密碼');return}
+  try{await FB.login(e,p);toast('✅ 登入成功');pzDraw()}catch(err){toast('❌ 登入失敗：'+fbErr(err),6000)}}
+async function pzLogout(){await FB.logout();PZ.cloud=null;PZ.src='local';pzDraw()}
+async function pzPair(){try{await FB.pair($('#devName').value.trim());const out=$('#autoOut').checked;if(out)await FB.logout();PZ.cloud=null;PZ.src='local';
+    toast('✅ 配對成功！呢部機嘅樹窿記錄會上載到雲端。'+(out?'已經自動登出家長帳戶。':''),6000);pzDraw()}catch(e){toast('❌ 配對失敗：'+fbErr(e),6000)}}
+function pzUnpairThis(){if(!confirm('解除之後，呢部機唔會再上載記錄。確定？'))return;localStorage.removeItem('ss_fb_family');pzDraw()}
+async function pzDelDevice(id){if(!confirm('移除呢部裝置？佢之後唔可以再上載記錄。'))return;try{await FB.delDevice(id);pzDraw()}catch(e){toast('❌ '+fbErr(e))}}
+
+/* ---------- 家長設定 ---------- */
+function pzSet(){const c=aiCfg(),m=logMode();
+  $('#pzBody').innerHTML=`<div class="parch"><h3>🌳 樹窿記錄模式（呢部機）</h3>${Object.entries(MODES).map(([k,v])=>`<label class="mode ${m===k?'on':''}"><input type="radio" name="lm" value="${k}" ${m===k?'checked':''}><div><b>${v.name}</b>${v.age?` <small>（${v.age}）</small>`:''}<br><span class="note">${v.desc}</span></div></label>`).join('')}
+  <p class="note">改咗模式之後，小朋友下次打開樹窿會見到新嘅「樹窿嘅約定」，清楚知道邊啲會交俾家長。</p>
+  <div class="field"><label>小朋友點稱呼你？（例如：爸爸媽媽、媽咪、公公婆婆）</label><input id="gName" class="inp" maxlength="12" value="${esc(P.guardian||'')}" placeholder="爸爸媽媽"></div>
+  <div class="field"><label>小朋友名字（記錄同證書用）</label><input id="cName" class="inp" maxlength="20" value="${esc(P.name||'')}"></div>
+  <button class="btn small red" onclick="pzSaveGeneral()">💾 儲存</button></div>
+  <div class="parch"><h3>🤖 AI 設定（秘密樹窿同家長開導建議）</h3>
+  <div class="field"><label>Base URL</label><input id="aBase" class="inp" value="${esc(c.base)}" placeholder="https://api.z.ai/api/paas/v4"></div>
+  <div class="field"><label>Model</label><input id="aModel" class="inp" value="${esc(c.model)}" placeholder="glm-5.3"></div>
+  <div class="field"><label>API Key</label><div class="row"><input id="aKey" class="inp" type="password" value="${esc(c.key)}" placeholder="貼上你嘅 API Key" autocomplete="off"><button class="btn small ghost" onclick="const k=$('#aKey');k.type=k.type==='password'?'text':'password'">👁️</button></div></div>
+  <p class="note">暫存喺呢部機嘅 Local Storage。GLM 國際版：Base URL 用 https://api.z.ai/api/paas/v4，Model 用 glm-5.3。</p>
+  <div class="row"><button class="btn small red" onclick="saveAI()">💾 儲存</button><button class="btn small" onclick="testAI()">🧪 測試連線</button><button class="btn small ghost" onclick="clearAI()">🗑️ 清除 AI 設定</button></div><p class="note" id="aiMsg"></p></div>
+  <div class="parch"><h3>🔑 更改家長 PIN</h3>${pinInput('np1','新 PIN（4 至 8 個數字）')}<div style="height:8px"></div>${pinInput('np2','再輸入一次')}<div class="row mt"><button class="btn small" onclick="pzChangePin()">更改 PIN</button></div></div>
+  <div class="parch"><h3>🧩 其他</h3><label class="switch"><input type="checkbox" id="sUnlock" ${P.unlockAll?'checked':''}> 解鎖所有關卡</label>
+  <div class="row"><button class="btn small ghost" onclick="resetAll()">♻️ 重設學習進度</button><button class="btn small ghost" onclick="pzWipeLogs()">🗑️ 刪除呢部機所有樹窿記錄</button></div></div>`;
+  $$('input[name=lm]').forEach(r=>r.onchange=()=>{localStorage.setItem('ss_logmode',r.value);toast('已改為「'+MODES[r.value].name+'」');pzDraw()});
+  $('#sUnlock').onchange=e=>{P.unlockAll=e.target.checked;save();toast(P.unlockAll?'已解鎖所有關卡':'已恢復逐關解鎖')}}
+function pzSaveGeneral(){P.guardian=$('#gName').value.trim();P.name=$('#cName').value.trim();save();toast('✅ 已儲存')}
+function pzChangePin(){const a=$('#np1').value,b=$('#np2').value;if(!/^\d{4,8}$/.test(a)){toast('PIN 要係 4 至 8 個數字');return}if(a!==b){toast('兩次輸入唔一樣');return}localStorage.setItem('ss_pin',pinHash(a));$('#np1').value=$('#np2').value='';toast('✅ 已更改家長 PIN')}
+function pzWipeLogs(){if(!confirm('確定刪除呢部機上面所有樹窿記錄？建議先匯出備份。（雲端記錄唔受影響）'))return;LOGS.clear();toast('已刪除呢部機嘅樹窿記錄')}
 
 /* ---------- 啟動 ---------- */
 $('#brandSeal').innerHTML=seal('秘',34);
