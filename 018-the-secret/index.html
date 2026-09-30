@@ -225,6 +225,20 @@ select.inp{appearance:auto}
 .rolebar button{flex:1;min-width:150px}
 .parch .tabs button:not(.on){background:#5a2e0e12;color:#5a2e0e;border-color:#b8862b99}
 details summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
+.reply h3{font-size:19px;margin:16px 0 4px}
+.reply .bubble{display:flex;gap:10px;align-items:flex-start;margin:6px 0 4px}
+.reply .av{font-size:36px;line-height:1;flex:none;margin-top:6px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 0 10px #ffcf6a)}
+.reply .hugbb{flex:1;background:#fff;border:2px solid #e9c46a;border-radius:4px 22px 22px 22px;padding:4px 14px;box-shadow:0 4px 14px #b8862b33;font-size:19px}
+.reply .hugbb .say{margin:6px 0}
+.treasure{background:linear-gradient(135deg,#fff6d0,#ffe8a3);border:2px solid #c8962f;border-radius:16px;padding:8px 14px}
+.treasure .tb{font-weight:900;font-family:var(--serif);font-size:20px;color:#7a1a12}
+.treasure .say{margin:6px 0}
+.stepi{display:flex;align-items:center;gap:8px;background:#fffaf0;border:2px solid #b8862b55;border-radius:14px;padding:2px 8px;margin:8px 0;transition:background .3s}
+.stepi .say{flex:1;margin:6px 0}
+.stepi .ck{width:46px;height:46px;border-radius:12px;border:2px solid #b8862b;background:#fff;font-size:22px;flex:none;padding:0}
+.stepi.done{background:#e6f6e4;border-color:#2e7d32}.stepi.done .say span{text-decoration:line-through;opacity:.65}
+.tipbox{margin-top:12px;background:#eef6ff;border-left:6px solid #3a7bd5;border-radius:12px;padding:0 12px}
+.safety.soft{background:#fffbea;border-color:#e0a800}
 .foot{text-align:center;font-size:13px;opacity:.6;margin-top:30px}
 
 /* ---------- 背景音樂 ---------- */
@@ -743,6 +757,7 @@ const LADDER=[
  ['😐','少少平靜','我可以休息一陣，我唔使即刻解決晒所有嘢。'],
  ['😣','好難受','我而家好辛苦，呢個感覺係可以有嘅，我會陪住自己。']
 ];
+const BULLY=/(欺凌|霸凌|欺負|蝦我|恰我|玩弄我|搶我|勒索|威脅我)/;
 const DANGER=/(想死|去死|自殺|跳樓|唔想生存|唔想活|唔想再活|傷害自己|割手|𠝹手|界手|打我|虐待|摸我|私人部位|離家出走|冇人要我|想消失)/;
 
 /* =========================================================
@@ -1153,19 +1168,27 @@ function showSafety(){openModal(`<div class="parch safety" style="background:#ff
 /* =========================================================
    秘密樹窿（AI）
    ========================================================= */
-const SYS_PROMPT=`你係「小光」，一個溫柔、有智慧嘅「秘密樹窿」守護精靈，陪伴六至十四歲嘅香港小朋友。你熟悉 Rhonda Byrne《The Secret》嘅核心概念：吸引力法則（思想磁石、腦嘅探射燈）、感覺指南針、秘密轉換器（快樂清單）、要求－相信－接收再加一小步行動、感恩（感恩罐、感恩石）、想像（心靈電影）、豐盛、善意回力鏢、多謝身體、專注支持而唔係反對、好朋友式自我對話。你會用正向心理學同兒童心理學嘅方式，溫和咁運用呢啲概念。
+const SYS_PROMPT=`你係「小光」，一個溫柔、有智慧嘅「秘密樹窿」守護精靈，陪伴六至十四歲嘅香港小朋友。你熟悉 Rhonda Byrne《The Secret》嘅核心概念：思想磁石（腦嘅探射燈）、感覺指南針、秘密轉換器（快樂清單）、要求－相信－接收再加一小步行動、感恩同心靈電影、豐盛眼鏡、善意回力鏢、多謝身體、做一點光（專注支持而唔係反對）、好朋友式自我對話、每日都係新畫紙。你用正向心理學同兒童心理學嘅方式，溫和咁運用呢啲概念。
 
-必須遵守：
-1. 全部用香港廣東話口語、繁體字。句子要短，用小學生明白嘅字，唔好用深奧詞語或者英文術語。
-2. 先同理：肯定佢嘅感受係正常、可以有嘅。永遠唔可以話係小朋友「吸引」咗壞事、係佢嘅錯，或者叫佢「唔好諗負面嘢」。
-3. 用小朋友明白嘅方式拆解件事，可以用比喻。
-4. 提供二至四個具體、安全、小朋友今日做得到嘅一小步。
-5. 如果內容涉及欺凌、被打、被人掂私人部位、被威脅要保守秘密、想傷害自己、想死、離家出走或者任何危險，將 safety 設為 true，溫柔但清楚咁叫佢即刻話俾信任嘅大人（爸媽、老師、社工）知，有即時危險打 999。千祈唔好叫佢保守秘密。
-6. 唔好作醫學或心理診斷。身體唔舒服，要叫佢話俾大人知同睇醫生。
-7. 自我對話逐字稿（selfTalk）：用第一身「我」寫，好似祈禱，或者同自己個心溫柔講嘢咁。八至十二句短句，每句一個元素，內容要包括：接納感受、安撫身體（呼吸）、肯定自己、感恩、一小步行動、盼望。
+寫作規則：
+1. 全部用香港廣東話口語、繁體字，好似一個溫柔嘅大哥哥大姐姐同細路講嘢。句子要短，每句唔好超過二十五個字。用小學生識嘅字，唔好用英文。
+2. 先同理：用返小朋友自己講過嘅事同感受，令佢覺得真係有人聽到。永遠唔可以話係小朋友「吸引」咗壞事、係佢嘅錯，或者叫佢「唔好諗負面嘢」。
+3. 唔好作任何醫學、心理診斷或者身體原因解釋（例如唔好解釋點解會口吃、點解會肚痛）。身體唔舒服就叫佢話俾大人知。
+4. 一小步要具體、安全、今日做得到。提到照顧者時，用小朋友自己嘅稱呼。
+5. 內文要引用說話時用「」，千祈唔好喺內文用英文雙引號。
+6. 如果涉及欺凌、被打、被人掂私人部位、被威脅保守秘密、想傷害自己、想死、離家出走或者任何危險，safety 設為 true，並清楚叫佢今日就話俾信任嘅大人知，有即時危險打 999。千祈唔好叫佢保守秘密。
 
-只輸出一個 JSON 物件，唔好有其他文字，格式：
-{"hug":"同理說話，二至三句","understand":"一齊拆解發生咩事，二至四句","secret":"連繫一個秘密寶物，點樣用，二至三句","steps":["一小步","一小步"],"selfTalk":["句子","句子"],"safety":false,"adultTip":"建議佢可以同邊個傾，一句"}`;
+只輸出一個 JSON 物件，唔好有其他文字，唔好用 markdown。一定要遵守字數上限：
+{
+ "hug": "同理佢嘅感受，兩至三句，共六十字以內",
+ "understand": "用比喻一齊拆解發生咩事，兩至三句，共八十字以內",
+ "treasure": 揀一個最啱用嘅秘密寶物編號（1 思想磁石、2 感覺指南針或秘密轉換器、3 三步魔法加行動、4 感恩同心靈電影、5 豐盛眼鏡、6 善意回力鏢、7 多謝身體、8 做一點光、9 好朋友式自我對話、10 每日新畫紙），
+ "secret": "點樣用呢件寶物，一至兩句，五十字以內",
+ "steps": ["二至四個一小步，每個三十字以內"],
+ "selfTalk": ["八至十句第一身自我對話，好似祈禱咁，每句二十字以內，包括接納感受、呼吸、肯定自己、感恩、一小步、盼望"],
+ "safety": false,
+ "adultTip": "建議佢可以同邊個傾，一句"
+}`;
 const LOCAL={
  school:{u:'學嘢遇到困難好正常，唔代表你唔聰明。個腦好似肌肉咁，練得愈多就愈強。一次唔好，唔代表以後都唔好。',s:'試下用「三步魔法加行動」：講出你想要嘅，例如「我想下次溫得更有信心」，相信自己可以慢慢進步，然後今日行一小步。',st:['將要溫嘅嘢分成細細份，每次做十五分鐘','唔明嘅地方寫低，聽日問老師或者同學','做完一小份，同自己講「我做到喇」','瞓覺前播一套心靈電影，想像自己考試時好冷靜']},
  friend:{u:'同朋友相處有時會唔開心，可能係誤會，可能係對方都有自己嘅心事。呢啲唔代表你唔好，亦唔代表冇人鍾意你。',s:'記得「善意回力鏢」同「探射燈」：試下留意身邊對你好嘅人，同埋主動送出一個細細嘅善意。',st:['先做三次泡泡呼吸，令自己平靜啲','諗下有邊個同學平時對你幾好，試下主動同佢打招呼','如果有人蝦你、笑你或者令你驚，一定要話俾老師同爸媽知','做一樣你秘密轉換器入面嘅事，幫個心充電']},
@@ -1175,25 +1198,42 @@ const LOCAL={
 function localReply(txt,emo){const E=EMOS.find(x=>x[1]===emo);let t='general';
   if(DANGER.test(txt)){const g=GUARD();return{hug:'多謝你咁勇敢講出嚟。你而家一定好辛苦，你嘅感受好重要，你唔係一個人。',understand:'有人傷害你，或者心入面痛到有傷害自己、唔想再活落去嘅諗法，呢啲都唔係你嘅錯。呢啲事太大，唔應該由你一個人扛，一定要有大人幫手。',secret:'今日最重要嘅秘密寶物係：搵人幫手。講出嚟唔係麻煩人，係保護自己，係最勇敢嘅一步。',steps:[`而家就去搵${g}、老師或者一個你信任嘅大人，話俾佢聽你講過嘅嘢`,'如果身邊冇大人，或者有即時危險，打 999','可以打求助熱線：香港撒瑪利亞會 2896 0000；英國 Childline 0800 1111','同大人一齊做三次泡泡呼吸，唔好自己一個人'],selfTalk:['親愛嘅自己，我知道你而家好辛苦。','呢啲感覺好大，但唔係我嘅錯。','我慢慢吸一啖氣……再慢慢呼出嚟。','我值得被保護，值得被愛。','我唔需要自己一個人面對。','我可以而家就去搵一個信任嘅大人。','講出嚟係勇敢，唔係麻煩人。','有人會幫我，我會一步一步好返。'],safety:true,adultTip:`請而家就去搵${g}或者老師，話俾佢哋聽。`}}
   if(/功課|考試|測驗|默書|成績|分數|溫書|老師/.test(txt))t='school';else if(/朋友|同學|冇人|小息|蝦|欺負|笑我|唔睬/.test(txt))t='friend';else if(/爸|媽|屋企|家姐|哥哥|細佬|妹|嗌交|鬧我/.test(txt))t='family';
-  const T=LOCAL[t];return{hug:(E?E[2]+' ':'')+'多謝你願意講出嚟，講出嚟本身已經好勇敢。',understand:T.u,secret:T.s,steps:T.st,selfTalk:selfTalkLocal(emo),safety:false,adultTip:'你可以將今日同樹窿講嘅嘢，同爸爸媽媽、老師或者一個你信任嘅大人傾下，佢哋好想幫你。'}}
+  const T=LOCAL[t];return{treasure:{school:3,friend:6,family:2,general:2}[t],hug:(E?E[2]+' ':'')+'多謝你願意講出嚟，講出嚟本身已經好勇敢。',understand:T.u,secret:T.s,steps:T.st,selfTalk:selfTalkLocal(emo),safety:false,adultTip:'你可以將今日同樹窿講嘅嘢，同爸爸媽媽、老師或者一個你信任嘅大人傾下，佢哋好想幫你。'}}
 function aiCfg(){return{base:(localStorage.getItem('ss_base')||'https://api.z.ai/api/paas/v4').trim().replace(/\/+$/,''),model:(localStorage.getItem('ss_model')||'glm-5.3').trim(),key:(localStorage.getItem('ss_key')||'').trim()}}
-async function callAI(msgs,maxTok=1800){
+/* opt.json：要求 JSON 格式。callAI.last 記低今次係咪被截斷（finish_reason） */
+async function callAI(msgs,maxTok=1800,opt={}){
   const c=aiCfg();if(!c.key)throw new Error('未輸入 API Key');
   const url=/\/chat\/completions$/.test(c.base)?c.base:c.base+'/chat/completions';
   const body={model:c.model,messages:msgs,temperature:.7,max_tokens:maxTok,stream:false};
   if(/z\.ai|bigmodel/i.test(c.base))body.thinking={type:'disabled'};
+  if(opt.json)body.response_format={type:'json_object'};
   const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),90000);
   let res;try{res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},body:JSON.stringify(body),signal:ctl.signal})}
   catch(e){clearTimeout(to);throw new Error(e.name==='AbortError'?'等太耐冇回應':'網絡或者 CORS 問題，連唔到伺服器')}
   clearTimeout(to);
-  if(!res.ok){let t='';try{t=await res.text()}catch(e){}throw new Error('HTTP '+res.status+' '+t.slice(0,160))}
-  const j=await res.json();const m=j.choices&&j.choices[0]&&j.choices[0].message;return (m&&(m.content||''))||'';
+  if(!res.ok){let t='';try{t=await res.text()}catch(e){}
+    if(opt.json&&res.status===400&&/response_format|json/i.test(t))return callAI(msgs,maxTok,Object.assign({},opt,{json:false}));/* 唔支援 JSON 模式嘅服務：改用普通模式 */
+    throw new Error('HTTP '+res.status+' '+t.slice(0,160))}
+  const j=await res.json();const ch=j.choices&&j.choices[0];const m=ch&&ch.message;
+  callAI.last={finish:ch&&ch.finish_reason||''};return (m&&(m.content||''))||'';
 }
-function parseAI(raw){let s=String(raw||'').replace(/```json|```/gi,'');const a=s.indexOf('{'),b=s.lastIndexOf('}');
+/* 讀 AI 回覆：先試正常 JSON；如果斷咗（例如太長），就救返已經完整嘅部分；永遠唔會將原始 JSON 顯示俾小朋友 */
+function unq(x){try{return JSON.parse('"'+x+'"')}catch(e){return x.replace(/\\n/g,' ').replace(/\\"/g,'「')}}
+function salvageJSON(s){const o={};
+  ['hug','understand','secret','adultTip'].forEach(k=>{const m=s.match(new RegExp('"'+k+'"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"'));if(m)o[k]=unq(m[1])});
+  ['steps','selfTalk'].forEach(k=>{const i=s.search(new RegExp('"'+k+'"\\s*:\\s*\\['));if(i<0)return;let seg=s.slice(s.indexOf('[',i)+1);const e=seg.indexOf(']');if(e>=0)seg=seg.slice(0,e);
+    const out=[];seg.replace(/"((?:[^"\\]|\\.)*)"/g,(_,x)=>{out.push(unq(x))});o[k]=out});
+  const t=s.match(/"treasure"\s*:\s*"?(\d+)/);if(t)o.treasure=+t[1];if(/"safety"\s*:\s*true/.test(s))o.safety=true;return o}
+function parseAI(raw){const s=String(raw||'').replace(/```(?:json)?/gi,'').trim();const a=s.indexOf('{'),b=s.lastIndexOf('}');
   if(a>=0&&b>a){try{return normAI(JSON.parse(s.slice(a,b+1)))}catch(e){}}
-  return{hug:s.trim().slice(0,1500)||'小光聽到你講嘅嘢喇。',understand:'',secret:'',steps:[],selfTalk:selfTalkLocal(''),safety:false,adultTip:''}}
-function normAI(j){const arr=x=>Array.isArray(x)?x.map(String).map(s=>s.trim()).filter(Boolean):(x?String(x).split(/\n+/).map(s=>s.trim()).filter(Boolean):[]);
-  const st=arr(j.selfTalk);return{hug:String(j.hug||''),understand:String(j.understand||''),secret:String(j.secret||''),steps:arr(j.steps),selfTalk:st.length?st:selfTalkLocal(''),safety:!!j.safety,adultTip:String(j.adultTip||'')}}
+  if(a>=0){const j=salvageJSON(s.slice(a));if(j.hug||j.understand||(j.steps&&j.steps.length))return normAI(j,true)}
+  else if(s)return normAI({hug:s.slice(0,300)},true);
+  return null}
+function cleanAI(x){return String(x||'').replace(/\*\*|__|#{1,6}\s?/g,'').replace(/^["“”\s]+|["“”\s]+$/g,'').replace(/\s*\n\s*/g,' ').trim()}
+function normAI(j,partial){const arr=x=>(Array.isArray(x)?x:(x?String(x).split(/\n+/):[])).map(cleanAI).filter(Boolean);
+  const st=arr(j.selfTalk);const tr=parseInt(j.treasure,10);
+  return{hug:cleanAI(j.hug)||'多謝你話俾小光知。講得出嚟，已經好勇敢。',understand:cleanAI(j.understand),secret:cleanAI(j.secret),treasure:tr>=1&&tr<=10?tr:0,
+    steps:arr(j.steps).slice(0,4),selfTalk:st.length>=4?st.slice(0,12):selfTalkLocal(''),safety:!!j.safety,adultTip:cleanAI(j.adultTip),partial:!!partial}}
 let treeHist=[],treeEmo=null,treeCards='';
 function renderTree(){
   const hasAI=!!aiCfg().key;
@@ -1224,15 +1264,21 @@ async function sendTree(){
   const ta=$('#tIn');const txt=ta.value.trim();
   if(!txt){const m='你想講咩呀？可以打字，或者撳咪高峰用把口講。';toast(m);TTS.speak(m);return}
   stopAll();const emo=treeEmo!=null?EMOS[treeEmo][1]:'';const danger=DANGER.test(txt);const id='r'+Date.now();
-  $('#tOut').insertAdjacentHTML('afterbegin',`<div class="parch" id="${id}"><div class="you">🧒 你講：${esc(txt)}</div>${danger?`<div class="safety">${safetyBlock()}</div>`:''}<div class="thinking">🌳 樹窿聽緊……小光諗緊點樣幫你 <span class="dots3"><i></i><i></i><i></i></span></div></div>`);
+  $('#tOut').insertAdjacentHTML('afterbegin',`<div class="parch reply" id="${id}"><div class="you">🧒 你講：${esc(txt)}</div>${danger?`<div class="safety">${safetyBlock()}</div>`:''}<div class="thinking">🌳 樹窿聽緊……小光諗緊點樣幫你 <span class="dots3"><i></i><i></i><i></i></span></div></div>`);
   $('#'+id).scrollIntoView({block:'start',behavior:'smooth'});
   if(danger)TTS.speak('多謝你講出嚟。你嘅安全最重要，請即刻話俾一個你信任嘅大人知。');
   ta.value='';const sb=$('#tSend');sb.disabled=true;
   let data=null,note='',aiUsed=false;
-  if(aiCfg().key){const user=(emo?'我而家嘅感覺：'+emo+'\n':'')+'我想講：'+txt;treeHist.push({role:'user',content:user});
-    try{const raw=await callAI([{role:'system',content:SYS_PROMPT},...treeHist.slice(-8)]);treeHist.push({role:'assistant',content:raw});data=parseAI(raw);aiUsed=true}
+  if(aiCfg().key){
+    const user=`（小朋友資料：名字${P.name?'係「'+P.name+'」':'未提供'}；佢稱呼照顧者做「${GUARD()}」）\n`+(emo?'我而家嘅感覺：'+emo+'\n':'')+'我想講：'+txt;
+    treeHist.push({role:'user',content:user});
+    try{const raw=await callAI([{role:'system',content:SYS_PROMPT},...treeHist.slice(-8)],2500,{json:true});data=parseAI(raw);
+      if(data){aiUsed=true;treeHist.push({role:'assistant',content:JSON.stringify(replySlim(data))})}
+      else{treeHist.pop();note='（AI 嘅回覆讀唔到，小光先用基本方式陪你。）'}}
     catch(err){treeHist.pop();note='（AI 暫時連唔到：'+err.message+'。小光先用基本方式陪你。）'}}
-  if(!data)data=localReply(txt,emo);if(danger)data.safety=true;
+  if(data&&data.partial){/* AI 回覆唔齊（例如斷咗）：用基本回覆補返缺少嘅部分 */const L=localReply(txt,emo);
+    if(!data.understand)data.understand=L.understand;if(!data.secret){data.secret=L.secret;data.treasure=L.treasure||0}if(!data.steps.length)data.steps=L.steps}
+  if(!data)data=localReply(txt,emo);if(danger||BULLY.test(txt))data.safety=true;
   /* 按家長揀嘅記錄模式儲存（小朋友喺「樹窿嘅約定」已經知道規則） */
   const mode=logMode(),safe=!!data.safety,grp=newLogId();let ask=false,kept=false;
   const full={type:'tree',src:'tree',emo,text:txt,reply:replySlim(data),safety:safe,ai:aiUsed,grp};
@@ -1243,14 +1289,18 @@ async function sendTree(){
   treeCards=$('#tOut')?$('#tOut').innerHTML:treeCards;
   if(!danger)TTS.speak(data.hug);
 }
-function renderReply(id,txt,d,note,shown,opt={}){const el=$('#'+id);if(!el)return;const tid='t'+id;const g=GUARD();
-  el.innerHTML=`<div class="you">🧒 你講：${esc(txt)}</div>${d.safety?`<div class="safety">${safetyBlock()}</div>`:''}
-  ${d.hug?`<h3>🤗 小光抱抱你</h3>${para(d.hug)}`:''}
+const TREASURES={1:['🧲','思想磁石'],2:['🧭','感覺指南針'],3:['✨','三步魔法加行動'],4:['🙏','感恩同心靈電影'],5:['💎','豐盛眼鏡'],6:['🤝','善意回力鏢'],7:['🌿','多謝我嘅身體'],8:['🌍','做一點光'],9:['🌟','好朋友式自我對話'],10:['🎨','每日新畫紙']};
+function softSafety(){const g=GUARD();return `<div class="safety soft">${para(`💛 呢件事好重要，唔應該由你一個人面對。今日就話俾${g}或者老師知，佢哋有責任保護你。`)}<button class="btn small ghost" onclick="showSafety()">📞 更多求助方法</button></div>`}
+function tickStep(b){const row=b.closest('.stepi');const on=!row.classList.contains('done');row.classList.toggle('done',on);b.textContent=on?'✅':'⬜';
+  if(on){SFX.ok();TTS.speak('好叻！你做到咗一小步！')}const r=b.closest('.reply');if(r&&$('#tOut')&&$('#tOut').contains(r))treeCards=$('#tOut').innerHTML}
+function renderReply(id,txt,d,note,shown,opt={}){const el=$('#'+id);if(!el)return;const tid='t'+id;const g=GUARD();const T=TREASURES[d.treasure];
+  el.innerHTML=`<div class="you">🧒 你講：${esc(txt)}</div>${shown?`<div class="safety">${safetyBlock()}</div>`:d.safety?softSafety():''}
+  <h3>🤗 小光抱抱你</h3><div class="bubble"><div class="av">✨</div><div class="hugbb">${para(d.hug)}</div></div>
   ${d.understand?`<h3>🔍 一齊拆解</h3>${para(d.understand)}`:''}
-  ${d.secret?`<h3>✨ 用得着嘅秘密寶物</h3>${para(d.secret)}`:''}
-  ${d.steps.length?`<h3>👣 你可以試下嘅一小步</h3>${d.steps.map((s,k)=>para(`${k+1}. ${s}`)).join('')}`:''}
+  ${d.secret||T?`<h3>💎 用得着嘅秘密寶物</h3><div class="treasure">${T?`<div class="row" style="justify-content:space-between"><span class="tb">${T[0]} ${T[1]}</span>${unlocked(d.treasure)?`<button class="btn small ghost" onclick="go('level',${d.treasure})">去重溫第 ${d.treasure} 關 →</button>`:''}</div>`:''}${d.secret?para(d.secret):''}</div>`:''}
+  ${d.steps.length?`<h3>👣 今日可以試嘅一小步</h3><p class="note">做完一樣，就撳 ⬜ 剔低佢！</p>${d.steps.map(s=>`<div class="stepi">${para(s)}<button class="ck" onclick="tickStep(this)" aria-label="做完">⬜</button></div>`).join('')}`:''}
   <h3>🕯️ 我同我個心講嘅說話（逐字稿）</h3>${para('好似祈禱咁，靜靜哋、慢慢讀俾自己聽。撳「陪我慢慢讀」，小光讀一句，你跟住講一句。')}${talkHTML(d.selfTalk,tid)}
-  ${d.adultTip?para('💬 '+d.adultTip):''}${note?`<p class="note">${esc(note)}</p>`:''}
+  ${d.adultTip?`<div class="tipbox">${para('💬 '+d.adultTip)}</div>`:''}${note?`<p class="note">${esc(note)}</p>`:''}
   ${opt.kept?`<div class="sharebox">${para(`🛟 因為你嘅安全好重要，呢段說話會留低俾${g}睇。佢哋係想保護你，唔會鬧你。`)}</div>`:''}
   ${opt.ask?`<div class="sharebox" id="sh_${id}">${para(`💌 想唔想將呢段心事交俾${g}？交咗之後，${g}可以更加明白你、陪住你。`)}<div class="row"><button class="btn small red" onclick="shareTree('${id}',true)">💌 交俾${esc(g)}</button><button class="btn small ghost" onclick="shareTree('${id}',false)">🤫 今次唔使</button></div></div>`:''}
   <div class="row mt"><button class="btn ghost small" onclick="readAll('#${id}')">▶ 全部讀出嚟</button></div>`}
@@ -1371,7 +1421,7 @@ const LOGS={key:'ss_logs',max:600,
  del(id){LS.set(this.key,this.all().filter(x=>x.id!==id))},
  clear(){try{localStorage.removeItem(this.key)}catch(e){}}};
 function newLogId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
-function replySlim(d){return{hug:d.hug||'',understand:d.understand||'',secret:d.secret||'',steps:d.steps||[],selfTalk:d.selfTalk||[],adultTip:d.adultTip||''}}
+function replySlim(d){return{treasure:d.treasure||0,hug:d.hug||'',understand:d.understand||'',secret:d.secret||'',steps:d.steps||[],selfTalk:d.selfTalk||[],adultTip:d.adultTip||''}}
 function recordLog(r){
   const rec=Object.assign({id:newLogId(),t:Date.now(),type:'tree',src:'tree',emo:'',text:'',safety:false,shared:null,mode:logMode(),ai:false,child:P.name||'',grp:''},r);
   if(!rec.reply)delete rec.reply;
@@ -1528,7 +1578,7 @@ function logCard(x){const r=x.reply||{},g=PZ.guides[x.id]||x.guide||'';
   if(x.type==='mood')body=x.src==='calm'?`<p>撳咗「我唔開心」，揀咗心情：<b>${emoIcon(x.emo)} ${esc(x.emo||'冇揀')}</b></p>`
     :`<p>用咗樹窿，但揀咗唔分享內容。心情：<b>${emoIcon(x.emo)} ${esc(x.emo||'冇揀')}</b></p><p class="note">可以溫和咁關心下佢今日點，但唔好追問佢喺樹窿講咗咩。</p>`;
   else body=`<div class="you">🧒 ${esc(x.child||'小朋友')}講：${esc(x.text)}</div><details><summary>🌳 小光當時點樣回應</summary>
-    ${r.hug?`<p><b>抱抱：</b>${esc(r.hug)}</p>`:''}${r.understand?`<p><b>拆解：</b>${esc(r.understand)}</p>`:''}${r.secret?`<p><b>秘密寶物：</b>${esc(r.secret)}</p>`:''}
+    ${r.hug?`<p><b>抱抱：</b>${esc(r.hug)}</p>`:''}${r.understand?`<p><b>拆解：</b>${esc(r.understand)}</p>`:''}${r.secret?`<p><b>秘密寶物${TREASURES[r.treasure]?'（'+TREASURES[r.treasure][1]+'）':''}：</b>${esc(r.secret)}</p>`:''}
     ${(r.steps||[]).length?`<p><b>一小步：</b></p><ol>${r.steps.map(s=>`<li>${esc(s)}</li>`).join('')}</ol>`:''}
     ${(r.selfTalk||[]).length?`<p><b>自我對話：</b></p><div class="talk">${r.selfTalk.map(s=>`<p>${esc(s)}</p>`).join('')}</div>`:''}</details>`;
   return `<div class="parch logc ${x.safety?'safe':''}"><div class="row" style="justify-content:space-between"><b>📅 ${fmtT(x.t)}${x.emo?' · '+emoIcon(x.emo)+' '+esc(x.emo):''}</b><span>${badges}</span></div>${body}
