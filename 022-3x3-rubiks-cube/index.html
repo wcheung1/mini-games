@@ -391,6 +391,83 @@ code,kbd{background:#F1ECFF;border-radius:6px;padding:1px 6px;font-size:.92em}
   .no-print{display:none!important}
 }
 
+/* v2: solver explanations + view pad */
+.fig.cmp{display:flex;flex-direction:column;gap:8px;max-width:340px;margin:8px auto 12px;text-align:left}
+.fig.cmp div{display:flex;flex-direction:column;gap:3px;font-weight:800;font-size:14px}
+.fig.cmp i{display:block;font-style:normal;background:linear-gradient(90deg,#FFB020,#FF6A00);color:#fff;border-radius:8px;padding:4px 8px;white-space:nowrap;min-width:54px}
+.fig.cmp div:last-child i{background:linear-gradient(90deg,#5B5BF7,#8B7CFF)}
+.fig.route{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap}
+.fig.route div{display:flex;flex-direction:column;align-items:center;background:#F6EFE3;border-radius:14px;padding:8px 10px;min-width:64px}
+.fig.route div.stop{background:#FFF1C4;border:2px dashed #E0B000}
+.fig.route b{font-size:28px}
+.fig.route small{font-size:12px;line-height:1.3}
+.fig.route i{font-style:normal;font-size:12px;font-weight:800;color:var(--pri);text-align:center}
+.fig.safe{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:320px;margin:8px auto}
+.fig.safe figcaption{width:100%}
+.meters{display:grid;grid-template-columns:1fr;gap:8px;margin-top:10px}
+.meter{background:#FAF6EE;border-radius:14px;padding:8px 10px;border:2px solid transparent}
+.meter.on{border-color:var(--pri);background:#F3F3FF}
+.meter.ok{background:#E3F8EF}
+.meter b{font-size:14px;display:flex;justify-content:space-between;gap:6px}
+.meter .mrow{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;margin-top:5px}
+.meter .mrow span{width:96px;flex:none;white-space:nowrap}
+.meter .mrow em{font-style:normal;width:38px;text-align:right;font-variant-numeric:tabular-nums}
+.meter .mb{flex:1;height:9px;background:#E9E1D2;border-radius:999px;overflow:hidden}
+.meter .mb i{display:block;height:100%;background:linear-gradient(90deg,var(--pri),#8B7CFF);border-radius:999px;transition:width .35s}
+.meter.ok .mb i,.meter .mb i.full{background:linear-gradient(90deg,var(--ok),#52D6A6)}
+.why{border-radius:16px;padding:10px 12px;margin-top:10px;display:flex;gap:10px;align-items:flex-start}
+.why p{margin:0;line-height:1.65;font-size:16px}
+.why .wt{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:2px}
+.why.k-up{background:#E3F8EF}.why.k-setup{background:#FFF7DD}.why.k-back{background:#FFEFF6}.why.k-goal{background:linear-gradient(135deg,#E3F8EF,#FFF6D6)}.why.k-next{background:#F1ECFF}.why.k-intro{background:#EEF3FF}
+.why .wi{font-size:22px;flex:none;line-height:1.2}
+.why .grow{flex:1;min-width:0}
+.phase-tag{display:inline-block;font-size:12px;font-weight:800;border-radius:999px;padding:2px 8px;background:#EEE9FF;color:#4b3fd1;margin-left:6px;vertical-align:middle}
+.phase-tag.p2{background:#D8F6E9;color:#0b6b4f}
+.sol-group.p1{color:#4b3fd1}.sol-group.p2{color:#0b6b4f}
+.mchip.p2:not(.cur):not(.done){border-color:#9FE3C6}
+.view-pad{position:absolute;right:10px;bottom:10px;display:grid;grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);gap:3px;z-index:3}
+.view-pad button{border:0;border-radius:12px;background:rgba(255,255,255,.92);font-size:18px;font-weight:900;color:var(--ink);box-shadow:0 3px 0 rgba(35,38,58,.13);display:grid;place-items:center;padding:0}
+.view-pad button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(35,38,58,.13)}
+.view-pad .vp-c{background:rgba(91,91,247,.14);font-size:16px;box-shadow:none}
+.view-pad .vp-u{grid-column:2;grid-row:1}.view-pad .vp-l{grid-column:1;grid-row:2}.view-pad .vp-c{grid-column:2;grid-row:2}.view-pad .vp-r{grid-column:3;grid-row:2}.view-pad .vp-d{grid-column:2;grid-row:3}
+.slides-modal .slide-body{font-size:17px}
+.slides-modal{max-width:620px}
+@media (max-width:560px){
+  .view-pad{grid-template-columns:repeat(3,32px);grid-template-rows:repeat(3,32px)}
+  .view-pad button{font-size:15px;border-radius:10px}
+  .meters{grid-template-columns:1fr}
+  .swipe-hint{bottom:132px}
+}
+
+/* v3: speedcubing lesson */
+.fig.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;text-align:center}
+.fig.recs figcaption{grid-column:1/-1;font-size:12px}
+.rec{background:#FAF6EE;border-radius:16px;padding:10px 6px;display:flex;flex-direction:column;gap:2px;align-items:center}
+.rec .ri{font-size:26px}
+.rec b{font-size:24px;color:var(--pri);font-weight:900}
+.rec em{font-style:normal;font-weight:700;font-size:13px;line-height:1.35}
+.rec small{color:var(--muted);font-size:12px}
+.fig.cfop{display:flex;flex-direction:column;gap:5px;max-width:340px;margin:8px auto 12px;text-align:left}
+.fig.cfop div{display:flex;align-items:center;gap:10px;border-radius:12px;padding:6px 10px;border:2px solid #E6E0D4}
+.fig.cfop b{font-size:24px;font-weight:900;width:26px;text-align:center;font-family:ui-rounded,system-ui,sans-serif}
+.fig.cfop span{font-weight:800;flex:1}
+.fig.cfop small{color:#5a5f70;font-weight:700;font-size:12px}
+.fig.inspect{display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.clock15{width:80px;height:80px;border-radius:50%;border:6px solid var(--pink);display:grid;place-items:center;font-size:30px;font-weight:900;color:var(--pink)}
+.fig.inspect figcaption{width:100%}
+.fig.path{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center}
+.fig.path span{border-radius:10px;padding:5px 8px;font-weight:800;font-size:13px;background:#F6EFE3}
+.fig.path .pv0{background:#FFF1C4}.fig.path .pv4{background:#E5E6FF}
+.fig.path i{font-style:normal;color:var(--muted)}
+.cross-board{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.cross-board div{background:#FAF6EE;border-radius:14px;padding:8px;text-align:center}
+.cross-board b{display:block;font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
+.cross-board small{font-size:12px;font-weight:700;color:var(--muted)}
+.cross-board .insp b{color:var(--pink)}
+.cross-board .opt b{color:var(--pri)}
+.cross-board .you b{color:var(--ok)}
+.tps-big{font-size:44px;font-weight:900;color:var(--pri);font-variant-numeric:tabular-nums}
+
 </style>
 </head>
 <body>
@@ -418,7 +495,7 @@ code,kbd{background:#F1ECFF;border-radius:6px;padding:1px 6px;font-size:.92em}
           </div>
         </div>
         <div class="home-cards">
-          <button class="hcard c-learn" data-go="map"><span class="hc-ico">📚</span><b>一步一步學</b><small>由零開始・10 課・有語音</small></button>
+          <button class="hcard c-learn" data-go="map"><span class="hc-ico">📚</span><b>一步一步學</b><small>由零開始・12 課・有語音</small></button>
           <button class="hcard c-play" data-go="practice"><span class="hc-ico">🎮</span><b>自由練習</b><small>打亂佢，教練陪你解</small></button>
           <button class="hcard c-solver" data-go="solver"><span class="hc-ico">🎨</span><b>填色解骰器</b><small>填上你個骰嘅顏色，計出最快解法</small></button>
           <button class="hcard c-badge" data-go="badges"><span class="hc-ico">🏅</span><b>我的獎章</b><small>睇吓你儲咗幾多粒星</small></button>
@@ -3205,6 +3282,217 @@ var Coach = (function (M) {
 })(typeof CubeModel !== 'undefined' ? CubeModel : require('./model.js'));
 if (typeof module !== 'undefined') module.exports = Coach;
 
+/* ===== Explain a Kociemba two-phase solution, move by move =====
+   Phase 1 = reach the "黃白夾心" stop-over (subgroup G1 = <U,D,R2,L2,F2,B2>):
+     🔺 8 corners: yellow/white sticker faces up or down          (Kociemba "twist")
+     ➖ 12 edges: the edge's "head" faces up/down (front/back in middle layer)  ("flip")
+     🥪 4 middle-layer edges (no yellow/white) sit in the middle layer       ("slice")
+   When all 24 are good, the top and bottom faces are only yellow and white.
+   Phase 2 only uses U, D, R2, L2, F2, B2 — those never break the sandwich —
+   and brings every piece home. */
+var Explain = (function (M) {
+  'use strict';
+  var G1_MOVES = { U: 1, "U'": 1, U2: 1, D: 1, "D'": 1, D2: 1, R2: 1, L2: 1, F2: 1, B2: 1 };
+  function face(i) { return M.STICKERS[i].face; }
+  function keyOf(s, p) { return p.map(function (i) { return s[i]; }).slice().sort().join(''); }
+
+  // per-piece status keyed by colour set
+  function info(s) {
+    var u = s[4], d = s[31], f = s[22], b = s[49];
+    var co = {}, eo = {}, sl = {}, home = {}, where = {};
+    var nCo = 0, nEo = 0, nSl = 0, nHome = 0, ud = 0;
+    M.CORNERS.forEach(function (c) {
+      var k = keyOf(s, c); where[k] = c;
+      var ok = c.some(function (i) { return (s[i] === u || s[i] === d) && (face(i) === 'U' || face(i) === 'D'); });
+      co[k] = ok; if (ok) nCo++;
+    });
+    M.EDGES.forEach(function (e, ei) {
+      var k = keyOf(s, e); where[k] = e;
+      var cols = e.map(function (i) { return s[i]; });
+      var hasUD = cols.some(function (c) { return c === u || c === d; });
+      var head = hasUD ? cols.findIndex(function (c) { return c === u || c === d; }) : cols.findIndex(function (c) { return c === f || c === b; });
+      var fc = face(e[head]), mid = ei >= 8;
+      var ok = mid ? (fc === 'F' || fc === 'B') : (fc === 'U' || fc === 'D');
+      eo[k] = ok; if (ok) nEo++;
+      if (!hasUD) { sl[k] = mid; if (mid) nSl++; }
+    });
+    M.EDGES.concat(M.CORNERS).forEach(function (p) {
+      var k = keyOf(s, p), ok = true;
+      for (var i = 0; i < p.length; i++) if (s[p[i]] !== s[M.centerOf(p[i])]) { ok = false; break; }
+      home[k] = ok; if (ok) nHome++;
+    });
+    [0, 1, 2, 3, 5, 6, 7, 8, 27, 28, 29, 30, 32, 33, 34, 35].forEach(function (i) { if (s[i] === u || s[i] === d) ud++; });
+    return { co: co, eo: eo, sl: sl, home: home, where: where, nCo: nCo, nEo: nEo, nSl: nSl, nHome: nHome, ud: ud, p1: nCo + nEo + nSl, g1: nCo === 8 && nEo === 12 && nSl === 4 };
+  }
+
+  function phaseSplit(start, moves) {
+    var states = [start];
+    for (var i = 0; i < moves.length; i++) states.push(M.applyMove(states[i], moves[i]));
+    var tailOk = moves.length;
+    for (var j = moves.length - 1; j >= 0 && G1_MOVES[moves[j]]; j--) tailOk = j;
+    var split = moves.length;
+    for (var k = tailOk; k <= moves.length; k++) if (info(states[k]).g1) { split = k; break; }
+    return { states: states, split: split };
+  }
+
+  function changes(a, b, field) {
+    var gain = [], loss = [];
+    Object.keys(b[field]).forEach(function (k) { if (b[field][k] && !a[field][k]) gain.push(k); if (!b[field][k] && a[field][k]) loss.push(k); });
+    return { gain: gain, loss: loss };
+  }
+  function moveName(t) { return t.replace("'", '逆').replace('2', '兩下'); }
+  var ZH = { Y: '黃', W: '白', G: '綠', B: '藍', R: '紅', O: '橙' };
+  function pieceName(k) { return k.split('').map(function (c) { return ZH[c]; }).join(''); }
+
+  function analyse(start, moves) {
+    var ps = phaseSplit(start, moves), states = ps.states, split = ps.split;
+    var infos = states.map(info);
+    var steps = moves.map(function (m, k) {
+      var a = infos[k], b = infos[k + 1], phase = k < split ? 1 : 2, text = '', short = '', kind, goodKeys = [];
+      var isQuarterSide = /^[RLFB]('?)$/.test(m);
+      if (phase === 1) {
+        var C = changes(a, b, 'co'), E = changes(a, b, 'eo'), S = changes(a, b, 'sl');
+        var gains = C.gain.length + E.gain.length + S.gain.length, losses = C.loss.length + E.loss.length + S.loss.length;
+        goodKeys = C.gain.concat(E.gain, S.gain);
+        var parts = [];
+        if (C.gain.length) parts.push(C.gain.length + ' 粒角塊轉正咗（黃白向上下）');
+        if (E.gain.length) parts.push(E.gain.length + ' 粒邊塊方向擺啱咗');
+        if (S.gain.length) parts.push(S.gain.length + ' 粒中間層邊塊返咗中間層');
+        var lost = [];
+        if (C.loss.length) lost.push(C.loss.length + ' 粒角塊');
+        if (E.loss.length) lost.push(E.loss.length + ' 粒邊塊');
+        if (S.loss.length) lost.push(S.loss.length + ' 粒中間層邊塊');
+        if (b.g1) {
+          kind = 'goal';
+          text = '🎉 到咗中途站「黃白夾心」！' + (parts.length ? '呢步令' + parts.join('、') + '。' : '') + '而家頂面同底面全部都係黃同白，第 1 階段完成！之後只會用「夾心安全」嘅扭法。';
+          short = '到咗中途站，第一階段完成！';
+        } else if (!isQuarterSide && gains === 0 && losses === 0) {
+          kind = 'setup';
+          text = '搬位步：' + moveName(m) + ' 呢類扭法（U、D、或者轉兩下）永遠唔會改變任何小方塊嘅方向，所以佢嘅工作係「搬位」——將未擺正嘅小方塊搬去啱嘅位置，等下一步 R、L、F 或者 B 一扭，就可以一次過整正幾粒。';
+          short = '搬位步，等下一步一次過整正幾粒。';
+        } else if (gains > losses) {
+          kind = 'up';
+          text = '前進！呢步令' + parts.join('、') + '。' + (losses ? '雖然同時有' + lost.join('、') + '暫時反轉咗，但係整體係進步咗（' + a.p1 + ' → ' + b.p1 + '／24）。' : '（' + a.p1 + ' → ' + b.p1 + '／24）');
+          short = '前進：' + parts.join('、') + '。';
+        } else if (gains === losses) {
+          kind = 'setup';
+          text = '交換步：呢步' + (gains ? '整正咗' + gains + ' 粒，但同時整亂咗' + losses + ' 粒，' : '冇改變方向，') + '數量冇變，不過啲「未擺正」嘅小方塊已經被搬去更方便處理嘅位置，下一步就可以一次過整好。';
+          short = '交換步，為下一步鋪路。';
+        } else {
+          kind = 'back';
+          text = '退一步，進兩步：呢步令' + lost.join('、') + '暫時反轉咗（' + a.p1 + ' → ' + b.p1 + '／24）。電腦已經睇咗之後幾步，知道先退後一步，後面先可以一次過整正更多。好似砌積木，有時要先拎走一嚿，先砌得落新嗰嚿。';
+          short = '退一步，等陣進兩步。';
+        }
+        if (!b.g1) text += '跟住呢條路線，仲有 ' + (split - k - 1) + ' 步就到中途站。';
+      } else {
+        var H = changes(a, b, 'home');
+        goodKeys = H.gain;
+        var names = H.gain.slice(0, 3).map(pieceName).join('、') + (H.gain.length > 3 ? '等' : '');
+        if (k === moves.length - 1) {
+          kind = 'goal';
+          text = '🏆 最後一步！' + (H.gain.length ? names + '返到屋企，' : '') + '20 粒小方塊全部歸位，扭計骰還原咗！';
+          short = '最後一步，全部歸位！';
+        } else if (H.gain.length > H.loss.length) {
+          kind = 'up';
+          text = '歸位：' + names + '返到屋企喇！歸位咗嘅小方塊 ' + a.nHome + ' → ' + b.nHome + '／20。';
+          short = H.gain.length + ' 粒小方塊返到屋企。';
+        } else if (H.gain.length === 0 && H.loss.length === 0) {
+          kind = 'setup';
+          text = '搬位步：呢步冇小方塊返屋企，但係將幾粒小方塊排好隊，等之後一扭就可以一次過送佢哋返屋企。';
+          short = '搬位步，排好隊等下一步。';
+        } else if (H.gain.length === H.loss.length) {
+          kind = 'setup';
+          text = '交換步：有 ' + H.gain.length + ' 粒返屋企，同時有 ' + H.loss.length + ' 粒暫時離開，數量冇變，但係排列更接近答案。';
+          short = '交換步，排列更接近答案。';
+        } else {
+          kind = 'back';
+          text = '退一步，進兩步：歸位咗嘅小方塊暫時由 ' + a.nHome + ' 變 ' + b.nHome + '。佢哋只係暫時離開，之後會一齊返嚟。電腦早已計好成條路線，知道咁樣行總步數最少。';
+          short = '退一步，等陣進兩步。';
+        }
+        if (k < moves.length - 1) text += '留意：' + moveName(m) + ' 係「夾心安全」扭法，頂底面依然全部係黃同白！';
+      }
+      // sticker indices of pieces that improved (positions after the move)
+      var good = [];
+      goodKeys.forEach(function (key) { var p = b.where[key]; if (p) good = good.concat(p); });
+      return { move: m, phase: phase, kind: kind, text: text, short: short, good: good };
+    });
+    return { split: split, states: states, infos: infos, steps: steps, p1: split, p2: moves.length - split };
+  }
+
+  return { info: info, analyse: analyse, phaseSplit: phaseSplit, G1_MOVES: G1_MOVES };
+})(typeof CubeModel !== 'undefined' ? CubeModel : require('./model.js'));
+if (typeof module !== 'undefined') module.exports = Explain;
+
+/* ===== Optimal white-cross solver (for the "高手十字挑戰") =====
+   Tracks only the 4 white edges. State = slot (0..23) of each white sticker.
+   Breadth-first search from the solved cross gives the exact minimum number
+   of turns for every one of the 190,080 possible cross positions. */
+var CrossTrainer = (function (M) {
+  'use strict';
+  var FACE_MOVES = [];
+  ['U', 'D', 'R', 'L', 'F', 'B'].forEach(function (f) { FACE_MOVES.push(f, f + "'", f + '2'); });
+  var EDGE_STICKERS = [];
+  M.EDGES.forEach(function (e) { EDGE_STICKERS.push(e[0], e[1]); });
+  var SLOT = {}; EDGE_STICKERS.forEach(function (st, k) { SLOT[st] = k; });
+  var mt = null, dist = null, N = 24 * 24 * 24 * 24;
+
+  function build() {
+    if (dist) return;
+    // where does the sticker in slot k go after move m?
+    mt = FACE_MOVES.map(function (m) {
+      var P = M.PERM[m], inv = [];
+      for (var t = 0; t < 54; t++) inv[P[t]] = t;
+      return EDGE_STICKERS.map(function (st) { return SLOT[inv[st]]; });
+    });
+    dist = new Int8Array(N).fill(-1);
+    var start = encode(goalSlots()), q = new Int32Array(N), head = 0, tail = 0;
+    dist[start] = 0; q[tail++] = start;
+    while (head < tail) {
+      var x = q[head++], d = dist[x], a = decode(x);
+      for (var m = 0; m < 18; m++) {
+        var T = mt[m], y = ((T[a[0]] * 24 + T[a[1]]) * 24 + T[a[2]]) * 24 + T[a[3]];
+        if (dist[y] < 0) { dist[y] = d + 1; q[tail++] = y; }
+      }
+    }
+  }
+  function encode(a) { return ((a[0] * 24 + a[1]) * 24 + a[2]) * 24 + a[3]; }
+  function decode(x) { return [Math.floor(x / 13824), Math.floor(x / 576) % 24, Math.floor(x / 24) % 24, x % 24]; }
+  // order: white edges partnered with the F, R, B, L centre colours (cube held yellow up)
+  var PARTNER_FACES = ['F', 'R', 'B', 'L'];
+  function goalSlots() {
+    var s = M.solved();
+    return slotsOf(s, s);
+  }
+  function slotsOf(s, ref) {
+    ref = ref || s;
+    var white = ref[31];
+    return PARTNER_FACES.map(function (f) {
+      var col = ref[M.FI[f] * 9 + 4];
+      for (var e = 0; e < 12; e++) {
+        var p = M.EDGES[e];
+        if (s[p[0]] === white && s[p[1]] === col) return SLOT[p[0]];
+        if (s[p[1]] === white && s[p[0]] === col) return SLOT[p[1]];
+      }
+      return 0;
+    });
+  }
+  function distance(s) { build(); return dist[encode(slotsOf(s))]; }
+  function solve(s) {
+    build();
+    var a = slotsOf(s), out = [], d = dist[encode(a)], last = '';
+    while (d > 0) {
+      for (var m = 0; m < 18; m++) {
+        if (FACE_MOVES[m][0] === last) continue;
+        var T = mt[m], b = [T[a[0]], T[a[1]], T[a[2]], T[a[3]]];
+        if (dist[encode(b)] === d - 1) { out.push(FACE_MOVES[m]); a = b; d--; last = FACE_MOVES[m][0]; break; }
+      }
+    }
+    return out;
+  }
+  return { build: build, distance: distance, solve: solve, size: function () { build(); var n = 0; for (var i = 0; i < N; i++) if (dist[i] >= 0) n++; return n; } };
+})(typeof CubeModel !== 'undefined' ? CubeModel : require('./model.js'));
+if (typeof module !== 'undefined') module.exports = CrossTrainer;
+
 /* ===== Lesson content (廣東話) =====
    markup:  [[R U R' U']] = formula chip (tap to watch it)   **bold**   new line = line break */
 var LESSONS = [
@@ -3322,11 +3610,42 @@ var LESSONS = [
     slides: [
       { t: '你已經學識晒 8 個步驟！', fig: 'mascot', b: '而家試吓由一個完全打亂嘅扭計骰開始，用晒 8 個步驟，自己還原佢。\n骰仔博士會喺旁邊陪你，有需要就撳提示。完成之後有**證書**㗎！' },
       { t: '8 步總整理', b: '① 白色雛菊\n② 白色十字（對準 + F2）\n③ 白色角（右手公式 [[R U R\' U\']]）\n④ 中間層（向右 / 向左公式）\n⑤ 黃色十字（開門公式 [[F R U R\' U\' F\']]）\n⑥ 黃色邊對位（小魚公式 [[R U R\' U R U2 R\' U]]）\n⑦ 黃色角歸位（旋轉木馬 [[U R U\' L\' U R\' U\' L]]）\n⑧ 黃色角翻正（扭角公式 [[R\' D\' R D]]）' },
-      { t: '之後：越嚟越快', b: '熟咗之後，可以學 **CFOP 快速法**：先砌十字，再一次過砌好頭兩層，最後兩步完成頂層。世界紀錄已經快到 3 秒幾！\n不過，每一個高手都係由你今日學嘅層先法開始㗎。' }
+      { t: '之後：越嚟越快', b: '熟咗之後，可以學 **CFOP 快速法**：先砌十字，再一次過砌好頭兩層，最後兩步完成頂層。世界紀錄已經快到 3 秒以內！\n不過，每一個高手都係由你今日學嘅層先法開始㗎。下一課「🚀 速解高手點樣扭？」話你知佢哋嘅秘密！' }
     ]
   }
 ];
 if (typeof module !== 'undefined') module.exports = LESSONS;
+
+LESSONS.push({
+  id: 'speed', icon: '🚀', title: '速解高手點樣扭？', sub: 'CFOP 方法、世界紀錄、高手十字同手速挑戰', kind: 'speed',
+  slides: [
+    { t: '世界紀錄有幾快？', fig: 'records', b: '扭計骰比賽由「世界魔方協會」（WCA）舉辦，健力士世界紀錄都係用佢哋嘅比賽成績。\n• **單次紀錄：2.76 秒**，波蘭 9 歲嘅 Teodor Zajder（2026 年 2 月），係第一個少過 3 秒嘅人！\n• **平均紀錄：3.51 秒**，中國 12 歲嘅王藝衡 Yiheng Wang（2026 年 6 月）。比賽每人扭 5 次，去走最快同最慢，計中間 3 次嘅平均。\n你睇，紀錄保持者都係小朋友！' },
+    { t: '佢哋用咩方法？CFOP！', fig: 'cfop', b: '差唔多所有 3×3 世界紀錄保持者，都係用 **CFOP 方法**（又叫 Fridrich 方法，1997 年由 Jessica Fridrich 喺網上發表）。\nCFOP 係四個英文字嘅開頭：\n• **C**ross：十字\n• **F**2L：頭兩層（First 2 Layers）\n• **O**LL：令頂層全部變黃色\n• **P**LL：令頂層全部歸位' },
+    { t: 'CFOP 其實係層先法嘅升級版！', b: '你學咗嘅 8 步，高手將佢哋「合併」成 4 步：\n• 第 1、2 步（雛菊 + 十字）→ **Cross**：唔砌雛菊，直接喺底部砌十字。\n• 第 3、4 步（白角 + 中間層）→ **F2L**：角塊同邊塊先「砌成一對」，一次過放入去。\n• 第 5、8 步（黃十字 + 翻角）→ **OLL**：一條公式令成個頂面變黃色。\n• 第 6、7 步（邊對位 + 角歸位）→ **PLL**：一條公式令頂層全部歸位。\n所以步數由大約 150 下，減少到大約 55 至 60 下！' },
+    { t: '秘訣 1：15 秒觀察，諗好先扭', fig: 'inspect', b: '比賽開始前，每人可以**觀察 15 秒**（唔可以扭）。\n高手會喺呢 15 秒入面，喺腦入面計好成個十字點樣砌，有啲仲會計埋第一對 F2L，然後好似閉埋眼都扭得出咁快！\n其實任何一個十字，最多 **8 步**就一定砌得好。去「動手做」試吓「🏁 高手十字挑戰」！' },
+    { t: '秘訣 2：F2L 一對一對放', b: '層先法要分開兩次放：白角用右手公式最多做 5 次（20 下），中間層邊塊再要 8 下。\nF2L 將角塊同佢隔籬嘅邊塊先**黏埋成一對**，然後一次過放入去。例如呢個最簡單嘅情況，只要 4 下：[[U R U\' R\']]\nF2L 有 41 種情況，高手唔係死記，而係**明白原理**之後用直覺去砌。' },
+    { t: '秘訣 3：OLL 同 PLL 公式', b: '頂層有好多種樣，高手為每一種都記一條公式：OLL 有 **57 條**，PLL 有 **21 條**。\n你其實已經識咗一條 OLL！就係小魚公式：[[R U R\' U R U2 R\']]\n最出名嘅 PLL 叫「T 字公式」，佢會將兩粒角同兩粒邊一齊調換位置：[[R U R\' U\' R\' F R2 U\' R\' U\' R U R\' F\']]\n（撳公式可以喺扭計骰上面睇示範）' },
+    { t: '唔使一次過記 78 條！', fig: 'path', b: '高手都係一步一步嚟：\n① 層先法扭到好熟（你而家喺度！）\n② 唔砌雛菊，直接喺底部砌十字\n③ 學直覺 F2L，一對一對放\n④ 「兩段式」OLL：只要記 **10 條**；「兩段式」PLL：只要記 **6 條**\n⑤ 熟咗之後，再慢慢學齊 57 + 21 條\n每一級都會快好多，好似打機升級咁！' },
+    { t: '秘訣 4：手指扭法同「預判」', b: '• **手指扭法**：高手唔係郁成隻手，而係用手指「撥」。例如 R U R\' U\' 熟咗可以快到半秒做完。\n• **預判（look-ahead）**：扭緊呢一對嘅時候，眼已經搵緊下一對喺邊，所以中間唔使停。\n• 用一粒順滑嘅扭計骰（例如有磁石嘅「速擰」扭計骰）。\n2.76 秒嗰次紀錄只用咗 **29 下**，每秒扭 **10.5 下**！最重要唔係手快，而係**唔停**。' },
+    { t: '仲有其他方法同比賽', fig: 'records2', b: '• **Roux 方法**（法國人 Gilles Roux）：先喺兩邊砌兩舊 3×2×1 嘅方塊，大約 45 至 50 步。\n• **ZZ 方法**（Zbigniew Zborowski，2006 年）：一開始先處理「邊塊方向」——同我哋喺解骰器見過，電腦第 1 階段做嘅嘢係同一個概念！\n• **最少步數比賽**：唔計時間，用紙筆諗一個鐘，比邊個步數最少。紀錄係 **16 步**！\n• **機械人**：美國普渡大學學生整嘅機械人，0.103 秒就扭好，快過眨一下眼！' },
+    { t: '我學到嘅道理', fig: 'mascot', b: '• 世界冠軍都係由層先法開始，**基礎最重要**。\n• 快唔係靠「手快」，而係靠**諗得清楚**：觀察、計劃、預判。\n• 將幾個步驟**合併**、搵**更好嘅方法**，就可以越嚟越快。\n• 紀錄保持者都係 9 至 12 歲嘅小朋友，只要肯練習，你都得！\n去「🎯 動手做」接受高手訓練啦！' }
+  ]
+});
+
+/* ===== "電腦點樣諗？" — the two-phase (Kociemba) method explained ===== */
+var KOCIEMBA_SLIDES = [
+  { t: '電腦嘅方法同我哋有乜唔同？', fig: 'compare', b: '我哋學嘅「層先法」係**人嘅方法**：一層一層砌，每一步都保護住已經砌好嘅部分，所以易明易記，但平均要扭 **150 下**左右（唔計轉成個骰）。\n電腦用嘅「**兩階段法**」平均只要 **20 步**左右！不過佢唔係一層層砌，而係同時照顧晒全部 20 粒小方塊，所以中間個樣睇落好亂。' },
+  { t: '難題：4300 京個樣', fig: 'big', b: '扭計骰有超過 4300 京個唔同樣子。就算電腦每秒試 10 億個，都要試超過 1000 年先試得晒！\n所以電腦都唔可以「逐個試」，佢一樣要用**聰明嘅方法**。' },
+  { t: '秘訣 1：設一個「中途站」', fig: 'twostage', b: '1992 年，德國人科先巴（Herbert Kociemba）諗到：好似由香港去倫敦，先搭車去機場（**中途站**），再搭飛機去倫敦。\n將一個好大嘅難題，拆成兩個細啲嘅問題，每一個都易解好多。呢個同我哋層先法「拆細步驟」係同一個道理！' },
+  { t: '中途站叫做「黃白夾心」', fig: 'sandwich', b: '去到中途站嘅時候：\n• **頂面同底面淨係得黃色同白色**（黃白溝埋都得，唔使啱位）\n• 中間層 4 粒冇黃白嘅邊塊，全部喺中間層，而且綠／藍色向前或者向後\n睇落好似一件三文治：上下兩塊包係黃白，中間係餡！' },
+  { t: '第 1 階段：整理成夾心', fig: 'phase1', b: '電腦要令 24 樣嘢擺啱：\n• 🔺 8 粒角塊：黃／白向上或者向下\n• ➖ 12 粒邊塊：個「頭」向啱方向（有黃白嗰邊就係頭；冇黃白就揀綠／藍做頭）。喺頂層底層嘅，頭要向上下；喺中間層嘅，頭要向前後\n• 🥪 4 粒中間層邊塊返中間層\n可以用齊 18 種扭法，最多 12 步就一定去到中途站。' },
+  { t: '點解有啲步「冇進步」？', b: '**U、D 同埋轉兩下（R2、L2、F2、B2）永遠唔會改變任何小方塊嘅方向。**\n所以喺第 1 階段，呢啲係「**搬位步**」：先將未擺正嘅小方塊搬去右、左、前或者後面，然後一下 R、L、F 或者 B，就可以一次過整正好幾粒！\n有時電腦仲會「**退一步，進兩步**」：先整亂少少，之後一次過整好更多。' },
+  { t: '第 2 階段：用「夾心安全」扭法歸位', fig: 'safe', b: '去到中途站之後，電腦**只准自己用 10 種扭法**：U、U\'、U2、D、D\'、D2、R2、L2、F2、B2。\n點解？因為呢 10 種扭法永遠唔會整亂黃白夾心！你試吓喺腦入面諗：R2 將右邊上下調轉，頂面嘅黃白去咗底面，依然係黃白。\n扭法少咗，要試嘅路線就少好多，最多 18 步就完成。' },
+  { t: '秘訣 2：行迷宮 + 距離地圖簿', fig: 'maze', b: '電腦好似行迷宮：先試晒所有 1 步嘅路，唔得就試所有 2 步，再試 3 步……（叫做「逐層加深搜尋」）。\n佢仲有一本預先計好嘅「**距離地圖簿**」：去到任何一個樣，翻一翻就知「由呢度最少仲要幾多步」。如果剩低嘅步數唔夠，呢條路就唔使再行落去，即刻轉第二條。\n所以佢幾十毫秒就計到答案！' },
+  { t: '上帝之數：20', b: '2010 年，一班科學家用 Google 嘅電腦證明：**任何一個打亂咗嘅扭計骰，最多 20 步就一定可以還原**。呢個數字叫做「上帝之數」。\n兩階段法通常計到 20 至 22 步，已經好接近最少，但唔一定係最少，因為佢一定要經過中途站。' },
+  { t: '我哋學到嘅思考方法', fig: 'mascot', b: '電腦同我哋其實用緊同一套諗法：\n① **大問題拆細**（層先法分 8 步；電腦分 2 個階段）\n② **設定中途目標**（白色十字、黃白夾心）\n③ **預先估計**，唔好行冤枉路（距離地圖簿）\n④ 有時要**退一步，進兩步**\n呢啲方法，做數學、寫文章、解任何難題都用得着！' }
+];
+if (typeof module !== 'undefined') module.exports.KOCIEMBA_SLIDES = KOCIEMBA_SLIDES;
 
 /* ===== Core helpers: store, voice, sound, confetti, figures, 3D view ===== */
 var PALETTE = { Y: '#FFD500', W: '#FFFFFF', G: '#00A05A', B: '#1257D8', R: '#D2203A', O: '#FF6A00', '?': '#C9CED6' };
@@ -3624,6 +3943,26 @@ function FIG(name) {
     case 'shapes': return '<figure class="fig row4">' + [['xxxxYxxxx', '一點'], ['xYxYYxxxx', 'L 字'], ['xxxYYYxxx', '一字'], ['xYxYYYxYx', '十字']].map(function (a) { return '<div>' + faceSVG(a[0], { size: 18 }) + '<small>' + a[1] + '</small></div>'; }).join('<i>→</i>') + '</figure>';
     case 'yedges': return '<figure class="fig">' + isoSVG({ U: 'xYxYYYxYx', F: 'xGxGGGGGG', R: 'xOxOOOOOO' }) + cap('邊塊側邊同中心同色') + '</figure>';
     case 'ycorners': return '<figure class="fig">' + isoSVG({ U: 'xYxYYYxYG', F: 'xGOGGGGGG', R: 'YOxOOOOOO' }) + cap('右上前面：黃綠橙角塊，位置啱咗（黃色向邊都得）') + '</figure>';
+    case 'compare': return '<figure class="fig cmp"><div><span>🐢 層先法（人）</span><i style="width:100%">≈ 150 下</i></div><div><span>⚡ 兩階段法（電腦）</span><i style="width:14%">≈ 20</i></div></figure>';
+    case 'twostage': return '<figure class="fig route"><div><b>🎲</b><small>打亂咗</small></div><i>第 1 階段<br>≤ 12 步 ➜</i><div class="stop"><b>🥪</b><small>中途站<br>黃白夾心</small></div><i>第 2 階段<br>≤ 18 步 ➜</i><div><b>🏁</b><small>還原</small></div></figure>';
+    case 'sandwich': return '<figure class="fig">' + isoSVG({ U: 'YWYWYYWYW', F: 'ROBBGGOGR', R: 'GOBROOBRG' }) + cap('中途站：頂底只有黃白，中間層係綠藍紅橙') + '</figure>';
+    case 'phase1': return '<figure class="fig row3"><div>' + isoSVG({ U: 'xxxxYxxxW', F: 'xxxxGxxxx', R: 'xxxxOxxxx' }, { size: 15 }) + '<small>🔺 角塊：黃白向上下</small></div><div>' + isoSVG({ U: 'xxxxYxxWx', F: 'xxxxGxxxx', R: 'xxxxOxxxx' }, { size: 15 }) + '<small>➖ 邊塊：個頭向上下</small></div><div>' + isoSVG({ U: 'xxxxYxxxx', F: 'xxxxGBxxx', R: 'xxxROxxxx' }, { size: 15 }) + '<small>🥪 中間層：綠藍向前後</small></div></figure>';
+    case 'safe': return '<figure class="fig safe">' + ['U', "U'", 'U2', 'D', "D'", 'D2', 'R2', 'L2', 'F2', 'B2'].map(function (m) { return chipHTML(m); }).join('') + '<figcaption>10 種「夾心安全」扭法</figcaption></figure>';
+    case 'maze': return '<figure class="fig"><svg viewBox="0 0 220 110" style="width:220px"><g fill="none" stroke="#c9ced6" stroke-width="3" stroke-linecap="round"><path d="M20 55 L70 25 L120 15"/><path d="M70 25 L120 40"/><path d="M20 55 L70 85 L120 70 L170 55 L205 55"/><path d="M70 85 L120 100"/></g><g fill="none" stroke="#ff4fa3" stroke-width="5" stroke-linecap="round"><path d="M20 55 L70 85 L120 70 L170 55 L205 55"/></g><g font-size="16" text-anchor="middle"><text x="20" y="60">🎲</text><text x="205" y="60">🏁</text><text x="120" y="20">✖</text><text x="120" y="45">✖</text><text x="120" y="105">✖</text></g></svg>' + cap('📖 翻地圖簿：「呢條路唔夠步」就即刻唔行（✖）') + '</figure>';
+    case 'records': return '<figure class="fig recs">' +
+      [['🏆', '單次世界紀錄', '2.76 秒', 'Teodor Zajder・波蘭・9 歲', '2026 年 2 月'], ['📊', '平均世界紀錄', '3.51 秒', '王藝衡 Yiheng Wang・中國・12 歲', '2026 年 6 月'], ['🐢', '層先法初學者', '1–3 分鐘', '你而家喺呢度 😊', '多練習就會快']].map(function (r) {
+        return '<div class="rec"><span class="ri">' + r[0] + '</span><small>' + r[1] + '</small><b>' + r[2] + '</b><em>' + r[3] + '</em><small>' + r[4] + '</small></div>';
+      }).join('') + '<figcaption>資料：世界魔方協會（WCA）、健力士世界紀錄（截至 2026 年 9 月；紀錄隨時會再被打破）</figcaption></figure>';
+    case 'records2': return '<figure class="fig recs">' +
+      [['🧠', '最少步數', '16 步', 'Sebastiano Tronto・意大利', '2019 年'], ['🤖', '機械人', '0.103 秒', '美國普渡大學學生', '2025 年 4 月']].map(function (r) {
+        return '<div class="rec"><span class="ri">' + r[0] + '</span><small>' + r[1] + '</small><b>' + r[2] + '</b><em>' + r[3] + '</em><small>' + r[4] + '</small></div>';
+      }).join('') + '</figure>';
+    case 'cfop': return '<figure class="fig cfop">' +
+      [['C', 'Cross 十字', '層先法第 1–2 步', '#FFFFFF'], ['F', 'F2L 頭兩層', '層先法第 3–4 步', '#C9D6FF'], ['O', 'OLL 頂面變黃', '層先法第 5、8 步', '#FFE26B'], ['P', 'PLL 頂層歸位', '層先法第 6–7 步', '#B7F0D4']].map(function (r) {
+        return '<div style="background:' + r[3] + '"><b>' + r[0] + '</b><span>' + r[1] + '</span><small>← ' + r[2] + '</small></div>';
+      }).join('') + '</figure>';
+    case 'inspect': return '<figure class="fig inspect"><div class="clock15">15</div><div>' + faceSVG('xWxWWxxxx', { size: 22, sides: { t: 'xBx', l: 'xRx' } }) + '</div><figcaption>👀 觀察 → 🧠 計劃 → ✋ 一口氣扭完</figcaption></figure>';
+    case 'path': return '<figure class="fig path">' + ['🐢 層先法', '➕ 底部十字', '🧩 直覺 F2L', '📒 10 + 6 條公式', '🚀 完整 CFOP'].map(function (t, k) { return '<span class="pv' + k + '">' + t + '</span>'; }).join('<i>➜</i>') + '</figure>';
     case 'twist': return '<figure class="fig">' + isoSVG({ U: 'YYYYYYYYO', F: 'GGYGGGGGG', R: 'GOOOOOOOO' }) + cap('右上前面嗰粒角要翻到黃色向上') + '</figure>';
   }
   return '';
@@ -3807,6 +4146,10 @@ function CubeView(host, opts) {
   this.cam = cam;
   var DEF = { th: 0.62, ph: 0.5 };
   this.resetView = function () { cam.targetTh = DEF.th; cam.targetPh = DEF.ph; };
+  this.rotateView = function (hs, vs) {
+    cam.targetTh += hs * Math.PI / 4;
+    cam.targetPh = Math.max(-1.35, Math.min(1.35, cam.targetPh + vs * 0.42));
+  };
   this.lookBottom = function (on) { cam.targetTh = DEF.th; cam.targetPh = on ? -0.62 : DEF.ph; };
   var dist = 11;
   function fit() {
@@ -4019,6 +4362,49 @@ function CubeView(host, opts) {
     scrambled: function () { return M.apply(M.solved(), M.randomScramble(25)); }
   };
 
+  /* ---------- camera buttons ---------- */
+  function addViewPad(box, getView) {
+    var pad = h('div', { class: 'view-pad', role: 'group', 'aria-label': '轉鏡頭' });
+    [['vp-u', '⬆', '鏡頭：向上翻（睇底部）', 0, -1], ['vp-l', '⬅', '鏡頭：向左轉（睇右邊）', 1, 0], ['vp-c', '🎯', '鏡頭返正', 0, 0], ['vp-r', '➡', '鏡頭：向右轉（睇左邊）', -1, 0], ['vp-d', '⬇', '鏡頭：向下翻（睇頂部）', 0, 1]].forEach(function (a) {
+      var b = h('button', { class: a[0], title: a[2], 'aria-label': a[2] }, a[1]);
+      b.addEventListener('click', function (e) {
+        e.stopPropagation(); Sfx.unlock(); Sfx.tap();
+        var v = getView(); if (!v) return;
+        if (a[0] === 'vp-c') v.resetView(); else v.rotateView(a[3], a[4]);
+      });
+      pad.appendChild(b);
+    });
+    box.appendChild(pad);
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT') return;
+    var v = Nav.cur === 'play' ? Play.view : Nav.cur === 'solver' ? Solver.view : null;
+    if (!v) return;
+    var k = { ArrowLeft: [1, 0], ArrowRight: [-1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
+    if (k) { v.rotateView(k[0], k[1]); e.preventDefault(); }
+  });
+
+  /* ---------- slide viewer in a modal ---------- */
+  function showSlides(title, slides, startAt) {
+    var i = startAt || 0;
+    function render() {
+      var sl = slides[i];
+      var dots = slides.map(function (_, k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('');
+      var c = modal('<div class="slide-top"><span class="slide-no">' + esc(title) + '・' + (i + 1) + ' / ' + slides.length + '</span><span id="mdSpk"></span><button class="icon-btn" id="mdX" aria-label="關閉">✕</button></div>' +
+        '<div class="slide"><h3>' + esc(sl.t) + '</h3>' + (sl.fig ? FIG(sl.fig) : '') + '<div class="slide-body">' + formatBody(sl.b) + '</div></div>' +
+        '<div class="slide-nav"><button class="btn" id="mdPrev"' + (i === 0 ? ' disabled' : '') + '>◀ 上一張</button><div class="dots">' + dots + '</div>' +
+        (i < slides.length - 1 ? '<button class="btn pri" id="mdNext">下一張 ▶</button>' : '<button class="btn pink" id="mdNext">明白晒 👍</button>') + '</div>', 'slides-modal');
+      var sp = spk(function () { return sl.t + '。' + sl.b; }); $('#mdSpk', c).appendChild(sp);
+      $('#mdX', c).onclick = closeModal;
+      $('#mdPrev', c).onclick = function () { i--; render(); };
+      $('#mdNext', c).onclick = function () { if (i < slides.length - 1) { i++; render(); } else { closeModal(); Store.badge('brainy'); } };
+      $$('.formula', c).forEach(function (f) { f.onclick = function () { Voice.speak(f.dataset.f); }; });
+      c.scrollTop = 0;
+      Voice.auto(sl.t + '。' + sl.b, sp);
+    }
+    render();
+  }
+
   /* =====================================================================
      PLAY: the shared 3D cube for lessons and practice
      ===================================================================== */
@@ -4034,6 +4420,7 @@ function CubeView(host, opts) {
       this.view.busyInput = function () { return self.lock; };
       this.view.onAnyTouch = function () { Sfx.unlock(); $('#swipeHint').classList.add('hidden'); };
       this.net = new NetView($('#netMini'), { cell: 11 });
+      addViewPad($('#cubeBox'), function () { return self.view; });
       this.buildControls();
       $('#btnView').onclick = function () { self.view.resetView(); $('#btnBottom').classList.remove('on'); };
       $('#btnBottom').onclick = function () { var on = !this.classList.contains('on'); this.classList.toggle('on', on); self.view.lookBottom(on); };
@@ -4472,6 +4859,7 @@ function CubeView(host, opts) {
       else if (lesson.kind === 'moves') this.movesMount();
       else if (lesson.kind === 'stage') this.stageMount();
       else if (lesson.kind === 'grad') this.gradMount();
+      else if (lesson.kind === 'speed') this.speedMount();
       $('#btnRestart').classList.remove('hidden');
       setTimeout(function () { Missions.readSlide(); }, 350);
     },
@@ -4573,13 +4961,14 @@ function CubeView(host, opts) {
       $('#mFollow').onclick = function () { self.startFollow(false); };
       $('#mCycle').onclick = function () { self.startFollow(true); };
     },
-    startFollow: function (cycle) {
+    startFollow: function (cycle, opts) {
       var list = ['U', "U'", 'R', "R'", 'L', "L'", 'F', "F'", 'D', "D'"], targets = [];
-      if (cycle) targets = M.repeat(CO.TRIG, 6);
+      if (opts) targets = M.parse(opts.targets);
+      else if (cycle) targets = M.repeat(CO.TRIG, 6);
       else while (targets.length < 8) { var t = pick(list); var last = targets[targets.length - 1]; if (last && last[0] === t[0]) continue; targets.push(t); }
-      this.cur = { type: 'follow', cycle: cycle, targets: targets, i: 0, mistakes: 0 };
-      Play.setState(M.solved(), { noBrain: true });
-      this.renderFollow(true);
+      this.cur = { type: 'follow', cycle: cycle, targets: targets, i: 0, mistakes: 0, opts: opts || null };
+      Play.setState(opts && opts.start ? opts.start : M.solved(), { noBrain: true });
+      this.renderFollow(!(opts && opts.timed));
     },
     renderFollow: function (speakIt) {
       var c = this.cur, area = $('#mArea'), self = this; if (!area) return;
@@ -4587,16 +4976,18 @@ function CubeView(host, opts) {
       if (c.i >= c.targets.length) return;
       var t = c.targets[c.i];
       var head = c.cycle ? '第 ' + (Math.floor(c.i / 4) + 1) + ' 次 / 6 次' : '第 ' + (c.i + 1) + ' 下 / ' + c.targets.length + ' 下';
-      area.innerHTML = '<div class="pbar"><i style="width:' + (c.i / c.targets.length * 100) + '%"></i></div>' +
+      var intro = c.opts && c.opts.intro ? '<div class="brain-msg show info" style="margin:10px 0 0">' + c.opts.intro + '</div>' : '';
+      var allChips = c.opts ? '<div class="chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + c.targets.map(function (m, k) { return chipHTML(m, k < c.i ? 'done' : k === c.i ? 'cur' : ''); }).join('') + '</div>' : '';
+      area.innerHTML = intro + '<div class="pbar"><i style="width:' + (c.i / c.targets.length * 100) + '%"></i></div>' + allChips +
         '<div class="follow-now"><div class="big-chip">' + esc(t) + '</div><div class="fw">' + moveIcon(t) + ' ' + moveWord(t) + '<small>' + head + '</small></div><span id="fSpk"></span></div>' +
         (c.cycle ? '<div class="chips" style="display:flex;gap:5px;flex-wrap:wrap">' + CO.TRIG.map(function (m, k) { return chipHTML(m, (c.i % 4) > k ? 'done' : (c.i % 4) === k ? 'cur' : ''); }).join('') + '</div>' : '');
       $('#fSpk').appendChild(spk(function () { return t.replace("'", '逆') + '，' + moveWord(t); }));
-      var showNow = c.cycle || c.i < 3;
+      var showNow = c.cycle || !!c.opts || c.i < 3;
       if (showNow) Play.view.showArrow(t);
       else { Play.view.clearArrow(); this._arrowT = setTimeout(function () { if (self.cur === c) { Play.view.showArrow(t); toast('💡 睇住粉紅色箭咀！'); } }, 4500); }
       $$('#controls .mv.hl').forEach(function (b) { b.classList.remove('hl'); });
       if (showNow) { var b = $('#controls .mv[data-m="' + t + '"]'); if (b) b.classList.add('hl'); }
-      if (speakIt) Voice.auto(t.replace("'", '逆') + '，' + moveWord(t));
+      if (speakIt && !(c.opts && c.opts.timed)) Voice.auto(t.replace("'", '逆') + '，' + moveWord(t));
     },
     followMove: function (tok, src) {
       var c = this.cur, self = this;
@@ -4604,9 +4995,12 @@ function CubeView(host, opts) {
       var t = c.targets[c.i];
       if (tok === t) {
         c.i++;
+        if (c.i === 1) c.t0 = performance.now();
         if (c.i >= c.targets.length) {
+          c.t1 = performance.now();
           Play.view.clearArrow(); $$('#controls .mv.hl').forEach(function (b) { b.classList.remove('hl'); });
           $('#mArea').innerHTML = '<div class="pbar"><i style="width:100%"></i></div>';
+          if (c.opts) { setTimeout(function () { c.opts.onDone(c); }, 450); return; }
           if (c.cycle) {
             setTimeout(function () {
               var ok = CO.isSolved(Play.state);
@@ -4619,8 +5013,8 @@ function CubeView(host, opts) {
           }
           return;
         }
-        if (!c.cycle) Sfx.good();
-        this.renderFollow(!c.cycle);
+        if (!c.cycle && !c.opts) Sfx.good();
+        this.renderFollow(!c.cycle && !c.opts);
       } else {
         c.mistakes++; Sfx.soft();
         toast('差少少！你扭咗「' + esc(tok) + '」，我幫你轉返 🙂 再試吓「' + esc(t) + '」', false);
@@ -4771,6 +5165,106 @@ function CubeView(host, opts) {
       this.celebrate('🏆 你還原咗扭計骰！', '用咗 ' + time + '，扭咗 ' + Play.hist.length + ' 下。' + (Brain.usedHelp ? '' : '仲要冇用「幫我做」，真係好勁！'), [{ t: '🎲 再玩一次', cls: 'pink', f: function () { self.startFull(); } }]);
     },
 
+    /* ---- speedcubing lesson ---- */
+    speedMount: function () {
+      var self = this;
+      clearInterval(this._insp);
+      this.cur = { type: 'speedMenu' };
+      Play.setState(M.solved(), { noBrain: true }); Play.view.clearArrow();
+      this.card.innerHTML = '<div class="card-title"><h3>🎯 任務：高手訓練營</h3><span id="mSpk"></span></div><p class="m-desc">揀一個高手訓練：試吓好似世界冠軍咁先觀察再計劃，直接喺底部砌十字；或者試吓 F2L 同 PLL 公式，再挑戰你嘅手速！</p>' +
+        '<div class="m-btns" style="grid-template-columns:1fr 1fr">' +
+        '<button class="btn pink" data-d="cross"><span class="e">🏁</span>高手十字挑戰<span class="m-step">⭐ 最多 8 步</span></button>' +
+        '<button class="btn pri" data-d="tps"><span class="e">⚡</span>手速挑戰<span class="m-step">右手公式 × 4 計時</span></button>' +
+        '<button class="btn" data-d="f2l"><span class="e">🧩</span>F2L 一對入位<span class="m-step">4 下</span></button>' +
+        '<button class="btn" data-d="tperm"><span class="e">🅿️</span>T 字公式 PLL<span class="m-step">14 下</span></button></div><div id="mArea"></div>';
+      $('#mSpk').appendChild(spk(function () { return $('.m-desc', self.card).textContent; }));
+      $$('[data-d]', this.card).forEach(function (b) { b.onclick = function () { Sfx.unlock(); if (b.dataset.d === 'cross') self.startCross(); else self.startDrill(b.dataset.d); }; });
+    },
+    startDrill: function (id) {
+      var self = this;
+      clearInterval(this._insp);
+      var D = {
+        tps: { targets: M.repeat(CO.TRIG, 4), timed: true, intro: '⚡ 跟住扭 16 下（右手公式 × 4），越快越好！由你扭第一下開始計時。<br><small>用電腦嘅話，鍵盤 R、U、Shift+R、Shift+U 會快好多。</small>' },
+        f2l: { targets: "U R U' R'", start: M.apply(M.solved(), "R U R' U'"), intro: '🧩 睇吓頂層：有一粒白色角塊同佢隔籬嘅邊塊已經<b>黏埋成一對</b>（閃動嗰兩粒）。F2L 嘅秘訣就係一對一對咁放入去，只要 4 下！', focus: true },
+        tperm: { targets: "R U R' U' R' F R2 U' R' U' R U R' F'", start: M.apply(M.solved(), "R U R' U' R' F R2 U' R' U' R U R' F'"), intro: '🅿️ 睇吓頂層：左右兩粒邊塊調轉咗，右邊兩粒角塊都調轉咗。T 字公式一次過將佢哋全部調返好！（PLL 21 條公式其中一條）' }
+      }[id];
+      D.id = id;
+      D.onDone = function (c) { self.drillDone(c); };
+      this.startFollow(false, D);
+      if (D.focus) { var f = [8, 9, 20, 5, 10]; Play.view.setFocus(f); setTimeout(function () { if (self.cur && self.cur.opts === D) Play.view.setFocus([]); }, 5000); }
+      Voice.auto(D.intro.replace(/<[^>]+>/g, ''));
+    },
+    drillDone: function (c) {
+      var self = this, id = c.opts.id;
+      this.setStars(0);
+      if (id === 'tps') {
+        var sec = Math.max(0.01, (c.t1 - c.t0) / 1000), tps = (c.targets.length - 1) / sec;
+        Store.badge('speedy');
+        var msg = '你用咗 <b>' + sec.toFixed(2) + ' 秒</b>扭咗 16 下。<div class="tps-big">每秒 ' + tps.toFixed(1) + ' 下</div>' +
+          (c.mistakes ? '（錯咗 ' + c.mistakes + ' 次）' : '冇錯過一次！') + '<br>世界紀錄 2.76 秒嗰次：每秒 10.5 下。用螢幕掣好難快，用真扭計骰、用手指「撥」會快好多，試吓同屋企人比賽！';
+        this.celebrate('⚡ 手速挑戰完成！', msg, [{ t: '🔁 再挑戰', cls: 'pink', f: function () { self.startDrill('tps'); } }, { t: '返訓練營', f: function () { self.speedMount(); } }]);
+      } else {
+        var txt = id === 'f2l' ? '4 下就將一對角塊同邊塊送返屋企！層先法要分開兩次放，用多好多步。呢個就係 F2L 快嘅原因。' : 'T 字公式一次過調換咗兩粒角同兩粒邊！高手記住 21 條 PLL，所以頂層一步就完成。';
+        this.celebrate(CO.isSolved(Play.state) ? '🎉 完成！' : '🎉 做完公式！', txt, [{ t: '🔁 再做一次', f: function () { self.startDrill(id); } }, { t: '返訓練營', cls: 'pri', f: function () { self.speedMount(); } }]);
+      }
+    },
+    startCross: function () {
+      var self = this, s, opt;
+      clearInterval(this._insp);
+      for (var k = 0; k < 40; k++) { s = Gen.scrambled(); opt = CrossTrainer.solve(s); if (opt.length >= 4 && !CO.crossDone(s)) break; }
+      Play.setState(s, { noBrain: true }); Play.view.clearArrow(); Play.view.setFocus([]);
+      this.cur = { type: 'cross', start: s.slice(), opt: opt, demo: false, done: false, insp: 15 };
+      var area = $('#mArea');
+      area.innerHTML = '<div class="brain-msg show info" style="margin:10px 0 0">🏁 目標：<b>唔砌雛菊</b>，直接喺<b>底部</b>砌好白色十字（側邊顏色要對返中心）。黃色保持向上。<br>👀 高手會先觀察 15 秒：白色邊塊喺邊？要去邊？喺腦入面諗好先扭！<br><small>撳「👀 睇底」或者 ⬆ 掣可以睇到底部。</small></div>' +
+        '<div class="cross-board"><div class="insp"><b id="cbInsp">15</b><small>觀察時間</small></div><div class="opt"><b>' + opt.length + '</b><small>電腦計到最少步數</small></div><div class="you"><b id="cbYou">0</b><small>你用咗（步）</small></div></div>' +
+        '<div class="row"><button class="btn sm" id="cbReset">↩ 由頭再試</button><button class="btn sm soft" id="cbBest">💡 睇電腦最佳答案</button><button class="btn sm pink" id="cbNew">🎲 換一個</button></div><div id="cbMsg"></div>';
+      $('#cbReset').onclick = function () { self.crossReset(); };
+      $('#cbBest').onclick = function () { self.crossBest(); };
+      $('#cbNew').onclick = function () { self.startCross(); };
+      this._insp = setInterval(function () {
+        var c = self.cur; if (!c || c.type !== 'cross') { clearInterval(self._insp); return; }
+        c.insp--; var el = $('#cbInsp'); if (el) el.textContent = Math.max(0, c.insp);
+        if (c.insp <= 0) { clearInterval(self._insp); toast('⏱ 15 秒到！開始扭啦！', true); }
+      }, 1000);
+      Voice.auto('高手十字挑戰！唔砌雛菊，直接喺底部砌好白色十字。電腦計到，最少要' + opt.length + '步。先觀察15秒，喺腦入面諗好先扭！');
+    },
+    crossCount: function () { return Play.hist.filter(function (m) { return !/^[xyz]/.test(m); }).length; },
+    crossMove: function (isUndo) {
+      var c = this.cur, self = this; if (!c || c.done) return;
+      if (!isUndo && c.insp > 0) { c.insp = 0; clearInterval(this._insp); var el = $('#cbInsp'); if (el) el.textContent = '✓'; }
+      var n = this.crossCount(); var y = $('#cbYou'); if (y) y.textContent = n;
+      if (isUndo || !CO.crossDone(Play.state)) return;
+      c.done = true;
+      setTimeout(function () { Play.view.lookBottom(true); $('#btnBottom').classList.add('on'); }, 500);
+      var opt = c.opt.length, msg;
+      if (c.demo) msg = '呢個係電腦示範，自己再試多次就可以攞星星！';
+      else {
+        this.setStars(0);
+        if (n <= 8) { this.setStars(1); Store.badge('crossPro'); }
+        if (n <= opt) this.setStars(2);
+        msg = n <= opt ? '你用咗 ' + n + ' 步，同電腦一樣係最少步數！你已經有世界級嘅十字功力！' :
+          n <= 8 ? '你用咗 ' + n + ' 步，喺 8 步以內，好似高手咁！電腦嘅最少步數係 ' + opt + ' 步，撳「💡 睇電腦最佳答案」學吓佢點諗。' :
+            '你用咗 ' + n + ' 步砌好十字，冇用雛菊都做到，好叻！高手會控制喺 8 步以內，電腦嘅最少步數係 ' + opt + ' 步，試吓再諗得精啲！';
+      }
+      this.celebrate('🏁 十字完成！', msg, [{ t: '🎲 再嚟一個', cls: 'pink', f: function () { self.startCross(); } }, { t: '💡 睇最佳答案', f: function () { self.crossBest(); } }]);
+    },
+    crossReset: function () {
+      var c = this.cur; if (!c || c.type !== 'cross') return;
+      Play.setState(c.start, { noBrain: true }); c.done = false; var y = $('#cbYou'); if (y) y.textContent = 0;
+      var old = $('.done-box', this.card); if (old) old.remove();
+    },
+    crossBest: function () {
+      var self = this, c = this.cur; if (!c || c.type !== 'cross' || Play.lock) return;
+      this.crossReset(); c.demo = true; c.insp = 0; clearInterval(this._insp);
+      var words = c.opt.map(function (m) { return chipHTML(m); }).join('');
+      $('#cbMsg').innerHTML = '<div class="why k-next"><span class="wi">🤖</span><div class="grow"><div class="wt">電腦點樣計？</div><p>白色十字得 4 粒邊塊，總共只有 190,080 個可能樣子。電腦由「十字已經砌好」開始，一層一層向外擴散（1 步可以去到邊啲樣、2 步可以去到邊啲樣……），計晒每個樣最少要幾多步，所以一定搵到最短答案。呢個骰最少要 ' + c.opt.length + ' 步：</p><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + words + '</div></div></div>';
+      Play.lock = true;
+      var chain = sleep(400);
+      c.opt.forEach(function (tok) { chain = chain.then(function () { Play.view.showArrow(tok); return sleep(450); }).then(function () { return Play.doMove(tok, { src: 'help', dur: 420 }); }); });
+      chain.then(function () { Play.view.clearArrow(); Play.lock = false; });
+      Voice.auto('電腦示範：' + c.opt.join(' '));
+    },
+
     /* ---- events from Play ---- */
     onMove: function (tok, src) {
       var c = this.cur; if (!c) return;
@@ -4779,6 +5273,7 @@ function CubeView(host, opts) {
         if (c.turns >= 5 && !c.done.turn5) { this.markTask('turn5'); toast('你睇！6 粒中心塊一直喺自己嘅面，冇走過位！', true); }
       }
       if (c.type === 'follow') this.followMove(tok, src);
+      if (c.type === 'cross' && (src === 'user' || src === 'help')) this.crossMove();
       if (c.type === 'full' && (src === 'user' || src === 'help')) {
         if (c.started && !c.t0) { c.t0 = Date.now(); var self = this; this.timer = setInterval(function () { self.tickTimer(); }, 1000); }
         this.updateRoadmap();
@@ -4788,6 +5283,7 @@ function CubeView(host, opts) {
       var c = this.cur; if (!c) return;
       if (c.type === 'follow' && c.i > 0 && c.targets[c.i - 1] === tok) { c.i--; this.renderFollow(false); }
       if (c.type === 'full') this.updateRoadmap();
+      if (c.type === 'cross') this.crossMove(true);
     },
     onTap: function (idx) {
       var c = this.cur;
@@ -4808,6 +5304,7 @@ function CubeView(host, opts) {
       else if (L.kind === 'moves') { if (this.cur && this.cur.type === 'follow') this.startFollow(this.cur.cycle); else this.movesMount(); }
       else if (L.kind === 'stage') this.startStage(this.cur ? this.cur.v : 'easy');
       else if (L.kind === 'grad') this.startFull();
+      else if (L.kind === 'speed') { var c = this.cur; if (c && c.type === 'cross') this.startCross(); else if (c && c.type === 'follow' && c.opts) this.startDrill(c.opts.id); else this.speedMount(); }
     }
   };
 
@@ -4872,7 +5369,7 @@ function CubeView(host, opts) {
   }
   function renderBadges() {
     var w = $('#badgesWrap');
-    var specials = [['first', '👆', '第一次扭', '喺 App 入面扭咗第一下'], ['cycle6', '🔬', '小科學家', '完成神奇 6 次實驗'], ['solve1', '🏆', '還原成功', '第一次還原成個扭計骰'], ['solveSelf', '💪', '獨立完成', '冇用「幫我做」還原扭計骰'], ['grad', '🎓', '扭計骰小博士', '完成畢業挑戰'], ['solver', '🎨', '解骰專家', '用填色解骰器解開一個骰']];
+    var specials = [['first', '👆', '第一次扭', '喺 App 入面扭咗第一下'], ['cycle6', '🔬', '小科學家', '完成神奇 6 次實驗'], ['solve1', '🏆', '還原成功', '第一次還原成個扭計骰'], ['solveSelf', '💪', '獨立完成', '冇用「幫我做」還原扭計骰'], ['grad', '🎓', '扭計骰小博士', '完成畢業挑戰'], ['solver', '🎨', '解骰專家', '用填色解骰器解開一個骰'], ['brainy', '🧠', '電腦思考家', '睇完「電腦點樣諗？」學習卡'], ['crossPro', '🏁', '十字高手', '8 步以內直接砌好底部十字'], ['speedy', '⚡', '手速小子', '完成手速挑戰']];
     w.innerHTML = '<div class="card"><h2>🏅 我的獎章</h2><p>你總共有 <b>⭐ ' + Store.total() + '</b> 粒星（最多 ' + LESSONS.length * 3 + ' 粒）。記住：星星唔係最重要，最重要係你肯諗、肯試！</p></div>' +
       '<div class="card"><h3>📚 每一課嘅星星</h3><div class="badge-grid">' + LESSONS.map(function (L) { var st = Store.stars(L.id); return '<div class="bdg' + (st.some(Boolean) ? ' got' : '') + '"><span class="bi">' + L.icon + '</span><b>' + esc(L.title) + '</b><small>' + starStr(st) + '</small></div>'; }).join('') + '</div></div>' +
       '<div class="card"><h3>✨ 特別獎章</h3><div class="badge-grid">' + specials.map(function (s) { var got = !!Store.data.badges[s[0]]; return '<div class="bdg' + (got ? ' got' : '') + '"><span class="bi">' + s[1] + '</span><b>' + s[2] + '</b><small>' + s[3] + '</small></div>'; }).join('') + '</div></div>';
@@ -4889,9 +5386,10 @@ function CubeView(host, opts) {
       ['🔍', '第一性原理', '由最基本嘅事實出發：中心塊唔會郁、每粒塊有自己屋企、公式做 6 次會循環、公式係「拆開 → 放入 → 還原」。明白「點解」，就唔使死記。'],
       ['⭐', '適度遊戲化', '星星、獎章同證書提供成就感，但重點放喺理解同思考；冇排名、冇倒數計時壓力。']
     ];
-    w.innerHTML = '<div class="card"><h2>👨‍👩‍👧 俾家長同老師</h2><p>「扭計骰小博士」係一個單一 HTML 檔嘅教學 App，唔使安裝、唔使上網（除咗字型），可以喺電腦同 iPad 用。佢用最正統嘅<b>層先法（Layer-by-Layer）</b>教小朋友由零開始還原 3×3 扭計骰，並附有<b>填色解骰器</b>（Kociemba 兩階段演算法，通常 20 步左右解到任何一個骰）。</p></div>' +
+    w.innerHTML = '<div class="card"><h2>👨‍👩‍👧 俾家長同老師</h2><p>「扭計骰小博士」係一個單一 HTML 檔嘅教學 App，唔使安裝、唔使上網（除咗字型），可以喺電腦同 iPad 用。佢用最正統嘅<b>層先法（Layer-by-Layer）</b>教小朋友由零開始還原 3×3 扭計骰，並附有<b>填色解骰器</b>（Kociemba 兩階段演算法，通常 20 步左右解到任何一個骰）。解骰器會逐步解釋每一步嘅作用：第 1 階段將扭計骰整理成「黃白夾心」（數學上叫子群 G1 = ⟨U, D, R2, L2, F2, B2⟩：角塊方向、邊塊方向同中間層位置都擺啱），第 2 階段只用唔會破壞夾心嘅 10 種扭法歸位。進度表直接顯示演算法用緊嘅三個座標（twist、flip、slice）。</p></div>' +
       '<div class="card"><h3>🎓 設計理念（兒童學習心理學）</h3><div style="display:flex;flex-direction:column;gap:10px">' + P.map(function (p) { return '<div class="principle"><span class="pi">' + p[0] + '</span><div><b>' + p[1] + '</b><p>' + p[2] + '</p></div></div>'; }).join('') + '</div></div>' +
       '<div class="card"><h3>🔊 廣東話語音設定</h3><p id="voiceStatus"></p><ul><li><b>iPad / iPhone：</b>設定 → 輔助使用 → 語音內容 → 聲音 → 中文 → 揀「中文（香港）」並下載（例如 Sinji）。</li><li><b>Windows：</b>建議用 Microsoft Edge 開，會有自然嘅廣東話聲（HiuGaai / HiuMaan）。或者喺「設定 → 時間與語言 → 語音」加入「中文（香港特別行政區）」。</li><li><b>Mac：</b>系統設定 → 輔助使用 → 朗讀內容 → 系統聲音 → 管理聲音 → 中文（香港）。</li><li><b>Chrome：</b>通常內置「Google 粵語（香港）」。</li></ul></div>' +
+      '<div class="card"><h3>🚀 速解高手課（CFOP）</h3><p>畢業之後有一課介紹世界紀錄選手用嘅 CFOP 方法（Cross → F2L → OLL → PLL），並對照返層先法 8 個步驟點樣合併成 4 步（約 150 下減到約 55–60 下）。動手做部分有：高手十字挑戰（程式用廣度優先搜尋計晒 190,080 個十字狀態，比較小朋友同最少步數）、手速挑戰（計每秒扭幾多下）、F2L 配對同 T 字 PLL 示範。世界紀錄資料截至 2026 年 9 月，日後可能會再被打破。</p></div>' +
       '<div class="card"><h3>💡 使用建議</h3><ul><li>每次 15–20 分鐘，每日學一兩站就夠，重溫比趕進度更重要。</li><li>最好一邊用 App，一邊拎住真嘅扭計骰跟住做（黃色向上、綠色對住自己）。</li><li>小朋友卡住時，先問佢：「你觀察到乜嘢？」「目標係乜？」——即係「腦袋思考中」嘅四個問題。</li><li>年紀細嘅小朋友可以喺 ⚙️ 設定開「總係顯示答案」，同埋「讀出每一步扭法」。</li><li>鍵盤快捷鍵（電腦）：U R F D L B 扭動（Shift = 逆時針）、Y 轉成個骰、Z 返轉頭、H 提示。</li></ul></div>' +
       '<div class="card"><h3>🌐 上載去 GitHub Pages</h3><ol><li>喺 GitHub 開一個新 repository（例如 <code>cube-kids</code>）。</li><li>將 <code>index.html</code> 上載（Add file → Upload files）。</li><li>去 Settings → Pages → Source 揀 <code>main</code> branch，按 Save。</li><li>等一兩分鐘，就可以喺 <code>https://你的名.github.io/cube-kids/</code> 打開，iPad 用 Safari 開再「加入主畫面」，就好似一個 App 咁。</li></ol><p><small>本 App 用咗 three.js（MIT）同 cube.js 解骰演算法（MIT），已經內嵌喺檔案入面。Rubik\'s Cube 係其擁有者嘅商標，本 App 與其無關。</small></p></div>';
     var vs = $('#voiceStatus');
@@ -4968,7 +5466,17 @@ function CubeView(host, opts) {
     var unknown = st.filter(function (c) { return c === '?'; }).length;
     if (unknown) { errs.push('仲有 <b>' + unknown + '</b> 格未填色。要填晒 54 格先可以計㗎！'); return { errs: errs, bad: st.map(function (c, i) { return c === '?' ? i : -1; }).filter(function (i) { return i >= 0; }) }; }
     var cnt = {}; st.forEach(function (c) { cnt[c] = (cnt[c] || 0) + 1; });
-    Object.keys(COLOR_ZH).forEach(function (c) { if (c === '?') return; var n = cnt[c] || 0; if (n !== 9) errs.push(COLOR_ZH[c] + '有 <b>' + n + '</b> 格（應該要啱啱好 9 格）。'); });
+    var over = ['Y', 'G', 'B', 'R', 'O'].filter(function (c) { return (cnt[c] || 0) > 9; });
+    if ((cnt.W || 0) > 9 && !over.length) {
+      var short = ['Y', 'G', 'B', 'R', 'O'].filter(function (c) { return (cnt[c] || 0) < 9; }).map(function (c) { return COLOR_ZH[c] + '仲差 <b>' + (9 - (cnt[c] || 0)) + '</b> 格'; });
+      errs.push('仲有 <b>' + (cnt.W - 9) + '</b> 格未填色（佢哋而家係白色）：' + short.join('、') + '。繼續填啦，就快得喇！');
+      return { errs: errs, bad: [] };
+    }
+    Object.keys(COLOR_ZH).forEach(function (c) {
+      if (c === '?') return; var n = cnt[c] || 0;
+      if (c === 'W' && n > 9) errs.push('白色有 <b>' + n + '</b> 格，但係應該只有 9 格。可能仲有 <b>' + (n - 9) + '</b> 格未填色（格仔一開始係白色）？');
+      else if (n !== 9) errs.push(COLOR_ZH[c] + '有 <b>' + n + '</b> 格（應該要啱啱好 9 格）。');
+    });
     if (errs.length) return { errs: errs, bad: [] };
     var S = M.solved();
     var eUsed = {}, cUsed = {}, eperm = [], cperm = [], eo = 0, co = 0;
@@ -5010,6 +5518,7 @@ function CubeView(host, opts) {
       this.view.onTurn = function () { };
       this.view.onSettled = function (st) { if (self.mode === 'play') self.updatePlayUI(); };
       this.view.setVisible(false);
+      addViewPad($('#solverBox'), function () { return self.view; });
       $('#sBtnView').onclick = function () { self.view.resetView(); $('#sBtnBottom').classList.remove('on'); };
       $('#sBtnBottom').onclick = function () { var on = !this.classList.contains('on'); this.classList.toggle('on', on); self.view.lookBottom(on); };
       this.blank();
@@ -5022,7 +5531,7 @@ function CubeView(host, opts) {
       Kociemba.init().then(function () { var p = $('#kStatus'); if (p) { p.className = 'status-pill ok'; p.textContent = '✅ 大腦準備好'; } });
       setTimeout(function () { Voice.auto('填色解骰器。先揀顏色，再撳扭計骰上面嘅格仔填色，填到同你手上嘅扭計骰一模一樣，然後撳計算解法。'); }, 300);
     },
-    blank: function () { var s = []; for (var i = 0; i < 54; i++) s.push(i % 9 === 4 ? M.solved()[i] : '?'); this.setPaint(s); },
+    blank: function (gray) { var s = []; for (var i = 0; i < 54; i++) s.push(i % 9 === 4 ? M.solved()[i] : (gray ? '?' : 'W')); this.setPaint(s); },
     setPaint: function (s) { this.state = s.slice(); this.mode = 'paint'; this.view.hardSet(this.state); this.view.setFocus([]); this.view.clearArrow(); if (this.net) this.net.update(this.state); this.updatePalette(); },
     buildPalette: function () {
       var p = $('#palette'), self = this; p.innerHTML = '';
@@ -5041,7 +5550,7 @@ function CubeView(host, opts) {
         var c = b.dataset.c, n = cnt[c] || 0, el = $('.cnt', b);
         b.classList.toggle('sel', c === self.color);
         el.textContent = c === '?' ? '擦膠' : n + '/9';
-        el.className = 'cnt' + (c !== '?' && n === 9 ? ' ok' : c !== '?' && n > 9 ? ' over' : '');
+        el.className = 'cnt' + (c !== '?' && n === 9 ? ' ok' : c !== '?' && c !== 'W' && n > 9 ? ' over' : '');
       });
     },
     paint: function (i) {
@@ -5055,19 +5564,21 @@ function CubeView(host, opts) {
       var self = this, side = $('#solverSide');
       side.innerHTML = '';
       var intro = h('div', { class: 'card' }, '<div class="card-title"><h3>🎨 填色解骰器</h3><span id="sSpk"></span></div>' +
-        '<p style="margin:0 0 8px;line-height:1.7">① 拎住你嘅扭計骰：<b>黃色中心向上、綠色中心對住你</b>。<br>② 喺下面揀顏色，撳扭計骰（或者展開圖）嘅格仔，填到同你手上嗰個一模一樣。<br>③ 撳「⚡ 計算最快解法」，跟住一步一步扭！</p>' +
-        '<div style="display:flex;gap:10px;align-items:center">' + FIG('hold').replace('class="fig"', 'class="fig" style="margin:0"') + '<div><span class="status-pill" id="kStatus">🧠 大腦熱身中…</span><p style="font-size:14px;color:var(--muted);line-height:1.6">小貼士：拖動空白位置可以轉鏡頭睇其他面；撳「👀 睇底」睇底部。</p></div></div>');
+        '<p style="margin:0 0 8px;line-height:1.7">① 拎住你嘅扭計骰：<b>黃色中心向上、綠色中心對住你</b>。<br>② 所有格仔一開始都係<b>白色</b>，所以白色唔使填！揀其他顏色，撳扭計骰（或者展開圖）嘅格仔，填到同你手上嗰個一模一樣。<br>③ 撳「⚡ 計算最快解法」，跟住一步一步扭，仲會話你知<b>每一步點解要咁轉</b>！</p>' +
+        '<div style="display:flex;gap:10px;align-items:center">' + FIG('hold').replace('class="fig"', 'class="fig" style="margin:0"') + '<div><span class="status-pill" id="kStatus">🧠 大腦熱身中…</span><p style="font-size:14px;color:var(--muted);line-height:1.6">小貼士：撳右下角嘅 ⬅ ➡ ⬆ ⬇ 掣（或者拖動空白位置）可以轉鏡頭睇其他面。</p><button class="btn sm soft" id="sHow">🧠 電腦點樣諗？</button></div></div>');
       side.appendChild(intro);
-      $('#sSpk').appendChild(spk(function () { return '第一，拎住你嘅扭計骰，黃色中心向上、綠色中心對住你。第二，揀顏色，撳格仔填色，填到同你手上嗰個一模一樣。第三，撳計算最快解法，跟住一步一步扭。'; }));
+      $('#sSpk').appendChild(spk(function () { return '第一，拎住你嘅扭計骰，黃色中心向上、綠色中心對住你。第二，所有格仔一開始都係白色，所以白色唔使填。揀其他顏色，撳格仔填色，填到同你手上嗰個一模一樣。第三，撳計算最快解法，跟住一步一步扭，仲會話你知每一步點解要咁轉。'; }));
+      $('#sHow').onclick = function () { showSlides('電腦點樣諗？', KOCIEMBA_SLIDES); };
       var edit = h('div', { class: 'card' }, '<div class="card-title"><h3>🗺️ 展開圖（可以直接撳嚟填色）</h3></div><div class="net-big" id="netBig"></div>' +
-        '<div class="row" style="margin-top:8px"><button class="btn sm" id="sBlank">⬜ 全部清空</button><button class="btn sm" id="sSolved">✨ 由完成嘅樣開始</button><button class="btn sm" id="sRandom">🎲 隨機示範</button><button class="btn sm" id="sFromPlay">📥 用練習骰</button></div>' +
+        '<div class="row" style="margin-top:8px"><button class="btn sm" id="sBlank">⚪ 全部變返白色</button><button class="btn sm" id="sGray">⬜ 全部清空（灰色）</button><button class="btn sm" id="sSolved">✨ 由完成嘅樣開始</button><button class="btn sm" id="sRandom">🎲 隨機示範</button><button class="btn sm" id="sFromPlay">📥 用練習骰</button></div>' +
         '<ul class="errs" id="sErr"></ul>' +
         '<div class="row" style="margin-top:12px"><button class="btn pri big" id="sSolve" style="flex:2">⚡ 計算最快解法</button><button class="btn big" id="sBeginner" style="flex:1">🐢 用層先法解</button></div>');
       side.appendChild(edit);
       this.net = new NetView($('#netBig'), { cell: 26, labels: true, onTap: function (i) { self.paint(i); } });
       $('#netBig svg').classList.add('net-big');
       this.net.update(this.state);
-      $('#sBlank').onclick = function () { self.confirmThen('⬜ 全部清空？', '你填好嘅顏色會清晒。', function () { self.blank(); }); };
+      $('#sBlank').onclick = function () { self.confirmThen('⚪ 全部變返白色？', '你填好嘅顏色會清晒，全部格仔變返白色。', function () { self.blank(); }); };
+      $('#sGray').onclick = function () { self.confirmThen('⬜ 全部清空？', '全部格仔會變成灰色（未填），要逐格填晒 6 隻顏色。', function () { self.blank(true); }); };
       $('#sSolved').onclick = function () { self.setPaint(M.solved()); };
       $('#sRandom').onclick = function () { self.setPaint(M.apply(M.solved(), M.randomScramble(25))); toast('🎲 隨機打亂咗一個骰，可以撳「計算」睇吓！', false, '#sToast'); };
       $('#sFromPlay').onclick = function () { self.setPaint(self.normalize(Play.state)); toast('📥 已經用咗練習骰嘅顏色', false, '#sToast'); };
@@ -5118,6 +5629,7 @@ function CubeView(host, opts) {
       var self = this;
       Store.badge('solver');
       this.mode = 'play'; this.sol = moves; this.idx = 0; this.groups = groups; this.start = this.state.slice(); this.play = this.state.slice();
+      this.an = groups ? null : Explain.analyse(this.start, moves);
       this.view.setFocus([]);
       $('#solverMode').textContent = '▶ 播放解法';
       var side = $('#solverSide'); side.innerHTML = '';
@@ -5127,19 +5639,26 @@ function CubeView(host, opts) {
         side.appendChild(card); $('#sEdit').onclick = function () { self.backToEdit(); };
         return;
       }
-      var list = '';
+      var an = this.an, list = '';
       moves.forEach(function (m, i) {
         if (groups) groups.forEach(function (g) { if (g.at === i) list += '<div class="sol-group">第 ' + g.stage + ' 步・' + CO.STAGE_NAMES[g.stage] + '</div>'; });
-        list += chipHTML(m).replace('class="mchip ', 'data-k="' + i + '" class="mchip ');
+        if (an && i === 0 && an.p1) list += '<div class="sol-group p1">🥪 第 1 階段：整理成「黃白夾心」（' + an.p1 + ' 步）</div>';
+        if (an && i === an.split) list += '<div class="sol-group p2">🏠 第 2 階段：用夾心安全扭法歸位（' + an.p2 + ' 步）</div>';
+        var ph = an ? (i < an.split ? ' p1' : ' p2') : '';
+        list += chipHTML(m).replace('class="mchip ', 'data-k="' + i + '" class="mchip' + ph + ' ');
       });
+      var intro = groups ? '' : '<br><small>💡 電腦用「兩階段法」：先去中途站「黃白夾心」，再歸位。每一步我都會話你知<b>點解</b>要咁轉！</small>';
       card.innerHTML = '<div class="card-title"><h3>' + title + '：' + moves.length + ' 步</h3><span id="solSpk"></span></div>' +
-        '<p style="margin:0 0 6px;line-height:1.6">拎好你嘅扭計骰：<b>黃色中心向上、綠色中心對住你</b>。每撳一次「下一步 ▶」，就跟住粉紅色箭咀扭一下。' + (groups ? '' : '<br><small>💡 數學家已經證明：任何一個打亂咗嘅扭計骰，都可以喺 20 步之內還原！呢個叫「上帝之數」。</small>') + '</p>' +
+        '<p style="margin:0 0 6px;line-height:1.6">拎好你嘅扭計骰：<b>黃色中心向上、綠色中心對住你</b>。每撳一次「下一步 ▶」，就跟住粉紅色箭咀扭一下。' + intro + '</p>' +
+        (groups ? '' : '<button class="btn sm soft" id="sHow2" style="margin-bottom:6px">🧠 電腦點樣諗？（10 張學習卡）</button>') +
         '<div class="sol-now" id="solNow"></div><div class="pbar"><i id="solBar" style="width:0"></i></div>' +
         '<div class="sol-ctrl"><button class="btn" id="pFirst" title="返去開頭">⏮</button><button class="btn" id="pPrev" title="上一步">◀</button><button class="btn pri" id="pNext" title="下一步">▶</button><button class="btn" id="pAuto" title="自動播放">⏯</button><button class="btn" id="pLast" title="跳去最後">⏭</button></div>' +
+        '<div id="solWhy"></div><div id="solMeters"></div>' +
         '<div id="solThink"></div><h3 style="margin:14px 0 6px;font-size:16px">全部步驟（撳可以跳去嗰步）</h3><div class="sol-list" id="solList">' + list + '</div>' +
         '<div class="row" style="margin-top:12px"><button class="btn" id="sEdit" style="flex:1">✏️ 返去改顏色</button><button class="btn soft" id="sToPlay" style="flex:1">🎮 帶去自由練習</button></div>';
       side.appendChild(card);
-      $('#solSpk').appendChild(spk(function () { return title + '，總共' + moves.length + '步。拎好你嘅扭計骰，黃色中心向上，綠色中心對住你。'; }));
+      $('#solSpk').appendChild(spk(function () { return title + '，總共' + moves.length + '步。拎好你嘅扭計骰，黃色中心向上，綠色中心對住你。' + (an ? '電腦會先用' + an.p1 + '步，將扭計骰整理成黃白夾心，再用' + an.p2 + '步歸位。' : ''); }));
+      if ($('#sHow2')) $('#sHow2').onclick = function () { showSlides('電腦點樣諗？', KOCIEMBA_SLIDES); };
       $('#pNext').onclick = function () { self.step(1); };
       $('#pPrev').onclick = function () { self.step(-1); };
       $('#pFirst').onclick = function () { self.jump(0); };
@@ -5150,18 +5669,19 @@ function CubeView(host, opts) {
       $$('#solList .mchip').forEach(function (c) { c.onclick = function () { self.jump(+c.dataset.k); }; });
       this.view.resetView();
       this.updatePlayUI();
-      Voice.auto(title + '，總共' + moves.length + '步。拎好你嘅扭計骰，黃色中心向上，綠色中心對住你，然後撳下一步。');
+      Voice.auto(title + '，總共' + moves.length + '步。' + (an ? '電腦會先用' + an.p1 + '步，將扭計骰整理成黃白夾心，再用' + an.p2 + '步歸位。' : '') + '拎好你嘅扭計骰，黃色中心向上，綠色中心對住你，然後撳下一步。');
     },
     step: function (d) {
       if (this.view.busy()) return;
       if (d > 0 && this.idx < this.sol.length) {
-        var t = this.sol[this.idx]; this.play = M.applyMove(this.play, t); this.idx++;
+        var t = this.sol[this.idx], st = this.an ? this.an.steps[this.idx] : null;
+        this.play = M.applyMove(this.play, t); this.idx++;
         this.view.enqueue(t, this.play.slice(), HELP_DUR[Store.s.speed] + 100); moveToast(t, '#sMoveToast');
-        this.view.clearArrow();
-        if (Store.s.readMoves || Store.s.autoRead) Voice.speak(t.replace("'", '逆').replace('2', '兩下') + '，' + moveWord(t));
+        this.view.clearArrow(); this.view.setFocus([]);
+        if (!this.auto && (Store.s.readMoves || Store.s.autoRead)) Voice.speak(t.replace("'", '逆').replace('2', '兩下') + '，' + moveWord(t) + '。' + (st ? st.short : ''));
       } else if (d < 0 && this.idx > 0) {
         this.idx--; var u = M.inv(this.sol[this.idx]); this.play = M.applyMove(this.play, u);
-        this.view.enqueue(u, this.play.slice(), 220); moveToast(u, '#sMoveToast'); this.view.clearArrow();
+        this.view.enqueue(u, this.play.slice(), 220); moveToast(u, '#sMoveToast'); this.view.clearArrow(); this.view.setFocus([]);
       }
       this.updatePlayUI(true);
     },
@@ -5174,20 +5694,53 @@ function CubeView(host, opts) {
     toggleAuto: function () {
       var self = this;
       if (this.auto) { this.stopAuto(); return; }
-      this.auto = setInterval(function () { if (self.view.busy()) return; if (self.idx >= self.sol.length) { self.stopAuto(); return; } self.step(1); }, 250);
+      this.auto = setInterval(function () { if (self.view.busy()) return; if (self.idx >= self.sol.length) { self.stopAuto(); return; } self.step(1); }, 450);
       $('#pAuto').classList.add('pink');
     },
     stopAuto: function () { clearInterval(this.auto); this.auto = null; var b = $('#pAuto'); if (b) b.classList.remove('pink'); },
+    meterHTML: function (inf, i) {
+      var an = this.an, ph1 = i < an.split, done1 = !ph1;
+      function row(label, v, max) { return '<div class="mrow"><span>' + label + '</span><div class="mb"><i class="' + (v === max ? 'full' : '') + '" style="width:' + (v / max * 100) + '%"></i></div><em>' + v + '/' + max + '</em></div>'; }
+      return '<div class="meters">' +
+        '<div class="meter ' + (done1 ? 'ok' : 'on') + '"><b>🥪 第 1 階段：黃白夾心 <span>' + (done1 ? '✅' : inf.p1 + '/24') + '</span></b>' +
+        row('🔺 角塊方向', inf.nCo, 8) + row('➖ 邊塊方向', inf.nEo, 12) + row('🥪 中間層', inf.nSl, 4) + row('⬜ 頂底黃白', inf.ud, 16) + '</div>' +
+        '<div class="meter ' + (inf.nHome === 20 ? 'ok' : ph1 ? '' : 'on') + '"><b>🏠 第 2 階段：歸位 <span>' + (inf.nHome === 20 ? '✅' : '') + '</span></b>' +
+        row('🏠 返到屋企', inf.nHome, 20) + '<div class="mrow" style="font-weight:600;color:var(--muted);line-height:1.4">' + (ph1 ? '（去到中途站之後先開始專心做）' : '只用 U、D、R2、L2、F2、B2') + '</div></div></div>';
+    },
     updatePlayUI: function (pending) {
       if (this.mode !== 'play' || !$('#solNow')) return;
-      var i = this.idx, n = this.sol.length, t = this.sol[i];
-      $('#solNow').innerHTML = i < n ? '<div class="big-chip">' + esc(t) + '</div><div class="fw">' + moveIcon(t) + ' ' + moveWord(t) + '<small>下一步：第 ' + (i + 1) + ' / ' + n + ' 步</small></div>' : '<div class="big-chip">🎉</div><div class="fw">完成！扭計骰還原咗！<small>總共 ' + n + ' 步</small></div>';
+      var self = this, i = this.idx, n = this.sol.length, t = this.sol[i], an = this.an;
+      var tag = an && i < n ? '<span class="phase-tag ' + (i < an.split ? '' : 'p2') + '">' + (i < an.split ? '第 1 階段' : '第 2 階段') + '</span>' : '';
+      $('#solNow').innerHTML = i < n ? '<div class="big-chip">' + esc(t) + '</div><div class="fw">' + moveIcon(t) + ' ' + moveWord(t) + tag + '<small>下一步：第 ' + (i + 1) + ' / ' + n + ' 步</small></div>' : '<div class="big-chip">🎉</div><div class="fw">完成！扭計骰還原咗！<small>總共 ' + n + ' 步</small></div>';
       $('#solBar').style.width = (i / n * 100) + '%';
       $$('#solList .mchip').forEach(function (c) { var k = +c.dataset.k; c.classList.toggle('done', k < i); c.classList.toggle('cur', k === i); });
       var cur = $('#solList .mchip.cur'); if (cur && cur.scrollIntoView) { var L = $('#solList'); L.scrollTop = cur.offsetTop - L.offsetTop - 40; }
-      if (!pending && !this.view.busy()) { if (i < n) this.view.showArrow(t); else { this.view.clearArrow(); } }
+      if (!pending && !this.view.busy()) {
+        if (i < n) this.view.showArrow(t); else this.view.clearArrow();
+        if (an && i > 0) this.view.setFocus(an.steps[i - 1].good); else this.view.setFocus([]);
+      }
       if (i === n && n && !pending && !this._celebrated) { this._celebrated = true; Sfx.stage(); Confetti.burst(120); Voice.auto('完成！扭計骰還原咗！'); }
       if (i < n) this._celebrated = false;
+      if (an) {
+        var html = '', ICO = { up: '✅', setup: '🔀', back: '↩️', goal: '🎉' }, LBL = { up: '前進', setup: '準備步', back: '退一步，進兩步', goal: '完成目標' };
+        if (i === 0) {
+          html += '<div class="why k-intro"><span class="wi">🧭</span><div class="grow"><div class="wt">電腦嘅計劃</div><p>' + (an.p1 ? '第 1 階段用 <b>' + an.p1 + '</b> 步，將扭計骰整理成「黃白夾心」中途站：頂面同底面淨係得黃同白。' : '呢個骰已經係「黃白夾心」，可以直接去第 2 階段！') + '第 2 階段再用 <b>' + an.p2 + '</b> 步，只用唔會整亂夾心嘅扭法，將全部小方塊送返屋企。</p></div><span id="whySpk"></span></div>';
+        } else {
+          var st = an.steps[i - 1];
+          html += '<div class="why k-' + st.kind + '"><span class="wi">' + ICO[st.kind] + '</span><div class="grow"><div class="wt">點解要咁轉？第 ' + i + ' 步 ' + esc(st.move) + '・' + LBL[st.kind] + '</div><p>' + esc(st.text) + '</p>' + (st.good.length ? '<p style="font-size:13px;color:var(--muted);margin-top:4px">✨ 閃動嘅格仔＝呢步整好咗嘅小方塊</p>' : '') + '</div><span id="whySpk"></span></div>';
+        }
+        if (i < n) {
+          var nx = an.steps[i];
+          html += '<div class="why k-next"><span class="wi">👉</span><div class="grow"><div class="wt">下一步 ' + esc(nx.move) + ' 會點？</div><p>' + esc(nx.short) + '</p></div></div>';
+        }
+        $('#solWhy').innerHTML = html;
+        var sp = spk(function () {
+          if (self.idx === 0) return $('#solWhy .k-intro p').textContent;
+          var s2 = self.an.steps[self.idx - 1]; return '第' + self.idx + '步，' + s2.move + '。' + s2.text;
+        }, 'small');
+        $('#whySpk').appendChild(sp);
+        $('#solMeters').innerHTML = this.meterHTML(an.infos[i], i);
+      }
       if (this.groups) {
         var g = null; this.groups.forEach(function (x) { if (x.at <= i) g = x; });
         if (g) $('#solThink').innerHTML = '<div class="thought t-see" style="margin-top:10px"><div class="th-ico">👀</div><div class="th-body"><b>第 ' + g.stage + ' 步・' + esc(CO.STAGE_NAMES[g.stage]) + '</b><p>' + esc(g.see) + '</p></div></div><div class="thought t-think" style="margin-top:8px"><div class="th-ico">🤔</div><div class="th-body"><b>我諗到</b><p>' + esc(g.think) + '</p></div></div>';
