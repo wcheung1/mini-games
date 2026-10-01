@@ -193,6 +193,50 @@ details.parents ul{margin:4px 0;padding-left:20px}
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120px);background:#26213d;color:#fff;padding:12px 20px;border-radius:999px;font-weight:800;font-size:16px;z-index:60;transition:transform .35s;max-width:92vw;text-align:center}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:55}
+
+/* ---------- 解法講解 ---------- */
+.whycard{background:#fffdf3;border:2px solid #ffe08a;border-radius:18px;padding:12px;margin-top:10px}
+.whycard h3{font-size:17px;line-height:1.4}
+.dist-now{display:flex;align-items:baseline;justify-content:center;gap:8px;background:#fff;border-radius:14px;padding:6px;margin-bottom:8px;font-weight:800;color:var(--ink2)}
+.dist-now b{font-size:34px;color:var(--pri);line-height:1}
+.compass{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%}
+.ct{border-radius:12px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;border:2px solid transparent;background:#f2f1f6;line-height:1.15}
+.ct b{font-size:18px;font-family:ui-rounded,system-ui}
+.ct .lab{font-size:11px;color:var(--ink2)}
+.ct .res{font-size:15px;font-weight:900}
+.ct .res small{font-size:11px;margin-left:3px;font-weight:800}
+.ct.near{background:#e3f7ec;border-color:#9fdcb9}.ct.near .res{color:#0b7a45}
+.ct.same{background:#f2f1f6}.ct.same .res{color:#6b6782}
+.ct.far{background:#fdecec;border-color:#f3c0c0}.ct.far .res{color:#b42d2d}
+.ct.unk{background:#fff;border:2px dashed #cfc6f5}.ct.unk .res{color:#a49cc8}
+.ct.pick{box-shadow:0 0 0 3px var(--pink);transform:scale(1.04)}
+.reason{font-size:16px;line-height:1.7;margin-top:8px}
+.reason p{margin:6px 0}
+.hintbtn{animation:hintp 1s ease-in-out infinite;background:#ffe0ec!important}
+.journey{margin-top:12px;background:#f6f4ff;border-radius:16px;padding:10px}
+.journey .lbl{font-size:14px;color:var(--ink2);font-weight:800}
+.jrow-t{font-size:12.5px;color:var(--ink2);margin:8px 0 2px;font-weight:700}
+.jrow,.jaxis{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:2px}
+.jc{height:58px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative;background:transparent;border-radius:6px;padding:0 1px 14px}
+.jc i{display:block;width:70%;max-width:18px;border-radius:4px 4px 0 0;min-height:2px}
+.jc em{position:absolute;bottom:0;font-style:normal;font-size:11px;font-weight:800;color:var(--ink2)}
+.jc.cur{background:#ffe0ec}
+.jc.cur em{color:var(--ink)}
+.jaxis span{text-align:center;font-size:10.5px;color:#8a86a0}
+.ripple{display:flex;flex-direction:column;gap:3px;width:100%}
+.rb{display:grid;grid-template-columns:52px 1fr 104px;align-items:center;gap:6px;background:transparent;padding:2px 4px;border-radius:8px;text-align:left}
+.rb.cur{background:#ffe0ec}
+.rl{font-size:12.5px;font-weight:800;color:var(--ink2)}
+.rt{height:14px;background:#eeeaf9;border-radius:4px;overflow:hidden}
+.rt i{display:block;height:100%;background:#8f78ff;border-radius:0 4px 4px 0}
+.rb.cur .rt i{background:#ff4f8b}
+.rn{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+.rb.flash{animation:fl .6s}
+@keyframes fl{50%{background:#fff3c4}}
+.eq{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:900;flex-wrap:wrap;justify-content:center}
+.eq>div{background:#f3f0ff;border-radius:14px;padding:8px 12px;text-align:center}
+.eq>div span{display:block;font-size:12px;color:var(--ink2)}
+.eq .big{background:#ffe0ec}
 /* responsive */
 @media (max-width:1000px){ .work-body{grid-template-columns:minmax(0,1fr) 340px} .mvb{width:56px;height:54px} }
 @media (max-width:760px){
@@ -692,6 +736,41 @@ details.parents ul{margin:4px 0;padding-left:20px}
     return { stage: 'done', chunks: [], end: s };
   }
 
+
+  // ---------- 解釋用：距離同鄰居 ----------
+  function coordOf(s) {
+    const a = analyse(s); if (!a.ok) return null;
+    buildTables();
+    return { pr: rank7(a.p.slice(0, 7)), oc: encO(a.o), T: a.T };
+  }
+  function distOf(s) { const c = coordOf(s); return c ? DIST[c.pr * 729 + c.oc] : -1; }
+  // 9 種轉法各自轉完之後離完成幾多步
+  function neighbours(s) {
+    const c = coordOf(s); if (!c) return null;
+    const d = DIST[c.pr * 729 + c.oc];
+    return { d, T: c.T, list: SM.map((m, i) => ({ m, d: DIST[PM[c.pr * 9 + i] * 729 + OM[c.oc * 9 + i]] })) };
+  }
+  let HIST = null;
+  function distHistogram() {
+    if (HIST) return HIST; buildTables();
+    const h = new Array(12).fill(0);
+    for (let i = 0; i < DIST.length; i++) if (DIST[i] < 255) h[DIST[i]]++;
+    while (h.length && !h[h.length - 1]) h.pop();
+    return (HIST = h);
+  }
+  // 以目標完成樣 T 計：邊幾粒角仔返咗屋企（位置啱 + 方向啱）、邊幾粒位置啱但扭咗
+  function homeInfo(s, T) {
+    const home = [], twisted = [];
+    SLOTS.forEach(sl => {
+      if (sl.name === 'DBL') return;
+      const tc = sl.st.map(i => T[i]), cur = sl.st.map(i => s[i]);
+      if (cur.every((c, k) => c === tc[k])) home.push(sl.name);
+      else if (setEq(cur, tc)) twisted.push(sl.name);
+    });
+    return { home, twisted };
+  }
+  function pieceAt(T, slotName) { return pieceName(SLOT[slotName].st.map(i => T[i])); }
+
   // ---------- 隨機 ----------
   const rnd = n => Math.floor(Math.random() * n);
   function scramble(n = 20) {
@@ -709,7 +788,7 @@ details.parents ul{margin:4px 0;padding-left:20px}
     W, Y, G, BL, RD, OR, BLANK, CNAME, FN, ST, SLOTS, SLOT, NRM, OPP, FACE_ZH,
     parse, perm, apply, toks, inv, invSeq, STD, REFS, LESSON_SOLVED, isSolved, layerDone, whiteLayerFace, stageOf,
     faceUniform, analyse, solve, buildTables, planA, planB, planC, planStage, DANCE, HEADLIGHT_ALG, scramble, rnd,
-    stickerOn, slotOfSticker, findPiece, pieceName
+    stickerOn, slotOfSticker, findPiece, pieceName, SM, distOf, neighbours, distHistogram, homeInfo, pieceAt
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1446,7 +1525,7 @@ function renderHome() {
     h += `<button class="lvl ${i === nextIdx ? 'next' : ''}" data-l="${i}"><div class="num">${i + 1}</div><div class="emo">${L.emo}</div><h3>${L.title}</h3><p>${esc(L.sub)}</p><div class="stars">${starStr(stars[L.id] || 0)}</div></button>`;
   });
   h += `</div><div class="sec-title">🧰 工具 ${spk('工具：填色解骰器可以幫你計出最快解法；自由玩可以隨便扭，仲有提示。')}</div><div class="modes">
-    <button class="mode" id="goSolver"><div class="emo">🎨</div><div><h3>填色解骰器</h3><p>將你手上扭計骰嘅顏色填落去，粒粒幫你計出<b>最少步數</b>嘅解法，一步步示範。</p></div></button>
+    <button class="mode" id="goSolver"><div class="emo">🎨</div><div><h3>填色解骰器</h3><p>將你手上扭計骰嘅顏色填落去，粒粒幫你計出<b>最少步數</b>嘅解法，仲會解釋<b>每一步點解要咁轉</b>。</p></div></button>
     <button class="mode b" id="goFree"><div class="emo">🎮</div><div><h3>自由玩 ＋ 陪解</h3><p>隨便扭、打亂、計時；卡住可以攞最快提示，或者叫粒粒用學過嘅方法陪你解。</p></div></button></div>
     <details class="parents"><summary>👨‍👩‍👧 家長／老師小貼士（教學設計）</summary>
     <h4>用咩方法教？</h4>
@@ -1462,7 +1541,8 @@ function renderHome() {
     <li><b>零失敗感</b>：扭錯唔會扣分，只會溫柔咁提你「撳返轉頭」；卡住可以睇示範。</li>
     <li><b>成長型思維</b>：讚努力同方法（「你一步步咁諗，所以做到」），唔係讚天份。</li>
     <li><b>多感官</b>：廣東話語音（每段文字旁邊都有 🔊）、3D 動畫、顏色提示同 3D 箭咀。</li></ul>
-    <h4>填色解骰器點樣計？</h4><p>2×2 扭計骰總共有 3,674,160 個可能狀態。程式會喺你部機入面用「闊度優先搜尋（BFS）」計晒每個狀態離完成有幾遠，所以每次都搵到<b>最少步數</b>嘅解法（最多 11 步）。</p>
+    <h4>填色解骰器點樣計？點樣解釋？</h4><p>2×2 扭計骰總共有 3,674,160 個可能狀態（固定一粒角仔做參考：7! × 3⁶）。程式會喺你部機入面用「闊度優先搜尋（BFS）」由完成樣向外一圈圈擴散，計晒每個狀態離完成有幾遠，所以每次都搵到<b>最少步數</b>嘅解法（最多 11 步）。</p>
+    <p>每一步都有「點解要咁轉」講解：顯示 9 種可能轉法各自會令距離變近、冇變定變遠；被揀中嘅一定係令距離減 1 嘅轉法。另外會比較「真正距離」同「睇得見嘅進度（返屋企角仔數目）」，讓學生明白最短路徑有時要先「退一步」。「🔬 電腦點樣諗？」有 8 頁原理講解（錨、數狀態、水波、落樓梯、倒轉即打亂）；「🎯 你嚟做電腦」可以讓學生自己喺 9 種轉法入面搵捷徑。</p>
     <h4>語音唔係廣東話？</h4><p>語音用瀏覽器內置嘅「中文（香港）」聲音。iPad／iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 中文（香港）。Windows：設定 → 時間與語言 → 語音 → 新增「中文（香港）」。Mac：系統設定 → 輔助使用 → 朗讀內容 → 系統聲音。</p>
     <p class="small-note">鍵盤快捷鍵（電腦用）：R U F D L B 轉動，Shift＋字母＝反方向，Backspace＝返轉頭。</p>
     </details>`;
@@ -1753,32 +1833,43 @@ function startAccompany() {
   App.mode = g;
 }
 
-/* ---------- 填色解骰器 ---------- */
-const Solver = { sel: 0, sol: null, step: 0, start: null, playing: false };
+/* ---------- 填色解骰器（連「點解要咁轉」講解） ---------- */
+const Solver = { sel: 0, sol: null, step: 0, start: null, playing: false, guess: false, tried: new Set(), found: false, page: 0, why: false };
+const FACE_WORD = { U: '頂層', R: '右邊', F: '前面' };
+const MOVE_ORDER = [['U', "U'", 'U2'], ['R', "R'", 'R2'], ['F', "F'", 'F2']];
+
 function openSolver() {
   leaveMode(); App.lesson = null;
-  $('#workTitle').textContent = '🎨 填色解骰器（最少步數）';
+  $('#workTitle').textContent = '🎨 填色解骰器（最少步數 + 講解）';
   $('#reviewBtn').classList.add('hide');
   showScreen('work'); renderPad(null);
   view.spring = false;
   setState(new Array(24).fill(-1));
-  Solver.sol = null; Solver.bad = null;
+  Solver.sol = null; Solver.bad = null; Solver.why = false;
   view.onTap = i => paint(i);
   App.mode = { destroy() { Solver.playing = false; } };
   solverPanel();
-  Voice.maybe('填色解骰器！先揀顏色，再撳格仔填色。你可以喺平面圖填，亦可以直接撳 3D 骰。填完撳計算，粒粒就會話你知最少要幾多步。');
+  Voice.maybe('填色解骰器！先揀顏色，再撳格仔填色。你可以喺平面圖填，亦可以直接撳 3D 骰。填完撳計算，粒粒就會話你知最少要幾多步，仲會解釋每一步點解要咁轉。');
 }
 function paint(i) {
-  if (Solver.playing) return;
+  if (Solver.playing || Solver.sol) return;
   App.state[i] = Solver.sel; view.setState(App.state);
-  Solver.sol = null; Solver.bad = null; view.setHL(null); view.showArrow(null);
+  Solver.bad = null; view.setHL(null); view.showArrow(null);
   solverPanel();
 }
+function resetSolverTo(st) {
+  Solver.sol = null; Solver.bad = null; Solver.why = false; Solver.playing = false;
+  setState(st); view.setHL(null); view.showArrow(null); solverPanel();
+}
+
+/* 畫面總入口 */
 function solverPanel(out) {
+  if (Solver.sol && Solver.why) { renderWhy(); return; }
+  if (Solver.sol) { renderSolution(); return; }
   const cnt = [0, 0, 0, 0, 0, 0]; App.state.forEach(c => { if (c >= 0) cnt[c]++; });
   const blanks = App.state.filter(c => c < 0).length;
   const how = '點用：一，揀顏色。二，撳格仔填色，每種顏色要有四格。三，撳計算最快解法。拎住你嘅扭計骰，前面向住自己、頂向上，跟住平面圖填。';
-  let h = `<div class="card-title">${mascot(42)} 填色解骰器<span style="flex:1"></span>${spk(how)}</div>
+  side().innerHTML = `<div class="card-title">${mascot(42)} 填色解骰器<span style="flex:1"></span>${spk(how)}</div>
     <p class="small-note">① 揀顏色 ② 撳格仔填色（平面圖或者 3D 骰都得）③ 撳「計算」。<br>📌 拎住你嘅扭計骰：<b>「前」向住自己、「頂」向上</b>，跟住下面平面圖逐面填。</p>
     <div class="palette">${COLORS.map((c, k) => `<button class="pal ${Solver.sel === k ? 'sel' : ''}" data-c="${k}" style="background:${c}" aria-label="${C.CNAME[k]}色">${C.CNAME[k]}</button>`).join('')}
     <button class="pal ${Solver.sel === -1 ? 'sel' : ''}" data-c="-1" style="background:${BLANKC};color:#fff">擦</button></div>
@@ -1787,27 +1878,19 @@ function solverPanel(out) {
     <div class="actions"><button class="btn green" data-act="solve">🧮 計算最快解法</button>
     <button class="btn sm ghost" data-act="clear">🧽 清空</button><button class="btn sm ghost" data-act="solved">✅ 完成樣</button><button class="btn sm ghost" data-act="rand">🎲 隨機例子</button></div>
     <div id="solveOut">${out || ''}</div>`;
-  side().innerHTML = h;
   const cell = Math.max(24, Math.min(34, Math.floor((side().clientWidth - 40) / 8.6)));
   renderNet($('#paintNet'), App.state, { cell, labels: true, onTap: paint, bad: Solver.bad });
-  if (Solver.sol) renderSolution();
-  side().onclick = async e => {
+  side().onclick = e => {
     const pc = e.target.closest('[data-c]'); if (pc) { Solver.sel = +pc.dataset.c; solverPanel($('#solveOut').innerHTML); Voice.maybe(Solver.sel < 0 ? '擦膠' : C.CNAME[Solver.sel] + '色'); return; }
     const b = e.target.closest('[data-act]'); if (!b) return;
     const a = b.dataset.act;
-    if (Solver.playing && !['stop'].includes(a) && !a.startsWith('p')) return;
-    if (a === 'clear') { Solver.sol = null; Solver.bad = null; setState(new Array(24).fill(-1)); view.setHL(null); view.showArrow(null); solverPanel(); }
-    else if (a === 'solved') { Solver.sol = null; Solver.bad = null; setState(C.STD); view.setHL(null); view.showArrow(null); solverPanel(); }
-    else if (a === 'rand') { Solver.sol = null; Solver.bad = null; setState(C.apply(C.STD, C.scramble(20))); view.setHL(null); view.showArrow(null); solverPanel(); }
+    if (a === 'clear') resetSolverTo(new Array(24).fill(-1));
+    else if (a === 'solved') resetSolverTo(C.STD);
+    else if (a === 'rand') resetSolverTo(C.apply(C.STD, C.scramble(20)));
     else if (a === 'solve') runSolve(b);
-    else if (a === 'pfirst') solverGo(0);
-    else if (a === 'pprev') solverGo(Solver.step - 1);
-    else if (a === 'pnext') solverGo(Solver.step + 1);
-    else if (a === 'plast') solverGo(Solver.sol.moves.length);
-    else if (a === 'pplay') autoPlay();
-    else if (a === 'learn') { const s = Solver.start.slice(); openFree(s); }
   };
 }
+
 async function runSolve(btn) {
   btn.disabled = true; btn.textContent = '🧠 諗緊…'; await sleep(40);
   const r = C.solve(App.state);
@@ -1825,40 +1908,304 @@ async function runSolve(btn) {
     return;
   }
   Solver.bad = null; view.setHL(null);
-  Solver.sol = r; Solver.start = App.state.slice(); Solver.step = 0;
+  prepareSolution(App.state.slice(), r.moves);
   solverPanel();
-  const t = r.moves.length ? `搵到喇！最少只要 ${r.moves.length} 步。拎住個骰，前面向住自己、頂向上，跟住一步步做。` : '呢粒骰已經解好咗！';
+  side().scrollTop = 0;
+  const t = r.moves.length
+    ? `搵到喇！最少只要 ${r.moves.length} 步。拎住個骰，前面向住自己、頂向上。每一步下面都有解釋，話你知點解要咁轉。`
+    : '呢粒骰已經解好咗！';
   Voice.maybe(t);
-  const so = $('#solveOut'); if (so && so.scrollIntoView) so.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+/* 預先計好每一步嘅資料：狀態、距離、9 種轉法嘅結果、返屋企角仔 */
+function prepareSolution(start, moves) {
+  const path = [start]; moves.forEach(m => path.push(C.apply(path[path.length - 1], [m])));
+  const info = path.map(p => C.neighbours(p));
+  const T = info[0].T;
+  const homes = path.map(p => C.homeInfo(p, T));
+  Solver.sol = { moves, path, info, T, homes, lbl: null };
+  Solver.start = start; Solver.step = 0; Solver.why = false; Solver.page = 0;
+  Solver.tried = new Set(); Solver.found = false;
+}
+
+/* 一步嘅講解 */
+const nm = slot => `「${C.pieceAt(Solver.sol.T, slot)}」`;
+function explainStep(k) {
+  const S = Solver.sol, m = S.moves[k], info = S.info[k], d = info.d;
+  const near = info.list.filter(x => x.d === d - 1), same = info.list.filter(x => x.d === d), far = info.list.filter(x => x.d === d + 1);
+  const before = S.homes[k].home, after = S.homes[k + 1].home;
+  const arrived = after.filter(x => !before.includes(x)), left = before.filter(x => !after.includes(x));
+  const others = near.filter(x => x.m !== m).map(x => `{${x.m}}`);
+  let why = `轉之前，離完成仲有 <b>${d} 步</b>。電腦試晒 9 種轉法：<b>${near.length} 種近咗</b>（變 ${d - 1} 步）、${same.length} 種冇變、${far.length} 種遠咗。{${m}} 就係近咗嘅${near.length > 1 ? '其中一種' : '<b>唯一</b>一種'}，所以揀佢。`;
+  if (others.length) why += `（${others.join('、')} 都一樣近，條路一樣咁短，電腦揀咗其中一條。）`;
+  let see, kind;
+  if (d - 1 === 0) { see = `呢步係<b>最後一步</b>！${arrived.length >= 2 ? `${arrived.length} 粒角仔` : '最後嘅角仔'}一齊返屋企，完成！`; kind = 'last'; }
+  else if (arrived.length && !left.length) { see = `睇得見嘅效果：${arrived.map(nm).join('、')}角仔<b>返咗屋企</b> ✅`; kind = 'up'; }
+  else if (left.length && !arrived.length) { see = `咦？呢步令${left.map(nm).join('、')}角仔<b>暫時離開屋企</b>！係咪轉錯？唔係！電腦知道咁樣先行到最短嘅路——好似泊車，有時要<b>先倒後少少</b>。`; kind = 'down'; }
+  else if (left.length && arrived.length) { see = `${arrived.map(nm).join('、')}返咗屋企，${left.map(nm).join('、')}就暫時讓開，好似<b>交換位置</b>咁。`; kind = 'swap'; }
+  else { see = `表面上冇角仔返屋企，但係角仔嘅位置同方向<b>排得更好</b>，為之後鋪路——好似砌拼圖前，先將塊塊分好類。`; kind = 'prep'; }
+  const short = `第${k + 1}步，${MOVE_SAY[m]}。轉完離完成仲有${d - 1}步。`;
+  return { why, see, kind, near, same, far, arrived, short };
+}
+
+/* 解法畫面 */
 function renderSolution() {
-  const r = Solver.sol, out = $('#solveOut'); if (!out) return;
-  if (!r.moves.length) { out.innerHTML = '<div class="okbox">✅ 呢粒骰已經係完成樣喇！</div>'; return; }
-  const k = Solver.step, nx = r.moves[k];
-  out.innerHTML = `<div class="okbox">🎉 搵到喇！最少只要 <b>${r.moves.length} 步</b>（電腦試勻晒 367 萬個可能搵出嚟！）<br><span class="small-note">拎住個骰：「前」向住自己、「頂」向上。</span></div>
-    <div class="plan" style="margin-top:10px"><div class="lbl">解法（撳 ▶ 一步步做）</div><div class="chips">${r.moves.map((t, i) => `<div class="pchip ${i < k ? 'done' : i === k ? 'cur' : ''}">${t}<div style="font-size:11px;font-weight:700">${MOVE_SHORT[t]}</div></div>`).join('')}</div>
-    <div class="thought" style="margin-top:10px;margin-bottom:0">${k < r.moves.length ? `第 ${k + 1} 步：${fmt(`{${nx}}`)} ${MOVE_SAY[nx]} ${spk(MOVE_SAY[nx], true)}` : '🎉 完成！個骰解開咗！'}</div>
-    <div class="playrow"><button data-act="pfirst" aria-label="由頭">⏮</button><button data-act="pprev" aria-label="上一步">◀</button><button data-act="pplay" aria-label="自動播放">${Solver.playing ? '⏸' : '⏯'}</button><button data-act="pnext" aria-label="下一步">▶</button><button data-act="plast" aria-label="最尾">⏭</button></div></div>
-    <button class="btn pink" data-act="learn" style="width:100%">🧠 用學過嘅三大步方法，粒粒陪我解呢粒骰</button>`;
-  view.showArrow(k < r.moves.length ? nx : null);
+  const S = Solver.sol, sd = side();
+  if (!S.moves.length) {
+    sd.innerHTML = `<div class="card-title">${mascot(42)} 填色解骰器</div><div class="okbox">✅ 呢粒骰已經係完成樣喇！</div><div class="actions" style="margin-top:10px"><button class="btn sm ghost" data-act="edit">✏️ 返去改顏色</button></div>`;
+    sd.onclick = e => { if (e.target.closest('[data-act="edit"]')) resetSolverTo(Solver.start); };
+    return;
+  }
+  const N = S.moves.length, k = Solver.step, done = k >= N, m = S.moves[k];
+  let h = `<div class="card-title">${mascot(42)} 最少 ${N} 步解法<span style="flex:1"></span><button class="btn sm ghost" data-act="edit">✏️ 改顏色</button></div>
+    <div class="actions" style="margin-bottom:10px"><button class="btn sm" data-act="why">🔬 電腦點樣諗？（原理）</button>
+    <button class="btn sm ${Solver.guess ? 'pink' : 'ghost'}" data-act="guess">🎯 你嚟做電腦：${Solver.guess ? '開' : '關'}</button></div>
+    <div class="plan"><div class="lbl">解法（撳任何一步可以跳過去）</div><div class="chips">${S.moves.map((t, i) => `<button class="pchip ${i < k ? 'done' : i === k ? 'cur' : ''}" data-act="pgo" data-k="${i}">${Solver.guess && i >= k ? '?' : t}<div style="font-size:11px;font-weight:700">${Solver.guess && i >= k ? '' : MOVE_SHORT[t]}</div></button>`).join('')}</div>
+    <div class="playrow"><button data-act="pfirst" aria-label="由頭">⏮</button><button data-act="pprev" aria-label="上一步">◀</button><button data-act="pplay" aria-label="自動播放">${Solver.playing ? '⏸' : '⏯'}</button><button data-act="pnext" class="${Solver.guess && Solver.found ? 'hintbtn' : ''}" aria-label="下一步">▶</button><button data-act="plast" aria-label="最尾">⏭</button></div></div>`;
+  h += done ? finishCard() : stepCard(k);
+  h += journeyStrip();
+  h += `<button class="btn pink" data-act="learn" style="width:100%;margin-top:12px">🧠 用學過嘅三大步方法，粒粒陪我解呢粒骰</button>`;
+  sd.innerHTML = h;
+  // 3D：箭咀 + 閃住「等陣會返屋企」嘅角仔
+  const showMove = !done && (!Solver.guess || Solver.found);
+  view.showArrow(showMove ? m : null);
+  if (showMove) {
+    const ex = explainStep(k), hl = new Set();
+    ex.arrived.forEach(slot => { const sl = C.findPiece(App.state, C.SLOT[slot].st.map(i => S.T[i])); if (sl) sl.st.forEach(i => hl.add(i)); });
+    view.setHL(hl);
+  } else view.setHL(null);
+  sd.onclick = solutionClick;
 }
+
+function stepCard(k) {
+  const S = Solver.sol, m = S.moves[k], ex = explainStep(k), d = S.info[k].d;
+  const hide = Solver.guess && !Solver.found;
+  const resOf = x => x.d < d ? 'near' : x.d > d ? 'far' : 'same';
+  const resTxt = x => x.d < d ? `⬇ ${x.d}<small>近咗</small>` : x.d > d ? `⬆ ${x.d}<small>遠咗</small>` : `＝ ${x.d}<small>冇變</small>`;
+  let h = `<div class="whycard"><div class="brain-head" style="margin:0 0 8px">${mascot(34)}<h3>🧠 ${hide ? `第 ${k + 1} 步：你估係邊個？` : `點解第 ${k + 1} 步要轉 <span class="mv">${m}</span>？`}</h3>${hide ? '' : spk(`點解第${k + 1}步要${MOVE_SAY[m]}？` + cleanSay(ex.why) + cleanSay(ex.see))}</div>
+    <div class="dist-now"><span>而家離完成</span><b>${d}</b><span>步</span></div>`;
+  if (hide) h += `<div class="thought" style="font-size:16px">🎯 你嚟做電腦！下面 9 種轉法入面，邊個會令距離由 <b>${d}</b> 變 <b>${d - 1}</b>？撳一個試下。${Solver.lastTry ? `<div class="msg ${Solver.lastTry.ok ? 'ok' : 'dev'}">${fmt(Solver.lastTry.text)}</div>` : ''}</div>`;
+  h += `<div class="lbl" style="font-size:14px;color:var(--ink2);font-weight:700;margin:6px 0">🧭 9 種轉法，轉完會離完成幾多步？</div><div class="compass">`;
+  MOVE_ORDER.forEach(row => row.forEach(t => {
+    const x = S.info[k].list.find(y => y.m === t);
+    const shown = !hide || Solver.tried.has(t);
+    h += `<button class="ct ${shown ? resOf(x) : 'unk'} ${!hide && t === m ? 'pick' : ''}" data-act="tile" data-m="${t}"><b>${t}</b><span class="lab">${MOVE_SHORT[t]}</span><span class="res">${shown ? resTxt(x) : '？'}</span></button>`;
+  }));
+  h += '</div>';
+  if (!hide) {
+    h += `<div class="reason"><p>💡 <b>點解揀佢：</b>${fmt(ex.why)}</p><p>👀 <b>睇得見嘅變化：</b>${fmt(ex.see)}</p>
+      <p class="small-note">返屋企（位置啱又企得正）嘅角仔：${S.homes[k].home.length} 粒 → <b>${S.homes[k + 1].home.length}</b> 粒（7 粒之中；後左下嗰粒係「錨」⚓，永遠唔郁）</p></div>`;
+    if (ex.arrived.length && ex.kind !== 'last') h += '<p class="small-note">✨ 3D 骰上面閃緊嘅，就係呢步會帶返屋企嘅角仔。</p>';
+  }
+  return h + '</div>';
+}
+
+function finishCard() {
+  const S = Solver.sol, N = S.moves.length;
+  const t = `完成！${N} 步入面，每一步都令距離減 1：${Array.from({ length: N + 1 }, (_, i) => N - i).join(' → ')}。因為由起點最少要 ${N} 步，所以冇可能再少。你睇下面條「返屋企角仔」：佢有升有跌，最尾先突然全部返屋企。最快嘅路，唔一定係睇落最整齊嘅路！`;
+  return `<div class="whycard"><div class="brain-head" style="margin:0 0 8px">${mascot(34, 'wow')}<h3>🎉 解開咗！</h3>${spk(t)}</div><div class="reason"><p>${t}</p></div>
+    <button class="btn sm" data-act="why">🔬 想知電腦點樣搵到呢條路？</button></div>`;
+}
+
+/* 兩條對齊嘅小圖：上面＝離完成步數；下面＝返屋企角仔 */
+function journeyStrip() {
+  const S = Solver.sol, N = S.moves.length, k = Solver.step;
+  const maxD = Math.max(1, S.info[0].d);
+  const col = (i, inner) => `<button class="jc ${i === k ? 'cur' : ''}" data-act="pgo" data-k="${i}" title="第 ${i} 步之後：離完成 ${S.info[i].d} 步，返屋企角仔 ${S.homes[i].home.length} 粒">${inner}</button>`;
+  let r1 = '', r2 = '', ax = '';
+  for (let i = 0; i <= N; i++) {
+    const d = S.info[i].d, hm = S.homes[i].home.length;
+    r1 += col(i, `<i style="height:${Math.max(2, d / maxD * 100)}%;background:#8f78ff"></i><em>${d}</em>`);
+    r2 += col(i, `<i style="height:${Math.max(2, hm / 7 * 100)}%;background:#19a0d6"></i><em>${hm}</em>`);
+    ax += `<span>${i === 0 ? '起' : i}</span>`;
+  }
+  const sum = '兩條圖：上面係「離完成仲有幾多步」，一路減少，好似落樓梯。下面係「返咗屋企嘅角仔」，有升有跌。電腦睇嘅係上面，唔係下面！';
+  return `<div class="journey"><div class="lbl" style="display:flex;align-items:center;gap:6px">📈 成條路點樣行？<span style="flex:1"></span>${spk(sum, true)}</div>
+    <div class="jrow-t">離完成仲有幾多步（電腦睇呢個）</div><div class="jrow" style="--n:${N + 1}">${r1}</div>
+    <div class="jrow-t">返咗屋企嘅角仔（最多 7 粒）</div><div class="jrow" style="--n:${N + 1}">${r2}</div>
+    <div class="jaxis" style="--n:${N + 1}">${ax}</div>
+    <p class="small-note" style="margin:6px 0 0">上面一路<b>穩定減少</b>；下面就<b>有升有跌</b>。呢個就係秘密：最短嘅路，有時要先令個骰睇落更亂！（撳一條柱可以跳去嗰步）</p></div>`;
+}
+
+async function solutionClick(e) {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, S = Solver.sol;
+  if (a === 'pplay') { autoPlay(); return; }
+  if (Solver.playing) return;
+  if (a === 'edit') { const st = Solver.start; resetSolverTo(st); return; }
+  if (a === 'why') { Solver.why = true; Solver.page = 0; renderWhy(); side().scrollTop = 0; return; }
+  if (a === 'guess') { Solver.guess = !Solver.guess; Solver.tried = new Set(); Solver.found = false; Solver.lastTry = null; renderSolution(); Voice.maybe(Solver.guess ? '你嚟做電腦！每一步，喺九種轉法入面搵一個令距離減一嘅。' : '關咗估估下模式。'); return; }
+  if (a === 'pgo') { solverGo(+b.dataset.k); return; }
+  if (a === 'pfirst') solverGo(0);
+  else if (a === 'pprev') solverGo(Solver.step - 1);
+  else if (a === 'pnext') { if (Solver.guess && !Solver.found && Solver.step < S.moves.length) { toast('先估下係邊個轉法 😉'); Voice.maybe('先估下係邊個轉法！'); return; } solverGo(Solver.step + 1); }
+  else if (a === 'plast') solverGo(S.moves.length);
+  else if (a === 'learn') openFree(Solver.start.slice());
+  else if (a === 'tile') tileTap(b.dataset.m);
+}
+
+function tileTap(t) {
+  const S = Solver.sol, k = Solver.step; if (k >= S.moves.length) return;
+  const d = S.info[k].d, x = S.info[k].list.find(y => y.m === t);
+  const word = x.d < d ? '近咗' : x.d > d ? '遠咗' : '冇變';
+  if (!Solver.guess || Solver.found) {
+    const msg = `如果轉 ${t}（${MOVE_SAY[t]}），距離會變 ${x.d} 步，${word}。` + (t === S.moves[k] ? '呢個就係電腦揀嘅！' : x.d < d ? '呢個都係捷徑！' : '');
+    toast(fmt(`{${t}} → ${x.d} 步（${word}）`)); Voice.speak(msg); return;
+  }
+  Solver.tried.add(t);
+  if (x.d < d) {
+    Solver.found = true;
+    const same = t === S.moves[k];
+    const msg = same ? `啱喇！${t} 令距離由 ${d} 變 ${x.d}。你同電腦諗法一樣！撳 ▶ 做呢一步。` : `都啱！${t} 都令距離變 ${x.d}，條路一樣咁短。不過電腦揀咗 ${S.moves[k]}，我哋跟電腦條路，撳 ▶ 繼續。`;
+    Solver.lastTry = null; renderSolution(); toast('🎉 ' + (same ? '啱喇！' : '都啱！')); Voice.speak(msg);
+  } else {
+    const msg = `${t} 會令距離變 ${x.d} 步，${word}。再試下另一個！`;
+    Solver.lastTry = { ok: false, text: `{${t}} → ${x.d} 步，${word}。再試下另一個！` };
+    renderSolution(); Voice.speak(msg);
+  }
+}
+
 async function solverGo(k) {
-  const r = Solver.sol; if (!r) return;
-  k = Math.max(0, Math.min(r.moves.length, k));
-  if (k === Solver.step + 1) { const t = r.moves[Solver.step]; Solver.step = k; await doMove(t, 'demo'); }
-  else if (k === Solver.step - 1) { Solver.step = k; await doMove(C.inv(r.moves[k]), 'demo'); }
-  else { Solver.step = k; setState(C.apply(Solver.start, r.moves.slice(0, k))); }
+  const S = Solver.sol; if (!S) return;
+  k = Math.max(0, Math.min(S.moves.length, k));
+  if (k === Solver.step) { renderSolution(); return; }
+  const fwd = k === Solver.step + 1;
+  if (fwd) { const t = S.moves[Solver.step]; Solver.step = k; await doMove(t, 'demo'); }
+  else if (k === Solver.step - 1) { Solver.step = k; await doMove(C.inv(S.moves[k]), 'demo'); }
+  else { Solver.step = k; App.state = S.path[k].slice(); view.setState(App.state); }
+  Solver.tried = new Set(); Solver.found = false; Solver.lastTry = null;
   renderSolution();
-  if (!Solver.playing && k < r.moves.length) Voice.maybe(MOVE_SAY[r.moves[k]]);
-  if (k === r.moves.length && !Solver.playing) { confetti(); Voice.maybe('完成！個骰解開咗！'); }
+  if (k === S.moves.length) { if (!Solver.playing) { confetti(); Voice.maybe(`完成！每一步都令距離減一，所以${S.moves.length}步就係最少。`); } return; }
+  if (Solver.playing) return;
+  if (Solver.guess) Voice.maybe(`第${k + 1}步，你估係邊個？`);
+  else { const ex = explainStep(k); Voice.maybe(`第${k + 1}步：${MOVE_SAY[S.moves[k]]}。${cleanSay(ex.see)}`); }
 }
 async function autoPlay() {
   if (Solver.playing) { Solver.playing = false; renderSolution(); return; }
-  Solver.playing = true; renderSolution();
-  if (Solver.step >= Solver.sol.moves.length) { Solver.step = 0; setState(Solver.start); }
-  while (Solver.playing && Solver.step < Solver.sol.moves.length) { Voice.maybe(MOVE_SAY[Solver.sol.moves[Solver.step]]); await sleep(500); if (!Solver.playing) break; await solverGo(Solver.step + 1); await sleep(700); }
-  const fin = Solver.step >= Solver.sol.moves.length; Solver.playing = false; renderSolution();
-  if (fin) { confetti(); Voice.maybe('完成！個骰解開咗！'); }
+  const S = Solver.sol;
+  Solver.playing = true; Solver.guess = false;
+  if (Solver.step >= S.moves.length) { Solver.step = 0; App.state = S.path[0].slice(); view.setState(App.state); }
+  renderSolution();
+  while (Solver.playing && Solver.step < S.moves.length) {
+    Voice.maybe(explainStep(Solver.step).short); await sleep(1600); if (!Solver.playing) break;
+    await solverGo(Solver.step + 1); await sleep(900);
+  }
+  const fin = Solver.step >= S.moves.length; Solver.playing = false; renderSolution();
+  if (fin) { confetti(); Voice.maybe('完成！每一步都令距離減一，所以係最少步數。'); }
+}
+
+/* ---------- 原理講解：電腦點樣諗？ ---------- */
+function lblCount() {
+  const S = Solver.sol; if (S.lbl != null) return S.lbl;
+  let s = S.path[0].slice(), n = 0;
+  for (let i = 0; i < 5; i++) { const p = C.planStage(s); if (p.stage === 'done') break; p.chunks.forEach(ch => { s = C.apply(s, ch.seq); n += ch.seq.filter(t => !'xyz'.includes(t[0])).length; }); }
+  return (S.lbl = n);
+}
+function rippleChart(cur) {
+  const H = C.distHistogram(), max = Math.max(...H);
+  return `<div class="ripple">${H.map((n, i) => `<button class="rb ${i === cur ? 'cur' : ''}" data-act="rbar" data-i="${i}" title="第 ${i} 圈：${n.toLocaleString()} 個樣">
+    <span class="rl">${i === 0 ? '完成' : `第${i}圈`}</span><span class="rt"><i data-w="${Math.max(0.4, n / max * 100)}" style="width:${Solver.rippleAnim ? 0 : Math.max(0.4, n / max * 100)}%"></i></span><span class="rn">${n.toLocaleString()}${i === cur ? ' 👈 你' : ''}</span></button>`).join('')}</div>
+    <div class="small-note" id="rippleRead">撳一條柱睇數字。（第 0–3 圈太少，條柱細到睇唔到）</div>`;
+}
+function stairs() {
+  const S = Solver.sol, N = S.moves.length, w = 300, h = 150, sw = w / (N + 1), sh = (h - 30) / Math.max(N, 1);
+  let g = '';
+  for (let i = 0; i <= N; i++) {
+    const d = N - i, x = i * sw, y = 10 + (N - d) * sh;
+    g += `<rect x="${x + 1}" y="${y}" width="${sw - 2}" height="${h - y}" rx="4" fill="${i === Solver.step ? '#ff4f8b' : '#d9d1ff'}"/>
+      <text x="${x + sw / 2}" y="${y + 16}" text-anchor="middle" font-size="13" font-weight="900" fill="#26213d">${d}</text>`;
+    if (i < N) g += `<text x="${x + sw}" y="${y - 2}" text-anchor="middle" font-size="11" font-weight="800" fill="#6c4cff">${S.moves[i]}</text>`;
+  }
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="max-width:340px" role="img" aria-label="由 ${N} 號樓梯行落 0 號">${g}</svg><div style="width:100%;text-align:center;font-size:14px;color:var(--ink2)">每級寫住「離完成幾多步」，紫色字係行落去用嘅轉法</div>`;
+}
+function whyPages() {
+  const S = Solver.sol, N = S.moves.length, d0 = S.info[0].d, M = lblCount();
+  const nineGrid = `<div class="compass" style="max-width:300px">${MOVE_ORDER.flat().map(t => `<div class="ct same"><b>${t}</b><span class="lab">${MOVE_SHORT[t]}</span></div>`).join('')}</div>`;
+  return [
+    { t: '電腦冇「諗」點解，但係佢好勤力',
+      text: '電腦唔識好似我哋咁諗「呢粒角仔要返屋企」。佢用一個<b>好笨、但係好勤力</b>嘅方法：<b>將所有可能嘅樣全部試晒</b>，再搵條最短嘅路。等粒粒一步步話你知佢點做！',
+      visual: '<div style="font-size:54px">🤖🔍🧊</div>' },
+    { t: '第一招：揀一粒「錨」⚓', anchor: true,
+      text: '2×2 冇中心格，所以電腦揀<b>「後左下」</b>嗰粒角仔做<b>錨</b> ⚓，永遠唔郁佢，用佢嚟決定邊面係咩色。咁樣只需要轉<b>頂（U）、右（R）、前（F）</b>三個面就夠——因為轉左面，其實等於轉右面再成個骰轉，效果一樣！每個面有 3 種轉法（X、X\'、X2），所以每一步總共只有 <b>9 種揀法</b>。',
+      visual: `<div id="anchorNet"></div>${nineGrid}` },
+    { t: '第二招：數下有幾多個樣',
+      text: '錨唔郁，淨返 <b>7 粒角仔</b>。佢哋排隊有 7×6×5×4×3×2×1 = <b>5,040</b> 種排法。每粒角仔又有 3 個方向，不過最後一粒嘅方向由其他角仔決定（扭計骰嘅規矩：唔可以淨係扭歪一粒），所以係 3×3×3×3×3×3 = <b>729</b> 種。',
+      visual: '<div class="eq"><div><b>5,040</b><span>排法</span></div>×<div><b>729</b><span>方向</span></div>=<div class="big"><b>3,674,160</b><span>個樣</span></div></div><div style="width:100%;text-align:center;font-size:15px;margin-top:6px">如果一秒睇一個，要睇 <b>42 日</b>！電腦喺你部機只用咗<b>大約半秒</b>。</div>',
+      say: '錨唔郁，淨返七粒角仔。佢哋排隊有五千零四十種排法。每粒角仔又有三個方向，不過最後一粒嘅方向由其他角仔決定，所以係七百二十九種。五千零四十乘七百二十九，總共三百六十七萬四千一百六十個樣！如果一秒睇一個，要睇四十二日。' },
+    { t: '第三招：好似掟石仔落水 🌊', ripple: true,
+      text: `電腦由<b>完成樣</b>出發，好似掟石仔落水，水波一圈一圈咁散開：轉 1 步去到嘅樣有 9 個（第 1 圈），轉 2 步有 54 個（第 2 圈）……每個樣第一次俾水波掂到嗰圈，就係佢<b>「離完成嘅步數」</b>。電腦將 367 萬個樣全部寫低呢個號碼。最遠嘅只係<b>第 11 圈</b>，所以任何 2×2 扭計骰，<b>最多 11 步</b>就解到！你粒骰喺<b>第 ${d0} 圈</b>。`,
+      say: `電腦由完成樣出發，好似掟石仔落水，水波一圈一圈咁散開。轉一步去到嘅樣有九個，轉兩步有五十四個。每個樣第一次俾水波掂到嗰圈，就係佢離完成嘅步數。最遠嘅只係第十一圈，所以任何二乘二扭計骰，最多十一步就解到！你粒骰喺第${d0}圈。` },
+    { t: '第四招：跟住號碼行落樓梯 🪜', stairs: true,
+      text: `而家每個樣都有個號碼。解骰就好似<b>行落樓梯</b>：企喺 ${d0} 號，望下 9 個鄰居，揀一個 <b>${d0 - 1} 號</b>嘅行過去；再揀 ${d0 - 2} 號……一直行到 0 號就完成。每一級<b>一定</b>搵到細 1 嘅鄰居，所以一步冤枉路都唔會行——呢個就係點解每一步要咁轉！`,
+      say: `而家每個樣都有個號碼。解骰就好似行落樓梯：企喺${d0}號，望下九個鄰居，揀一個${d0 - 1}號嘅行過去，一直行到零號就完成。每一級一定搵到細一嘅鄰居，所以一步冤枉路都唔會行。呢個就係點解每一步要咁轉！` },
+    { t: '點解有時睇落更亂？🌀',
+      text: '最短嘅路，<b>唔一定係睇落最整齊</b>嘅路。好似行迷宮：出口喺右邊，但條路可能要<b>先向左行</b>先出到去。電腦睇嘅係「號碼」（真正距離），唔係「睇落幾整齊」。所以有時佢會暫時令角仔離開屋企，係為咗之後一齊返屋企。返解法畫面睇下面兩條圖，你就會見到！',
+      visual: '<svg viewBox="0 0 240 130" width="240" role="img" aria-label="迷宮：要先向左行，繞一個圈先到出口"><rect x="4" y="4" width="232" height="122" rx="14" fill="#f3f0ff"/><g stroke="#26213d" stroke-width="7" stroke-linecap="round"><path d="M160 50 V122"/><path d="M60 62 H160"/></g><path d="M118 108 H38 V28 H200 V100" stroke="#ff4f8b" stroke-width="5" fill="none" stroke-dasharray="9 6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="118" cy="108" r="7" fill="#6c4cff"/><text x="118" y="96" text-anchor="middle" font-size="12" font-weight="800" fill="#26213d">起點</text><text x="190" y="122" font-size="22">🏁</text><text x="78" y="100" text-anchor="middle" font-size="12" font-weight="800" fill="#c92d63">先向左！</text></svg>' },
+    { t: '電腦方法 vs 人腦方法 🤝',
+      text: `你粒骰：電腦用 <b>${N} 步</b>；用我哋學嘅三大步方法，大約要 <b>${M} 步</b>。電腦步數少，但要記住 367 萬個號碼，好難講出點解。三大步方法步數多，但只要記 <b>2 條公式</b>，而且每一步都知道自己做緊咩。<b>兩種都啱！</b>高手會先學三大步，之後慢慢學多啲公式，步數就會越嚟越少。`,
+      visual: `<table class="tbl" style="width:100%"><tr><td></td><td><b>🤖 電腦</b></td><td><b>🧒 三大步</b></td></tr><tr><td>步數</td><td><b>${N}</b></td><td><b>約 ${M}</b></td></tr><tr><td>要記</td><td>367 萬個號碼</td><td>2 條公式</td></tr><tr><td>明唔明</td><td>好難講點解</td><td>每步都知點解</td></tr></table>` },
+    { t: '秘密：倒轉就係打亂 🔁', reverse: true,
+      text: `將電腦條解法<b>倒轉次序、每步反方向</b>，就會由完成樣變返你粒骰！（記唔記得第 2 關「著襪著鞋」？）電腦條路，其實就係「點樣由完成樣最快去到你粒骰」倒轉行返。撳下面個掣睇下！`,
+      visual: `<div class="chips" style="justify-content:center">${C.invSeq(S.moves).map(t => `<span class="pchip">${t}</span>`).join('')}</div>`,
+      say: '將電腦條解法倒轉次序、每步反方向，就會由完成樣變返你粒骰！記唔記得第二關著襪著鞋？撳下面個掣睇下。' }
+  ];
+}
+function renderWhy() {
+  const pages = whyPages(), p = Math.min(Solver.page, pages.length - 1), pg = pages[p], last = p === pages.length - 1;
+  const say = `${pg.t}。${pg.say || pg.text}`;
+  let h = `<div class="story"><div class="card-title">${mascot(40)} 🔬 電腦點樣諗？<span style="flex:1"></span>${spk(say)}</div>
+    <div class="dots" style="margin-bottom:8px">${pages.map((_, k) => `<i class="${k <= p ? 'on' : ''}"></i>`).join('')}</div>
+    <h3 style="margin:4px 0 8px;font-size:20px">${pg.t}</h3><div class="txt" style="font-size:17.5px">${pg.text}</div>`;
+  if (pg.visual) h += `<div class="visual">${pg.visual}</div>`;
+  if (pg.ripple) h += `<div class="visual" style="display:block">${rippleChart(Solver.sol.info[0].d)}<div style="text-align:center;margin-top:8px"><button class="btn sm pink" data-act="rplay">🌊 播放水波</button></div></div>`;
+  if (pg.stairs) h += `<div class="visual">${stairs()}</div>`;
+  if (pg.reverse) h += `<div style="text-align:center;margin:8px 0"><button class="btn pink" data-act="rev">▶ 由完成樣倒轉播一次</button></div>`;
+  h += `<div class="navrow"><button class="btn ghost" data-act="wprev" ${p === 0 ? 'disabled' : ''}>◀ 上一頁</button>
+    ${last ? '<button class="btn green" data-act="wtry">🎯 試下你做電腦 ▶</button>' : '<button class="btn" data-act="wnext">下一頁 ▶</button>'}</div>
+    <div style="text-align:center;margin-top:12px"><button class="btn sm ghost" data-act="wback">⬅ 返去解法</button></div></div>`;
+  side().innerHTML = h;
+  if (pg.anchor) {
+    const anc = new Set(C.SLOT.DBL.st);
+    renderNet($('#anchorNet'), App.state, { cell: 20, labels: true, ring: anc, hl: anc });
+    view.setHL(anc); view.showArrow(null);
+  } else { view.setHL(null); view.showArrow(null); }
+  side().onclick = async e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const a = b.dataset.act;
+    if (a === 'wprev') { Solver.page = p - 1; renderWhy(); Voice.maybe(`${pages[p - 1].t}。${pages[p - 1].say || pages[p - 1].text}`); }
+    else if (a === 'wnext') { Solver.page = p + 1; renderWhy(); Voice.maybe(`${pages[p + 1].t}。${pages[p + 1].say || pages[p + 1].text}`); }
+    else if (a === 'wback') { Solver.why = false; renderSolution(); side().scrollTop = 0; }
+    else if (a === 'wtry') { Solver.why = false; Solver.guess = true; Solver.tried = new Set(); Solver.found = false; Solver.lastTry = null; await solverGo(0); renderSolution(); side().scrollTop = 0; Voice.maybe('你嚟做電腦！每一步，喺九種轉法入面，搵一個令距離減一嘅。'); }
+    else if (a === 'rbar') { const H = C.distHistogram(), i = +b.dataset.i; $('#rippleRead').innerHTML = `<b>${i === 0 ? '完成樣' : `第 ${i} 圈`}</b>：${H[i].toLocaleString()} 個樣${i ? `（全部都係最少要 ${i} 步先解到）` : ''}`; Voice.speak(`${i === 0 ? '完成樣' : `第${i}圈`}，有${H[i]}個樣。`); }
+    else if (a === 'rplay') playRipple();
+    else if (a === 'rev') playReverse(b);
+  };
+  Voice.maybe(say);
+}
+async function playRipple() {
+  if (Solver.rippling) return; Solver.rippling = true;
+  const bars = [...document.querySelectorAll('.ripple .rb i')], H = C.distHistogram();
+  bars.forEach(i => { i.style.transition = 'none'; i.style.width = '0%'; });
+  await sleep(50);
+  for (let k = 0; k < bars.length; k++) {
+    if (!document.body.contains(bars[k])) break;
+    bars[k].style.transition = 'width .5s ease-out'; bars[k].style.width = bars[k].dataset.w + '%';
+    bars[k].closest('.rb').classList.add('flash');
+    Voice.speak(k === 0 ? '完成樣，一個。' : `第${k}圈，${H[k]}個。`);
+    await sleep(k < 4 ? 700 : 1300);
+  }
+  Solver.rippling = false;
+}
+async function playReverse(btn) {
+  if (App.locked) return; App.locked = true; btn.disabled = true;
+  const S = Solver.sol;
+  App.state = S.T.slice(); view.setState(App.state);
+  Voice.maybe('由完成樣出發，倒轉做一次。');
+  await sleep(900);
+  for (const t of C.invSeq(S.moves)) { view.showArrow(t); await doMove(t, 'demo'); await sleep(250); }
+  view.showArrow(null);
+  Solver.step = 0; App.locked = false; btn.disabled = false;
+  toast('👀 變返你粒骰喇！'); Voice.maybe('睇！變返你粒骰喇！所以電腦條解法，就係倒轉行返去。');
 }
 
 /* ---------- 啟動 ---------- */
