@@ -241,6 +241,13 @@ details.parents ul{margin:4px 0;padding-left:20px}
 .eq>div{background:#f3f0ff;border-radius:14px;padding:8px 12px;text-align:center}
 .eq>div span{display:block;font-size:12px;color:var(--ink2)}
 .eq .big{background:#ffe0ec}
+/* 高手之路 */
+.lvl.pro{background:linear-gradient(160deg,#fff,#fff3e6)}
+.lvl.pro .num{background:#ff7a2f;box-shadow:0 3px 0 #c95412}
+.ollgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;width:100%}
+.ollc{background:#fff;border-radius:14px;padding:6px;text-align:center;box-shadow:0 2px 0 #e6e1f5;display:flex;flex-direction:column;align-items:center}
+.ollc b{font-size:13.5px;margin-top:2px}
+.ollc span{font-size:11px;color:var(--ink2);font-family:ui-rounded,system-ui;line-height:1.3}
 /* responsive */
 @media (max-width:500px){ .viewpad{grid-template-columns:repeat(3,32px)!important;grid-template-rows:repeat(3,32px)!important;gap:2px;bottom:24px!important} .viewpad button{width:32px!important;height:32px!important;font-size:15px!important;border-radius:10px} }
 @media (max-width:1000px){ .work-body{grid-template-columns:minmax(0,1fr) 340px} .mvb{width:56px;height:54px} }
@@ -749,6 +756,137 @@ details.parents ul{margin:4px 0;padding-left:20px}
   }
 
 
+
+  // ---------- 高手方法：Ortega（一面 → OLL → PBL） ----------
+  const OLL_ALGS = [
+    { id: 'sune', name: '魚仔（Sune）', alg: "R U R' U R U2 R'", up: 1 },
+    { id: 'anti', name: '反魚仔（Antisune）', alg: "R U2 R' U' R U' R'", up: 1 },
+    { id: 'h', name: 'H 字', alg: "R2 U2 R U2 R2", up: 0 },
+    { id: 'pi', name: 'Pi 字', alg: "F R U R' U' R U R' U' F'", up: 0 },
+    { id: 'u', name: 'U 字', alg: "F R U R' U' F'", up: 2 },
+    { id: 't', name: 'T 字', alg: "R U R' U' R' F R F'", up: 2 },
+    { id: 'l', name: 'L 字（煲呔）', alg: "F R U' R' U' R U R' F'", up: 2 }
+  ].map(o => ({ ...o, seq: toks(o.alg) }));
+  const PBL_ALGS = [
+    { id: 'dd', name: '雙對角', alg: "R2 F2 R2" },
+    { id: 'ad', name: '頂相鄰＋底對角', alg: "R U' R F2 R' U R'" },
+    { id: 'aa', name: '雙相鄰', alg: "R2 U' B2 U2 R2 U' R2" },
+    { id: 'adj', name: 'T 字（頂層相鄰交換）', alg: "R U R' U' R' F R2 U' R' U' R U R' F'" },
+    { id: 'diag', name: 'Y 字（頂層對角交換）', alg: "F R U' R' U' R U R' F' R U R' U' R' F R F'" }
+  ].map(o => ({ ...o, seq: toks(o.alg) }));
+  const faceList = s => FN.filter((f, fi) => faceUniform(s, fi));
+  function stageOfOrtega(s) {
+    if (isSolved(s)) return 'done';
+    const fs = faceList(s);
+    if (fs.some(f => fs.includes(OPP[f]))) return 'OP';
+    return fs.length ? 'OO' : 'OF';
+  }
+  // 最快整好任何一面（顏色中立）
+  function faceSearch(s, maxD = 6) {
+    if (faceList(s).length) return [];
+    for (let d = 1; d <= maxD; d++) {
+      const path = [];
+      const dfs = (cur, depth, last) => {
+        if (depth === 0) return faceList(cur).length > 0;
+        for (const m of SM) {
+          if (m[0] === last) continue;
+          path.push(m);
+          if (dfs(apply(cur, [m]), depth - 1, m[0])) return true;
+          path.pop();
+        }
+        return false;
+      };
+      if (dfs(s, d, '')) return path;
+    }
+    return null;
+  }
+  // 層嘅狀態：數側面有幾多條「車頭燈」（同一層兩格一樣色）
+  function layerBars(s, top) {
+    let n = 0;
+    for (const f of ['F', 'R', 'B', 'L']) {
+      const fi = FN.indexOf(f), a = s[fi * 4 + (top ? 0 : 2)], b = s[fi * 4 + (top ? 1 : 3)];
+      if (a === b) n++;
+    }
+    return n; // 4 = 已對好, 1 = 相鄰交換, 0 = 對角交換
+  }
+  const barKind = n => n === 4 ? 'ok' : n === 0 ? 'diag' : 'adj';
+  const KIND_ZH = { ok: '已經對好', adj: '相鄰交換（有 1 對車頭燈）', diag: '對角交換（冇車頭燈）' };
+  const AUF = ['', 'U', "U'", 'U2'], ADF = ['', 'D', "D'", 'D2'];
+  const upCount = (s, col) => faceCols(s, 0).filter(c => c === col).length;
+  function ortegaPlan(s0) {
+    let s = s0.slice(); const out = [];
+    const st = stageOfOrtega(s);
+    if (st === 'OF') {
+      const seq = faceSearch(s);
+      const after = apply(s, seq), f = faceList(after)[0], col = after[FN.indexOf(f) * 4];
+      out.push({ kind: 'moves', seq, step: 1, label: `⚡ 最快整好${CNAME[col]}色一面（${seq.length} 步）`,
+        text: `粒粒用 15 秒觀察時間諗好咗：最快係整<b>${CNAME[col]}色</b>一面，只要 <b>${seq.length} 步</b>！高手係「顏色中立」，邊種顏色最快就用邊種。記住：只需要一面同色，<b>側面唔使夾</b>。`,
+        say: `粒粒用十五秒觀察時間諗好咗：最快係整${CNAME[col]}色一面，只要${seq.length}步！高手係顏色中立，邊種顏色最快就用邊種。記住，只需要一面同色，側面唔使夾。` });
+      return { stage: st, chunks: out, end: after };
+    }
+    if (st === 'OO') {
+      const fs = faceList(s), base = fs.includes('D') ? 'D' : fs[0];
+      if (base !== 'D') {
+        const r = TO_D[base];
+        out.push({ kind: 'rot', seq: toks(r), step: 0, text: `${FACE_ZH[base]}面已經整好咗！翻轉成個骰，將佢擺去下面。`, say: `${FACE_ZH[base]}面已經整好咗！翻轉成個骰，將佢擺去下面。` });
+        s = apply(s, r);
+      }
+      const dcol = s[12], ucol = dcol ^ 1, n = upCount(s, ucol);
+      let best = null;
+      for (const u of AUF) for (const A of OLL_ALGS) {
+        const t = apply(s, (u ? [u] : []).concat(A.seq));
+        if (faceUniform(t, 0) && faceUniform(t, 3)) { const len = (u ? 1 : 0) + A.seq.length; if (!best || len < best.len) best = { u, A, len }; }
+      }
+      const look = `頂面有 <b>${n} 格</b>${CNAME[ucol]}色向上 → 係「<b>${best.A.name}</b>」`;
+      if (best.u) out.push({ kind: 'moves', seq: [best.u], step: 1, label: '對準位置',
+        text: `${look}。先轉頂層 {${best.u}}，將佢擺去公式需要嘅位置。`, say: `頂面有${n}格${CNAME[ucol]}色向上，係${best.A.name}。先轉頂層，擺去公式需要嘅位置。` });
+      out.push({ kind: 'alg', seq: best.A.seq.slice(), step: 2, label: `🐟 OLL：${best.A.name}`, oll: best.A.id,
+        text: `${best.u ? '' : look + '。'}做「${best.A.name}」公式，令頂面全部變${CNAME[ucol]}色！`, say: `做${best.A.name}公式，令頂面全部變${CNAME[ucol]}色！` });
+      s = apply(s, (best.u ? [best.u] : []).concat(best.A.seq));
+      return { stage: st, chunks: out, end: s };
+    }
+    if (st === 'OP') {
+      const fs = faceList(s);
+      let r = '';
+      if (!(fs.includes('U') && fs.includes('D'))) r = fs.includes('F') && fs.includes('B') ? 'x' : 'z';
+      if (r) { out.push({ kind: 'rot', seq: [r], step: 0, text: '對面兩面都整好咗！翻轉成個骰，將佢哋擺去頂同底。', say: '對面兩面都整好咗！翻轉成個骰，將佢哋擺去頂同底。' }); s = apply(s, [r]); }
+      let best = null;
+      for (const fl of ['', 'z2']) for (const u of AUF) for (const d of ADF) for (const A of [{ id: 'none', seq: [] }].concat(PBL_ALGS)) {
+        const pre = (fl ? [fl] : []).concat(u ? [u] : [], d ? [d] : []);
+        const t0 = apply(s, pre.concat(A.seq));
+        for (const u2 of AUF) for (const d2 of ADF) {
+          const post = (u2 ? [u2] : []).concat(d2 ? [d2] : []);
+          if (isSolved(apply(t0, post))) {
+            const len = pre.filter(x => x !== 'z2').length + A.seq.length + post.length + (fl ? 0.5 : 0);
+            if (!best || len < best.len) best = { fl, u, d, A, post, len };
+          }
+        }
+      }
+      const top = barKind(layerBars(s, true)), bot = barKind(layerBars(s, false));
+      const look = `頂層：${KIND_ZH[top]}；底層：${KIND_ZH[bot]}`;
+      if (best.fl) { out.push({ kind: 'rot', seq: ['z2'], step: 1, text: `${look}。公式係為「頂層」設計，所以先將成個骰上下調轉。`, say: '公式係為頂層設計，所以先將成個骰上下調轉。' }); s = apply(s, ['z2']); }
+      const pre = (best.u ? [best.u] : []).concat(best.d ? [best.d] : []);
+      if (best.A.id === 'none') {
+        out.push({ kind: 'moves', seq: pre.concat(best.post), step: 3, label: '對齊顏色', text: `${look}。兩層都已經排好，只需要轉一轉對齊顏色！`, say: '兩層都已經排好，只需要轉一轉對齊顏色！' });
+      } else {
+        if (pre.length) out.push({ kind: 'moves', seq: pre, step: 1, label: '擺好車頭燈位置',
+          text: `${best.fl ? '' : look + '。'}先轉一轉頂層或者底層，擺去公式需要嘅位置。`, say: '先轉一轉頂層或者底層，擺去公式需要嘅位置。' });
+        out.push({ kind: 'alg', seq: best.A.seq.slice(), step: 2, label: `🔀 PBL：${best.A.name}`, pbl: best.A.id,
+          text: `${pre.length || best.fl ? '' : look + '。'}做「${best.A.name}」公式，一次過排好兩層！`, say: `做${best.A.name}公式，一次過排好兩層！` });
+        if (best.post.length) out.push({ kind: 'moves', seq: best.post, step: 3, label: '最後對齊', text: '就快完成！轉一轉對齊顏色。', say: '就快完成！轉一轉對齊顏色。' });
+      }
+      s = apply(s, pre.concat(best.A.seq, best.post));
+      return { stage: st, chunks: out, end: s };
+    }
+    return { stage: 'done', chunks: [], end: s };
+  }
+  function countMoves(chunks) { return chunks.reduce((n, ch) => n + ch.seq.filter(t => !'xyz'.includes(t[0])).length, 0); }
+  function solveCount(s, planner) {
+    let n = 0;
+    for (let i = 0; i < 6; i++) { const p = planner(s); if (p.stage === 'done') break; n += countMoves(p.chunks); s = p.end; }
+    return isSolved(s) ? n : -1;
+  }
+
   // ---------- 解釋用：距離同鄰居 ----------
   function coordOf(s) {
     const a = analyse(s); if (!a.ok) return null;
@@ -800,7 +938,8 @@ details.parents ul{margin:4px 0;padding-left:20px}
     W, Y, G, BL, RD, OR, BLANK, CNAME, FN, ST, SLOTS, SLOT, NRM, OPP, FACE_ZH,
     parse, perm, apply, toks, inv, invSeq, STD, REFS, LESSON_SOLVED, isSolved, layerDone, whiteLayerFace, stageOf,
     faceUniform, analyse, solve, buildTables, planA, planB, planC, planStage, DANCE, HEADLIGHT_ALG, scramble, rnd,
-    stickerOn, slotOfSticker, findPiece, pieceName, SM, distOf, neighbours, distHistogram, homeInfo, pieceAt
+    stickerOn, slotOfSticker, findPiece, pieceName, SM, distOf, neighbours, distHistogram, homeInfo, pieceAt,
+    OLL_ALGS, PBL_ALGS, stageOfOrtega, ortegaPlan, faceSearch, layerBars, solveCount, countMoves, faceList
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1213,20 +1352,27 @@ function celebrate({ title, text, stars, buttons }) {
 const STAGE_INFO = {
   A: { name: '第一大步：整好白色一層', flow: ['白色向下', '搵：邊粒角仔要返「前右下」？', '擺：轉頂層，擺喺屋企正上面', '跳：小舞步，跳到佢返屋企', '轉成個骰，搵下一間空屋'], done: '白色一層整好喇！' },
   B: { name: '第二大步：翻轉大法，黃色向下', flow: ['翻轉：白色向上、黃色向下', '望住前右下：黃色向下未？', '未：跳小舞步，跳到黃色向下', '好咗：轉底層，換下一粒', '4 粒都向下，頂層自動變返好'], done: '黃色全部向下！頂層白色都變返好喇！' },
-  C: { name: '第三大步：車頭燈排隊', flow: ['翻返轉：黃色向上', '轉頂層，睇下可唔可以直接完成', '搵車頭燈 🚗，轉去後面', '做車頭燈公式', '轉頂層對齊，完成！'], done: '全部完成！扭計骰解開咗！' }
+  C: { name: '第三大步：車頭燈排隊', flow: ['翻返轉：黃色向上', '轉頂層，睇下可唔可以直接完成', '搵車頭燈 🚗，轉去後面', '做車頭燈公式', '轉頂層對齊，完成！'], done: '全部完成！扭計骰解開咗！' },
+  OF: { name: 'Ortega ①：最快整好一面', flow: ['15 秒觀察：邊種顏色最快？', '跟計劃整好一面（側面唔使夾）'], done: '一面整好喇！' },
+  OO: { name: 'Ortega ②：OLL 令對面同色', flow: ['好咗嗰面擺落底', '數頂面有幾格向上，認出圖案', '做 OLL 公式'], done: '頂底兩面都同色喇！' },
+  OP: { name: 'Ortega ③：PBL 一次過排好兩層', flow: ['頂底兩面擺好', '睇兩層嘅車頭燈：對好／相鄰／對角', '做 PBL 公式', '轉一轉對齊，完成！'], done: '全部完成！扭計骰解開咗！' }
+};
+const PLANNERS = {
+  lbl: { stageOf: s => C.stageOf(s), plan: s => C.planStage(s) },
+  ortega: { stageOf: s => C.stageOfOrtega(s), plan: s => C.ortegaPlan(s) }
 };
 
 /* ---------- 「粒粒個腦」導航 ---------- */
 class Guide {
   constructor(o) {
-    this.stages = o.stages; this.onFinish = o.onFinish; this.onExit = o.onExit; this.canHide = !!o.canHide;
+    this.stages = o.stages; this.P = PLANNERS[o.method || 'lbl']; this.onFinish = o.onFinish; this.onExit = o.onExit; this.canHide = !!o.canHide;
     this.hidden = false; this.reveal = -1; this.demoUsed = 0; this.devTotal = 0; this.done = false;
     this.start();
   }
   start() {
-    const st = C.stageOf(App.state);
+    const st = this.P.stageOf(App.state);
     if (st === 'done' || !this.stages.includes(st)) { this.finish(); return; }
-    const p = C.planStage(App.state);
+    const p = this.P.plan(App.state);
     this.stage = p.stage; this.chunks = p.chunks; this.toks = [];
     p.chunks.forEach((ch, ci) => {
       ch.start = this.toks.length;
@@ -1291,7 +1437,7 @@ class Guide {
     const info = STAGE_INFO[this.stage];
     this.locked = true;
     toast('🎉 ' + info.done);
-    const nextSt = C.stageOf(App.state);
+    const nextSt = this.P.stageOf(App.state);
     if (nextSt !== 'done' && this.stages.includes(nextSt)) {
       Voice.maybe(info.done + ' 下一步！');
       await sleep(1300); if (this.done) return;
@@ -1310,6 +1456,7 @@ class Guide {
     if (ch.focus) { const sl = C.findPiece(App.state, ch.focus); if (sl) sl.st.forEach(i => hl.add(i)); C.SLOT.DFR.st.forEach(i => ring.add(i)); }
     if (ch.focusSlot) C.SLOT[ch.focusSlot].st.forEach(i => hl.add(i));
     if (ch.headlights) { hl.add(20); hl.add(21); }
+    if (ch.hlCol != null) App.state.forEach((c, i) => { if (c === ch.hlCol) hl.add(i); });
     return { hl, ring };
   }
   render() {
@@ -1343,13 +1490,13 @@ class Guide {
         C.DANCE.forEach((t, i) => { h += `<div class="dcard ${i === j && !this.dev.length ? 'cur' : i < j ? 'done' : ''}"><b>${t}</b><span>${MOVE_SHORT[t]}</span></div>`; });
         h += `</div><div class="dots" style="margin-top:8px">${Array.from({ length: ch.n }, (_, i) => `<i class="${i < k ? 'on' : ''}"></i>`).join('')}</div>`;
       } else {
-        h += `<div class="lbl">${ch.kind === 'alg' ? '🚗 車頭燈公式（分 5 組記）' : '要做：'}</div><div class="chips">`;
+        h += `<div class="lbl">${ch.label || (ch.kind === 'alg' ? '🚗 車頭燈公式（分 5 組記）' : '要做：')}</div><div class="chips">`;
         let idx = ch.start;
         ch.seq.forEach((t, si) => {
           const n = t.endsWith('2') && !'xyz'.includes(t[0]) ? 2 : 1;
           const s0 = idx, s1 = idx + n; idx = s1;
           const cls = this.ptr >= s1 ? 'done' : this.ptr >= s0 ? 'cur' : '';
-          const gap = ch.kind === 'alg' && [3, 4, 7, 8].includes(si) ? 'margin-left:10px' : '';
+          const gap = ch.kind === 'alg' && !ch.label && [3, 4, 7, 8].includes(si) ? 'margin-left:10px' : '';
           const shown = n === 2 ? (this.toks[s0].t + '2') : t;
           h += `<div class="pchip ${cls}" style="${gap}">${shown}<div style="font-size:11px;font-weight:700">${MOVE_SHORT[shown] || ''}</div></div>`;
         });
@@ -1358,6 +1505,7 @@ class Guide {
           const tk = this.toks[this.ptr];
           if (tk.dbl === 1) h += '<div class="small-note" style="margin-top:6px">（轉兩下嘅第二下）</div>';
         }
+        if (ch.oll) h += `<div style="display:flex;gap:10px;align-items:center;margin-top:8px"><div style="flex:0 0 72px">${ollDiagram(C.OLL_ALGS.find(a => a.id === ch.oll), 72)}</div><div class="small-note">呢個就係佢嘅圖案（由上面睇落去，黃色＝頂面嘅顏色）</div></div>`;
       }
       h += '</div>';
     }
@@ -1394,6 +1542,50 @@ class Guide {
       }
     } finally { App.locked = false; }
   }
+}
+
+/* ---------- 高手方法用嘅圖 ---------- */
+// OLL 圖案：由上面睇落去，頂色＝黃，其他＝灰；四邊細條＝側面頂排嘅黃色
+function ollDiagram(A, size = 90) {
+  const st = C.apply(LS, C.invSeq(A.seq)), Y = C.Y, on = '#ffd21f', off = '#dcd9e6';
+  const c = i => st[i] === Y ? on : off, tab = i => st[i] === Y ? on : 'none';
+  let g = '';
+  for (let r = 0; r < 2; r++) for (let k = 0; k < 2; k++) g += `<rect x="${20 + k * 28}" y="${20 + r * 28}" width="26" height="26" rx="5" fill="${c(r * 2 + k)}" stroke="#26213d" stroke-width="1.5"/>`;
+  for (let k = 0; k < 2; k++) {
+    g += `<rect x="${21 + k * 28}" y="79" width="24" height="8" rx="3" fill="${tab(8 + k)}"/>`;          // 前
+    g += `<rect x="${21 + (1 - k) * 28}" y="9" width="24" height="8" rx="3" fill="${tab(20 + k)}"/>`;   // 後
+    g += `<rect x="79" y="${21 + (1 - k) * 28}" width="8" height="24" rx="3" fill="${tab(4 + k)}"/>`;   // 右
+    g += `<rect x="9" y="${21 + k * 28}" width="8" height="24" rx="3" fill="${tab(16 + k)}"/>`;         // 左
+  }
+  return `<svg viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${A.name} 圖案"><rect width="96" height="96" rx="12" fill="#f6f4ff"/>${g}<text x="48" y="94" text-anchor="middle" font-size="7" fill="#8a86a0">前</text></svg>`;
+}
+// 側面一圈：上排＝頂層，下排＝底層，睇車頭燈
+function bandDiagram(st, w = 260) {
+  const order = ['F', 'R', 'B', 'L'], cs = 28, gap = 8;
+  let g = '';
+  order.forEach((f, j) => {
+    const fi = C.FN.indexOf(f), x0 = 34 + j * (cs * 2 + gap);
+    for (let r = 0; r < 2; r++) for (let k = 0; k < 2; k++) g += `<rect x="${x0 + k * cs}" y="${8 + r * (cs + 4)}" width="${cs - 2}" height="${cs - 2}" rx="5" fill="${COLORS[st[fi * 4 + r * 2 + k]]}" stroke="#26213d" stroke-width="1.5"/>`;
+    g += `<text x="${x0 + cs}" y="${78}" text-anchor="middle" font-size="11" fill="#8a86a0">${C.FACE_ZH[f]}</text>`;
+  });
+  g += `<text x="2" y="26" font-size="11" font-weight="800" fill="#5b5577">頂層</text><text x="2" y="58" font-size="11" font-weight="800" fill="#5b5577">底層</text>`;
+  return `<svg viewBox="0 0 ${34 + 4 * (cs * 2 + gap)} 84" width="${w}" role="img" aria-label="側面一圈">${g}</svg>`;
+}
+let METHOD_STATS = null;
+function measureMethods(n = 80) {
+  if (METHOD_STATS) return METHOD_STATS;
+  let l = 0, o = 0, b = 0;
+  for (let i = 0; i < n; i++) {
+    const s = C.apply(LS, C.scramble(25));
+    l += C.solveCount(s, C.planStage); o += C.solveCount(s, C.ortegaPlan); b += C.solve(s).moves.length;
+  }
+  return (METHOD_STATS = { n, lbl: l / n, ortega: o / n, best: b / n });
+}
+function methodChart() {
+  const M = measureMethods(), max = M.lbl;
+  const rows = [['🧒 三大步（我哋學咗）', M.lbl], ['🏎️ Ortega（高手入門）', M.ortega], ['🤖 電腦最少步數', M.best]];
+  return `<div style="width:100%"><div class="ripple">${rows.map(([k, v]) => `<div class="rb" style="grid-template-columns:150px 1fr 54px" title="${k}：平均 ${v.toFixed(1)} 步"><span class="rl" style="font-size:13.5px;color:var(--ink)">${k}</span><span class="rt" style="height:18px"><i style="width:${v / max * 100}%"></i></span><span class="rn">${v.toFixed(1)} 步</span></div>`).join('')}</div>
+    <div class="small-note" style="margin-top:6px">粒粒啱啱喺你部機試咗 ${M.n} 個隨機打亂，計平均步數（唔計成個骰轉）。CLL／EG 公式太多，呢度冇量度，步數會再少過 Ortega。</div></div>`;
 }
 
 /* ---------- 課程內容 ---------- */
@@ -1529,14 +1721,97 @@ const LESSONS = [
   },
   {
     id: 'final', emo: '🏆', title: '大挑戰：由頭解到尾', sub: '三大步一次過，你就係高手！',
-    pad: ['U', 'R', 'F', 'D', 'L', 'B'], timer: true,
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'], timer: true, final: true,
     pages: [
       { text: '你已經學識晒！解 2×2 扭計骰只要 <b>3 大步</b>：① 整好白色一層 ② 翻轉，令黃色向下 ③ 翻返轉，車頭燈排隊。', visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>⬜</b>白色一層</div><div class="stepcard"><b>🔄</b>黃色向下</div><div class="stepcard"><b>🚗</b>車頭燈</div></div>' },
       { text: '今次粒粒會打亂個骰，你由頭解到尾。粒粒個腦會喺旁邊陪你；想挑戰自己，可以撳「🙈 收埋提示」。加油！💪' }
     ],
     activity: { type: 'guided', stages: ['A', 'B', 'C'], rounds: 1, canHide: true, gen: () => genUntil(() => C.scramble(20), s => C.stageOf(s) === 'A') }
+  },
+  /* ===== 🏎️ 高手之路 ===== */
+  {
+    id: 'records', section: 'pro', emo: '🏆', title: '世界紀錄點樣扭？', sub: '0.39 秒！高手用咩方法？',
+    pad: null, spin: true,
+    pages: [
+      { text: '你知唔知？2×2 扭計骰嘅<b>單次世界紀錄</b>只係 <b>0.39 秒</b>！係中國嘅<b>葉梓渝</b>喺 2025 年 10 月合肥公開賽做到。5 次平均嘅世界紀錄係 <b>0.86 秒</b>，由美國嘅 <b>Sujan Feist</b> 喺 2025 年 12 月做到。（資料截至 2026 年 8 月，紀錄隨時會再被打破㗎！）',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>0.39 秒</b>單次世界紀錄<br>葉梓渝（中國）</div><div class="stepcard"><b>0.86 秒</b>平均世界紀錄<br>Sujan Feist（美國）</div></div>',
+        say: '你知唔知？二乘二扭計骰嘅單次世界紀錄只係零點三九秒！係中國嘅葉梓渝喺二零二五年十月合肥公開賽做到。五次平均嘅世界紀錄係零點八六秒，由美國嘅 Sujan Feist 喺二零二五年十二月做到。資料截至二零二六年八月，紀錄隨時會再被打破㗎！' },
+      { text: '佢哋點解咁快？秘密有 3 個：① <b>步數少</b>：用好少步就解完。② <b>手快</b>：一秒可以轉十幾下。③ <b>諗定先</b>：比賽開始前有 <b>15 秒觀察時間</b>，高手會喺腦入面諗好第一步，甚至成個解法！另外，破紀錄嗰次通常都係遇到比較易嘅打亂。',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>🔢</b>步數少</div><div class="stepcard"><b>⚡</b>手快</div><div class="stepcard"><b>🧠</b>15 秒諗定先</div></div>' },
+      { text: '我哋學嘅三大步方法，因為小舞步要跳好多次，步數好多。高手用嘅方法步數少好多！睇下粒粒幫你量度嘅結果：', visual: '__METHOD_CHART__',
+        say: '我哋學嘅三大步方法，因為小舞步要跳好多次，步數好多。高手用嘅方法步數少好多！睇下粒粒幫你量度嘅結果。' },
+      { text: '高手方法係一級級咁升嘅：<br>🧒 <b>三大步</b>：2 條公式，最易明。<br>🏎️ <b>Ortega</b>：整一面 → 1 條 OLL → 1 條 PBL，共 12 條公式。<br>🚀 <b>CLL</b>：整好一層，再用 1 條公式完成，要學 42 條。<br>🏆 <b>EG</b>：只整一面，就用 1 條公式完成，要學三組各 42 條。<br>頂尖選手多數用 <b>CLL 同 EG</b>，仲會學更多（例如 TCLL、LEG-1）。',
+        visual: '<div style="font-size:30px;letter-spacing:6px">🧒 ➜ 🏎️ ➜ 🚀 ➜ 🏆</div>',
+        say: '高手方法係一級級咁升嘅：三大步，兩條公式，最易明。Ortega，整一面，然後一條OLL，一條PBL，共十二條公式。CLL，整好一層，再用一條公式完成，要學四十二條。EG，只整一面，就用一條公式完成，要學三組各四十二條。頂尖選手多數用CLL同EG，仲會學更多。' },
+      { text: '今日我哋由 <b>Ortega</b> 開始，佢係通往世界紀錄方法嘅第一級！只有 3 步：① 整好<b>一面</b>（唔使理側面，大約 3 步）② <b>OLL</b>：7 條公式揀 1 條，令對面都同色 ③ <b>PBL</b>：5 條公式揀 1 條，一次過排好兩層。之後幾關逐步學！',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>🎨</b>① 一面</div><div class="stepcard"><b>🐟</b>② OLL</div><div class="stepcard"><b>🔀</b>③ PBL</div></div>' }
+    ],
+    activity: {
+      type: 'quiz', questions: [
+        { q: '2×2 單次世界紀錄大約係幾耐？', opts: ['0.39 秒', '3.9 秒', '39 秒'], a: 0, hint: '比眨眼仲快！' },
+        { q: '比賽開始前有幾耐觀察時間？', opts: ['5 秒', '15 秒', '1 分鐘'], a: 1, hint: '高手會用呢段時間諗好第一步。' },
+        { q: 'Ortega 方法第一步做咩？', opts: ['整好一層（側面要夾）', '整好一面（側面唔使夾）', '整好頂層'], a: 1, hint: '只係一面同色就得。' },
+        { q: '頂尖選手多數用咩方法？', opts: ['三大步', '隨便扭', 'CLL 同 EG'], a: 2, hint: '要學好多條公式嗰啲。' },
+        { q: '點解高手咁快？', opts: ['步數少＋手快＋諗定先', '個骰有魔法', '佢哋偷睇答案'], a: 0, hint: '記住 3 個秘密！' }
+      ]
+    }
+  },
+  {
+    id: 'oface', section: 'pro', emo: '🎨', title: 'Ortega ①：最快整一面', sub: '只要一面同色，側面唔使夾',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'],
+    pages: [
+      { text: '三大步嘅第一步要整好<b>一層</b>（側面都要夾）。Ortega 只要<b>一面</b>同色就得，側面亂都唔緊要！咁樣平均只要大約 <b>3 步</b>。',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>⬜</b>一層：面同色＋側面夾</div><div class="stepcard"><b>🟨</b>一面：淨係面同色</div></div>' },
+      { text: '高手係「<b>顏色中立</b>」：唔一定揀白色，邊種顏色最快就用邊種。比賽嘅 <b>15 秒觀察時間</b>，就係用嚟搵「邊一面最快」同埋諗好點轉。' },
+      { text: '練習方法：粒粒會用電腦搵出<b>最快</b>嗰一面，同埋點樣轉。你跟住做，留意佢點諗——慢慢你自己都會「睇」到。練 3 次！' }
+    ],
+    activity: { type: 'guided', method: 'ortega', stages: ['OF'], rounds: 3, gen: () => genUntil(() => C.scramble(20), s => C.stageOfOrtega(s) === 'OF') }
+  },
+  {
+    id: 'oll', section: 'pro', emo: '🐟', title: 'Ortega ②：OLL 7 個圖案', sub: '數一數幾格向上，認出圖案',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'],
+    pages: [
+      { text: '一面整好咗，就將佢擺喺<b>下面</b>。而家要令<b>頂面</b>都同色（頂面嘅顏色，係底面嘅「死對頭」）。只需要睇一樣嘢：<b>頂面有幾多格已經向上？</b>',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>1 格</b>魚仔／反魚仔</div><div class="stepcard"><b>0 格</b>H／Pi</div><div class="stepcard"><b>2 格</b>U／T／L</div></div>' },
+      { text: '呢個就係 7 個 OLL 圖案（由上面睇落去；黃色＝向上或者喺側面向外嘅頂色）。認圖案，再做啱嗰條公式就得！', visual: '__OLL_GALLERY__',
+        say: '呢個就係七個OLL圖案，由上面睇落去。認圖案，再做啱嗰條公式就得！' },
+      { text: '「魚仔」你喺第 6 關已經見過！其他公式都唔長，最短嘅 U 字只有 6 步。唔使一次過記晒，粒粒會喺旁邊提你。練 3 次！' }
+    ],
+    activity: {
+      type: 'guided', method: 'ortega', stages: ['OO'], rounds: 3,
+      gen: () => genUntil(() => { let s = []; for (let i = 0; i < 4; i++) s = s.concat(pick(C.OLL_ALGS).seq, pick([['U'], ["U'"], ['U2'], []]), pick([[], ['D'], ["D'"]])); return s; }, s => C.stageOfOrtega(s) === 'OO' && C.faceUniform(s, 3))
+    }
+  },
+  {
+    id: 'pbl', section: 'pro', emo: '🔀', title: 'Ortega ③：PBL 排好兩層', sub: '睇車頭燈，一條公式排好兩層',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'],
+    pages: [
+      { text: '頂同底兩面都同色喇！最後要將兩層嘅角仔<b>排好位置</b>。睇每一層側面嘅<b>車頭燈</b>（兩格一樣色）：<br>✅ 4 對車頭燈＝已經對好<br>🔁 得 1 對＝<b>相鄰交換</b><br>❌ 冇車頭燈＝<b>對角交換</b>',
+        visual: '__BANDS__', say: '頂同底兩面都同色喇！最後要將兩層嘅角仔排好位置。睇每一層側面嘅車頭燈：四對車頭燈，即係已經對好；得一對，就係相鄰交換；冇車頭燈，就係對角交換。' },
+      { text: '兩層各自有 3 種情況，配合起嚟用 5 條 PBL 公式。如果只係<b>底層</b>有問題，就先將成個骰<b>上下調轉</b>，變成頂層問題。', visual: '__PBL_LIST__',
+        say: '兩層各自有三種情況，配合起嚟用五條PBL公式。如果只係底層有問題，就先將成個骰上下調轉，變成頂層問題。' },
+      { text: '最短嘅「雙對角」只有 3 步：{R2} {F2} {R2}！粒粒會幫你認情況同擺位置，你跟住做。練 3 次！' }
+    ],
+    activity: {
+      type: 'guided', method: 'ortega', stages: ['OP'], rounds: 3,
+      gen: () => genUntil(() => { let s = []; for (let i = 0; i < 3; i++) s = s.concat(pick(C.PBL_ALGS).seq, pick([['U'], ["U'"], ['U2'], []]), pick([['D'], ["D'"], ['D2'], []])); return s; }, s => C.stageOfOrtega(s) === 'OP')
+    }
+  },
+  {
+    id: 'ortega', section: 'pro', emo: '🏎️', title: 'Ortega 全程計時挑戰', sub: '一面 → OLL → PBL，同三大步比步數',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'], timer: true, final: true,
+    pages: [
+      { text: '用 Ortega 由頭解到尾：① 最快一面 ② OLL ③ PBL。完成之後，粒粒會話你知同一個打亂，用三大步要幾多步，你就知 Ortega 慳咗幾多！想挑戰自己，可以撳「🙈 收埋提示」。' }
+    ],
+    activity: { type: 'guided', method: 'ortega', stages: ['OF', 'OO', 'OP'], rounds: 1, canHide: true, gen: () => genUntil(() => C.scramble(20), s => C.stageOfOrtega(s) === 'OF') }
   }
 ];
+LESSONS.forEach(L => (L.pages || []).forEach(p => {
+  if (p.visual === '__OLL_GALLERY__') p.visualFn = () => `<div class="ollgal">${C.OLL_ALGS.map(A => `<div class="ollc">${ollDiagram(A, 78)}<b>${A.name}</b><span>${A.alg}</span></div>`).join('')}</div>`;
+  if (p.visual === '__METHOD_CHART__') p.visualFn = methodChart;
+  if (p.visual === '__BANDS__') p.visualFn = () => [['✅ 已經對好', LS], ['🔁 頂層相鄰交換', C.apply(LS, C.invSeq(C.PBL_ALGS.find(a => a.id === 'adj').seq))], ['❌ 頂層對角交換', C.apply(LS, C.invSeq(C.PBL_ALGS.find(a => a.id === 'diag').seq))]].map(([t, st]) => `<div style="width:100%;text-align:center"><div style="font-weight:800;font-size:14px">${t}</div>${bandDiagram(st)}</div>`).join('');
+  if (p.visual === '__PBL_LIST__') p.visualFn = () => `<table class="tbl" style="width:100%;font-size:14px">${C.PBL_ALGS.map(A => `<tr><td><b>${A.name}</b></td><td style="font-family:ui-rounded,system-ui">${A.alg}</td></tr>`).join('')}</table>`;
+}));
 
 /* ---------- 主頁 ---------- */
 function renderHome() {
@@ -1547,15 +1822,17 @@ function renderHome() {
     <div class="bubble-say"><p>${intro}</p>${spk(intro)}</div></div></div>
     <div id="voiceNote"></div>
     <div class="sec-title">🗺️ 學習之路 ${spk('學習之路：由第一關開始，一關一關咁學。每關完成會有星星！')}</div><div class="path">`;
-  LESSONS.forEach((L, i) => {
-    h += `<button class="lvl ${i === nextIdx ? 'next' : ''}" data-l="${i}"><div class="num">${i + 1}</div><div class="emo">${L.emo}</div><h3>${L.title}</h3><p>${esc(L.sub)}</p><div class="stars">${starStr(stars[L.id] || 0)}</div></button>`;
-  });
+  const card = (L, i) => `<button class="lvl ${i === nextIdx ? 'next' : ''} ${L.section === 'pro' ? 'pro' : ''}" data-l="${i}"><div class="num">${i + 1}</div><div class="emo">${L.emo}</div><h3>${L.title}</h3><p>${esc(L.sub)}</p><div class="stars">${starStr(stars[L.id] || 0)}</div></button>`;
+  LESSONS.forEach((L, i) => { if (L.section !== 'pro') h += card(L, i); });
+  h += `</div><div class="sec-title">🏎️ 高手之路：世界紀錄方法 ${spk('高手之路：學識三大步之後，就可以學世界紀錄高手用嘅方法。由 Ortega 開始，步數會少好多！')}</div><div class="path">`;
+  LESSONS.forEach((L, i) => { if (L.section === 'pro') h += card(L, i); });
   h += `</div><div class="sec-title">🧰 工具 ${spk('工具：填色解骰器可以幫你計出最快解法；自由玩可以隨便扭，仲有提示。')}</div><div class="modes">
     <button class="mode" id="goSolver"><div class="emo">🎨</div><div><h3>填色解骰器</h3><p>將你手上扭計骰嘅顏色填落去，粒粒幫你計出<b>最少步數</b>嘅解法，仲會解釋<b>每一步點解要咁轉</b>。</p></div></button>
     <button class="mode b" id="goFree"><div class="emo">🎮</div><div><h3>自由玩 ＋ 陪解</h3><p>隨便扭、打亂、計時；卡住可以攞最快提示，或者叫粒粒用學過嘅方法陪你解。</p></div></button></div>
     <details class="parents"><summary>👨‍👩‍👧 家長／老師小貼士（教學設計）</summary>
     <h4>用咩方法教？</h4>
     <p>採用最正統嘅<b>層先法（Layer-by-Layer）</b>：① 白色一層 ② 黃色面 ③ 頂層角位排好。成個方法只需要記<b>兩條公式</b>：「小舞步」R U R' U'（第一、二步都用佢），同埋 Rubik's 官方教學都用嘅「車頭燈公式」R' F R' B2 R F' R' B2 R2。第二步用「翻轉大法」重用小舞步，令小朋友少記一條公式；第 6 關亦有介紹更快嘅「魚仔公式」（Sune）作延伸。</p>
+    <h4>🏎️ 高手之路（第 9–13 關）</h4><p>學識三大步之後，可以學世界紀錄選手方法嘅第一級：<b>Ortega</b>（一面 → OLL 7 條 → PBL 5 條，共 12 條公式）。喺你部機量度，平均大約 22 步，三大步就要 80 幾步。頂尖選手再進一步用 CLL（42 條）同 EG（三組各 42 條），仲會利用 15 秒觀察時間諗好成個解法。紀錄資料（截至 2026 年 8 月）：單次 0.39 秒（葉梓渝，2025 年 10 月）；平均 0.86 秒（Sujan Feist，2025 年 12 月）。</p>
     <h4>第一性原理</h4><ul>
     <li>扭計骰只有 8 粒角仔；「解」＝ 每粒返屋企＋企正。</li>
     <li>每一下都可以還原；還原要<b>倒轉次序</b>（第 2 關親手發現）。</li>
@@ -1601,7 +1878,7 @@ function goHome() { leaveMode(); $('#celebrate').classList.remove('show'); rende
 
 /* ---------- 課程流程 ---------- */
 function openLesson(i) {
-  leaveMode();
+  leaveMode(); $('#celebrate').classList.remove('show');
   const L = LESSONS[i]; App.lesson = L; App.lessonIdx = i;
   $('#workTitle').textContent = `第 ${i + 1} 關 ${L.emo} ${L.title}`;
   $('#reviewBtn').classList.remove('hide');
@@ -1621,7 +1898,7 @@ function showStory(p) {
   side().innerHTML = `<div class="story"><div class="card-title">${mascot(42)} 粒粒話你知 <span style="flex:1"></span>${spk(say)}</div>
     <div class="dots" style="margin-bottom:10px">${L.pages.map((_, k) => `<i class="${k <= p ? 'on' : ''}"></i>`).join('')}</div>
     <div class="txt">${fmt(pg.text)}</div>
-    ${pg.visual ? `<div class="visual">${pg.visual}</div>` : ''}
+    ${pg.visualFn ? `<div class="visual">${pg.visualFn()}</div>` : pg.visual ? `<div class="visual">${pg.visual}</div>` : ''}
     ${pg.demo ? `<div style="text-align:center;margin-top:12px"><button class="btn pink" data-act="demo">▶ 睇示範：${pg.demo.map(t => `<span class="mv" style="background:#fff">${t}</span>`).join(' ')}</button></div>` : ''}
     <div class="navrow"><button class="btn ghost" data-act="prev" ${p === 0 ? 'disabled' : ''}>◀ 上一頁</button>
     ${last ? '<button class="btn green" data-act="go">開始練習 ▶</button>' : '<button class="btn" data-act="next">下一頁 ▶</button>'}</div>
@@ -1661,9 +1938,15 @@ function lessonDone(stars) {
   if (i < LESSONS.length - 1) btns.push({ label: `下一關：${LESSONS[i + 1].emo} ${LESSONS[i + 1].title} ▶`, cls: 'green', fn: () => openLesson(i + 1) });
   btns.push({ label: '🔁 再玩一次', cls: 'ghost', fn: () => startActivity() });
   btns.push({ label: '🗺️ 返學習地圖', cls: 'ghost', fn: goHome });
-  const extra = i === LESSONS.length - 1 ? `你用咗 ${App.moves} 步${App.timerOn ? '，' + $('#hudTimer').textContent.replace('⏱ ', '時間 ') : ''}。你已經識得自己解 2×2 扭計骰喇！` : `第 ${i + 1} 關「${L.title}」完成！`;
+  const tm = App.timerOn ? '，' + $('#hudTimer').textContent.replace('⏱ ', '時間 ') : '';
+  let extra = `第 ${i + 1} 關「${L.title}」完成！`;
+  if (L.id === 'final') extra = `你用咗 ${App.moves} 步${tm}。你已經識得自己解 2×2 扭計骰喇！想再快啲？試下「🏎️ 高手之路」！`;
+  if (L.id === 'ortega' && App.act.startState) {
+    const lb = C.solveCount(App.act.startState, C.planStage), oc = C.solveCount(App.act.startState, C.ortegaPlan), best = C.solve(App.act.startState).moves.length;
+    extra = `你用 Ortega 解開咗${tm ? '（' + tm.slice(1) + '）' : ''}！同一個打亂比一比：🏎️ Ortega ${oc} 步、🧒 三大步 ${lb} 步、🤖 電腦最少 ${best} 步。Ortega 慳咗 ${Math.max(0, lb - oc)} 步！`;
+  }
   timer(false);
-  celebrate({ title: i === LESSONS.length - 1 ? '🏆 你係扭計骰高手！' : '好叻呀！過關喇！', text: extra, stars, buttons: btns });
+  celebrate({ title: L.final ? '🏆 你係扭計骰高手！' : '好叻呀！過關喇！', text: extra, stars, buttons: btns });
 }
 
 /* 小測驗 */
@@ -1776,9 +2059,10 @@ async function runGuidedRound() {
   const seq = A.gen(r);
   await sleep(300);
   await setupFrom(LS, seq);
+  App.act.startState = App.state.slice();
   if (L.timer) timer(true);
   const g = new Guide({
-    stages: A.stages, canHide: A.canHide,
+    stages: A.stages, canHide: A.canHide, method: A.method,
     onFinish: gg => {
       App.act.demo += gg.demoUsed;
       App.act.round++;
@@ -1822,7 +2106,7 @@ function freePanel(msg) {
     <p class="small-note">${fmt('隨便扭！粉紅色係面嘅轉動，藍色係成個骰轉。電腦可以用鍵盤 R U F D L B（加 Shift 反方向）。')}</p>
     <div class="actions" style="margin:12px 0">
       <button class="btn pink" data-act="scr">🔀 打亂</button><button class="btn ghost" data-act="reset">♻️ 還原</button>
-      <button class="btn" data-act="hint">💡 最快提示</button><button class="btn green" data-act="acc">🧠 粒粒陪你解</button></div>
+      <button class="btn" data-act="hint">💡 最快提示</button><button class="btn green" data-act="acc">🧠 三大步陪解</button><button class="btn pink" data-act="acco">🏎️ Ortega 高手陪解</button></div>
     <div id="freeMsg">${msg || ''}</div>
     <div class="plan"><div class="lbl">🗺️ 平面地圖</div><div id="freeNet"></div></div>
     <p class="small-note">💡「最快提示」會用電腦計出最少步數嘅下一步（可能同我哋學嘅方法唔同）。「粒粒陪你解」就會用學過嘅三大步方法，一步步陪你諗。</p>`;
@@ -1842,19 +2126,20 @@ function freePanel(msg) {
       const txt = `最快嘅下一步係 {${t}}（${MOVE_SAY[t]}）。由呢度計，最少仲要 ${r.moves.length} 步。`;
       $('#freeMsg').innerHTML = `<div class="okbox">${fmt(txt)}</div>`; Voice.maybe(txt);
     }
-    else if (a === 'acc') startAccompany();
+    else if (a === 'acc') startAccompany('lbl');
+    else if (a === 'acco') startAccompany('ortega');
   };
   const origMove = App.mode.onMove;
   App.mode.onMove = (t, s) => { origMove(t, s); const n = $('#freeNet'); if (n) renderNet(n, App.state, { cell: 18, labels: true }); };
 }
-function startAccompany() {
+function startAccompany(method = 'lbl') {
   if (C.isSolved(App.state)) { toast('個骰已經解好咗，撳「打亂」先啦！'); Voice.maybe('個骰已經解好咗，撳打亂先啦！'); return; }
   leaveMode(); renderPad(['U', 'R', 'F', 'D', 'L', 'B'], { rot: true });
   App.moves = 0; hud();
   const g = new Guide({
-    stages: ['A', 'B', 'C'], canHide: true,
+    stages: method === 'ortega' ? ['OF', 'OO', 'OP'] : ['A', 'B', 'C'], canHide: true, method,
     onExit: () => freePanel(),
-    onFinish: () => { freePanel('<div class="okbox">🎉 同粒粒一齊解開咗！</div>'); celebrate({ title: '解開咗！', text: `你用咗 ${App.moves} 步，跟住三大步方法解開咗扭計骰！`, stars: 0, buttons: [{ label: '🔀 再嚟一次', cls: 'green', fn: async () => { await setupFrom(App.state, C.scramble(20)); App.freeScrambled = true; startAccompany(); } }, { label: '🎮 繼續自由玩', cls: 'ghost', fn: () => freePanel() }, { label: '🗺️ 返學習地圖', cls: 'ghost', fn: goHome }] }); }
+    onFinish: () => { freePanel('<div class="okbox">🎉 同粒粒一齊解開咗！</div>'); celebrate({ title: '解開咗！', text: `你用咗 ${App.moves} 步，跟住${method === 'ortega' ? ' Ortega 高手' : '三大步'}方法解開咗扭計骰！`, stars: 0, buttons: [{ label: '🔀 再嚟一次', cls: 'green', fn: async () => { await setupFrom(App.state, C.scramble(20)); App.freeScrambled = true; startAccompany(method); } }, { label: '🎮 繼續自由玩', cls: 'ghost', fn: () => freePanel() }, { label: '🗺️ 返學習地圖', cls: 'ghost', fn: goHome }] }); }
   });
   App.mode = g;
 }
@@ -2168,8 +2453,8 @@ function whyPages() {
       text: '最短嘅路，<b>唔一定係睇落最整齊</b>嘅路。好似行迷宮：出口喺右邊，但條路可能要<b>先向左行</b>先出到去。電腦睇嘅係「號碼」（真正距離），唔係「睇落幾整齊」。所以有時佢會暫時令角仔離開屋企，係為咗之後一齊返屋企。返解法畫面睇下面兩條圖，你就會見到！',
       visual: '<svg viewBox="0 0 240 130" width="240" role="img" aria-label="迷宮：要先向左行，繞一個圈先到出口"><rect x="4" y="4" width="232" height="122" rx="14" fill="#f3f0ff"/><g stroke="#26213d" stroke-width="7" stroke-linecap="round"><path d="M160 50 V122"/><path d="M60 62 H160"/></g><path d="M118 108 H38 V28 H200 V100" stroke="#ff4f8b" stroke-width="5" fill="none" stroke-dasharray="9 6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="118" cy="108" r="7" fill="#6c4cff"/><text x="118" y="96" text-anchor="middle" font-size="12" font-weight="800" fill="#26213d">起點</text><text x="190" y="122" font-size="22">🏁</text><text x="78" y="100" text-anchor="middle" font-size="12" font-weight="800" fill="#c92d63">先向左！</text></svg>' },
     { t: '電腦方法 vs 人腦方法 🤝',
-      text: `你粒骰：電腦用 <b>${N} 步</b>；用我哋學嘅三大步方法，大約要 <b>${M} 步</b>。電腦步數少，但要記住 367 萬個號碼，好難講出點解。三大步方法步數多，但只要記 <b>2 條公式</b>，而且每一步都知道自己做緊咩。<b>兩種都啱！</b>高手會先學三大步，之後慢慢學多啲公式，步數就會越嚟越少。`,
-      visual: `<table class="tbl" style="width:100%"><tr><td></td><td><b>🤖 電腦</b></td><td><b>🧒 三大步</b></td></tr><tr><td>步數</td><td><b>${N}</b></td><td><b>約 ${M}</b></td></tr><tr><td>要記</td><td>367 萬個號碼</td><td>2 條公式</td></tr><tr><td>明唔明</td><td>好難講點解</td><td>每步都知點解</td></tr></table>` },
+      text: `你粒骰：電腦用 <b>${N} 步</b>；高手入門嘅 Ortega 方法大約 <b>${C.solveCount(S.path[0], C.ortegaPlan)} 步</b>；用我哋學嘅三大步方法，大約要 <b>${M} 步</b>。電腦步數少，但要記住 367 萬個號碼，好難講出點解。三大步方法步數多，但只要記 <b>2 條公式</b>，而且每一步都知道自己做緊咩。<b>兩種都啱！</b>高手會先學三大步，之後慢慢學多啲公式，步數就會越嚟越少。`,
+      visual: `<table class="tbl" style="width:100%"><tr><td></td><td><b>🤖 電腦</b></td><td><b>🏎️ Ortega</b></td><td><b>🧒 三大步</b></td></tr><tr><td>步數</td><td><b>${N}</b></td><td><b>約 ${C.solveCount(S.path[0], C.ortegaPlan)}</b></td><td><b>約 ${M}</b></td></tr><tr><td>要記</td><td>367 萬個號碼</td><td>12 條公式</td><td>2 條公式</td></tr><tr><td>明唔明</td><td>好難講點解</td><td>知點解</td><td>每步都知點解</td></tr></table>` },
     { t: '秘密：倒轉就係打亂 🔁', reverse: true,
       text: `將電腦條解法<b>倒轉次序、每步反方向</b>，就會由完成樣變返你粒骰！（記唔記得第 2 關「著襪著鞋」？）電腦條路，其實就係「點樣由完成樣最快去到你粒骰」倒轉行返。撳下面個掣睇下！`,
       visual: `<div class="chips" style="justify-content:center">${C.invSeq(S.moves).map(t => `<span class="pchip">${t}</span>`).join('')}</div>`,
