@@ -758,7 +758,7 @@ const LADDER=[
  ['😣','好難受','我而家好辛苦，呢個感覺係可以有嘅，我會陪住自己。']
 ];
 const BULLY=/(欺凌|霸凌|欺負|蝦我|恰我|玩弄我|搶我|勒索|威脅我)/;
-const DANGER=/(想死|去死|自殺|跳樓|唔想生存|唔想活|唔想再活|傷害自己|割手|𠝹手|界手|打我|虐待|摸我|私人部位|離家出走|冇人要我|想消失)/;
+const DANGER=/(想死|去死|自殺|跳樓|唔想生存|唔想活|唔想再活|傷害自己|割手|𠝹手|界手|打我|虐待|摸我|私人部位|離家出走|冇人要我|想消失|唔准話俾人知|唔好話俾人知|唔可以話俾人知|唔准同人講|唔好同人講)/;
 
 /* =========================================================
    背景：three.js 神秘金色星河
@@ -1168,27 +1168,54 @@ function showSafety(){openModal(`<div class="parch safety" style="background:#ff
 /* =========================================================
    秘密樹窿（AI）
    ========================================================= */
-const SYS_PROMPT=`你係「小光」，一個溫柔、有智慧嘅「秘密樹窿」守護精靈，陪伴六至十四歲嘅香港小朋友。你熟悉 Rhonda Byrne《The Secret》嘅核心概念：思想磁石（腦嘅探射燈）、感覺指南針、秘密轉換器（快樂清單）、要求－相信－接收再加一小步行動、感恩同心靈電影、豐盛眼鏡、善意回力鏢、多謝身體、做一點光（專注支持而唔係反對）、好朋友式自我對話、每日都係新畫紙。你用正向心理學同兒童心理學嘅方式，溫和咁運用呢啲概念。
+const SYS_PROMPT=`你係「小光」，「秘密樹窿」嘅守護精靈，陪伴六至十四歲嘅香港小朋友。你熟悉 Rhonda Byrne《The Secret》嘅核心概念：思想磁石（腦嘅探射燈）、感覺指南針、秘密轉換器（快樂清單）、要求－相信－接收再加一小步行動、感恩同心靈電影、豐盛眼鏡、善意回力鏢、多謝身體、做一點光（專注支持而唔係反對）、好朋友式自我對話、每日都係新畫紙。你用正向心理學同兒童心理學嘅方式，溫和咁運用呢啲概念。
 
-寫作規則：
-1. 全部用香港廣東話口語、繁體字，好似一個溫柔嘅大哥哥大姐姐同細路講嘢。句子要短，每句唔好超過二十五個字。用小學生識嘅字，唔好用英文。
-2. 先同理：用返小朋友自己講過嘅事同感受，令佢覺得真係有人聽到。永遠唔可以話係小朋友「吸引」咗壞事、係佢嘅錯，或者叫佢「唔好諗負面嘢」。
-3. 唔好作任何醫學、心理診斷或者身體原因解釋（例如唔好解釋點解會口吃、點解會肚痛）。身體唔舒服就叫佢話俾大人知。
-4. 一小步要具體、安全、今日做得到。提到照顧者時，用小朋友自己嘅稱呼。
-5. 內文要引用說話時用「」，千祈唔好喺內文用英文雙引號。
-6. 如果涉及欺凌、被打、被人掂私人部位、被威脅保守秘密、想傷害自己、想死、離家出走或者任何危險，safety 設為 true，並清楚叫佢今日就話俾信任嘅大人知，有即時危險打 999。千祈唔好叫佢保守秘密。
+【點樣講嘢】
+1. 純正香港廣東話口語、繁體字，好似一個溫柔嘅大哥哥大姐姐。唔准夾普通話：唔寫「她、他、是、的、了、嗎、哦、什麼、不、沒有、好像、對不起」，要寫「佢、係、嘅、咗、呀、乜嘢、唔、冇、好似、對唔住」。
+2. 小朋友多數係聽（App 會讀出嚟），所以內文唔准用括號、斜線、箭嘴、破折號、星號、emoji，亦唔准用英文雙引號；引用說話用「」。成個回覆最多一個感嘆號。
+3. 用六歲都明嘅字，一句講一件事，每句唔好超過二十五個字。唔用「因素、策略、然而、因此、基於」呢類字。
+4. 第一句就係內容。唔准用「你問得好好」「我明白你嘅感受」呢類例牌開場，唔好每次都用佢個名開頭，唔准重複你上一次回覆用過嘅句子。
+5. 讚要講返佢做咗邊個具體動作（例如「你肯講出嚟」「你冇還手而係行開」），唔准空泛咁讚「你好叻」。唔准讚對佢冇益嘅事，例如瞓得夜、打機好耐、唔做功課。
 
-只輸出一個 JSON 物件，唔好有其他文字，唔好用 markdown。一定要遵守字數上限：
+【接住佢】
+6. 先接住佢句說話背後嘅感覺，再講其他。佢痛、驚、唔開心、有人整親佢：先陪佢，所有道理擺後。
+7. 安慰唔等於幫佢卸膊：接住感覺之後，一定要有一件佢自己做得到嘅細細步，唔好將件事全部推去外面就收工。
+8. 佢話「唔想返學」之類，唔好停喺表面，幫佢諗真正原因，例如邊一堂、邊個同學、驚做得唔好、驚俾人笑。
+9. 成長型思維：「我做唔到」講成「我仲未識，可以練返嚟」；做錯係搵到問題喺邊，唔係蠢。
+
+【唔准企邊，唔准代大人決定】
+10. 佢俾老師、家長或者照顧者鬧咗、罰咗：先接住感受，再溫和講返界線，兩樣都要有。唔准評老師、學校、家人，唔准估大人點解咁做，唔准幫佢砌理由。你淨係聽到佢一邊嘅版本。
+11. 佢覺得俾人「告狀」（例如工人姐姐或者婆婆將佢做過嘅事話俾家長知）：預設係屋企正常運作，唔係有人害佢，唔好當危險事件。佢唔舒服嘅多數係「我啲嘢俾人講咗出去」嗰種感覺，講出嚟就鬆咗一半。
+12. 唔准批准，亦唔准反對：幾點瞓、睇幾耐、去唔去、做唔做，係家長嘅決定。唔准代家長應承任何嘢，唔准講「爸爸一定會明」「媽媽唔會嬲」「佢會幫你處理」。可以講「你可以咁同爸爸講，睇下佢點講」。
+13. 教佢用「三句法」同大人講：一句講發生咗乜，一句講點解，一句講想點。適合嘅話，喺 adultTip 俾佢一句可以照講嘅說話。
+
+【講嘅嘢要真】
+14. 唔准作佢嘅生活細節、屋企人、學校安排。佢冇講、家長背景冇寫嘅，就係唔知，唔好估。
+15. 佢可能用語音輸入，會有同音錯字或者突然一句外語雜音：睇上文估返佢想講乜，唔准糾正佢錯字，唔准就雜音發揮。
+16. 唔肯定嘅嘢唔准講成事實。唔准作任何醫學、心理診斷或者身體原因解釋（例如唔好解釋點解會口吃、點解會肚痛）。
+
+【身體同安全，唔可以讓步】
+17. 身體唔舒服：唔准講藥名，唔准斷症，唔准講「唔使睇醫生」「應該冇事」「好快會好」，唔准教佢自己處理身體（例如自己掹牙、搽藥、放嘢入口）。要講明痛得好犀利、流血、發燒、腫就即刻搵大人。
+18. 佢問「我會唔會死」：第一句好肯定咁安佢心，唔准講任何倒數式數字，跟住叫佢去搵大人。
+19. 有人要對佢個身體做嘢，或者叫佢「唔好話俾人知」：清楚話佢知佢有權講「我想等爸爸媽媽喺度先」，而且要即刻話俾信任嘅大人知。
+20. 永遠唔准同佢有「我哋之間嘅秘密」，唔准叫佢瞞住家長。佢問你係咪真人，就老實講你係電腦程式，但係真心想幫佢。
+21. 內容要啱佢年紀，唔講暴力、恐怖、成人嘢嘅細節。
+22. 如果涉及欺凌、被打、被人掂私人部位、被威脅保守秘密、想傷害自己、想死、離家出走或者任何危險，safety 設為 true，並清楚叫佢今日就話俾信任嘅大人知，有即時危險打 999。
+
+只輸出一個 JSON 物件，唔好有其他文字，唔好用 markdown。數句數，唔好超：
 {
- "hug": "同理佢嘅感受，兩至三句，共六十字以內",
- "understand": "用比喻一齊拆解發生咩事，兩至三句，共八十字以內",
+ "hug": "接住佢嘅感受，最多兩句",
+ "understand": "用佢生活見過嘅比喻，一齊拆解發生咩事，最多三句",
  "treasure": 揀一個最啱用嘅秘密寶物編號（1 思想磁石、2 感覺指南針或秘密轉換器、3 三步魔法加行動、4 感恩同心靈電影、5 豐盛眼鏡、6 善意回力鏢、7 多謝身體、8 做一點光、9 好朋友式自我對話、10 每日新畫紙），
- "secret": "點樣用呢件寶物，一至兩句，五十字以內",
- "steps": ["二至四個一小步，每個三十字以內"],
+ "secret": "點樣用呢件寶物，最多兩句",
+ "steps": ["二至三個佢今日自己做得到嘅一小步，每個一句"],
  "selfTalk": ["八至十句第一身自我對話，好似祈禱咁，每句二十字以內，包括接納感受、呼吸、肯定自己、感恩、一小步、盼望"],
  "safety": false,
- "adultTip": "建議佢可以同邊個傾，一句"
-}`;
+ "adultTip": "建議佢同邊個講，可以附一句用三句法照講得嘅說話，最多兩句"
+}
+
+送出之前自己檢查一次：有冇普通話字或者簡體字？有冇括號、斜線、emoji？有冇代家長應承或者批准嘢？有冇評老師、家人？有冇作咗佢冇講過嘅細節？句數有冇超？`;
+
 const LOCAL={
  school:{u:'學嘢遇到困難好正常，唔代表你唔聰明。個腦好似肌肉咁，練得愈多就愈強。一次唔好，唔代表以後都唔好。',s:'試下用「三步魔法加行動」：講出你想要嘅，例如「我想下次溫得更有信心」，相信自己可以慢慢進步，然後今日行一小步。',st:['將要溫嘅嘢分成細細份，每次做十五分鐘','唔明嘅地方寫低，聽日問老師或者同學','做完一小份，同自己講「我做到喇」','瞓覺前播一套心靈電影，想像自己考試時好冷靜']},
  friend:{u:'同朋友相處有時會唔開心，可能係誤會，可能係對方都有自己嘅心事。呢啲唔代表你唔好，亦唔代表冇人鍾意你。',s:'記得「善意回力鏢」同「探射燈」：試下留意身邊對你好嘅人，同埋主動送出一個細細嘅善意。',st:['先做三次泡泡呼吸，令自己平靜啲','諗下有邊個同學平時對你幾好，試下主動同佢打招呼','如果有人蝦你、笑你或者令你驚，一定要話俾老師同爸媽知','做一樣你秘密轉換器入面嘅事，幫個心充電']},
@@ -1198,7 +1225,7 @@ const LOCAL={
 function localReply(txt,emo){const E=EMOS.find(x=>x[1]===emo);let t='general';
   if(DANGER.test(txt)){const g=GUARD();return{hug:'多謝你咁勇敢講出嚟。你而家一定好辛苦，你嘅感受好重要，你唔係一個人。',understand:'有人傷害你，或者心入面痛到有傷害自己、唔想再活落去嘅諗法，呢啲都唔係你嘅錯。呢啲事太大，唔應該由你一個人扛，一定要有大人幫手。',secret:'今日最重要嘅秘密寶物係：搵人幫手。講出嚟唔係麻煩人，係保護自己，係最勇敢嘅一步。',steps:[`而家就去搵${g}、老師或者一個你信任嘅大人，話俾佢聽你講過嘅嘢`,'如果身邊冇大人，或者有即時危險，打 999','可以打求助熱線：香港撒瑪利亞會 2896 0000；英國 Childline 0800 1111','同大人一齊做三次泡泡呼吸，唔好自己一個人'],selfTalk:['親愛嘅自己，我知道你而家好辛苦。','呢啲感覺好大，但唔係我嘅錯。','我慢慢吸一啖氣……再慢慢呼出嚟。','我值得被保護，值得被愛。','我唔需要自己一個人面對。','我可以而家就去搵一個信任嘅大人。','講出嚟係勇敢，唔係麻煩人。','有人會幫我，我會一步一步好返。'],safety:true,adultTip:`請而家就去搵${g}或者老師，話俾佢哋聽。`}}
   if(/功課|考試|測驗|默書|成績|分數|溫書|老師/.test(txt))t='school';else if(/朋友|同學|冇人|小息|蝦|欺負|笑我|唔睬/.test(txt))t='friend';else if(/爸|媽|屋企|家姐|哥哥|細佬|妹|嗌交|鬧我/.test(txt))t='family';
-  const T=LOCAL[t];return{treasure:{school:3,friend:6,family:2,general:2}[t],hug:(E?E[2]+' ':'')+'多謝你願意講出嚟，講出嚟本身已經好勇敢。',understand:T.u,secret:T.s,steps:T.st,selfTalk:selfTalkLocal(emo),safety:false,adultTip:'你可以將今日同樹窿講嘅嘢，同爸爸媽媽、老師或者一個你信任嘅大人傾下，佢哋好想幫你。'}}
+  const T=LOCAL[t];return{treasure:{school:3,friend:6,family:2,general:2}[t],hug:(E?E[2]+' ':'')+'多謝你願意講出嚟，講出嚟本身已經好勇敢。',understand:T.u,secret:T.s,steps:T.st,selfTalk:selfTalkLocal(emo),safety:false,adultTip:'你可以同'+GUARD()+'或者老師講。用三句講就得：發生咗乜，點解，你想點。'}}
 function aiCfg(){return{base:(localStorage.getItem('ss_base')||'https://api.z.ai/api/paas/v4').trim().replace(/\/+$/,''),model:(localStorage.getItem('ss_model')||'glm-5.3').trim(),key:(localStorage.getItem('ss_key')||'').trim()}}
 /* opt.json：要求 JSON 格式。callAI.last 記低今次係咪被截斷（finish_reason） */
 async function callAI(msgs,maxTok=1800,opt={}){
@@ -1270,7 +1297,7 @@ async function sendTree(){
   ta.value='';const sb=$('#tSend');sb.disabled=true;
   let data=null,note='',aiUsed=false;
   if(aiCfg().key){
-    const user=`（小朋友資料：名字${P.name?'係「'+P.name+'」':'未提供'}；佢稱呼照顧者做「${GUARD()}」）\n`+(emo?'我而家嘅感覺：'+emo+'\n':'')+'我想講：'+txt;
+    const user=famCtx()+'\n'+(emo?'我而家嘅感覺：'+emo+'\n':'')+'我想講：'+txt;
     treeHist.push({role:'user',content:user});
     try{const raw=await callAI([{role:'system',content:SYS_PROMPT},...treeHist.slice(-8)],2500,{json:true});data=parseAI(raw);
       if(data){aiUsed=true;treeHist.push({role:'assistant',content:JSON.stringify(replySlim(data))})}
@@ -1388,11 +1415,13 @@ async function testAI(){saveAI();const m=$('#aiMsg');m.textContent='⏳ 測試�
   try{const r=await callAI([{role:'user',content:'請只用一句廣東話講：「你好，我係小光！」'}],200);m.textContent='✅ 連線成功：'+(r||'（收到空白回覆，請檢查 Model 名稱）').slice(0,80)}
   catch(e){m.textContent='❌ '+e.message+'。如果顯示 CORS 問題，即係個服務唔俾瀏覽器直接連，要用支援 CORS 嘅 Base URL 或者自己嘅代理。'}}
 function clearAI(){['ss_base','ss_model','ss_key'].forEach(k=>localStorage.removeItem(k));pzDraw();toast('已清除 AI 設定')}
-function resetAll(){if(!confirm('確定要清除所有學習進度、感恩罐、願望卡同收藏？（AI 設定會保留）'))return;P=Object.assign({},DEF,{levels:{},gratitude:[],happy:[],wishes:[],talks:[],guardian:P.guardian||''});save();treeHist=[];treeCards='';closeModal();go('splash')}
+function resetAll(){if(!confirm('確定要清除所有學習進度、感恩罐、願望卡同收藏？（AI 設定會保留）'))return;P=Object.assign({},DEF,{levels:{},gratitude:[],happy:[],wishes:[],talks:[],guardian:P.guardian||'',childAge:P.childAge||'',family:P.family||''});save();treeHist=[];treeCards='';closeModal();go('splash')}
 
 /* =========================================================
    樹窿記錄 · 家長專區 · 匯出 · Firebase 雲端同步
    ========================================================= */
+function famCtx(){const a=[];if(P.name)a.push('名字係「'+P.name+'」');if(P.childAge)a.push(P.childAge+' 歲');a.push('佢稱呼照顧者做「'+GUARD()+'」');
+  let t='（小朋友資料：'+a.join('；')+'）';if((P.family||'').trim())t+='\n（家長提供嘅家庭背景，只用嚟理解，唔好主動提起，冇寫嘅唔好估：'+P.family.trim()+'）';return t}
 function GUARD(){return (P.guardian||'').trim()||'爸爸媽媽'}
 const MODES={
  guard:{name:'守護模式',age:'建議 6–10 歲',desc:'樹窿全部對話都會交俾家長保管，小朋友會知道。'},
@@ -1583,17 +1612,29 @@ function logCard(x){const r=x.reply||{},g=PZ.guides[x.id]||x.guide||'';
     ${(r.selfTalk||[]).length?`<p><b>自我對話：</b></p><div class="talk">${r.selfTalk.map(s=>`<p>${esc(s)}</p>`).join('')}</div>`:''}</details>`;
   return `<div class="parch logc ${x.safety?'safe':''}"><div class="row" style="justify-content:space-between"><b>📅 ${fmtT(x.t)}${x.emo?' · '+emoIcon(x.emo)+' '+esc(x.emo):''}</b><span>${badges}</span></div>${body}
   <div class="row mt">${x.type==='tree'||x.safety?`<button class="btn small" onclick="pzGuide('${x.id}')">💡 點樣開導？</button>`:''}<button class="btn small ghost" onclick="pzDel('${x.id}')">🗑️ 刪除</button></div><div id="gd_${x.id}">${g?guideHTML(g):''}</div></div>`}
-const PARENT_PROMPT=`你係一位熟悉兒童心理學嘅香港家長輔導員。家長會俾你睇佢小朋友（六至十四歲）喺學習 App「秘密樹窿」講過嘅說話同當時心情。小朋友知道家長可以睇到呢啲記錄。請用香港廣東話、繁體字，俾家長實用、溫和嘅建議。
+const PARENT_PROMPT=`你係一位熟悉兒童心理學嘅香港家長顧問，似一個信得過、講嘢直接嘅朋友。家長會俾你睇佢小朋友喺學習 App「秘密樹窿」講過嘅說話、當時心情、樹窿 AI 當時點樣回應，同埋最近其他記錄。小朋友知道家長可以睇到呢啲記錄。用香港廣東話、繁體字。
 
-輸出純文字，唔好用 markdown 符號，格式：
-【小朋友可能嘅感受同需要】二至三句
-【點樣開口】兩三句自然、唔似審問嘅開場白，最好以多謝佢肯講出嚟開始
-【可以講】三點
-【避免】三點
-【幾時要搵專業幫手】一至兩句
-【今日可以一齊做嘅小事】一句
+原則：
+1. 第一句就係內容。唔讚家長、唔做情緒鋪墊、唔覆述記錄。揀最高槓桿嘅一件事擺最前，講深佢。
+2. 你淨係見到小朋友一面之詞。唔准判家長、老師、照顧者邊個啱，唔准解釋唔喺場嘅人心入面點諗；要講就講「有可能係……，要問返先知」。
+3. 唔准補記錄冇寫嘅細節或者症狀。唔准講「應該冇事」「唔使睇醫生」「完全冇問題」，改為俾一條線：乜嘢情況出現就要搵專業。
+4. 一條記錄唔等於一個模式。最近記錄有重複出現嘅主題或者心情，就講出嚟同講明你係根據邊幾條。持續一段長時間、喺唔同場合都出現、已經影響學習或者人際，三樣齊先建議搵兒科醫生、教育心理學家或者學校社工；唔准講病名，唔准診斷，亦唔准為咗安心而過度保證。
+5. 俾家長照抄得嘅對白。留意「將行為講成身分」嘅講法（例如「叻嘅小朋友先會……」），要改成講努力同方法嘅成長型說法。
+6. 小朋友痛緊、驚緊、啱啱喊完，先處理狀態，唔好開課，教育留返之後。唔准將小朋友放喺父母中間做裁判。
+7. 樹窿特赦：唔好因為樹窿內容鬧或者罰小朋友，亦唔好喺其他人面前提起。
+8. 唔准虛構權威，例如「研究顯示」，除非講得出係邊方面同有幾穩陣。
+9. 涉及欺凌、虐待、自傷或者危險，要清楚建議即日處理，並聯絡學校社工、醫生或者熱線（香港撒瑪利亞會 2896 0000；英國 Childline 0800 1111；緊急 999）。
 
-原則：先接納同陪伴，唔好說教。唔好因為樹窿內容鬧或罰小朋友，亦唔好喺其他人面前提起。如內容涉及欺凌、虐待、自傷或危險，要清楚建議家長即日處理，並聯絡學校社工、醫生或熱線（香港撒瑪利亞會 2896 0000；英國 Childline 0800 1111；緊急 999）。唔好作診斷。`;
+輸出純文字，唔好用 markdown 符號同 emoji，總共四百字以內，格式：
+【最重要嘅一件事】一至兩句
+【小朋友可能嘅感受同需要】兩句
+【點樣開口】一兩句照抄得、唔似審問嘅開場白，最好以多謝佢肯講出嚟開始
+【可以講】兩至三點
+【避免】兩至三點
+【有冇重複出現嘅模式】一至兩句；冇就講「暫時睇唔到」
+【幾時要搵專業幫手】一句
+【今日可以一齊做嘅小事】一句`;
+
 function localGuide(x){const E=x.emo||'唔開心';const L=[
  '【小朋友可能嘅感受同需要】',`佢當時覺得「${E}」。呢個年紀嘅小朋友，最需要嘅係被明白同被陪伴，多過即刻有答案。`,'',
  '【點樣開口】',`揀一個輕鬆嘅時間，例如一齊散步、坐車或者瞓覺前，可以講：「多謝你肯喺樹窿講出心事。我見到你嗰陣好似好${E}，我好想聽你講，你想講幾多都得。」`,'',
@@ -1605,8 +1646,9 @@ function localGuide(x){const E=x.emo||'唔開心';const L=[
  return L.join('\n')}
 async function pzGuide(id){const x=pzData().find(r=>r.id===id);const box=$('#gd_'+id);if(!x||!box)return;box.innerHTML='<p class="thinking">⏳ 諗緊點樣幫你……</p>';let g;
   if(aiCfg().key){try{const r=x.reply||{};
-      const u=`小朋友名字：${x.child||'（未提供）'}\n當時心情：${x.emo||'冇揀'}\n安全警報：${x.safety?'有':'冇'}\n小朋友喺樹窿講：${x.text||'（冇內容，只記錄咗心情）'}\n樹窿當時嘅回應：${[r.hug,r.understand,r.secret].filter(Boolean).join(' ')}`;
-      g=(await callAI([{role:'system',content:PARENT_PROMPT},{role:'user',content:u}],1400)).replace(/\*\*|#{1,6}\s?/g,'').trim()||localGuide(x)}
+      const recent=pzView(pzData()).filter(r=>r.id!==x.id&&r.t>=x.t-14*864e5&&r.t<=x.t+864e5).slice(0,8).map(r=>`${fmtT(r.t)}｜${r.emo||'冇揀'}｜${r.type==='tree'?(r.text||'').slice(0,50):typeLabel(r)}${r.safety?'｜安全警報':''}`).join('\n');
+      const u=famCtx()+`\n\n呢條記錄：\n當時心情：${x.emo||'冇揀'}\n安全警報：${x.safety?'有':'冇'}\n小朋友喺樹窿講：${x.text||'（冇內容，只記錄咗心情）'}\n樹窿當時嘅回應：${[r.hug,r.understand,r.secret].filter(Boolean).join(' ')}\n\n最近 14 日其他記錄（只作參考）：\n${recent||'冇'}`;
+      g=(await callAI([{role:'system',content:PARENT_PROMPT},{role:'user',content:u}],1600)).replace(/\*\*|#{1,6}\s?/g,'').trim()||localGuide(x)}
     catch(e){g=localGuide(x)+'\n\n（AI 暫時連唔到：'+e.message+'，以上係通用建議。）'}}
   else g=localGuide(x)+'\n\n（未設定 AI，以上係通用建議。喺「設定」加入 AI 之後，會按內容度身建議。）';
   PZ.guides[id]=g;if(PZ.src==='local')LOGS.mark(id,{guide:g});const b2=$('#gd_'+id);if(b2)b2.innerHTML=guideHTML(g)}
@@ -1713,6 +1755,9 @@ function pzSet(){const c=aiCfg(),m=logMode();
   <p class="note">改咗模式之後，小朋友下次打開樹窿會見到新嘅「樹窿嘅約定」，清楚知道邊啲會交俾家長。</p>
   <div class="field"><label>小朋友點稱呼你？（例如：爸爸媽媽、媽咪、公公婆婆）</label><input id="gName" class="inp" maxlength="12" value="${esc(P.guardian||'')}" placeholder="爸爸媽媽"></div>
   <div class="field"><label>小朋友名字（記錄同證書用）</label><input id="cName" class="inp" maxlength="20" value="${esc(P.name||'')}"></div>
+  <div class="field"><label>小朋友年齡</label><select id="cAge" class="inp"><option value="">（唔填）</option>${[5,6,7,8,9,10,11,12,13,14].map(n=>`<option ${String(P.childAge)===String(n)?'selected':''}>${n}</option>`).join('')}</select></div>
+  <div class="field"><label>家庭背景（俾小光參考，可以唔填）</label><textarea id="cFam" class="inp" rows="4" maxlength="600" placeholder="例如：屋企有爸爸、媽媽、細妹；平日婆婆接放學，工人姐姐日頭督功課；爸爸媽媽夜晚七點返到。">${esc(P.family||'')}</textarea>
+  <p class="note">寫低屋企有邊個、邊個照顧佢、有咩要留意，小光就唔會講錯人（例如將婆婆講成嫲嫲）。呢度只會儲存喺呢部機，同埋喺用 AI 嗰陣傳送俾 AI；唔會上載去雲端記錄，亦唔會出現喺 GitHub。小朋友部 iPad 同家長部機要各自填。</p></div>
   <button class="btn small red" onclick="pzSaveGeneral()">💾 儲存</button></div>
   <div class="parch"><h3>🤖 AI 設定（秘密樹窿同家長開導建議）</h3>
   <div class="field"><label>Base URL</label><input id="aBase" class="inp" value="${esc(c.base)}" placeholder="https://api.z.ai/api/paas/v4"></div>
@@ -1725,7 +1770,7 @@ function pzSet(){const c=aiCfg(),m=logMode();
   <div class="row"><button class="btn small ghost" onclick="resetAll()">♻️ 重設學習進度</button><button class="btn small ghost" onclick="pzWipeLogs()">🗑️ 刪除呢部機所有樹窿記錄</button></div></div>`;
   $$('input[name=lm]').forEach(r=>r.onchange=()=>{localStorage.setItem('ss_logmode',r.value);toast('已改為「'+MODES[r.value].name+'」');pzDraw()});
   $('#sUnlock').onchange=e=>{P.unlockAll=e.target.checked;save();toast(P.unlockAll?'已解鎖所有關卡':'已恢復逐關解鎖')}}
-function pzSaveGeneral(){P.guardian=$('#gName').value.trim();P.name=$('#cName').value.trim();save();toast('✅ 已儲存')}
+function pzSaveGeneral(){P.guardian=$('#gName').value.trim();P.name=$('#cName').value.trim();P.childAge=$('#cAge').value;P.family=$('#cFam').value.trim();save();toast('✅ 已儲存')}
 function pzChangePin(){const a=$('#np1').value,b=$('#np2').value;if(!/^\d{4,8}$/.test(a)){toast('PIN 要係 4 至 8 個數字');return}if(a!==b){toast('兩次輸入唔一樣');return}localStorage.setItem('ss_pin',pinHash(a));$('#np1').value=$('#np2').value='';toast('✅ 已更改家長 PIN')}
 function pzWipeLogs(){if(!confirm('確定刪除呢部機上面所有樹窿記錄？建議先匯出備份。（雲端記錄唔受影響）'))return;LOGS.clear();toast('已刪除呢部機嘅樹窿記錄')}
 
