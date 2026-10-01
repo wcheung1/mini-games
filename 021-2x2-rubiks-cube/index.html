@@ -80,6 +80,10 @@ details.parents ul{margin:4px 0;padding-left:20px}
 .hud .sp{flex:1}
 .hud button{background:rgba(255,255,255,.95);border-radius:999px;padding:6px 12px;font-weight:800;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
 .drag-tip{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:13px;color:var(--ink2);pointer-events:none}
+.viewpad{position:absolute;right:10px;bottom:30px;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;z-index:5}
+.viewpad button{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.95);box-shadow:0 2px 6px rgba(0,0,0,.12);font-size:20px;font-weight:900;color:var(--pri);display:flex;align-items:center;justify-content:center}
+.viewpad button:active{transform:scale(.92)}
+.viewpad .vc{font-size:17px;background:#efeaff}
 .no3d{padding:30px;text-align:center;font-size:18px;line-height:1.7}
 /* pad */
 #pad{background:var(--card);border-radius:22px;padding:10px;box-shadow:var(--shadow)}
@@ -238,11 +242,14 @@ details.parents ul{margin:4px 0;padding-left:20px}
 .eq>div span{display:block;font-size:12px;color:var(--ink2)}
 .eq .big{background:#ffe0ec}
 /* responsive */
+@media (max-width:500px){ .viewpad{grid-template-columns:repeat(3,32px)!important;grid-template-rows:repeat(3,32px)!important;gap:2px;bottom:24px!important} .viewpad button{width:32px!important;height:32px!important;font-size:15px!important;border-radius:10px} }
 @media (max-width:1000px){ .work-body{grid-template-columns:minmax(0,1fr) 340px} .mvb{width:56px;height:54px} }
 @media (max-width:760px){
   #work{height:auto;min-height:calc(100dvh - 58px)}
   .work-body{grid-template-columns:1fr}
   #cubeHost{height:42vh;flex:none}
+  .viewpad{grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px);right:6px;bottom:26px}
+  .viewpad button{width:38px;height:38px;font-size:17px}
   #side{overflow:visible}
   .path{grid-template-columns:1fr 1fr}
   .modes{grid-template-columns:1fr}
@@ -276,7 +283,12 @@ details.parents ul{margin:4px 0;padding-left:20px}
             <span class="sp"></span>
             <button id="viewReset">🎯 擺正</button>
           </div>
-          <div class="drag-tip" id="dragTip">👆 用手指拖動可以偷睇背面</div>
+          <div class="drag-tip" id="dragTip">👆 拖動或者撳箭咀，可以睇其他面</div>
+          <div class="viewpad" id="viewPad" aria-label="轉視角">
+            <span></span><button data-view="up" aria-label="向上翻，睇底面" title="向上翻（睇底）">⬆</button><span></span>
+            <button data-view="left" aria-label="向左轉，睇右面" title="向左轉（睇右邊同後面）">⬅</button><button data-view="reset" class="vc" aria-label="擺正" title="擺正">🎯</button><button data-view="right" aria-label="向右轉，睇左面" title="向右轉（睇左邊同後面）">➡</button>
+            <span></span><button data-view="down" aria-label="向下翻，睇頂面" title="向下翻（睇頂）">⬇</button><span></span>
+          </div>
         </div>
         <div id="pad"></div>
       </div>
@@ -994,26 +1006,40 @@ class CubeView {
     const s = 1 - 0.14 * (0.5 + 0.5 * Math.sin(tt * 7));
     this.stk.forEach((m, i) => { const k = this.hl.has(i) ? s : 1; m.scale.set(k, k, 1); });
     if (this.arrow) this.arrow.children.forEach(ch => { if (ch.material) ch.material.opacity = 0.65 + 0.35 * Math.sin(tt * 5); });
-    if (this.spin && !this.dragging) this.root.rotation.y += 0.005;
-    if (this.back) {
-      const k = Math.min(1, (now - this.back.t0) / 450), e = 1 - Math.pow(1 - k, 3);
-      this.root.rotation.x = this.back.x * (1 - e); this.root.rotation.y = this.back.y * (1 - e);
-      if (k >= 1) this.back = null;
+    if (this.spin && !this.dragging && !this.anim) this.turnWorld(this.Y, 0.005);
+    if (this.anim) {
+      const k = Math.min(1, (now - this.anim.t0) / this.anim.dur), e = 1 - Math.pow(1 - k, 3);
+      this.root.quaternion.copy(this.anim.q0).slerp(this.anim.q1, e);
+      if (k >= 1) this.anim = null;
     }
     this.renderer.render(this.scene, this.camera);
   }
-  resetView() { if (!this.ok) return; let y = this.root.rotation.y % (Math.PI * 2); if (y > Math.PI) y -= Math.PI * 2; if (y < -Math.PI) y += Math.PI * 2; this.root.rotation.y = y; this.back = { x: this.root.rotation.x, y, t0: performance.now() }; }
+  get Y() { return this._Y || (this._Y = new THREE.Vector3(0, 1, 0)); }
+  get RIGHT() { return this._R || (this._R = new THREE.Vector3().crossVectors(this.baseCam.clone().negate().normalize(), this.Y).normalize()); }
+  turnWorld(axis, ang) { this.root.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(axis, ang)); }
+  animTo(q1, dur = 450) { this.anim = { q0: this.root.quaternion.clone(), q1, t0: performance.now(), dur }; }
+  resetView() { if (!this.ok) return; this.held = false; this.animTo(new THREE.Quaternion()); }
+  // 撳掣轉視角（只係轉個鏡頭咁睇，唔會改變扭計骰）
+  nudge(dir) {
+    if (!this.ok) return;
+    this.spin = false; this.held = true;
+    const base = this.anim ? this.anim.q1.clone() : this.root.quaternion.clone();
+    const axis = dir === 'left' || dir === 'right' ? this.Y : this.RIGHT;
+    const ang = (dir === 'right' || dir === 'down' ? 1 : -1) * Math.PI / 2;
+    const q1 = new THREE.Quaternion().setFromAxisAngle(axis, ang).multiply(base);
+    this.anim = { q0: this.root.quaternion.clone(), q1, t0: performance.now(), dur: 420 };
+  }
   setSpin(on) { this.spin = on; if (!on) this.resetView(); }
   bindDrag() {
     const el = this.renderer.domElement; let sx, sy, moved, id = null;
-    el.addEventListener('pointerdown', e => { if (id !== null) return; id = e.pointerId; sx = e.clientX; sy = e.clientY; moved = false; this.dragging = true; this.back = null; el.setPointerCapture(id); });
+    el.addEventListener('pointerdown', e => { if (id !== null) return; id = e.pointerId; sx = e.clientX; sy = e.clientY; moved = false; this.dragging = true; this.anim = null; el.setPointerCapture(id); });
     el.addEventListener('pointermove', e => {
       if (e.pointerId !== id) return;
       const dx = e.clientX - sx, dy = e.clientY - sy;
       if (!moved && Math.hypot(dx, dy) > 7) moved = true;
       if (moved) {
-        this.root.rotation.y += (e.clientX - (this.lx ?? sx)) * 0.009;
-        this.root.rotation.x = Math.max(-1.3, Math.min(1.3, this.root.rotation.x + (e.clientY - (this.ly ?? sy)) * 0.009));
+        this.turnWorld(this.Y, (e.clientX - (this.lx ?? sx)) * 0.009);
+        this.turnWorld(this.RIGHT, (e.clientY - (this.ly ?? sy)) * 0.009);
       }
       this.lx = e.clientX; this.ly = e.clientY;
     });
@@ -1025,7 +1051,7 @@ class CubeView {
         const hit = rc.intersectObjects(this.stk, false)[0];
         if (hit) this.onTap(hit.object.userData.idx);
       }
-      if (moved && this.spring && !this.spin) setTimeout(() => { if (!this.dragging) this.resetView(); }, 900);
+      if (moved && this.spring && !this.spin && !this.held) setTimeout(() => { if (!this.dragging && !this.held) this.resetView(); }, 900);
     };
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
   }
@@ -1844,12 +1870,12 @@ function openSolver() {
   $('#reviewBtn').classList.add('hide');
   showScreen('work'); renderPad(null);
   view.spring = false;
-  setState(new Array(24).fill(-1));
-  Solver.sol = null; Solver.bad = null; Solver.why = false;
+  setState(new Array(24).fill(C.W));
+  Solver.sol = null; Solver.bad = null; Solver.why = false; Solver.sel = C.Y;
   view.onTap = i => paint(i);
   App.mode = { destroy() { Solver.playing = false; } };
   solverPanel();
-  Voice.maybe('填色解骰器！先揀顏色，再撳格仔填色。你可以喺平面圖填，亦可以直接撳 3D 骰。填完撳計算，粒粒就會話你知最少要幾多步，仲會解釋每一步點解要咁轉。');
+  Voice.maybe('填色解骰器！所有格仔已經預設係白色，你只需要填其他顏色。先揀顏色，再撳格仔填色。你可以喺平面圖填，亦可以直接撳 3D 骰。填完撳計算，粒粒就會話你知最少要幾多步，仲會解釋每一步點解要咁轉。');
 }
 function paint(i) {
   if (Solver.playing || Solver.sol) return;
@@ -1868,23 +1894,23 @@ function solverPanel(out) {
   if (Solver.sol) { renderSolution(); return; }
   const cnt = [0, 0, 0, 0, 0, 0]; App.state.forEach(c => { if (c >= 0) cnt[c]++; });
   const blanks = App.state.filter(c => c < 0).length;
-  const how = '點用：一，揀顏色。二，撳格仔填色，每種顏色要有四格。三，撳計算最快解法。拎住你嘅扭計骰，前面向住自己、頂向上，跟住平面圖填。';
+  const how = '點用：所有格仔一開始都係白色。一，揀顏色。二，撳唔係白色嘅格仔填色，每種顏色要有四格。三，撳計算最快解法。拎住你嘅扭計骰，前面向住自己、頂向上，跟住平面圖填。';
   side().innerHTML = `<div class="card-title">${mascot(42)} 填色解骰器<span style="flex:1"></span>${spk(how)}</div>
-    <p class="small-note">① 揀顏色 ② 撳格仔填色（平面圖或者 3D 骰都得）③ 撳「計算」。<br>📌 拎住你嘅扭計骰：<b>「前」向住自己、「頂」向上</b>，跟住下面平面圖逐面填。</p>
+    <p class="small-note">⬜ 所有格仔<b>一開始都係白色</b>，只需要填其他顏色！<br>① 揀顏色 ② 撳格仔填色（平面圖或者 3D 骰都得）③ 撳「計算」。<br>📌 拎住你嘅扭計骰：<b>「前」向住自己、「頂」向上</b>，跟住下面平面圖逐面填。</p>
     <div class="palette">${COLORS.map((c, k) => `<button class="pal ${Solver.sel === k ? 'sel' : ''}" data-c="${k}" style="background:${c}" aria-label="${C.CNAME[k]}色">${C.CNAME[k]}</button>`).join('')}
-    <button class="pal ${Solver.sel === -1 ? 'sel' : ''}" data-c="-1" style="background:${BLANKC};color:#fff">擦</button></div>
+</div>
     <div style="display:flex;justify-content:center;margin:6px 0"><div id="paintNet"></div></div>
-    <div class="counts">${cnt.map((n, k) => `<span class="cnt ${n > 4 ? 'bad' : n === 4 ? 'good' : ''}"><span class="sw" style="width:14px;height:14px;background:${COLORS[k]}"></span> ${n}/4</span>`).join('')}${blanks ? `<span class="cnt">未填 ${blanks}</span>` : ''}</div>
+    <div class="counts">${cnt.map((n, k) => `<span class="cnt ${n === 4 ? 'good' : n > 4 && k !== C.W ? 'bad' : ''}"><span class="sw" style="width:14px;height:14px;background:${COLORS[k]}"></span> ${n}/4</span>`).join('')}${blanks ? `<span class="cnt">未填 ${blanks}</span>` : ''}</div>
     <div class="actions"><button class="btn green" data-act="solve">🧮 計算最快解法</button>
-    <button class="btn sm ghost" data-act="clear">🧽 清空</button><button class="btn sm ghost" data-act="solved">✅ 完成樣</button><button class="btn sm ghost" data-act="rand">🎲 隨機例子</button></div>
+    <button class="btn sm ghost" data-act="clear">⬜ 全部變白</button><button class="btn sm ghost" data-act="solved">✅ 完成樣</button><button class="btn sm ghost" data-act="rand">🎲 隨機例子</button></div>
     <div id="solveOut">${out || ''}</div>`;
   const cell = Math.max(24, Math.min(34, Math.floor((side().clientWidth - 40) / 8.6)));
   renderNet($('#paintNet'), App.state, { cell, labels: true, onTap: paint, bad: Solver.bad });
   side().onclick = e => {
-    const pc = e.target.closest('[data-c]'); if (pc) { Solver.sel = +pc.dataset.c; solverPanel($('#solveOut').innerHTML); Voice.maybe(Solver.sel < 0 ? '擦膠' : C.CNAME[Solver.sel] + '色'); return; }
+    const pc = e.target.closest('[data-c]'); if (pc) { Solver.sel = +pc.dataset.c; solverPanel($('#solveOut').innerHTML); Voice.maybe(C.CNAME[Solver.sel] + '色'); return; }
     const b = e.target.closest('[data-act]'); if (!b) return;
     const a = b.dataset.act;
-    if (a === 'clear') resetSolverTo(new Array(24).fill(-1));
+    if (a === 'clear') resetSolverTo(new Array(24).fill(C.W));
     else if (a === 'solved') resetSolverTo(C.STD);
     else if (a === 'rand') resetSolverTo(C.apply(C.STD, C.scramble(20)));
     else if (a === 'solve') runSolve(b);
@@ -1899,7 +1925,7 @@ async function runSolve(btn) {
     Solver.bad = new Set(r.bad || []); view.setHL(Solver.bad);
     let m;
     if (r.code === 'blank') m = `仲有 <b>${r.n}</b> 格未填色（灰色 ? 嗰啲）。每一格都要填㗎！`;
-    else if (r.code === 'count') m = '每種顏色應該啱啱好有 <b>4 格</b>。而家：' + r.wrong.map(w => `${C.CNAME[w.c]}色 ${w.n} 格`).join('、') + '。檢查下邊度填錯咗？';
+    else if (r.code === 'count') m = '每種顏色應該啱啱好有 <b>4 格</b>。而家：' + r.wrong.map(w => `${C.CNAME[w.c]}色 ${w.n} 格`).join('、') + '。' + (r.wrong.some(w => w.c === C.W && w.n > 4) ? '記住：未填嘅格仔都當係<b>白色</b>，可能仲有啲格仔未填。' : '檢查下邊度填錯咗？');
     else if (r.code === 'opp') m = '閃緊嗰粒角仔有<b>兩種一樣</b>或者<b>死對頭</b>顏色（例如白同黃）喺埋一齊，真扭計骰冇咁嘅角仔。檢查下呢 3 格！';
     else if (r.code === 'piece') m = '閃緊嗰粒角仔嘅顏色<b>排法</b>喺真扭計骰度搵唔到（可能左右調轉咗）。檢查下呢 3 格，同埋睇下係咪用緊標準配色（白頂綠前紅右）。';
     else if (r.code === 'dup') m = '有兩粒角仔<b>一模一樣</b>（閃緊嗰兩粒），真扭計骰每粒角仔都唔同㗎。';
@@ -2216,6 +2242,10 @@ function boot() {
   $('#homeBtn').onclick = goHome;
   $('#backBtn').onclick = goHome;
   $('#viewReset').onclick = () => view.resetView();
+  document.querySelectorAll('#viewPad [data-view]').forEach(b => b.addEventListener('click', () => {
+    const d = b.dataset.view;
+    if (d === 'reset') view.resetView(); else view.nudge(d);
+  }));
   $('#autoVoiceBtn').onclick = () => {
     Voice.auto = !Voice.auto; const b = $('#autoVoiceBtn');
     b.textContent = Voice.auto ? '🔊 自動讀：開' : '🔇 自動讀：關'; b.classList.toggle('on', Voice.auto);
