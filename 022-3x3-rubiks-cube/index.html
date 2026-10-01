@@ -468,6 +468,34 @@ code,kbd{background:#F1ECFF;border-radius:6px;padding:1px 6px;font-size:.92em}
 .cross-board .you b{color:var(--ok)}
 .tps-big{font-size:44px;font-weight:900;color:var(--pri);font-variant-numeric:tabular-nums}
 
+/* v4: CFOP textbook */
+.case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-top:12px}
+.case-card{position:relative;background:#FAF6EE;border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:6px;border:2px solid #F1E7D6}
+.case-card .cc-fig{display:flex;justify-content:center;background:#fff;border-radius:12px;padding:6px}
+.case-card .cc-fig svg{width:120px;height:auto}
+.case-card > b{font-size:16px;padding-right:36px}
+.case-card p{margin:0;font-size:14px;line-height:1.55;color:#4b5064}
+.case-card .cc-alg{display:flex;flex-wrap:wrap;gap:4px}
+.case-card .cc-alg .mchip{font-size:13px;padding:0 5px}
+.case-card .cc-btns{display:flex;gap:6px;margin-top:auto}
+.case-card .cc-btns .btn{flex:1}
+.case-card .cc-spk{position:absolute;right:8px;top:8px}
+.quiz p{margin:8px 0;font-size:16px}
+.quiz-fig{display:flex;justify-content:center;margin:8px 0}
+.quiz-fig svg{width:170px}
+.quiz-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.quiz-opts .btn.ok{background:var(--ok);color:#fff;box-shadow:0 4px 0 var(--ok-d)}
+.quiz-opts .btn.no{background:#FFD6E7}
+.quiz-opts .btn[disabled]{opacity:1}
+.map-chapter{display:flex;align-items:center;gap:12px;margin:14px 0 2px;padding:12px 16px;border-radius:18px;background:linear-gradient(135deg,#FFF1C4,#FFE08A);font-weight:900;font-size:18px}
+.map-chapter.cf{background:linear-gradient(135deg,#E5E6FF,#C7C9FF)}
+.map-chapter small{display:block;font-weight:700;font-size:13px;color:#5a5f70}
+.map-chapter .mc-ico{font-size:30px}
+.roadmap.cf{grid-template-columns:repeat(3,1fr)}
+.ctrl-extra{grid-column:1/-1;display:flex;gap:7px;align-items:center;background:#F1ECFF;border-radius:14px;padding:5px}
+.ctrl-extra .ce-lbl{font-size:12px;font-weight:800;color:#4b3fd1;writing-mode:horizontal-tb;padding:0 4px}
+.ctrl-extra .mv{flex:1;min-height:50px}
+
 </style>
 </head>
 <body>
@@ -495,7 +523,7 @@ code,kbd{background:#F1ECFF;border-radius:6px;padding:1px 6px;font-size:.92em}
           </div>
         </div>
         <div class="home-cards">
-          <button class="hcard c-learn" data-go="map"><span class="hc-ico">📚</span><b>一步一步學</b><small>由零開始・12 課・有語音</small></button>
+          <button class="hcard c-learn" data-go="map"><span class="hc-ico">📚</span><b>一步一步學</b><small>由零開始・19 站・有語音</small></button>
           <button class="hcard c-play" data-go="practice"><span class="hc-ico">🎮</span><b>自由練習</b><small>打亂佢，教練陪你解</small></button>
           <button class="hcard c-solver" data-go="solver"><span class="hc-ico">🎨</span><b>填色解骰器</b><small>填上你個骰嘅顏色，計出最快解法</small></button>
           <button class="hcard c-badge" data-go="badges"><span class="hc-ico">🏅</span><b>我的獎章</b><small>睇吓你儲咗幾多粒星</small></button>
@@ -2665,6 +2693,7 @@ var CubeModel = (function () {
     U: { a: [0, 1, 0], L: [1] }, D: { a: [0, -1, 0], L: [1] }, E: { a: [0, -1, 0], L: [0] },
     R: { a: [1, 0, 0], L: [1] }, L: { a: [-1, 0, 0], L: [1] }, M: { a: [-1, 0, 0], L: [0] },
     F: { a: [0, 0, 1], L: [1] }, B: { a: [0, 0, -1], L: [1] }, S: { a: [0, 0, 1], L: [0] },
+    r: { a: [1, 0, 0], L: [1, 0] }, l: { a: [-1, 0, 0], L: [1, 0] }, f: { a: [0, 0, 1], L: [1, 0] }, u: { a: [0, 1, 0], L: [1, 0] },
     x: { a: [1, 0, 0], L: [-1, 0, 1] }, y: { a: [0, 1, 0], L: [-1, 0, 1] }, z: { a: [0, 0, 1], L: [-1, 0, 1] }
   };
   var PERM = {};
@@ -3274,7 +3303,7 @@ var Coach = (function (M) {
   }
 
   return {
-    detect: detect, plan: plan, autoSolve: autoSolve, STAGE_NAMES: STAGE_NAMES, ZH: ZH, ALG_NAMES: ALG_NAMES,
+    name: 'beginner', FINAL: 9, detect: detect, plan: plan, autoSolve: autoSolve, STAGE_NAMES: STAGE_NAMES, ZH: ZH, ALG_NAMES: ALG_NAMES,
     isSolved: isSolved, crossDone: crossDone, firstLayer: firstLayer, middleDone: middleDone,
     yellowCross: yellowCross, shapeOf: shapeOf, whiteDone: whiteDone, toFrontMoves: toFrontMoves,
     TRIG: TRIG, RIGHT_ALG: RIGHT_ALG, LEFT_ALG: LEFT_ALG, OLL_ALG: OLL_ALG, SUNE: SUNE, NIKLAS: NIKLAS, TWIST: TWIST
@@ -3493,6 +3522,373 @@ var CrossTrainer = (function (M) {
 })(typeof CubeModel !== 'undefined' ? CubeModel : require('./model.js'));
 if (typeof module !== 'undefined') module.exports = CrossTrainer;
 
+/* ===== CFOP coach engine =====
+   Stages: 0 擺正  1 Cross  2 F2L  3 OLL① 黃十字  4 OLL② 頂面全黃  5 PLL① 角歸位  6 PLL② 邊歸位  7 完成
+   Cross: exact optimal (BFS table).  F2L: optimal pair-by-pair (IDA* over tracked pieces).
+   OLL/PLL: two-look sets, case found by trying every algorithm with every top-layer turn. */
+var CFOP = (function (M, CO, CrossTrainer) {
+  'use strict';
+  var A = M.apply, P = M.pow;
+  var ZH = { Y: '黃', W: '白', G: '綠', B: '藍', R: '紅', O: '橙' };
+  var STAGE_NAMES = ['擺正扭計骰', '十字 Cross', 'F2L 頭兩層', 'OLL ①：黃色十字', 'OLL ②：頂面全黃', 'PLL ①：角歸位', 'PLL ②：邊歸位', '完成！'];
+
+  var OLL = [
+    { id: 'sune', name: '小魚 Sune', alg: "R U R' U R U2 R'", n: 1 },
+    { id: 'anti', name: '反小魚 Anti-Sune', alg: "R U2 R' U' R U' R'", n: 1 },
+    { id: 'h', name: '雙車頭燈 H', alg: "F R U R' U' R U R' U' R U R' U' F'", n: 0 },
+    { id: 'pi', name: '派 Pi', alg: "R U2 R2 U' R2 U' R2 U2 R", n: 0 },
+    { id: 'u', name: '車頭燈 U', alg: "R2 D R' U2 R D' R' U2 R'", n: 2 },
+    { id: 't', name: 'T 字 T', alg: "r U R' U' r' F R F'", n: 2 },
+    { id: 'l', name: '蝴蝶結 L', alg: "F R' F' r U R U' r'", n: 2 }
+  ];
+  var PLL = [
+    { id: 't', name: 'T 字公式 T-perm', alg: "R U R' U' R' F R2 U' R' U' R U R' F'", part: 1 },
+    { id: 'y', name: 'Y 字公式 Y-perm', alg: "F R U' R' U' R U R' F' R U R' U' R' F R F'", part: 1 },
+    { id: 'ua', name: '三邊輪轉 Ua', alg: "R U' R U R U R U' R' U' R2", part: 2 },
+    { id: 'ub', name: '三邊輪轉 Ub', alg: "R2 U R U R' U' R' U' R' U R'", part: 2 },
+    { id: 'h', name: '對面交換 H', alg: "M2 U M2 U2 M2 U M2", part: 2 },
+    { id: 'z', name: '隔籬交換 Z', alg: "M' U M2 U M2 U M' U2 M2", part: 2 }
+  ];
+  OLL.forEach(function (o) { o.moves = M.parse(o.alg); });
+  PLL.forEach(function (o) { o.moves = M.parse(o.alg); });
+
+  /* ---------- predicates ---------- */
+  function C(s, f) { return s[M.FI[f] * 9 + 4]; }
+  function solvedPiece(s, p) { for (var i = 0; i < p.length; i++) if (s[p[i]] !== s[M.centerOf(p[i])]) return false; return true; }
+  function slotsDone(s) { var n = 0; for (var k = 0; k < 4; k++) if (solvedPiece(s, M.CORNERS[4 + k]) && solvedPiece(s, M.EDGES[8 + k])) n++; return n; }
+  function f2lDone(s) { return CO.crossDone(s) && slotsDone(s) === 4; }
+  function yEdgesUp(s) { var y = s[4]; return s[1] === y && s[3] === y && s[5] === y && s[7] === y; }
+  function topAllYellow(s) { for (var i = 0; i < 9; i++) if (s[i] !== s[4]) return false; return true; }
+  function cornersRel(s) {
+    for (var v = 0; v < 4; v++) { var t = A(s, P('U', v)), ok = true; for (var c = 0; c < 4; c++) if (!solvedPiece(t, M.CORNERS[c])) { ok = false; break; } if (ok) return true; }
+    return false;
+  }
+  function detect(s) {
+    if (C(s, 'U') !== 'Y') return 0;
+    if (CO.isSolved(s)) return 7;
+    if (!CO.crossDone(s)) return 1;
+    if (slotsDone(s) < 4) return 2;
+    if (!yEdgesUp(s)) return 3;
+    if (!topAllYellow(s)) return 4;
+    if (!cornersRel(s)) return 5;
+    return 6;
+  }
+
+  /* ---------- piece tracking for searches ---------- */
+  var FM = []; ['U', 'R', 'F', 'L', 'B', 'D'].forEach(function (f) { FM.push(f, f + "'", f + '2'); });
+  var ES = [], CS = [], ESL = {}, CSL = {};
+  M.EDGES.forEach(function (e) { ES.push(e[0], e[1]); });
+  M.CORNERS.forEach(function (c) { CS.push(c[0], c[1], c[2]); });
+  ES.forEach(function (st, k) { ESL[st] = k; });
+  CS.forEach(function (st, k) { CSL[st] = k; });
+  var ET, CT, crossD, pairD = [];
+  function inv(P) { var r = []; for (var t = 0; t < 54; t++) r[P[t]] = t; return r; }
+  function bfs(size, start, step) {
+    var d = new Int8Array(size).fill(-1), q = new Int32Array(size), h = 0, t = 0;
+    start.forEach(function (x) { d[x] = 0; q[t++] = x; });
+    while (h < t) { var x = q[h++]; for (var m = 0; m < 18; m++) { var y = step(x, m); if (d[y] < 0) { d[y] = d[x] + 1; q[t++] = y; } } }
+    return d;
+  }
+  function build() {
+    if (ET) return;
+    ET = FM.map(function (m) { var I = inv(M.PERM[m]); return ES.map(function (st) { return ESL[I[st]]; }); });
+    CT = FM.map(function (m) { var I = inv(M.PERM[m]); return CS.map(function (st) { return CSL[I[st]]; }); });
+    // cross: 4 white edges (home slots of D-face stickers of DR DF DL DB)
+    var home = [4, 5, 6, 7].map(function (e) { return ESL[M.EDGES[e][0]]; });
+    crossD = bfs(331776, [((home[0] * 24 + home[1]) * 24 + home[2]) * 24 + home[3]], function (x, m) {
+      var T = ET[m], a = Math.floor(x / 13824), b = Math.floor(x / 576) % 24, c = Math.floor(x / 24) % 24, d = x % 24;
+      return ((T[a] * 24 + T[b]) * 24 + T[c]) * 24 + T[d];
+    });
+    // pair tables for the 4 slots: corner ref = its D sticker, edge ref = its first sticker
+    for (var k = 0; k < 4; k++) {
+      var c0 = CSL[M.CORNERS[4 + k][0]], e0 = ESL[M.EDGES[8 + k][0]];
+      pairD[k] = bfs(576, [c0 * 24 + e0], function (x, m) { return CT[m][Math.floor(x / 24)] * 24 + ET[m][x % 24]; });
+    }
+  }
+  // locate the sticker (in state s) belonging to the piece whose home has reference sticker `ref`
+  function locate(s, homePiece, refIdx, isCorner) {
+    var cols = homePiece.map(function (i) { return M.solved()[i]; });
+    var list = isCorner ? M.CORNERS : M.EDGES;
+    var refCol = M.solved()[homePiece[refIdx]];
+    for (var p = 0; p < list.length; p++) {
+      var q = list[p], qc = q.map(function (i) { return s[i]; });
+      if (qc.slice().sort().join() === cols.slice().sort().join()) {
+        for (var j = 0; j < q.length; j++) if (s[q[j]] === refCol) return isCorner ? CSL[q[j]] : ESL[q[j]];
+      }
+    }
+    return -1;
+  }
+  // track using colours relative to the centres of state s (so it works whatever the cube orientation)
+  function relSolvedOf(s) {
+    // map current centre colours -> standard colours, so tracking uses the standard tables
+    var map = {}; M.FACES.forEach(function (f, i) { map[s[i * 9 + 4]] = M.solved()[i * 9 + 4]; });
+    return s.map(function (c) { return map[c]; });
+  }
+
+  /* IDA* for F2L pairs. Each candidate = the cube turned by y^r so its target slot is front-right.
+     All candidates are searched together, depth by depth, so the first answer found is the shortest pair. */
+  var MOVESET_FULL = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]; // U R F L B
+  var MOVESET_RUF = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  function pairContext(t) {
+    build();
+    var s = relSolvedOf(t);
+    var keep = [1, 2, 3].filter(function (j) { return solvedPiece(t, M.CORNERS[4 + j]) && solvedPiece(t, M.EDGES[8 + j]); });
+    return {
+      cr: [4, 5, 6, 7].map(function (e) { return locate(s, M.EDGES[e], 0, false); }),
+      tc: locate(s, M.CORNERS[4], 0, true), te: locate(s, M.EDGES[8], 0, false),
+      kp: keep.map(function (j) { return [j, locate(s, M.CORNERS[4 + j], 0, true), locate(s, M.EDGES[8 + j], 0, false)]; })
+    };
+  }
+  function hval(cr, tc, te, kp) {
+    var v = crossD[((cr[0] * 24 + cr[1]) * 24 + cr[2]) * 24 + cr[3]], w = pairD[0][tc * 24 + te];
+    if (w > v) v = w;
+    for (var i = 0; i < kp.length; i++) { w = pairD[kp[i][0]][kp[i][1] * 24 + kp[i][2]]; if (w > v) v = w; }
+    return v;
+  }
+  function idaBound(ctx, bound, moves) {
+    var path = [], found = null, nodes = 0;
+    function dfs(cr, tc, te, kp, g, lastFace) {
+      var hv = hval(cr, tc, te, kp);
+      if (hv === 0) { found = path.slice(); return true; }
+      if (g + hv > bound || ++nodes > 3e5) return false;
+      for (var mi = 0; mi < moves.length; mi++) {
+        var m = moves[mi], face = Math.floor(m / 3);
+        if (face === lastFace) continue;
+        var T = ET[m], Q = CT[m], nkp = [];
+        for (var i = 0; i < kp.length; i++) nkp.push([kp[i][0], Q[kp[i][1]], T[kp[i][2]]]);
+        path.push(FM[m]);
+        if (dfs([T[cr[0]], T[cr[1]], T[cr[2]], T[cr[3]]], Q[tc], T[te], nkp, g + 1, face)) return true;
+        path.pop();
+      }
+      return false;
+    }
+    dfs(ctx.cr, ctx.tc, ctx.te, ctx.kp, 0, -1);
+    return found;
+  }
+  // candidates: [{r, t}] ; returns {r, t, sol}
+  function bestPair(cands) {
+    var ctxs = cands.map(function (c) { return pairContext(c.t); });
+    var lo = Math.min.apply(null, ctxs.map(function (x) { return hval(x.cr, x.tc, x.te, x.kp); }));
+    for (var b = lo; b <= 13; b++) {
+      for (var i = 0; i < cands.length; i++) {
+        var sol = idaBound(ctxs[i], b, MOVESET_FULL);
+        if (sol) {
+          // kid-friendly: allow up to two extra moves if that avoids L/B turns
+          if (sol.some(function (m) { return m[0] === 'L' || m[0] === 'B'; })) {
+            for (var b2 = b; b2 <= b + 2; b2++) {
+              for (var j = 0; j < cands.length; j++) { var s2 = idaBound(ctxs[j], b2, MOVESET_RUF); if (s2) return { r: cands[j].r, t: cands[j].t, sol: s2 }; }
+            }
+          }
+          return { r: cands[i].r, t: cands[i].t, sol: sol };
+        }
+      }
+    }
+    return null;
+  }
+  function solvePair(t) { var r = bestPair([{ r: 0, t: t }]); return r ? r.sol : null; }
+
+  /* ---------- words ---------- */
+  function pieceName(s, p) {
+    var order = 'WYGBRO';
+    return p.map(function (i) { return s[i]; }).sort(function (a, b) { return order.indexOf(a) - order.indexOf(b); }).map(function (c) { return ZH[c]; }).join('');
+  }
+  function posName(p) {
+    var layer = p[1] === 1 ? '頂層' : p[1] === 0 ? '中間層' : '底層';
+    var key = p[0] + ',' + p[2];
+    var h = { '0,1': '前面', '1,0': '右面', '0,-1': '後面', '-1,0': '左面', '1,1': '右前', '-1,1': '左前', '1,-1': '右後', '-1,-1': '左後' }[key];
+    return layer + h;
+  }
+  var FACE_DIR = { U: '向上', D: '向下', F: '向前', B: '向後', L: '向左', R: '向右' };
+  function findPiece(s, cols) {
+    var want = cols.slice().sort().join();
+    var all = M.CORNERS.concat(M.EDGES);
+    for (var i = 0; i < all.length; i++) if (all[i].map(function (x) { return s[x]; }).sort().join() === want) return all[i];
+    return null;
+  }
+  function inSlotArea(p) { return M.STICKERS[p[0]].pos[1] < 1; }
+  // is the corner+edge of target FR pair joined correctly (as a 2-piece block)?
+  function paired(s, cols) {
+    var c = findPiece(s, cols), e = findPiece(s, cols.slice(1));
+    if (!c || !e) return false;
+    var cp = M.STICKERS[c[0]].pos, ep = M.STICKERS[e[0]].pos;
+    var diff = 0; for (var a = 0; a < 3; a++) diff += Math.abs(cp[a] - ep[a]);
+    if (diff !== 1) return false;
+    for (var j = 0; j < 2; j++) {
+      var st = M.STICKERS[e[j]];
+      var match = c.filter(function (i) { return M.STICKERS[i].face === st.face; })[0];
+      if (match === undefined || s[match] !== s[e[j]]) return false;
+    }
+    return true;
+  }
+
+  /* ---------- planners ---------- */
+  function planCross(s) {
+    var sol = CrossTrainer.solve(s);
+    var done0 = [4, 5, 6, 7].filter(function (e) { return solvedPiece(s, M.EDGES[e]); }).length;
+    var steps = [], t = s, best = done0, cur = [];
+    var have = {}; [4, 5, 6, 7].forEach(function (e) { if (solvedPiece(s, M.EDGES[e])) have[e] = 1; });
+    sol.forEach(function (m, i) {
+      cur.push(m); t = M.applyMove(t, m);
+      var now = [4, 5, 6, 7].filter(function (e) { return solvedPiece(t, M.EDGES[e]); });
+      if (now.length > best || i === sol.length - 1) {
+        var news = now.filter(function (e) { return !have[e]; });
+        news.forEach(function (e) { have[e] = 1; });
+        best = Math.max(best, now.length);
+        steps.push({ what: news.length ? '送' + news.map(function (e) { return pieceName(t, M.EDGES[e]); }).join('、') + '邊塊落底部' : '對好十字', moves: cur });
+        cur = [];
+      }
+    });
+    var where = [4, 5, 6, 7].map(function (e) {
+      var p = findPiece(s, ['W', M.solved()[M.EDGES[e][1]]]); var wi = p.filter(function (i) { return s[i] === 'W'; })[0];
+      return { name: pieceName(s, p), pos: posName(M.STICKERS[p[0]].pos), dir: FACE_DIR[M.STICKERS[wi].face], ok: solvedPiece(s, M.EDGES[e]), idx: p };
+    });
+    var focus = []; where.forEach(function (w) { if (!w.ok) focus = focus.concat(w.idx); });
+    return {
+      steps: steps, focus: focus, progress: [done0, 4],
+      see: '4 粒白色邊塊：' + where.map(function (w) { return w.name + (w.ok ? '（已經啱晒）' : '喺' + w.pos + '、白色' + w.dir); }).join('；') + '。',
+      think: '高手唔砌雛菊，直接將白色邊塊送去底部，同時對好側邊顏色。電腦計晒所有可能，最少要 ' + sol.length + ' 步。我會一粒一粒咁送：每送一粒，都要小心唔好整走已經放好嗰啲。如果有一粒已經喺底部但位置唔啱，可以先轉底層（D）令佢對好，或者記住佢哋之間嘅「相對位置」。',
+      goal: '喺底部砌好白色十字，4 粒邊塊嘅側邊顏色都對返中心。而家有 ' + done0 + '/4。'
+    };
+  }
+
+  var SLOT_NAMES = ['右前', '左前', '左後', '右後'];
+  function planF2L(s) {
+    var n0 = slotsDone(s), cands = [];
+    for (var r = 0; r < 4; r++) {
+      var t = A(s, P('y', r));
+      if (solvedPiece(t, M.CORNERS[4]) && solvedPiece(t, M.EDGES[8])) continue;
+      cands.push({ r: r, t: t });
+    }
+    var best = bestPair(cands);
+    if (!best) return null;
+    best.cols = ['W', C(best.t, 'F'), C(best.t, 'R')];
+    var others = cands.length - 1;
+    var t0 = best.t, sol = best.sol, cols = best.cols;
+    // split: pairing part / inserting part
+    var states = [t0]; sol.forEach(function (m, i) { states.push(M.applyMove(states[i], m)); });
+    var k = sol.length; while (k > 0 && paired(states[k - 1], cols)) k--;
+    var corner = findPiece(s, cols), edge = findPiece(s, cols.slice(1));
+    var cw = corner.filter(function (i) { return s[i] === 'W'; })[0];
+    var pairNm = ZH[cols[1]] + ZH[cols[2]];
+    var stuck = inSlotArea(corner) || inSlotArea(edge);
+    var steps = [{ what: '轉成個骰，令「' + pairNm + '」槽去到右前', moves: P('y', best.r) }];
+    var pairMoves = sol.slice(0, k), insMoves = sol.slice(k);
+    if (k === sol.length) { insMoves = sol.slice(); pairMoves = []; }
+    if (pairMoves.length) steps.push({ what: stuck ? '拎出嚟，再將角塊同邊塊配對（黏埋）' : '配對：將角塊同邊塊黏埋成一對', moves: pairMoves });
+    if (insMoves.length) steps.push({ what: '放入：將成對送入右前槽', moves: insMoves });
+
+    var think;
+    if (!pairMoves.length && paired(t0, cols)) think = '佢哋已經黏埋成一對！只要用 ' + insMoves.length + ' 步放入去。';
+    else if (!pairMoves.length) think = '呢個係一步過嘅情況：' + insMoves.length + ' 步內角塊同邊塊會喺放入嘅時候一齊返屋企。';
+    else think = (stuck ? '有一粒卡咗喺槽入面，要先拎佢出嚟。' : '佢哋未黏埋。') + '我會先用 ' + pairMoves.length + ' 步「配對」，令角塊同邊塊黏埋成一對（顏色要啱啱好拼埋），再用 ' + insMoves.length + ' 步「放入」右前槽。';
+    think += '放入嘅時候會暫時郁到十字，但最後一定放返好：拆開 → 放入 → 還原。' + (others ? '我比較咗剩低嘅 ' + (others + 1) + ' 對，呢對最快（只要 ' + sol.length + ' 步）。高手都係咁：先揀最易嗰對！' : '');
+    return {
+      steps: steps, focus: corner.concat(edge), progress: [n0, 4],
+      see: '我搵到「' + pairNm + '」呢一對：' + pieceName(s, corner) + '角塊喺' + posName(M.STICKERS[corner[0]].pos) + '（白色' + FACE_DIR[M.STICKERS[cw].face] + '），' + pieceName(s, edge) + '邊塊喺' + posName(M.STICKERS[edge[0]].pos) + '。',
+      think: think,
+      goal: '將 4 對「角塊 + 邊塊」放入頭兩層嘅 4 個槽。而家有 ' + n0 + '/4。'
+    };
+  }
+
+  function planOLL1(s) { var p = CO.plan(s); return { steps: p.steps, focus: p.focus, progress: p.progress, see: p.see, think: p.think, goal: '頂面砌出黃色十字（OLL 第一段，邊塊向上）。' }; }
+
+  function search(s, algs, ok, posts) {
+    var best = null;
+    for (var u = 0; u < 4; u++) algs.forEach(function (a) {
+      var t = A(A(s, P('U', u)), a.moves);
+      for (var v = 0; v < (posts ? 4 : 1); v++) {
+        var w = posts ? A(t, P('U', v)) : t;
+        if (ok(w)) { var len = (u ? 1 : 0) + a.moves.length + (v ? 1 : 0); if (!best || len < best.len) best = { u: u, a: a, v: v, len: len }; }
+      }
+    });
+    return best;
+  }
+  function planOLL2(s) {
+    var nUp = [0, 2, 6, 8].filter(function (i) { return s[i] === s[4]; }).length;
+    var b = search(s, OLL, topAllYellow);
+    if (!b) return null;
+    var hint = { 0: '0 粒角黃色向上，所以係 H 或者 Pi：睇側面，如果左右兩邊都有一對黃色「車頭燈」就係 H，否則係 Pi。', 1: '1 粒角黃色向上，頂面似一條魚，所以係小魚或者反小魚。', 2: '2 粒角黃色向上，所以係 U、T 或者蝴蝶結 L：睇兩粒黃色角嘅位置——隔籬（同一邊）定對角？' }[nUp];
+    return {
+      steps: [{ what: '轉頂層，擺成教科書嘅樣', moves: P('U', b.u) }, { what: b.a.name + ' 公式', moves: b.a.moves.slice(), alg: 'oll-' + b.a.id }],
+      focus: [0, 2, 6, 8, 9, 11, 18, 20, 36, 38, 45, 47], progress: [nUp, 4], ollCase: b.a.id,
+      see: '頂面已經有黃色十字。我數吓角塊：有 ' + nUp + ' 粒黃色向上。',
+      think: hint + '呢個係「' + b.a.name + '」。' + (b.u ? '先轉頂層，擺成同教科書一樣嘅角度，' : '角度啱晒，') + '然後做 ' + b.a.alg + '。做完頂面就會全黃！',
+      goal: '令成個頂面都係黃色（OLL 第二段）。'
+    };
+  }
+  function headlights(s) {
+    var sides = [['後面', 45, 47], ['左面', 36, 38], ['右面', 9, 11], ['前面', 18, 20]];
+    return sides.filter(function (x) { return s[x[1]] === s[x[2]]; }).map(function (x) { return x[0]; });
+  }
+  function planPLL1(s) {
+    var b = search(s, PLL.slice(0, 2), cornersRel);
+    if (!b) return null;
+    var hl = headlights(s), t = A(s, P('U', b.u)), hl2 = headlights(t);
+    var see = hl.length ? '頂層側面有「車頭燈」（一面嘅兩隻角同色）：喺' + hl.join('、') + '。' : '頂層側面一對「車頭燈」都冇。';
+    var think = b.a.id === 't' ? '有車頭燈，即係有兩粒角要隔籬交換。將車頭燈擺喺左面，做 T 字公式，就會交換右邊兩粒角。' : '冇車頭燈，即係有兩粒角要「對角」交換，用 Y 字公式。';
+    return {
+      steps: [{ what: hl.length ? '轉頂層，將車頭燈擺去' + (hl2[0] || '左面') : '轉頂層，擺好位', moves: P('U', b.u) }, { what: b.a.name, moves: b.a.moves.slice(), alg: 'pll-' + b.a.id }],
+      focus: [0, 2, 6, 8, 9, 11, 18, 20, 36, 38, 45, 47], progress: [0, 2],
+      see: see, think: think + '做完之後，四粒角就會喺啱嘅位置（可能要轉頂層對齊）。',
+      goal: '令頂層 4 粒角去返啱嘅位置（PLL 第一段）。'
+    };
+  }
+  function planPLL2(s) {
+    var b = search(s, [{ id: 'none', name: '', moves: [] }].concat(PLL.slice(2)), CO.isSolved, true);
+    if (!b) return null;
+    if (b.a.id === 'none') return {
+      steps: [{ what: '轉頂層對好', moves: P('U', b.v) }], focus: [], progress: [1, 2],
+      see: '頂層所有小方塊都已經擺啱，只係未對齊。', think: '最後轉一下頂層，令佢同下面兩層對齊（高手叫呢步做 AUF）。', goal: '完成！'
+    };
+    var full = [['後面', 45, 46, 47], ['左面', 36, 37, 38], ['右面', 9, 10, 11], ['前面', 18, 19, 20]].filter(function (x) { return s[x[1]] === s[x[2]] && s[x[2]] === s[x[3]]; }).map(function (x) { return x[0]; });
+    var think = { ua: '有一面成條「實色」（3 格同色），其餘三粒邊塊要輪住轉。將實色嗰面擺喺後面，用三邊輪轉公式（Ua 或 Ub，視乎轉嘅方向）。', ub: '有一面成條「實色」（3 格同色），其餘三粒邊塊要輪住轉。將實色嗰面擺喺後面，用三邊輪轉公式（Ua 或 Ub，視乎轉嘅方向）。', h: '冇一面係實色，而且邊塊要同對面交換，用 H 公式（M2 係中間層轉兩下）。', z: '冇一面係實色，邊塊要同隔籬交換，用 Z 公式。' }[b.a.id];
+    return {
+      steps: [{ what: '轉頂層，擺好位', moves: P('U', b.u) }, { what: b.a.name, moves: b.a.moves.slice(), alg: 'pll-' + b.a.id }, { what: '轉頂層對好', moves: P('U', b.v) }],
+      focus: [1, 3, 5, 7, 10, 19, 37, 46], progress: [1, 2],
+      see: full.length ? '頂層有一面係成條實色：' + full.join('、') + '。' : '頂層側面冇一面係成條實色。',
+      think: think + '做完再轉頂層對好，就還原！',
+      goal: '令頂層 4 粒邊塊歸位，完成還原（PLL 第二段）。'
+    };
+  }
+  function plan0(s) { return CO.plan(s); }
+  var PLANNERS = [plan0, planCross, planF2L, planOLL1, planOLL2, planPLL1, planPLL2];
+
+  function clean(steps) { return steps.filter(function (st) { return st.moves && st.moves.length; }).map(function (st) { st.moves = M.simplify(st.moves); return st; }); }
+  var cache = {};
+  function plan(s) {
+    var key = s.join('');
+    if (cache[key]) return JSON.parse(JSON.stringify(cache[key]));
+    var st = detect(s), p;
+    if (st === 7) p = { stage: 7, stageName: STAGE_NAMES[7], moves: [], steps: [], done: true, focus: [], see: '六個面全部都係同一隻顏色！', think: '你用 CFOP 還原咗扭計骰！', goal: '完成！' };
+    else {
+      p = PLANNERS[st](s);
+      if (!p) p = { steps: [], focus: [], see: '嗯……我諗唔到下一步。', think: '可能有啲地方扭亂咗，試吓撳「返轉頭」。', goal: '' };
+      p.stage = st; p.stageName = STAGE_NAMES[st];
+      p.steps = clean(p.steps); p.moves = [];
+      p.steps.forEach(function (x) { p.moves = p.moves.concat(x.moves); });
+    }
+    var keys = Object.keys(cache); if (keys.length > 300) cache = {};
+    cache[key] = JSON.parse(JSON.stringify(p));
+    return p;
+  }
+  function autoSolve(s, upto) {
+    upto = upto === undefined ? 7 : upto;
+    var chunks = [], guard = 0;
+    while (guard++ < 40) {
+      var st = detect(s); if (st >= upto || st === 7) break;
+      var p = plan(s); if (!p.moves.length) break;
+      p.before = s; s = A(s, p.moves); p.after = s; chunks.push(p);
+    }
+    return { state: s, chunks: chunks, ok: detect(s) >= upto };
+  }
+  return {
+    name: 'cfop', detect: detect, plan: plan, autoSolve: autoSolve, STAGE_NAMES: STAGE_NAMES, FINAL: 7,
+    OLL: OLL, PLL: PLL, solvePair: solvePair, paired: paired, slotsDone: slotsDone, f2lDone: f2lDone,
+    headlights: headlights, cornersRel: cornersRel, topAllYellow: topAllYellow, build: build
+  };
+})(typeof CubeModel !== 'undefined' ? CubeModel : require('./model.js'), typeof Coach !== 'undefined' ? Coach : require('./coach.js'), typeof CrossTrainer !== 'undefined' ? CrossTrainer : require('./speed.js'));
+if (typeof module !== 'undefined') module.exports = CFOP;
+
 /* ===== Lesson content (廣東話) =====
    markup:  [[R U R' U']] = formula chip (tap to watch it)   **bold**   new line = line break */
 var LESSONS = [
@@ -3616,21 +4012,133 @@ var LESSONS = [
 ];
 if (typeof module !== 'undefined') module.exports = LESSONS;
 
-LESSONS.push({
-  id: 'speed', icon: '🚀', title: '速解高手點樣扭？', sub: 'CFOP 方法、世界紀錄、高手十字同手速挑戰', kind: 'speed',
+/* ===== 第二部分：CFOP 速解高手之路（教科書式） =====
+   slide.cases = [{ name, alg, view: 'cross'|'f2l'|'oll'|'pll', desc }]
+   每個情況嘅圖都係由真實狀態自動畫出嚟（狀態 = 還原咗嘅骰做公式嘅相反），所以一定啱。 */
+LESSONS.push(
+{
+  id: 'speed', chapter: 'cfop', icon: '🏆', title: 'C0 速解世界', sub: '世界紀錄、CFOP 係乜、學習路線、手速挑戰', kind: 'speed',
   slides: [
     { t: '世界紀錄有幾快？', fig: 'records', b: '扭計骰比賽由「世界魔方協會」（WCA）舉辦，健力士世界紀錄都係用佢哋嘅比賽成績。\n• **單次紀錄：2.76 秒**，波蘭 9 歲嘅 Teodor Zajder（2026 年 2 月），係第一個少過 3 秒嘅人！\n• **平均紀錄：3.51 秒**，中國 12 歲嘅王藝衡 Yiheng Wang（2026 年 6 月）。比賽每人扭 5 次，去走最快同最慢，計中間 3 次嘅平均。\n你睇，紀錄保持者都係小朋友！' },
     { t: '佢哋用咩方法？CFOP！', fig: 'cfop', b: '差唔多所有 3×3 世界紀錄保持者，都係用 **CFOP 方法**（又叫 Fridrich 方法，1997 年由 Jessica Fridrich 喺網上發表）。\nCFOP 係四個英文字嘅開頭：\n• **C**ross：十字\n• **F**2L：頭兩層（First 2 Layers）\n• **O**LL：令頂層全部變黃色\n• **P**LL：令頂層全部歸位' },
-    { t: 'CFOP 其實係層先法嘅升級版！', b: '你學咗嘅 8 步，高手將佢哋「合併」成 4 步：\n• 第 1、2 步（雛菊 + 十字）→ **Cross**：唔砌雛菊，直接喺底部砌十字。\n• 第 3、4 步（白角 + 中間層）→ **F2L**：角塊同邊塊先「砌成一對」，一次過放入去。\n• 第 5、8 步（黃十字 + 翻角）→ **OLL**：一條公式令成個頂面變黃色。\n• 第 6、7 步（邊對位 + 角歸位）→ **PLL**：一條公式令頂層全部歸位。\n所以步數由大約 150 下，減少到大約 55 至 60 下！' },
-    { t: '秘訣 1：15 秒觀察，諗好先扭', fig: 'inspect', b: '比賽開始前，每人可以**觀察 15 秒**（唔可以扭）。\n高手會喺呢 15 秒入面，喺腦入面計好成個十字點樣砌，有啲仲會計埋第一對 F2L，然後好似閉埋眼都扭得出咁快！\n其實任何一個十字，最多 **8 步**就一定砌得好。去「動手做」試吓「🏁 高手十字挑戰」！' },
-    { t: '秘訣 2：F2L 一對一對放', b: '層先法要分開兩次放：白角用右手公式最多做 5 次（20 下），中間層邊塊再要 8 下。\nF2L 將角塊同佢隔籬嘅邊塊先**黏埋成一對**，然後一次過放入去。例如呢個最簡單嘅情況，只要 4 下：[[U R U\' R\']]\nF2L 有 41 種情況，高手唔係死記，而係**明白原理**之後用直覺去砌。' },
-    { t: '秘訣 3：OLL 同 PLL 公式', b: '頂層有好多種樣，高手為每一種都記一條公式：OLL 有 **57 條**，PLL 有 **21 條**。\n你其實已經識咗一條 OLL！就係小魚公式：[[R U R\' U R U2 R\']]\n最出名嘅 PLL 叫「T 字公式」，佢會將兩粒角同兩粒邊一齊調換位置：[[R U R\' U\' R\' F R2 U\' R\' U\' R U R\' F\']]\n（撳公式可以喺扭計骰上面睇示範）' },
-    { t: '唔使一次過記 78 條！', fig: 'path', b: '高手都係一步一步嚟：\n① 層先法扭到好熟（你而家喺度！）\n② 唔砌雛菊，直接喺底部砌十字\n③ 學直覺 F2L，一對一對放\n④ 「兩段式」OLL：只要記 **10 條**；「兩段式」PLL：只要記 **6 條**\n⑤ 熟咗之後，再慢慢學齊 57 + 21 條\n每一級都會快好多，好似打機升級咁！' },
-    { t: '秘訣 4：手指扭法同「預判」', b: '• **手指扭法**：高手唔係郁成隻手，而係用手指「撥」。例如 R U R\' U\' 熟咗可以快到半秒做完。\n• **預判（look-ahead）**：扭緊呢一對嘅時候，眼已經搵緊下一對喺邊，所以中間唔使停。\n• 用一粒順滑嘅扭計骰（例如有磁石嘅「速擰」扭計骰）。\n2.76 秒嗰次紀錄只用咗 **29 下**，每秒扭 **10.5 下**！最重要唔係手快，而係**唔停**。' },
-    { t: '仲有其他方法同比賽', fig: 'records2', b: '• **Roux 方法**（法國人 Gilles Roux）：先喺兩邊砌兩舊 3×2×1 嘅方塊，大約 45 至 50 步。\n• **ZZ 方法**（Zbigniew Zborowski，2006 年）：一開始先處理「邊塊方向」——同我哋喺解骰器見過，電腦第 1 階段做嘅嘢係同一個概念！\n• **最少步數比賽**：唔計時間，用紙筆諗一個鐘，比邊個步數最少。紀錄係 **16 步**！\n• **機械人**：美國普渡大學學生整嘅機械人，0.103 秒就扭好，快過眨一下眼！' },
-    { t: '我學到嘅道理', fig: 'mascot', b: '• 世界冠軍都係由層先法開始，**基礎最重要**。\n• 快唔係靠「手快」，而係靠**諗得清楚**：觀察、計劃、預判。\n• 將幾個步驟**合併**、搵**更好嘅方法**，就可以越嚟越快。\n• 紀錄保持者都係 9 至 12 歲嘅小朋友，只要肯練習，你都得！\n去「🎯 動手做」接受高手訓練啦！' }
+    { t: 'CFOP 其實係層先法嘅升級版！', b: '你學咗嘅 8 步，高手將佢哋「合併」成 4 步：\n• 第 1、2 步（雛菊 + 十字）→ **Cross**：唔砌雛菊，直接喺底部砌十字。\n• 第 3、4 步（白角 + 中間層）→ **F2L**：角塊同邊塊先「砌成一對」，一次過放入去。\n• 第 5、8 步（黃十字 + 翻角）→ **OLL**：令成個頂面變黃色。\n• 第 6、7 步（邊對位 + 角歸位）→ **PLL**：令頂層全部歸位。\n步數由大約 150 下，減少到大約 55 至 75 下！' },
+    { t: '呢個部分點樣學？', fig: 'path', b: '我哋會好似教科書咁，一站學一樣：\n• **C1** 底部十字\n• **C2** F2L ①：一對放入槽\n• **C3** F2L ②：拆開再配對\n• **C4** F2L ③：四對實戰\n• **C5** 兩段式 OLL（記 7 條公式）\n• **C6** 兩段式 PLL（記 6 條公式）\n• **C7** CFOP 畢業挑戰\n每一站都有圖、有 3D 示範、有「睇我示範 → 一齊做 → 自己挑戰」。唔使急，一日一站就最好！' },
+    { t: '高手嘅秘訣：手指同預判', b: '• **手指扭法**：高手唔係郁成隻手，而係用手指「撥」。例如 R U R\' U\' 熟咗可以快到半秒做完。\n• **預判（look-ahead）**：扭緊呢一對嘅時候，眼已經搵緊下一對喺邊，所以中間唔使停。\n• 2.76 秒嗰次紀錄只用咗 **29 下**，每秒扭 **10.5 下**！最重要唔係手快，而係**唔停**。\n去「動手做」試吓你嘅手速！' },
+    { t: '仲有其他方法同比賽', fig: 'records2', b: '• **Roux 方法**（法國人 Gilles Roux）：先喺兩邊砌兩舊 3×2×1 嘅方塊，大約 45 至 50 步。\n• **ZZ 方法**（Zbigniew Zborowski，2006 年）：一開始先處理「邊塊方向」，同解骰器電腦第 1 階段做嘅嘢係同一個概念！\n• **最少步數比賽**：用紙筆諗一個鐘，比邊個步數最少。紀錄係 **16 步**！\n• **機械人**：美國普渡大學學生整嘅機械人，0.103 秒就扭好！' }
   ]
-});
+},
+{
+  id: 'c1', chapter: 'cfop', icon: '➕', title: 'C1 底部十字 Cross', sub: '唔砌雛菊，直接喺底部砌十字（最多 8 步）', kind: 'cfop', stage: 1, scope: 1, extras: ['cross'],
+  slides: [
+    { t: '目標：直接喺底部砌十字', fig: 'cross', b: '層先法要先喺頂部砌雛菊，再一塊塊翻落去——每塊都要「上去再落嚟」，好浪費步數。\nCFOP 嘅十字**直接喺底部砌**，平均 6 步左右，**最多 8 步**就一定砌得好（電腦已經計晒所有可能！）。\n我哋依然係黃色向上、白色向下，咁樣做 F2L 嘅時候睇得清楚。' },
+    { t: '先觀察 15 秒，諗好先扭', fig: 'inspect', b: '比賽開始前有 15 秒觀察時間。高手會：\n① 搵晒 4 粒白色邊塊喺邊\n② 諗每一粒要點樣去底部，同時對好側邊顏色\n③ 決定先做邊粒、後做邊粒（唔好整走已經放好嘅）\n然後一口氣扭完。練習嘅時候，你都可以試吓先諗後扭。' },
+    { t: '一粒邊塊嘅 5 種位置', b: '假設其他十字已經砌好，而家要將「白綠」邊塊送去前面底部。撳 🎬 喺 3D 骰睇示範，撳 ✋ 自己試：', cases: [
+      { name: '頂層，白色向上', alg: 'F2', view: 'cross', desc: '最簡單！轉頂層對準綠色中心，前面轉兩下。' },
+      { name: '頂層，白色向前（反轉）', alg: "U' R' F R", view: 'cross', desc: '先 U\' 避開，R\' 打開右邊，F 放入，R 放返右邊。' },
+      { name: '中間層，白色向右', alg: 'F', view: 'cross', desc: '一下 F 就送到底部。' },
+      { name: '中間層，白色向左', alg: "F'", view: 'cross', desc: '一下 F\' 就送到底部。' },
+      { name: '底層，白色向前（反轉）', alg: "F2 U' R' F R", view: 'cross', desc: '先 F2 拎上頂層，就變成「反轉」情況。' }
+    ] },
+    { t: '秘訣：相對位置', b: '十字嘅 4 粒邊塊，只要**彼此之間嘅位置啱**就得，唔使一開始就對準中心！\n例如兩粒白色邊塊已經喺底部、而且佢哋之間嘅距離啱，但係同中心錯開咗——最後轉一下底層（D）就可以一次過對好。\n呢個方法可以慳好多步，係高手常用嘅諗法。' },
+    { t: '練習建議', b: '① 先求「唔用雛菊」都砌到十字，唔理步數。\n② 再求 **8 步以內**。\n③ 最後學喺 15 秒內計劃好成個十字。\n喺「動手做」有「🏁 高手十字挑戰」：電腦會話你知最少要幾多步，你可以同佢比賽！' }
+  ]
+},
+{
+  id: 'c2', chapter: 'cfop', icon: '🧩', title: 'C2 F2L ①：一對放入槽', sub: '認識「一對」同「槽」，4 種基本放入', kind: 'cfop', stage: 2, scope: 2,
+  gen: { cases: ["R U R'", "F' U' F", "U R U' R'", "U' F' U F"] },
+  slides: [
+    { t: 'F2L 係乜？', fig: 'f2lslots', b: 'F2L = First 2 Layers，即係**頭兩層**。\n砌好十字之後，底層同中間層仲有 4 個「**槽**」未填：右前、左前、左後、右後。\n每個槽要放入**一對**小方塊：一粒白色角塊 + 佢隔籬嘅中間層邊塊。例如右前槽要放「白綠橙角塊」同「綠橙邊塊」。' },
+    { t: '點解要成對放？', fig: 'pairvs', b: '層先法係**分開**放：先用右手公式放白角（最多 20 下），再用向右公式放中間層邊塊（8 下）。\nF2L 將角塊同邊塊先**黏埋成一對**，然後一次過放入去，通常 3 至 8 下就搞掂一個槽！\n4 個槽 × 慳 15 下 = 慳 60 下，難怪咁快！' },
+    { t: '點樣先算「黏埋成一對」？', b: '角塊同邊塊要**並排**，而且相連嘅兩面**顏色要一樣**：\n例如綠橙邊塊嘅綠色，要貼住角塊嘅綠色；橙色貼住橙色。\n如果貼錯咗（綠色貼住橙色），就唔算一對，要先拆開再重新配對（下一站教）。' },
+    { t: '4 種基本放入', b: '最基本嘅 4 種情況，3 至 4 下就放得入去：頭兩種一邊扭一邊配對，後兩種已經黏好。佢哋全部都係：**打開 → 放入 → 閂返**。', cases: [
+      { name: '分開：邊喺後面', alg: "R U R'", view: 'f2l', desc: 'R 令角塊轉去右後，同邊塊黏埋；U 將成對送返嚟；R\' 一齊放入槽。' },
+      { name: '分開：邊喺左面', alg: "F' U' F", view: 'f2l', desc: '上面嘅鏡像：F\' 令角塊轉去左前同邊塊黏埋，U\' 送返嚟，F 放入。' },
+      { name: '已經黏埋：喺右面', alg: "U R U' R'", view: 'f2l', desc: 'U 先擺好位，R 打開槽，U\' 將成對放入，R\' 閂返。' },
+      { name: '已經黏埋：喺前面', alg: "U' F' U F", view: 'f2l', desc: '上面嘅鏡像版本，用前面做：U\' 擺位，F\' 打開，U 放入，F 閂返。' }
+    ] },
+    { t: '點解唔會整爛十字？（原理）', b: '睇吓 R U R\'：\n• R：右面升起，**十字邊塊同槽一齊升上去**\n• U：只郁頂層，將一對送去啱嘅位置\n• R\'：右面放返落嚟，十字邊塊返返原位，一對亦都跟住入咗槽\n係咪好似層先法嘅向右公式？**拆開 → 放入 → 還原**，係所有公式背後嘅同一個道理！' },
+    { t: '練習目標', b: '去「動手做」：每一次會有一對已經黏好嘅情況，試吓自己諗：佢喺邊？要用邊一種放入？\n🙌「一齊做」有提示；💪「自己挑戰」就要靠自己觀察。熟咗之後，你會一眼就認得出！' }
+  ]
+},
+{
+  id: 'c3', chapter: 'cfop', icon: '🔗', title: 'C3 F2L ②：拆開再配對', sub: '角同邊分開、白色向上、卡咗喺槽入面', kind: 'cfop', stage: 2, scope: 2,
+  gen: { cases: ["U' R U' R' U R U R'", "U' R U R' U2 R U' R'", "R U2 R' U' R U R'", "U R U2 R' U R U' R'", "R U R' U' R U R'", "R U' R' U R U' R'", "R U R' U' R U R' U' R U R'"] },
+  slides: [
+    { t: '三步諗法', b: '大部分時候，角塊同邊塊都**未黏埋**。高手用三步去諗：\n① **拎出嚟**：如果有一粒卡咗喺槽入面，先拎佢上頂層\n② **配對**：轉頂層同埋用「打開-閂返」動作，令佢哋黏埋成一對\n③ **放入**：用上一站學嘅基本放入\nF2L 總共有 41 種情況，但係高手唔係死記，而係用呢三步「諗」出嚟。' },
+    { t: '秘訣：「收埋」一粒先', b: '配對嘅時候，好多時要將其中一粒**暫時收埋喺槽入面**，轉頂層調整另一粒，再拎返出嚟。\n例如 R U R\'：R 將角塊收埋，U 移走邊塊，R\' 拎返角塊出嚟——角塊同邊塊嘅相對位置就變咗！\n呢個「收埋 → 轉頂 → 拎返」就係配對嘅魔法。' },
+    { t: '情況 A：分開，白色向側', b: '角塊喺頂層，白色向側面。小心「黏錯咗」：並排但顏色唔夾，都要先拆開！', cases: [
+      { name: '黏錯咗：白色向右', alg: "U' R U' R' U R U R'", view: 'f2l', desc: '角同邊並排，但顏色唔夾。先 U\' R U\' R\' 拆開，再 U R U R\' 配對兼放入。' },
+      { name: '白色向前，邊喺後面', alg: "U' R U R' U2 R U' R'", view: 'f2l', desc: 'U\' R U R\' 配對，U2 擺位，R U\' R\' 放入。' }
+    ] },
+    { t: '情況 B：白色向上', b: '角塊嘅白色向上係比較難嘅情況，要先「轉側」佢。', cases: [
+      { name: '白色向上，邊喺右面', alg: "R U2 R' U' R U R'", view: 'f2l', desc: 'R U2 R\' 將角塊轉側同時配對，再 U\' R U R\' 放入。' },
+      { name: '白色向上，邊喺後面', alg: "U R U2 R' U R U' R'", view: 'f2l', desc: '先 U 擺位，R U2 R\' 配對，U R U\' R\' 放入。' }
+    ] },
+    { t: '情況 C：卡咗喺槽入面', b: '有一粒已經喺槽入面但係唔啱，就要先拎佢出嚟。', cases: [
+      { name: '角喺槽，白色向右', alg: "R U R' U' R U R'", view: 'f2l', desc: 'R U R\' 拎角出嚟同時配對，U\' R U R\' 放入。' },
+      { name: '角喺槽，白色向前', alg: "R U' R' U R U' R'", view: 'f2l', desc: 'R U\' R\' 拎出嚟，U R U\' R\' 放入。' },
+      { name: '邊喺槽，角白色向上', alg: "R U R' U' R U R' U' R U R'", view: 'f2l', desc: '做三次 R U R\' U\' 嘅變化，慢慢調好佢哋。' }
+    ] },
+    { t: '練習目標', b: '去「動手做」：每次會有一個呢一站學過嘅情況。\n先講出嚟：「佢喺邊？白色向邊？要唔要拎出嚟？」再扭。\n「腦袋思考中」會將答案分成「配對」同「放入」兩段，等你睇清楚每一段做緊乜。' }
+  ]
+},
+{
+  id: 'c4', chapter: 'cfop', icon: '🏗️', title: 'C4 F2L ③：四對實戰', sub: '揀最易嗰對、預判、連續砌好 4 個槽', kind: 'cfop', stage: 2, scope: 2,
+  slides: [
+    { t: '實戰：4 對一齊嚟', b: '真正比賽嘅時候，十字砌好之後，4 對會四圍散開。你要逐對處理，直到 4 個槽都填滿。\n「腦袋思考中」會幫你**比較晒 4 對**，話你知邊對最快，同埋點樣分成「配對」同「放入」。' },
+    { t: '秘訣 1：先揀最易嗰對', b: '唔好由右前槽開始逐個做！先睇晒 4 對：\n• 已經黏埋咗嘅 → 最快\n• 兩粒都喺頂層嘅 → 好快\n• 卡咗喺槽入面嘅 → 留返後尾\n揀最易嗰對先做，總步數會少好多。' },
+    { t: '秘訣 2：轉成個骰，令槽喺右前', b: '大部分基本放入都係用 R、U、F 做，最順手。\n所以高手會轉成個骰（y），令要處理嘅槽喺**右前**，再用熟悉嘅動作。\n熟咗之後，可以學埋左手版（L、U、F），慳返轉骰嘅時間。' },
+    { t: '秘訣 3：預判下一對', b: '做緊一對嘅時候，眼角已經搵緊下一對喺邊。\n練習方法：**慢慢扭但唔停**——比快快扭但成日停落嚟諗更快！\n高手講：「慢就是快」。' }
+  ]
+},
+{
+  id: 'c5', chapter: 'cfop', icon: '🟡', title: 'C5 兩段式 OLL', sub: '頂面全黃：黃十字 + 7 種角塊情況', kind: 'cfop', stage: 3, scope: 4, extras: ['quizOLL'],
+  slides: [
+    { t: 'OLL 係乜？', fig: 'ollgoal', b: 'OLL = Orient Last Layer，即係**令頂層全部黃色向上**（側面啲顏色暫時唔使理）。\n完整 OLL 有 57 條公式，好難記。所以我哋先學「**兩段式**」：\n① 第一段：黃色十字（你已經識！）\n② 第二段：4 粒角塊黃色向上（7 種情況，7 條公式）' },
+    { t: '第一段：黃色十字', fig: 'shapes', b: '同層先法第 5 步一模一樣：用開門公式 [[F R U R\' U\' F\']]\n• 一點 → 做一次變 L 字\n• L 字 → 擺喺左後，做一次變一字\n• 一字 → 擺成打橫，做一次變十字' },
+    { t: '第二段：點樣認情況？', fig: 'ollcount', b: '第一步：**數頂面有幾多粒角塊黃色向上**。\n• **1 粒** → 小魚或者反小魚\n• **0 粒** → H（雙車頭燈）或者 Pi\n• **2 粒** → U（車頭燈）、T 字或者蝴蝶結 L\n第二步：睇**側面**黃色貼紙喺邊，就分得出係邊一種。' },
+    { t: '1 粒黃色角：小魚家族', b: '頂面似一條魚。將魚頭（黃色角）擺喺**左前**，睇側面：', cases: [
+      { name: '小魚 Sune', alg: "R U R' U R U2 R'", view: 'oll', desc: '右前角嘅黃色向前。你喺層先法已經學過！' },
+      { name: '反小魚 Anti-Sune', alg: "R U2 R' U' R U' R'", view: 'oll', desc: '右後角嘅黃色向右。佢就係小魚倒轉嚟做。' }
+    ] },
+    { t: '0 粒黃色角：H 同 Pi', b: '4 粒角都冇黃色向上，睇側面：', cases: [
+      { name: '雙車頭燈 H', alg: "F R U R' U' R U R' U' R U R' U' F'", view: 'oll', desc: '左右兩面都有一對黃色。開門公式中間做 3 次右手公式！' },
+      { name: '派 Pi', alg: "R U2 R2 U' R2 U' R2 U2 R", view: 'oll', desc: '只有一面有一對黃色，對面兩粒黃色分開向兩邊。' }
+    ] },
+    { t: '2 粒黃色角：U、T、L', b: '睇兩粒黃色角係**隔籬**定係**對角**：\n（公式入面嘅 r 係「右邊兩層一齊轉」，即係 R 同中間層一齊。）', cases: [
+      { name: '車頭燈 U', alg: "R2 D R' U2 R D' R' U2 R'", view: 'oll', desc: '兩粒黃角隔籬，對面有一對「車頭燈」。' },
+      { name: 'T 字 T', alg: "r U R' U' r' F R F'", view: 'oll', desc: '兩粒黃角隔籬，黃色貼紙分開向兩邊。' },
+      { name: '蝴蝶結 L', alg: "F R' F' r U R U' r'", view: 'oll', desc: '兩粒黃角喺對角位置。' }
+    ] },
+    { t: '記公式嘅秘訣', b: '• 唔使一日記晒！每日學一條，用「✋ 自己試」重複做到唔使諗。\n• 好多公式有相同嘅「零件」：右手公式 R U R\' U\'、開門 F … F\'。\n• 唔記得？**後備方法**：層先法第 8 步嘅扭角公式一樣用得，只係慢啲。\n去「動手做」試吓「🧠 認 OLL 小測」！' }
+  ]
+},
+{
+  id: 'c6', chapter: 'cfop', icon: '🔄', title: 'C6 兩段式 PLL', sub: '頂層歸位：2 條角公式 + 4 條邊公式', kind: 'cfop', stage: 5, scope: 6, extras: ['quizPLL'],
+  slides: [
+    { t: 'PLL 係乜？', b: 'PLL = Permute Last Layer，即係**將頂層每粒小方塊搬返屋企**。頂面已經全黃，而家要令側面都對好。\n完整 PLL 有 21 條公式。「**兩段式**」只要 6 條：\n① 第一段：角塊歸位（2 條）\n② 第二段：邊塊歸位（4 條）' },
+    { t: '認「車頭燈」', fig: 'headlights', b: '睇頂層嘅 4 個側面：如果有一面嘅**兩隻角顏色一樣**，好似車嘅兩盞燈，就叫「**車頭燈**」。\n• 有一對車頭燈 → 兩粒角要**隔籬**交換 → T 字公式\n• 一對都冇 → 兩粒角要**對角**交換 → Y 字公式\n• 四面都有 → 角已經啱晒，跳去第二段！' },
+    { t: '第一段：角塊歸位', b: '將車頭燈擺喺**左面**，做 T 字公式；冇車頭燈就直接做 Y 字公式。', cases: [
+      { name: 'T 字公式 T-perm', alg: "R U R' U' R' F R2 U' R' U' R U R' F'", view: 'pll', desc: '交換右邊兩粒角（同時交換左右兩粒邊）。' },
+      { name: 'Y 字公式 Y-perm', alg: "F R U' R' U' R U R' F' R U R' U' R' F R F'", view: 'pll', desc: '對角交換兩粒角。前半部似開門公式！' }
+    ] },
+    { t: '第二段：邊塊歸位', b: '睇有冇一面係成條「實色」（3 格同色）：\n（M 係左右中間嗰層，方向同 L 一樣：向下拉。）', cases: [
+      { name: '三邊輪轉 Ua', alg: "R U' R U R U R U' R' U' R2", view: 'pll', desc: '實色擺後面，三粒邊塊順時針輪轉。' },
+      { name: '三邊輪轉 Ub', alg: "R2 U R U R' U' R' U' R' U R'", view: 'pll', desc: '實色擺後面，三粒邊塊逆時針輪轉。' },
+      { name: '對面交換 H', alg: "M2 U M2 U2 M2 U M2", view: 'pll', desc: '冇實色，前後同左右兩對邊都要對調。' },
+      { name: '隔籬交換 Z', alg: "M' U M2 U M2 U M' U2 M2", view: 'pll', desc: '冇實色，兩對隔籬嘅邊要對調。' }
+    ] },
+    { t: '最後一下：AUF', b: '做完 PLL，頂層可能仲未同下面對齊，只要轉一下頂層（U、U\' 或 U2）就完成！\n高手叫呢下做 **AUF**（Adjust U Face）。\n去「動手做」試吓「🧠 認 PLL 小測」，練習一眼認出係邊種！' }
+  ]
+},
+{
+  id: 'c7', chapter: 'cfop', icon: '🎓', title: 'C7 CFOP 畢業挑戰', sub: '用 CFOP 由頭到尾還原，同層先法比步數', kind: 'cfopgrad',
+  slides: [
+    { t: 'CFOP 總整理', fig: 'cfop', b: '① **Cross**：直接喺底部砌十字（最多 8 步）\n② **F2L**：4 對角塊 + 邊塊，配對再放入\n③ **OLL**：黃十字 [[F R U R\' U\' F\']] + 7 種角塊情況\n④ **PLL**：車頭燈 → T 字／Y 字，再用 Ua、Ub、H、Z 放好邊塊，最後 AUF\n兩段式 CFOP 大約 75 下，比層先法嘅 150 下少一半！學齊 57 條 OLL 同 21 條 PLL 之後，仲可以減到 55 下左右。' },
+    { t: '挑戰規則', b: '• 由完全打亂開始，用 CFOP 還原。\n• 「腦袋思考中」會跟住 CFOP 嘅步驟提示你。\n• 完成之後會話你知用咗幾多步、幾多時間，同層先法比較。\n• 唔用「幫我做」完成，就可以攞齊 3 粒星同「CFOP 小高手」證書！' }
+  ]
+}
+);
 
 /* ===== "電腦點樣諗？" — the two-phase (Kociemba) method explained ===== */
 var KOCIEMBA_SLIDES = [
@@ -3838,6 +4346,9 @@ var MOVE_WORDS = {
   B: ['後面（由後面望）順時針轉', '↺'], "B'": ['後面（由後面望）逆時針轉', '↻'], B2: ['後面轉兩下', '↺'],
   y: ['成個骰向左轉', '⟲'], "y'": ['成個骰向右轉', '⟳'], y2: ['成個骰轉半個圈', '⟲'],
   x: ['成個骰向後翻', '⤴'], "x'": ['成個骰向前翻', '⤵'], x2: ['成個骰翻轉', '⤴'],
+  M: ['中間層向下拉', '⬇'], "M'": ['中間層向上推', '⬆'], M2: ['中間層轉兩下', '⇅'],
+  r: ['右邊兩層向上推', '⬆'], "r'": ['右邊兩層向下拉', '⬇'], r2: ['右邊兩層轉兩下', '⇅'],
+  l: ['左邊兩層向下拉', '⬇'], "l'": ['左邊兩層向上推', '⬆'],
   z: ['成個骰順時針側轉', '↻'], "z'": ['成個骰逆時針側轉', '↺'], z2: ['成個骰側轉半個圈', '↻']
 };
 function moveWord(t) { return (MOVE_WORDS[t] || [t])[0]; }
@@ -3862,6 +4373,7 @@ function isoSVG(f, o) {
     if (face === 'F') { a = c - 1.5; b = 1.5 - r; pts = [P(a + g, b - g, 1.5), P(a + 1 - g, b - g, 1.5), P(a + 1 - g, b - 1 + g, 1.5), P(a + g, b - 1 + g, 1.5)]; }
     if (face === 'R') { a = 1.5 - c; b = 1.5 - r; pts = [P(1.5, b - g, a - g), P(1.5, b - g, a - 1 + g), P(1.5, b - 1 + g, a - 1 + g), P(1.5, b - 1 + g, a - g)]; }
     if (col === '*') return poly(pts, 'rgba(255,79,163,.18)', 'stroke="#ff4fa3" stroke-width="2" stroke-dasharray="4 3"');
+    if (/[ywgbro]/.test(col)) return poly(pts, FIGCOL[col.toUpperCase()], 'stroke="#ff2d8a" stroke-width="3"');
     var shade = face === 'U' ? 1 : face === 'F' ? 0.9 : 0.8;
     return poly(pts, FIGCOL[col] || col, shade < 1 ? 'style="filter:brightness(' + shade + ')"' : '');
   }
@@ -3963,6 +4475,11 @@ function FIG(name) {
       }).join('') + '</figure>';
     case 'inspect': return '<figure class="fig inspect"><div class="clock15">15</div><div>' + faceSVG('xWxWWxxxx', { size: 22, sides: { t: 'xBx', l: 'xRx' } }) + '</div><figcaption>👀 觀察 → 🧠 計劃 → ✋ 一口氣扭完</figcaption></figure>';
     case 'path': return '<figure class="fig path">' + ['🐢 層先法', '➕ 底部十字', '🧩 直覺 F2L', '📒 10 + 6 條公式', '🚀 完整 CFOP'].map(function (t, k) { return '<span class="pv' + k + '">' + t + '</span>'; }).join('<i>➜</i>') + '</figure>';
+    case 'f2lslots': return '<figure class="fig">' + isoSVG({ U: 'xxxxYxxxx', F: 'xxxGG*GG*', R: 'xxx*OO*OO' }) + cap('十字同 3 個槽已經砌好；右前槽（粉紅框）未填') + '</figure>';
+    case 'pairvs': return '<figure class="fig cmp"><div><span>🐢 層先法：先放角，再放邊</span><i style="width:100%">≈ 20 + 8 下</i></div><div><span>🧩 F2L：成對一次過放</span><i style="width:30%">≈ 7 下</i></div></figure>';
+    case 'ollgoal': return '<figure class="fig row4"><div>' + faceSVG('YxYYYYxYx'.replace(/x/g, 'x'), { size: 20, sides: { t: 'xYx', r: 'Yxx', b: 'xxY', l: 'xxx' } }) + '<small>OLL 之前</small></div><i>➜</i><div>' + faceSVG('YYYYYYYYY', { size: 20, sides: { t: 'xxx', r: 'xxx', b: 'xxx', l: 'xxx' } }) + '<small>OLL 之後：頂面全黃</small></div></figure>';
+    case 'ollcount': return '<figure class="fig row4"><div>' + faceSVG('xYxYYYYYx', { size: 18 }) + '<small>1 粒：小魚家族</small></div><div>' + faceSVG('xYxYYYxYx', { size: 18 }) + '<small>0 粒：H／Pi</small></div><div>' + faceSVG('xYxYYYYYY', { size: 18 }) + '<small>2 粒：U／T／L</small></div></figure>';
+    case 'headlights': return '<figure class="fig row4"><div>' + faceSVG('YYYYYYYYY', { size: 22, sides: { t: 'OGB', r: 'GBR', b: 'BOO', l: 'RRR'.replace('RRR', 'RBR') } }) + '<small>左面有車頭燈（兩隻角都係紅）</small></div><div>' + faceSVG('YYYYYYYYY', { size: 22, sides: { t: 'OGR', r: 'BBG', b: 'GOB', l: 'RRO' } }) + '<small>冇車頭燈</small></div></figure>';
     case 'twist': return '<figure class="fig">' + isoSVG({ U: 'YYYYYYYYO', F: 'GGYGGGGGG', R: 'GOOOOOOOO' }) + cap('右上前面嗰粒角要翻到黃色向上') + '</figure>';
   }
   return '';
@@ -4344,20 +4861,31 @@ function CubeView(host, opts) {
 
   /* ---------- practice-state generator ---------- */
   var Gen = {
-    stage: function (stage, diff) {
+    stage: function (stage, diff, eng) {
+      eng = eng || CO;
       for (var tries = 0; tries < 30; tries++) {
         var s = M.apply(M.solved(), M.randomScramble(25));
-        var r = CO.autoSolve(s, stage);
-        if (!r.ok || CO.detect(r.state) !== stage) continue;
+        var r = eng.autoSolve(s, stage);
+        if (!r.ok || eng.detect(r.state) !== stage) continue;
         if (diff === 'challenge') return r.state;
-        var r2 = CO.autoSolve(r.state, stage + 1);
+        var r2 = eng.autoSolve(r.state, stage + 1);
         var ch = r2.chunks.filter(function (c) { return c.stage === stage; });
         if (!ch.length) continue;
         var k = ch.length - 1;
         for (var j = ch.length - 1; j >= 0; j--) { if (ch[j].steps.some(function (st) { return st.alg; })) { k = j; break; } }
-        if (CO.detect(ch[k].before) === stage) return ch[k].before;
+        if (eng.detect(ch[k].before) === stage) return ch[k].before;
       }
       return M.solved();
+    },
+    // a textbook case: solved cube with the algorithm undone, then a random top turn and cube turn
+    caseState: function (alg, aufMax) {
+      var s = M.apply(M.solved(), M.invert(alg));
+      return s;
+    },
+    cases: function (list) {
+      var alg = pick(list), s = M.apply(M.solved(), M.invert(alg));
+      s = M.apply(s, M.pow('U', Math.floor(Math.random() * 4)));
+      return M.apply(s, M.pow('y', Math.floor(Math.random() * 4)));
     },
     scrambled: function () { return M.apply(M.solved(), M.randomScramble(25)); }
   };
@@ -4431,6 +4959,7 @@ function CubeView(host, opts) {
         var k = e.key;
         if (/^[urfdlbURFDLB]$/.test(k)) { self.userMove(k.toUpperCase() + (e.shiftKey ? "'" : '')); e.preventDefault(); }
         else if (k === 'y' || k === 'Y') { self.userMove(e.shiftKey ? "y'" : 'y'); e.preventDefault(); }
+        else if (k === 'm' || k === 'M') { self.userMove(e.shiftKey ? "M'" : 'M'); e.preventDefault(); }
         else if (k === 'Backspace' || k === 'z') { self.undo(); e.preventDefault(); }
         else if (k === 'h') Brain.more();
       });
@@ -4451,10 +4980,30 @@ function CubeView(host, opts) {
       row.appendChild(u); row.appendChild(tm); row.appendChild(r);
       c.appendChild(row);
     },
+    STD: { U: 1, "U'": 1, R: 1, "R'": 1, F: 1, "F'": 1, D: 1, "D'": 1, L: 1, "L'": 1, y: 1, "y'": 1 },
+    ensureExtra: function (tokens) {
+      var self = this, need = [];
+      (tokens || []).forEach(function (t) {
+        var base = t.replace('2', '').replace("'", '');
+        [base, base + "'"].forEach(function (b) { if (!self.STD[b] && need.indexOf(b) < 0 && M.PERM[b]) need.push(b); });
+      });
+      var row = $('#ctrlExtra');
+      if (!need.length) { if (row) row.remove(); return; }
+      if (row && row.dataset.k === need.join()) return;
+      if (row) row.remove();
+      row = h('div', { class: 'ctrl-extra', id: 'ctrlExtra' }); row.dataset.k = need.join();
+      row.appendChild(h('span', { class: 'ce-lbl' }, '特別扭法'));
+      need.forEach(function (tok) {
+        var b = h('button', { class: 'mv rot', 'data-m': tok, title: moveWord(tok) }, '<b>' + tok + '</b><i>' + moveIcon(tok) + '</i><small>' + moveWord(tok) + '</small>');
+        b.addEventListener('click', function () { Sfx.unlock(); self.userMove(tok); });
+        row.appendChild(b);
+      });
+      $('#controls').insertBefore(row, $('#controls .ctrl-row'));
+    },
     paintButtons: function (st) {
       $$('#controls .mv').forEach(function (b) {
         var f = b.dataset.m[0];
-        if (f === 'y') { b.className = 'mv rot'; return; }
+        if (f === 'y' || !M.FI.hasOwnProperty(f)) { b.className = 'mv rot'; return; }
         var col = st[M.FI[f] * 9 + 4];
         b.style.background = PALETTE[col];
         b.className = 'mv ' + (col === 'Y' || col === 'W' || col === 'O' ? 'light' : 'dark');
@@ -4524,12 +5073,13 @@ function CubeView(host, opts) {
      BRAIN: the think-aloud coach panel
      ===================================================================== */
   var Brain = {
-    on: false, el: null, scope: null, defLevel: 1, level: 1, plan: null, flat: [], ptr: 0, stack: [],
+    engine: CO, on: false, el: null, scope: null, defLevel: 1, level: 1, plan: null, flat: [], ptr: 0, stack: [],
     stageNow: -1, best: -1, regress: false, usedHelp: false, usedL3: false, pauseArrow: false, running: false, stopFlag: false,
     focusNow: [], msg: null,
     mount: function (el, opts) {
       opts = opts || {};
       this.on = true; this.el = el; this.scope = opts.scope === undefined ? null : opts.scope; this.defLevel = opts.level || 1;
+      this.engine = opts.engine || CO;
       this.usedHelp = false; this.usedL3 = false; this.msg = null;
       this.reset();
     },
@@ -4540,7 +5090,7 @@ function CubeView(host, opts) {
     reset: function (lvl) {
       if (!this.on) return;
       this.level = Store.s.alwaysShow ? 3 : (lvl || this.defLevel);
-      this.stageNow = -1; this.best = CO.detect(Play.state); this.regress = false; this.msg = null;
+      this.stageNow = -1; this.best = this.engine.detect(Play.state); this.regress = false; this.msg = null;
       this.evaluate(true);
     },
     setLevelDefault: function (lvl) { this.defLevel = lvl; this.level = Store.s.alwaysShow ? 3 : lvl; this.render(); this.updateArrow(); },
@@ -4556,14 +5106,15 @@ function CubeView(host, opts) {
     },
     evaluate: function (silent) {
       if (!this.on) return;
-      var s = Play.state, st = CO.detect(s);
+      var s = Play.state, st = this.engine.detect(s);
       if (this.scope !== null && st > this.scope) { this.finishScope(); return; }
-      if (st === 9) { this.plan = { done: true, stage: 9 }; this.render(); this.updateArrow(); Missions.onSolved(); return; }
+      if (st === this.engine.FINAL) { this.plan = { done: true, stage: st }; this.render(); this.updateArrow(); Missions.onSolved(); return; }
       if (st !== 0 && st < this.best && this.stageNow >= 0) { this.showRegress(st); return; }
       var up = this.stageNow >= 0 && st > this.stageNow;
       if (st !== this.stageNow && this.stageNow >= 0) this.level = Store.s.alwaysShow ? 3 : this.defLevel;
-      this.plan = CO.plan(s);
+      this.plan = this.engine.plan(s);
       this.flat = this.flatten(this.plan); this.ptr = 0; this.stack = [];
+      Play.ensureExtra(this.plan.moves);
       this.focusNow = (this.plan.focus || []).slice();
       this.stageNow = st; if (st > this.best) this.best = st;
       this.regress = false;
@@ -4580,8 +5131,8 @@ function CubeView(host, opts) {
       Play.checkpoint = { state: Play.state.slice() };
       if (this.scope === null) {
         Sfx.stage(); Confetti.burst(60);
-        this.flash('🎉 「' + CO.STAGE_NAMES[st - 1] + '」完成！而家去第 ' + st + ' 步：' + CO.STAGE_NAMES[st] + '。<br><small>🪄 已經幫你存檔，整亂咗可以用時光機返嚟。</small>', 'good');
-        Voice.auto(CO.STAGE_NAMES[st - 1] + '完成！好叻呀！而家去第' + st + '步，' + CO.STAGE_NAMES[st]);
+        this.flash('🎉 「' + this.engine.STAGE_NAMES[st - 1] + '」完成！而家去第 ' + st + ' 步：' + this.engine.STAGE_NAMES[st] + '。<br><small>🪄 已經幫你存檔，整亂咗可以用時光機返嚟。</small>', 'good');
+        Voice.auto(this.engine.STAGE_NAMES[st - 1] + '完成！好叻呀！而家去第' + st + '步，' + this.engine.STAGE_NAMES[st]);
       }
       Missions.onStage(st);
     },
@@ -4591,7 +5142,7 @@ function CubeView(host, opts) {
       Sfx.soft();
       Voice.auto('哎呀，之前砌好嘅部分好似亂咗。唔緊要！撳返轉頭，或者用時光機，就可以返去。');
     },
-    acceptHere: function () { this.best = CO.detect(Play.state); this.stageNow = -1; this.regress = false; this.evaluate(); },
+    acceptHere: function () { this.best = this.engine.detect(Play.state); this.stageNow = -1; this.regress = false; this.evaluate(); },
     onMove: function (tok, src) {
       if (!this.on) return;
       if (src === 'system') return;
@@ -4850,7 +5401,7 @@ function CubeView(host, opts) {
       // mission card + brain
       this.card = h('div', { class: 'card mission' });
       doPane.appendChild(this.card);
-      var needsBrain = lesson.kind === 'stage' || lesson.kind === 'grad';
+      var needsBrain = lesson.kind === 'stage' || lesson.kind === 'grad' || lesson.kind === 'cfop' || lesson.kind === 'cfopgrad';
       if (needsBrain) { var bc = h('div', { class: 'card brain', id: 'brainCard' }); doPane.appendChild(bc); }
       Brain.unmount();
       Play.lock = false;
@@ -4860,10 +5411,13 @@ function CubeView(host, opts) {
       else if (lesson.kind === 'stage') this.stageMount();
       else if (lesson.kind === 'grad') this.gradMount();
       else if (lesson.kind === 'speed') this.speedMount();
+      else if (lesson.kind === 'cfop') this.stageMount();
+      else if (lesson.kind === 'cfopgrad') this.gradMount(CFOP);
       $('#btnRestart').classList.remove('hidden');
       setTimeout(function () { Missions.readSlide(); }, 350);
     },
     tab: function (t) {
+      if (t === 'do' && this.cur && this.cur.type === 'caseDemo' && !this._toDrill) this.restartMission();
       $$('#sideCol .tab').forEach(function (b) { b.classList.toggle('on', b.dataset.t === t); });
       $('#slideCard').classList.toggle('hidden', t !== 'learn');
       $('#doPane').classList.toggle('hidden', t !== 'do');
@@ -4883,6 +5437,7 @@ function CubeView(host, opts) {
       $('#sNext').onclick = function () { if (self.slideIdx < L.slides.length - 1) { self.slideIdx++; self.renderSlide(); self.readSlide(); } else { self.tab('do'); self.readMission(); } };
       $$('.formula', card).forEach(function (f) { f.onclick = function () { Sfx.unlock(); Voice.speak(f.dataset.f); Play.demoFormula(f.dataset.f); }; });
       var w = $('#slideWidget');
+      if (sl.cases) w.appendChild(CaseBook.gallery(sl.cases));
       if (sl.widget === 'pieceButtons') {
         var row = h('div', { class: 'widget-row' });
         [['中心塊', 1, '6 粒中心塊，每粒得 1 隻色'], ['邊塊', 2, '12 粒邊塊，每粒有 2 隻色'], ['角塊', 3, '8 粒角塊，每粒有 3 隻色']].forEach(function (a) {
@@ -4966,7 +5521,8 @@ function CubeView(host, opts) {
       if (opts) targets = M.parse(opts.targets);
       else if (cycle) targets = M.repeat(CO.TRIG, 6);
       else while (targets.length < 8) { var t = pick(list); var last = targets[targets.length - 1]; if (last && last[0] === t[0]) continue; targets.push(t); }
-      this.cur = { type: 'follow', cycle: cycle, targets: targets, i: 0, mistakes: 0, opts: opts || null };
+      this.cur = { type: 'follow', cycle: cycle, targets: targets, i: 0, mistakes: 0, opts: opts || null, half: null };
+      Play.ensureExtra(targets);
       Play.setState(opts && opts.start ? opts.start : M.solved(), { noBrain: true });
       this.renderFollow(!(opts && opts.timed));
     },
@@ -4976,6 +5532,7 @@ function CubeView(host, opts) {
       if (c.i >= c.targets.length) return;
       var t = c.targets[c.i];
       var head = c.cycle ? '第 ' + (Math.floor(c.i / 4) + 1) + ' 次 / 6 次' : '第 ' + (c.i + 1) + ' 下 / ' + c.targets.length + ' 下';
+      if (c.half) head += '・再扭多一下 ' + c.half;
       var intro = c.opts && c.opts.intro ? '<div class="brain-msg show info" style="margin:10px 0 0">' + c.opts.intro + '</div>' : '';
       var allChips = c.opts ? '<div class="chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">' + c.targets.map(function (m, k) { return chipHTML(m, k < c.i ? 'done' : k === c.i ? 'cur' : ''); }).join('') + '</div>' : '';
       area.innerHTML = intro + '<div class="pbar"><i style="width:' + (c.i / c.targets.length * 100) + '%"></i></div>' + allChips +
@@ -4986,13 +5543,15 @@ function CubeView(host, opts) {
       if (showNow) Play.view.showArrow(t);
       else { Play.view.clearArrow(); this._arrowT = setTimeout(function () { if (self.cur === c) { Play.view.showArrow(t); toast('💡 睇住粉紅色箭咀！'); } }, 4500); }
       $$('#controls .mv.hl').forEach(function (b) { b.classList.remove('hl'); });
-      if (showNow) { var b = $('#controls .mv[data-m="' + t + '"]'); if (b) b.classList.add('hl'); }
+      if (showNow) { var b = $('#controls .mv[data-m="' + (t[1] === '2' ? (c.half || t[0]) : t) + '"]'); if (b) b.classList.add('hl'); }
       if (speakIt && !(c.opts && c.opts.timed)) Voice.auto(t.replace("'", '逆') + '，' + moveWord(t));
     },
     followMove: function (tok, src) {
       var c = this.cur, self = this;
       if (src === 'system') return;
-      var t = c.targets[c.i];
+      var t = c.targets[c.i], orig = tok;
+      if (t && t[1] === '2' && !c.half && (tok === t[0] || tok === t[0] + "'")) { c.half = tok; this.renderFollow(false); return; }
+      if (t && t[1] === '2' && c.half) { if (tok === c.half) { c.half = null; tok = t; } else tok = '?'; }
       if (tok === t) {
         c.i++;
         if (c.i === 1) c.t0 = performance.now();
@@ -5017,29 +5576,45 @@ function CubeView(host, opts) {
         this.renderFollow(!c.cycle && !c.opts);
       } else {
         c.mistakes++; Sfx.soft();
-        toast('差少少！你扭咗「' + esc(tok) + '」，我幫你轉返 🙂 再試吓「' + esc(t) + '」', false);
+        toast('差少少！你扭咗「' + esc(orig) + '」，我幫你轉返 🙂 再試吓「' + esc(c.half || t) + '」', false);
         Play.hist.pop();
-        setTimeout(function () { Play.doMove(M.inv(tok), { src: 'system', dur: 220 }); }, 380);
+        setTimeout(function () { Play.doMove(M.inv(orig), { src: 'system', dur: 220 }); }, 380);
       }
     },
 
     /* ---- stage lessons ---- */
+    eng: function () { var L = this.lesson; return L && (L.kind === 'cfop' || L.kind === 'cfopgrad') ? CFOP : (Missions.mode === 'practice' && Missions.practiceEng) || CO; },
     stageMount: function () {
       var self = this, L = this.lesson;
-      this.card.innerHTML = '<div class="card-title"><h3>🎯 任務：' + esc(L.title.replace(/^第 \d 步：/, '')) + '</h3><span id="mSpk"></span></div>' +
-        '<p class="m-desc">跟住三個步驟學：先睇骰仔博士示範，再同佢一齊做，最後自己挑戰！</p>' +
+      var extras = (L.extras || []).map(function (x) {
+        return { cross: '<button class="btn" data-x="cross"><span class="e">🏁</span>高手十字挑戰<span class="m-step">同電腦比步數</span></button>', quizOLL: '<button class="btn" data-x="quizOLL"><span class="e">🧠</span>認 OLL 小測<span class="m-step">5 題</span></button>', quizPLL: '<button class="btn" data-x="quizPLL"><span class="e">🧠</span>認 PLL 小測<span class="m-step">5 題</span></button>' }[x];
+      }).join('');
+      this.card.innerHTML = '<div class="card-title"><h3>🎯 任務：' + esc(L.title.replace(/^第 \d 步：/, '').replace(/^C\d /, '')) + '</h3><span id="mSpk"></span></div>' +
+        '<p class="m-desc">跟住三個步驟學：先睇骰仔博士示範，再同佢一齊做，最後自己挑戰！' + (L.gen ? '每次都會出一個呢站學過嘅情況。' : '') + '</p>' +
         '<div class="m-btns"><button class="btn" data-v="demo"><span class="e">👀</span>睇我示範<span class="m-step">我做你睇</span></button>' +
         '<button class="btn pri" data-v="easy"><span class="e">🙌</span>一齊做<span class="m-step">⭐ 有齊提示</span></button>' +
-        '<button class="btn pink" data-v="challenge"><span class="e">💪</span>自己挑戰<span class="m-step">⭐⭐ 完整一步</span></button></div><div id="mStatus"></div>';
+        '<button class="btn pink" data-v="challenge"><span class="e">💪</span>自己挑戰<span class="m-step">⭐⭐ 完整一步</span></button>' + extras + '</div><div id="mStatus"></div><div id="mArea"></div>';
       $('#mSpk').appendChild(spk(function () { return $('.m-desc', self.card).textContent + '一：睇我示範。二：一齊做。三：自己挑戰。'; }));
       $$('[data-v]', this.card).forEach(function (b) { b.onclick = function () { Sfx.unlock(); self.startStage(b.dataset.v); }; });
-      Brain.mount($('#brainCard'), { scope: L.stage, level: 3 });
+      $$('[data-x]', this.card).forEach(function (b) { b.onclick = function () { Sfx.unlock(); var x = b.dataset.x; if (x === 'cross') self.startCross(); else self.startQuiz(x === 'quizOLL' ? 'oll' : 'pll'); }; });
+      Brain.mount($('#brainCard'), { scope: L.scope || L.stage, level: 3, engine: this.eng() });
       this.startStage('easy', true);
     },
+    brainBack: function () {
+      var L = this.lesson;
+      if (!Brain.on && $('#brainCard')) Brain.mount($('#brainCard'), { scope: L.scope || L.stage, level: 3, engine: this.eng() });
+    },
+    brainRest: function (txt) {
+      if (Brain.on) Brain.unmount();
+      var bc = $('#brainCard'); if (bc) bc.innerHTML = '<div class="brain-head"><div class="brain-ico">🧠</div><div class="grow"><b>腦袋思考中</b><small>' + (txt || '挑戰模式：教練休息緊，靠你自己！') + '</small></div></div>';
+    },
+    restartMission: function () { this._toDrill = false; if (this.lesson && (this.lesson.kind === 'stage' || this.lesson.kind === 'cfop')) this.startStage('easy', true); },
     startStage: function (v, quiet) {
-      var L = this.lesson, self = this;
+      var L = this.lesson, self = this, eng = this.eng();
+      clearInterval(this._insp); $('#mArea') && ($('#mArea').innerHTML = '');
+      this.brainBack();
       Brain.stop(); Play.lock = false;
-      var s = Gen.stage(L.stage, v === 'challenge' ? 'challenge' : 'easy');
+      var s = L.gen && L.gen.cases ? Gen.cases(L.gen.cases) : Gen.stage(L.stage, v === 'challenge' ? 'challenge' : 'easy', eng);
       this.cur = { type: 'stage', v: v, done: false };
       Brain.defLevel = v === 'challenge' ? 1 : 3;
       Brain.usedHelp = false; Brain.usedL3 = false;
@@ -5071,20 +5646,21 @@ function CubeView(host, opts) {
       if (c.v === 'easy') this.setStars(0);
       if (c.v === 'challenge') { this.setStars(0); this.setStars(1); if (!Brain.usedHelp) this.setStars(2); }
       var extra = c.v === 'challenge' ? (Brain.usedHelp ? '下次試吓唔用「幫我做」，就可以攞第 3 粒星！' : '冇用「幫我做」都完成咗，攞晒 3 粒星！') : '準備好就試吓「💪 自己挑戰」！';
-      this.celebrate('🎉 ' + this.lesson.title.replace(/^第 \d 步：/, '') + '完成！', extra, [{ t: '🔁 再嚟一次', f: function () { self.startStage(c.v); } }, this.nextLessonBtn()]);
+      this.celebrate('🎉 ' + this.lesson.title.replace(/^第 \d 步：/, '').replace(/^C\d /, '') + '完成！', extra, [{ t: '🔁 再嚟一次', f: function () { self.startStage(c.v); } }, this.nextLessonBtn()]);
     },
     onStage: function (st) { },
 
     /* ---- graduation & practice ---- */
-    gradMount: function () {
-      var self = this;
-      this.card.innerHTML = '<div class="card-title"><h3>🎓 畢業挑戰</h3><span id="mSpk"></span></div><p class="m-desc">由一個完全打亂嘅扭計骰開始，用 8 個步驟還原佢！骰仔博士會陪住你。</p>' +
-        '<div class="row"><button class="btn pink big" id="gStart" style="flex:1">🎲 開始挑戰</button></div>' + this.roadmapHTML() + '<div class="row" style="margin-top:8px;justify-content:space-between"><span>⏱ 用咗時間</span><span class="timer" id="timer">00:00</span></div>';
+    gradMount: function (eng) {
+      var self = this; eng = eng || CO;
+      var cf = eng === CFOP;
+      this.card.innerHTML = '<div class="card-title"><h3>🎓 ' + (cf ? 'CFOP 畢業挑戰' : '畢業挑戰') + '</h3><span id="mSpk"></span></div><p class="m-desc">' + (cf ? '由一個完全打亂嘅扭計骰開始，用 CFOP 四大步（十字、F2L、OLL、PLL）還原佢！完成後會同層先法比較步數。' : '由一個完全打亂嘅扭計骰開始，用 8 個步驟還原佢！骰仔博士會陪住你。') + '</p>' +
+        '<div class="row"><button class="btn pink big" id="gStart" style="flex:1">🎲 開始挑戰</button></div>' + this.roadmapHTML(eng) + '<div class="row" style="margin-top:8px;justify-content:space-between"><span>⏱ 用咗時間</span><span class="timer" id="timer">00:00</span></div>';
       $('#mSpk').appendChild(spk(function () { return $('.m-desc', self.card).textContent; }));
       $('#gStart').onclick = function () { self.startFull(); };
-      Brain.mount($('#brainCard'), { scope: null, level: 1 });
+      Brain.mount($('#brainCard'), { scope: null, level: 1, engine: eng });
       Play.setState(M.solved(), { level: 1 });
-      this.cur = { type: 'full', grad: true, started: false };
+      this.cur = { type: 'full', grad: true, cfop: cf, started: false };
       this.updateRoadmap();
     },
     openPractice: function () {
@@ -5095,37 +5671,53 @@ function CubeView(host, opts) {
       this.card = h('div', { class: 'card mission' });
       this.card.innerHTML = '<div class="card-title"><h3>🎮 自由練習</h3><span id="mSpk"></span></div><p class="m-desc">打亂扭計骰，然後用學過嘅方法自己解！「腦袋思考中」會陪你，隨時可以撳提示。你亦都可以自己隨便扭，發掘新嘢。</p>' +
         '<div class="row"><button class="btn pink" id="pScr" style="flex:1">🎲 打亂</button><button class="btn" id="pSolved" style="flex:1">✨ 變返完成</button><button class="btn soft" id="pCoach" style="flex:1">🧠 教練：開</button></div>' +
-        this.roadmapHTML() + '<div class="row" style="margin-top:8px;justify-content:space-between"><span>⏱ 用咗時間</span><span class="timer" id="timer">00:00</span></div>';
+        '<div class="set-row" style="border:0;padding:10px 0 0"><div>教練用邊種方法？</div><div class="seg" id="pEng"><button data-e="b" class="on">🐢 層先法</button><button data-e="c">🚀 CFOP</button></div></div>' +
+        '<div id="pRoad">' + this.roadmapHTML(this.practiceEng || CO) + '</div>' + '<div class="row" style="margin-top:8px;justify-content:space-between"><span>⏱ 用咗時間</span><span class="timer" id="timer">00:00</span></div>';
       side.appendChild(this.card);
       var bc = h('div', { class: 'card brain', id: 'brainCard' }); side.appendChild(bc);
       $('#mSpk').appendChild(spk(function () { return $('.m-desc', self.card).textContent; }));
       $('#pScr').onclick = function () { self.startFull(); };
+      $$('#pEng button').forEach(function (b) {
+        b.classList.toggle('on', (b.dataset.e === 'c') === (self.practiceEng === CFOP));
+        b.onclick = function () {
+          self.practiceEng = b.dataset.e === 'c' ? CFOP : CO;
+          $$('#pEng button').forEach(function (x) { x.classList.toggle('on', x === b); });
+          $('#pRoad').innerHTML = self.roadmapHTML(self.practiceEng);
+          if (Brain.on) { Brain.mount(bc, { scope: null, level: 1, engine: self.practiceEng }); }
+          self.updateRoadmap();
+          Voice.auto(b.dataset.e === 'c' ? '教練而家用 CFOP 方法教你。' : '教練而家用層先法教你。');
+        };
+      });
       $('#pSolved').onclick = function () { self.stopTimer(); Play.setState(M.solved()); self.cur = { type: 'full', started: false }; self.updateRoadmap(); };
       $('#pCoach').onclick = function () {
         if (Brain.on) { Brain.unmount(); bc.innerHTML = '<p class="brain-off">🧠 教練休息緊。想要幫手就再撳「教練：關」。</p>'; this.textContent = '🧠 教練：關'; }
-        else { Brain.mount(bc, { scope: null, level: 1 }); this.textContent = '🧠 教練：開'; }
+        else { Brain.mount(bc, { scope: null, level: 1, engine: self.practiceEng || CO }); this.textContent = '🧠 教練：開'; }
       };
       $('#swipeHint').classList.remove('hidden');
       Brain.unmount(); Play.lock = false;
-      Brain.mount(bc, { scope: null, level: 1 });
+      Brain.mount(bc, { scope: null, level: 1, engine: this.practiceEng || CO });
       this.cur = { type: 'full', started: false };
       this.startFull(true);
     },
-    roadmapHTML: function () {
-      var names = CO.STAGE_NAMES.slice(1, 9);
-      return '<div class="roadmap" id="roadmap" style="margin-top:12px">' + names.map(function (n, i) { return '<div class="rm" data-s="' + (i + 1) + '"><span class="n">' + ['🌼', '➕', '🧱', '🏠', '✚', '🐟', '🎠', '🏆'][i] + '</span>' + (i + 1) + '. ' + n.replace('（第一層）', '') + '</div>'; }).join('') + '</div>';
+    roadmapHTML: function (eng) {
+      eng = eng || CO;
+      var cf = eng === CFOP, names = eng.STAGE_NAMES.slice(1, eng.FINAL);
+      var icons = cf ? ['➕', '🧩', '✚', '🟡', '🔺', '🔄'] : ['🌼', '➕', '🧱', '🏠', '✚', '🐟', '🎠', '🏆'];
+      return '<div class="roadmap' + (cf ? ' cf' : '') + '" id="roadmap" style="margin-top:12px">' + names.map(function (n, i) { return '<div class="rm" data-s="' + (i + 1) + '"><span class="n">' + icons[i] + '</span>' + (i + 1) + '. ' + n.replace('（第一層）', '') + '</div>'; }).join('') + '</div>';
     },
     updateRoadmap: function () {
-      var st = CO.detect(Play.state);
+      var eng = Brain.on ? Brain.engine : (this.mode === 'practice' ? (this.practiceEng || CO) : CO);
+      var st = eng.detect(Play.state);
       if (st === 0) return;
-      $$('#roadmap .rm').forEach(function (r) { var s = +r.dataset.s; r.classList.toggle('done', s < st || st === 9); r.classList.toggle('cur', s === st); });
-      var hud = $('#hudStage'); if (hud) hud.innerHTML = st === 9 ? '<span class="chip-soft">🏆 完成！</span>' : '<span class="chip-soft">第 ' + st + ' 步・' + CO.STAGE_NAMES[st] + '</span>';
+      $$('#roadmap .rm').forEach(function (r) { var s = +r.dataset.s; r.classList.toggle('done', s < st || st === eng.FINAL); r.classList.toggle('cur', s === st); });
+      var hud = $('#hudStage'); if (hud) hud.innerHTML = st === eng.FINAL ? '<span class="chip-soft">🏆 完成！</span>' : '<span class="chip-soft">第 ' + st + ' 步・' + eng.STAGE_NAMES[st] + '</span>';
     },
     startFull: function (quiet) {
       var self = this;
       this.stopTimer();
       var s = Gen.scrambled();
-      this.cur = { type: 'full', grad: this.mode === 'lesson' && this.lesson && this.lesson.kind === 'grad', started: true, t0: 0, moves: 0 };
+      var gradL = this.mode === 'lesson' && this.lesson && (this.lesson.kind === 'grad' || this.lesson.kind === 'cfopgrad');
+      this.cur = { type: 'full', grad: gradL, cfop: gradL && this.lesson.kind === 'cfopgrad', started: true, t0: 0, moves: 0 };
       Brain.usedHelp = false; Brain.usedL3 = false;
       // animate a quick scramble for fun
       Play.setState(M.solved(), { noBrain: true });
@@ -5140,7 +5732,7 @@ function CubeView(host, opts) {
         Play.setState(s, { level: 1 });
         self.updateRoadmap();
         $('#timer').textContent = '00:00';
-        if (!quiet) Voice.auto('打亂咗！由第一步：白色雛菊開始。慢慢嚟，唔使急！');
+        if (!quiet) Voice.auto(Brain.engine === CFOP ? '打亂咗！由第一步：底部十字開始。先觀察，諗好先扭！' : '打亂咗！由第一步：白色雛菊開始。慢慢嚟，唔使急！');
       });
     },
     tickTimer: function () {
@@ -5157,12 +5749,14 @@ function CubeView(host, opts) {
       var secs = c.t0 ? Math.floor((Date.now() - c.t0) / 1000) : 0;
       var time = Math.floor(secs / 60) + ' 分 ' + (secs % 60) + ' 秒';
       Store.badge('solve1'); if (!Brain.usedHelp) Store.badge('solveSelf');
+      var turns = Play.hist.filter(function (m) { return !/^[xyz]/.test(m); }).length;
       if (c.grad) {
         this.setStars(0); if (!Brain.usedHelp) this.setStars(1); if (!Brain.usedL3) this.setStars(2);
-        Store.badge('grad');
-        setTimeout(function () { Certificate.show(time, Play.hist.length); }, 900);
+        Store.badge(c.cfop ? 'cfopgrad' : 'grad');
+        setTimeout(function () { Certificate.show(time, turns, c.cfop); }, 900);
       }
-      this.celebrate('🏆 你還原咗扭計骰！', '用咗 ' + time + '，扭咗 ' + Play.hist.length + ' 下。' + (Brain.usedHelp ? '' : '仲要冇用「幫我做」，真係好勁！'), [{ t: '🎲 再玩一次', cls: 'pink', f: function () { self.startFull(); } }]);
+      var cmp = Brain.engine === CFOP ? '用層先法大約要 150 下，CFOP 慳咗 ' + Math.max(0, 150 - turns) + ' 下！' : '';
+      this.celebrate('🏆 你還原咗扭計骰！', '用咗 ' + time + '，扭咗 ' + turns + ' 下（唔計轉成個骰）。' + cmp + (Brain.usedHelp ? '' : '仲要冇用「幫我做」，真係好勁！'), [{ t: '🎲 再玩一次', cls: 'pink', f: function () { self.startFull(); } }]);
     },
 
     /* ---- speedcubing lesson ---- */
@@ -5211,6 +5805,7 @@ function CubeView(host, opts) {
     startCross: function () {
       var self = this, s, opt;
       clearInterval(this._insp);
+      if (this.lesson && this.lesson.kind === 'cfop') { this.brainRest('高手十字挑戰：教練休息緊，靠你自己觀察同計劃！'); $('#mStatus').innerHTML = ''; var ob = $('.done-box', this.card); if (ob) ob.remove(); }
       for (var k = 0; k < 40; k++) { s = Gen.scrambled(); opt = CrossTrainer.solve(s); if (opt.length >= 4 && !CO.crossDone(s)) break; }
       Play.setState(s, { noBrain: true }); Play.view.clearArrow(); Play.view.setFocus([]);
       this.cur = { type: 'cross', start: s.slice(), opt: opt, demo: false, done: false, insp: 15 };
@@ -5281,7 +5876,12 @@ function CubeView(host, opts) {
     },
     onUndo: function (tok) {
       var c = this.cur; if (!c) return;
-      if (c.type === 'follow' && c.i > 0 && c.targets[c.i - 1] === tok) { c.i--; this.renderFollow(false); }
+      if (c.type === 'follow') {
+        var cur = c.targets[c.i], prev = c.targets[c.i - 1];
+        if (c.half && tok === c.half) { c.half = null; this.renderFollow(false); }
+        else if (prev && prev === tok) { c.i--; this.renderFollow(false); }
+        else if (prev && prev[1] === '2' && tok[0] === prev[0]) { c.i--; c.half = tok; this.renderFollow(false); }
+      }
       if (c.type === 'full') this.updateRoadmap();
       if (c.type === 'cross') this.crossMove(true);
     },
@@ -5300,6 +5900,8 @@ function CubeView(host, opts) {
       Brain.stop();
       if (this.mode === 'practice') { this.startFull(); return; }
       var L = this.lesson; if (!L) return;
+      if (L.kind === 'cfop') { var cc = this.cur; if (cc && cc.type === 'cross') this.startCross(); else if (cc && cc.type === 'quiz') this.startQuiz(cc.set); else this.startStage(cc && cc.v ? cc.v : 'easy'); return; }
+      if (L.kind === 'cfopgrad') { this.startFull(); return; }
       if (L.kind === 'intro') this.introMount();
       else if (L.kind === 'moves') { if (this.cur && this.cur.type === 'follow') this.startFollow(this.cur.cycle); else this.movesMount(); }
       else if (L.kind === 'stage') this.startStage(this.cur ? this.cur.v : 'easy');
@@ -5308,13 +5910,148 @@ function CubeView(host, opts) {
     }
   };
 
+
+  /* =====================================================================
+     CASE BOOK: textbook case galleries, 3D demos, drills, recognition quiz
+     ===================================================================== */
+  var SIDE_STRIPS = { t: [47, 46, 45], r: [11, 10, 9], b: [18, 19, 20], l: [36, 37, 38] };
+  function pieceColsAt(s, idx) { return pieceOf(idx).map(function (i) { return s[i]; }); }
+  var CaseBook = {
+    state: function (c) { return M.apply(M.solved(), M.invert(c.alg)); },
+    topView: function (s, mode, size) {
+      var y = s[4], cells = '', sides = {};
+      for (var i = 0; i < 9; i++) cells += mode === 'oll' ? (s[i] === y ? 'Y' : 'x') : s[i];
+      Object.keys(SIDE_STRIPS).forEach(function (k) { sides[k] = SIDE_STRIPS[k].map(function (i) { return mode === 'oll' ? (s[i] === y ? 'Y' : 'x') : s[i]; }).join(''); });
+      return faceSVG(cells, { size: size || 26, sides: sides });
+    },
+    isoView: function (s, mode, size) {
+      var f = {}, rng = { U: [0, 9], R: [9, 18], F: [18, 27] };
+      Object.keys(rng).forEach(function (face) {
+        var str = '';
+        for (var i = rng[face][0]; i < rng[face][1]; i++) {
+          var cols = pieceColsAt(s, i), keep;
+          if (i % 9 === 4) keep = true;
+          else if (mode === 'cross') keep = cols.length === 2 && cols.indexOf('W') >= 0;
+          else keep = cols.indexOf('Y') < 0;
+          var hl = mode === 'f2l' && (cols.slice().sort().join() === 'G,O,W' || cols.slice().sort().join() === 'G,O');
+          if (mode === 'cross') hl = cols.slice().sort().join() === 'G,W';
+          str += keep ? (hl ? s[i].toLowerCase() : s[i]) : 'x';
+        }
+        f[face] = str;
+      });
+      return isoSVG(f, { size: size || 22 });
+    },
+    fig: function (c) {
+      var s = this.state(c);
+      return c.view === 'oll' || c.view === 'pll' ? this.topView(s, c.view, 22) : this.isoView(s, c.view, 20);
+    },
+    gallery: function (cases) {
+      var self = this, grid = h('div', { class: 'case-grid' });
+      cases.forEach(function (c) {
+        var card = h('div', { class: 'case-card' },
+          '<div class="cc-fig">' + self.fig(c) + '</div><b>' + esc(c.name) + '</b><p>' + esc(c.desc || '') + '</p>' +
+          '<div class="cc-alg">' + M.parse(c.alg).map(function (m) { return chipHTML(m); }).join('') + '</div>' +
+          '<div class="cc-btns"><button class="btn sm pri" data-a="demo">🎬 示範</button><button class="btn sm" data-a="try">✋ 自己試</button></div>');
+        var sp = spk(function () { return c.name + '。' + (c.desc || '') + '公式係：' + c.alg; }, 'small'); sp.classList.add('cc-spk');
+        card.appendChild(sp);
+        $('[data-a=demo]', card).onclick = function () { Sfx.unlock(); self.demo(c); };
+        $('[data-a=try]', card).onclick = function () { Sfx.unlock(); self.tryIt(c); };
+        grid.appendChild(card);
+      });
+      return grid;
+    },
+    demo: function (c) {
+      if (Play.lock) return;
+      var st = this.state(c);
+      Missions.cur = { type: 'caseDemo' };
+      Missions.brainRest('睇緊教科書示範');
+      Play.setState(st, { noBrain: true });
+      Play.view.resetView();
+      var cols = c.view === 'f2l' ? ['W', 'G', 'O'] : null;
+      if (cols) { var f = []; for (var i = 0; i < 54; i++) { var pc = pieceColsAt(st, i).slice().sort().join(); if (pc === 'G,O,W' || pc === 'G,O') f.push(i); } Play.view.setFocus(f); }
+      Play.lock = true;
+      toast('🎬 ' + esc(c.name));
+      var moves = M.parse(c.alg), chain = say(c.name + '。' + (c.desc || ''));
+      moves.forEach(function (t) { chain = chain.then(function () { Play.view.showArrow(t); moveToast(t); return sleep(380); }).then(function () { return Play.doMove(t, { src: 'demo', dur: 480 }); }); });
+      chain.then(function () { Play.view.clearArrow(); Play.lock = false; Play.view.setFocus([]); Sfx.good(); toast('✅ 示範完！撳「✋ 自己試」跟住做一次'); });
+    },
+    tryIt: function (c) {
+      if (Play.lock) return;
+      var st = this.state(c);
+      Missions._toDrill = true;
+      Missions.tab('do');
+      Missions._toDrill = false;
+      Missions.brainRest('自己試緊公式：跟住粉紅色箭咀！');
+      var old = $('.done-box', Missions.card); if (old) old.remove();
+      $('#mStatus') && ($('#mStatus').innerHTML = '');
+      Missions.startFollow(false, {
+        id: 'case', targets: c.alg, start: st, intro: '✋ 「' + esc(c.name) + '」：' + esc(c.desc || '') + '<br><small>跟住粉紅色箭咀同掣去扭，扭錯會自動幫你轉返。</small>',
+        onDone: function () {
+          Missions.celebrate('🎉 「' + c.name + '」做完！', '再做多幾次，直到唔使睇都識！', [{ t: '🔁 再試', cls: 'pink', f: function () { CaseBook.tryIt(c); } }, { t: '📖 返學習卡', f: function () { Missions.tab('learn'); } }]);
+        }
+      });
+    }
+  };
+  var QUIZ_HINTS = {
+    sune: '1 粒黃色角向上；魚頭擺左前時，右前角嘅黃色向前。', anti: '1 粒黃色角向上；魚頭擺左前時，右後角嘅黃色向右。',
+    h: '0 粒黃色角向上；左右兩面都有一對黃色（雙車頭燈）。', pi: '0 粒黃色角向上；只有一面有一對黃色。',
+    u: '2 粒黃色角隔籬；對面有一對黃色車頭燈。', t: '2 粒黃色角隔籬；黃色貼紙分開向兩邊。', l: '2 粒黃色角喺對角位置。',
+    pt: '有一對車頭燈：兩粒角隔籬交換。', py: '冇車頭燈：兩粒角對角交換。', pua: '有一面成條實色，其餘三粒邊順時針輪轉。', pub: '有一面成條實色，其餘三粒邊逆時針輪轉。',
+    ph: '冇實色；邊塊同對面交換（每面中間顏色同對面一樣）。', pz: '冇實色；邊塊同隔籬交換。'
+  };
+  Missions.startQuiz = function (set) {
+    this.brainRest('小測：靠你自己認！');
+    $('#mStatus').innerHTML = ''; var ob = $('.done-box', this.card); if (ob) ob.remove();
+    this.cur = { type: 'quiz', set: set, n: 0, right: 0, total: 5 };
+    this.tab('do');
+    this.quizNext();
+  };
+  Missions.quizNext = function () {
+    var c = this.cur, self = this, list = c.set === 'oll' ? CFOP.OLL : CFOP.PLL;
+    if (c.n >= c.total) {
+      Store.badge(c.set === 'oll' ? 'quizOLL' : 'quizPLL');
+      this.celebrate('🧠 小測完成！', '答啱 ' + c.right + ' / ' + c.total + ' 題。' + (c.right >= 4 ? '你已經識得認' + (c.set === 'oll' ? ' OLL' : ' PLL') + '喇！' : '多睇幾次學習卡，再試一次！'), [{ t: '🔁 再測', cls: 'pink', f: function () { self.startQuiz(c.set); } }, { t: '📖 返學習卡', f: function () { self.tab('learn'); } }]);
+      return;
+    }
+    var ans = pick(list), st = M.apply(M.apply(M.solved(), M.invert(ans.moves)), M.pow('U', Math.floor(Math.random() * 4)));
+    Play.setState(st, { noBrain: true }); Play.view.resetView();
+    var opts = [ans].concat(list.filter(function (x) { return x !== ans; }).sort(function () { return Math.random() - 0.5; }).slice(0, 3)).sort(function () { return Math.random() - 0.5; });
+    c.ans = ans; c.answered = false;
+    $('#mArea').innerHTML = '<div class="quiz"><div class="row" style="justify-content:space-between"><b>第 ' + (c.n + 1) + ' / ' + c.total + ' 題</b><span>✅ ' + c.right + '</span></div>' +
+      '<p>由上面望落去（黃色向上），呢個係邊一種' + (c.set === 'oll' ? ' OLL' : ' PLL') + '？</p><div class="quiz-fig">' + CaseBook.topView(st, c.set, 30) + '</div>' +
+      '<div class="quiz-opts">' + opts.map(function (o) { return '<button class="btn" data-id="' + o.id + '">' + esc(o.name) + '</button>'; }).join('') + '</div><div id="quizMsg"></div></div>';
+    $$('.quiz-opts button').forEach(function (b) { b.onclick = function () { self.quizAnswer(b.dataset.id, b); }; });
+    Voice.auto('第' + (c.n + 1) + '題：呢個係邊一種？');
+  };
+  Missions.quizAnswer = function (id, btn) {
+    var c = this.cur, self = this; if (c.answered) return; c.answered = true;
+    var ok = id === c.ans.id, key = (c.set === 'pll' ? 'p' : '') + c.ans.id;
+    if (ok) { c.right++; Sfx.good(); } else Sfx.soft();
+    $$('.quiz-opts button').forEach(function (b) { if (b.dataset.id === c.ans.id) b.classList.add('ok'); else if (b === btn) b.classList.add('no'); b.disabled = true; });
+    $('#quizMsg').innerHTML = '<div class="brain-msg show ' + (ok ? 'good' : 'warn') + '">' + (ok ? '✅ 答啱！' : '差少少！答案係「' + esc(c.ans.name) + '」。') + '<br>' + esc(QUIZ_HINTS[key] || '') + '<div class="row"><button class="btn sm pri" id="qDo">✋ 做埋佢</button><button class="btn sm pink" id="qNext">➡ 下一題</button></div></div>';
+    Voice.auto((ok ? '答啱！' : '差少少！答案係' + c.ans.name + '。') + (QUIZ_HINTS[key] || ''));
+    $('#qNext').onclick = function () { c.n++; self.quizNext(); };
+    $('#qDo').onclick = function () {
+      var s0 = Play.state.slice(), best = null;
+      for (var u = 0; u < 4 && !best; u++) for (var v = 0; v < 4; v++) {
+        var t = M.apply(M.apply(M.apply(s0, M.pow('U', u)), c.ans.moves), M.pow('U', v));
+        if (c.set === 'oll' ? CFOP.topAllYellow(t) : CO.isSolved(t)) { best = M.pow('U', u).concat(c.ans.moves, c.set === 'oll' ? [] : M.pow('U', v)); break; }
+      }
+      var q = c;
+      self.startFollow(false, { id: 'quizdo', targets: best || c.ans.moves, start: s0, intro: '✋ 做「' + esc(c.ans.name) + '」：' + (best && best[0] && best[0][0] === 'U' && c.ans.moves[0] !== best[0] ? '先轉頂層擺好角度，再做公式。' : '直接做公式。'), onDone: function () {
+        self.cur = q; q.n++;
+        self.celebrate('🎉 做完！', '認得出、做得到，就係高手嘅第一步！', [{ t: '➡ 下一題', cls: 'pink', f: function () { var ob = $('.done-box', self.card); if (ob) ob.remove(); self.quizNext(); } }]);
+      } });
+    };
+  };
+
   /* ---------- certificate ---------- */
   var Certificate = {
-    show: function (time, moves) {
+    show: function (time, moves, cfop) {
       var d = new Date(), date = d.getFullYear() + ' 年 ' + (d.getMonth() + 1) + ' 月 ' + d.getDate() + ' 日';
-      var c = modal('<div class="cert"><div style="width:90px;margin:0 auto">' + mascotSVG() + '</div><h2>🎓 扭計骰小博士證書</h2><p>茲證明</p>' +
+      var c = modal('<div class="cert"><div style="width:90px;margin:0 auto">' + mascotSVG() + '</div><h2>' + (cfop ? '🚀 CFOP 速解小高手證書' : '🎓 扭計骰小博士證書') + '</h2><p>茲證明</p>' +
         '<div class="who" id="certName">' + esc(Store.data.name || '（你嘅名）') + '</div>' +
-        '<p>已經學識用「層先法」八個步驟，<br>由零開始獨立還原 3×3 扭計骰！</p><p>⏱ ' + time + '　🔄 ' + moves + ' 下</p><p><small>' + date + '</small></p></div>' +
+        (cfop ? '<p>已經學識用 <b>CFOP 速解法</b>（十字、F2L、OLL、PLL），<br>成為「CFOP 速解小高手」！</p>' : '<p>已經學識用「層先法」八個步驟，<br>由零開始獨立還原 3×3 扭計骰！</p>') + '<p>⏱ ' + time + '　🔄 ' + moves + ' 下</p><p><small>' + date + '</small></p></div>' +
         '<div class="no-print" style="margin-top:14px"><input id="certInput" placeholder="寫低你嘅名" value="' + esc(Store.data.name || '') + '" style="font-size:18px;width:100%;padding:10px;border-radius:12px;border:2px solid #E0B000;font-family:inherit"><div class="row" style="margin-top:10px"><button class="btn pri" id="certPrint" style="flex:1">🖨 列印 / 儲存</button><button class="btn" id="certClose" style="flex:1">關閉</button></div></div>');
       $('#certInput', c).oninput = function () { Store.data.name = this.value; Store.save(); $('#certName').textContent = this.value || '（你嘅名）'; };
       $('#certPrint', c).onclick = function () { window.print(); };
@@ -5356,8 +6093,15 @@ function CubeView(host, opts) {
   }
   function renderMap() {
     var path = $('#mapPath'); path.innerHTML = '';
-    var nextFound = false;
+    var nextFound = false, lastCh = null;
     LESSONS.forEach(function (L, i) {
+      var ch = L.chapter || 'basic';
+      if (ch !== lastCh) {
+        lastCh = ch;
+        path.appendChild(h('div', { class: 'map-chapter' + (ch === 'cfop' ? ' cf' : '') }, ch === 'cfop' ?
+          '<span class="mc-ico">🚀</span><div>第二部分：CFOP 速解高手之路<small>世界紀錄選手用嘅方法・8 站・教科書式逐步學</small></div>' :
+          '<span class="mc-ico">🐢</span><div>第一部分：層先法（由零開始）<small>認識扭計骰、學扭法、8 個步驟、畢業挑戰</small></div>'));
+      }
       var st = Store.stars(L.id), done = st.some(Boolean), isNext = !done && !nextFound;
       if (isNext) nextFound = true;
       var n = h('button', { class: 'map-node' + (done ? ' done' : '') + (isNext ? ' next' : '') },
@@ -5369,7 +6113,7 @@ function CubeView(host, opts) {
   }
   function renderBadges() {
     var w = $('#badgesWrap');
-    var specials = [['first', '👆', '第一次扭', '喺 App 入面扭咗第一下'], ['cycle6', '🔬', '小科學家', '完成神奇 6 次實驗'], ['solve1', '🏆', '還原成功', '第一次還原成個扭計骰'], ['solveSelf', '💪', '獨立完成', '冇用「幫我做」還原扭計骰'], ['grad', '🎓', '扭計骰小博士', '完成畢業挑戰'], ['solver', '🎨', '解骰專家', '用填色解骰器解開一個骰'], ['brainy', '🧠', '電腦思考家', '睇完「電腦點樣諗？」學習卡'], ['crossPro', '🏁', '十字高手', '8 步以內直接砌好底部十字'], ['speedy', '⚡', '手速小子', '完成手速挑戰']];
+    var specials = [['first', '👆', '第一次扭', '喺 App 入面扭咗第一下'], ['cycle6', '🔬', '小科學家', '完成神奇 6 次實驗'], ['solve1', '🏆', '還原成功', '第一次還原成個扭計骰'], ['solveSelf', '💪', '獨立完成', '冇用「幫我做」還原扭計骰'], ['grad', '🎓', '扭計骰小博士', '完成畢業挑戰'], ['solver', '🎨', '解骰專家', '用填色解骰器解開一個骰'], ['brainy', '🧠', '電腦思考家', '睇完「電腦點樣諗？」學習卡'], ['crossPro', '🏁', '十字高手', '8 步以內直接砌好底部十字'], ['speedy', '⚡', '手速小子', '完成手速挑戰'], ['quizOLL', '🟡', 'OLL 偵探', '完成認 OLL 小測'], ['quizPLL', '🔄', 'PLL 偵探', '完成認 PLL 小測'], ['cfopgrad', '🚀', 'CFOP 速解小高手', '完成 CFOP 畢業挑戰']];
     w.innerHTML = '<div class="card"><h2>🏅 我的獎章</h2><p>你總共有 <b>⭐ ' + Store.total() + '</b> 粒星（最多 ' + LESSONS.length * 3 + ' 粒）。記住：星星唔係最重要，最重要係你肯諗、肯試！</p></div>' +
       '<div class="card"><h3>📚 每一課嘅星星</h3><div class="badge-grid">' + LESSONS.map(function (L) { var st = Store.stars(L.id); return '<div class="bdg' + (st.some(Boolean) ? ' got' : '') + '"><span class="bi">' + L.icon + '</span><b>' + esc(L.title) + '</b><small>' + starStr(st) + '</small></div>'; }).join('') + '</div></div>' +
       '<div class="card"><h3>✨ 特別獎章</h3><div class="badge-grid">' + specials.map(function (s) { var got = !!Store.data.badges[s[0]]; return '<div class="bdg' + (got ? ' got' : '') + '"><span class="bi">' + s[1] + '</span><b>' + s[2] + '</b><small>' + s[3] + '</small></div>'; }).join('') + '</div></div>';
@@ -5389,7 +6133,7 @@ function CubeView(host, opts) {
     w.innerHTML = '<div class="card"><h2>👨‍👩‍👧 俾家長同老師</h2><p>「扭計骰小博士」係一個單一 HTML 檔嘅教學 App，唔使安裝、唔使上網（除咗字型），可以喺電腦同 iPad 用。佢用最正統嘅<b>層先法（Layer-by-Layer）</b>教小朋友由零開始還原 3×3 扭計骰，並附有<b>填色解骰器</b>（Kociemba 兩階段演算法，通常 20 步左右解到任何一個骰）。解骰器會逐步解釋每一步嘅作用：第 1 階段將扭計骰整理成「黃白夾心」（數學上叫子群 G1 = ⟨U, D, R2, L2, F2, B2⟩：角塊方向、邊塊方向同中間層位置都擺啱），第 2 階段只用唔會破壞夾心嘅 10 種扭法歸位。進度表直接顯示演算法用緊嘅三個座標（twist、flip、slice）。</p></div>' +
       '<div class="card"><h3>🎓 設計理念（兒童學習心理學）</h3><div style="display:flex;flex-direction:column;gap:10px">' + P.map(function (p) { return '<div class="principle"><span class="pi">' + p[0] + '</span><div><b>' + p[1] + '</b><p>' + p[2] + '</p></div></div>'; }).join('') + '</div></div>' +
       '<div class="card"><h3>🔊 廣東話語音設定</h3><p id="voiceStatus"></p><ul><li><b>iPad / iPhone：</b>設定 → 輔助使用 → 語音內容 → 聲音 → 中文 → 揀「中文（香港）」並下載（例如 Sinji）。</li><li><b>Windows：</b>建議用 Microsoft Edge 開，會有自然嘅廣東話聲（HiuGaai / HiuMaan）。或者喺「設定 → 時間與語言 → 語音」加入「中文（香港特別行政區）」。</li><li><b>Mac：</b>系統設定 → 輔助使用 → 朗讀內容 → 系統聲音 → 管理聲音 → 中文（香港）。</li><li><b>Chrome：</b>通常內置「Google 粵語（香港）」。</li></ul></div>' +
-      '<div class="card"><h3>🚀 速解高手課（CFOP）</h3><p>畢業之後有一課介紹世界紀錄選手用嘅 CFOP 方法（Cross → F2L → OLL → PLL），並對照返層先法 8 個步驟點樣合併成 4 步（約 150 下減到約 55–60 下）。動手做部分有：高手十字挑戰（程式用廣度優先搜尋計晒 190,080 個十字狀態，比較小朋友同最少步數）、手速挑戰（計每秒扭幾多下）、F2L 配對同 T 字 PLL 示範。世界紀錄資料截至 2026 年 9 月，日後可能會再被打破。</p></div>' +
+      '<div class="card"><h3>🚀 第二部分：CFOP 速解高手之路（8 站）</h3><p>畢業之後有 8 站教科書式課程：C0 速解世界（世界紀錄、CFOP 概覽、手速挑戰）→ C1 底部十字 → C2 F2L 基本放入 → C3 F2L 拆開再配對 → C4 F2L 四對實戰 → C5 兩段式 OLL（7 條）→ C6 兩段式 PLL（6 條）→ C7 CFOP 畢業挑戰。每個情況嘅圖都由真實狀態自動畫出，可以喺 3D 骰示範同跟住做；C5、C6 有認公式小測。「腦袋思考中」會用 CFOP 方法提示：十字用最少步數（廣度搜尋），F2L 每次比較晒剩低嘅對、揀最快嗰對，並將答案分成「配對」同「放入」兩段。世界紀錄資料截至 2026 年 9 月。</p></div>' +
       '<div class="card"><h3>💡 使用建議</h3><ul><li>每次 15–20 分鐘，每日學一兩站就夠，重溫比趕進度更重要。</li><li>最好一邊用 App，一邊拎住真嘅扭計骰跟住做（黃色向上、綠色對住自己）。</li><li>小朋友卡住時，先問佢：「你觀察到乜嘢？」「目標係乜？」——即係「腦袋思考中」嘅四個問題。</li><li>年紀細嘅小朋友可以喺 ⚙️ 設定開「總係顯示答案」，同埋「讀出每一步扭法」。</li><li>鍵盤快捷鍵（電腦）：U R F D L B 扭動（Shift = 逆時針）、Y 轉成個骰、Z 返轉頭、H 提示。</li></ul></div>' +
       '<div class="card"><h3>🌐 上載去 GitHub Pages</h3><ol><li>喺 GitHub 開一個新 repository（例如 <code>cube-kids</code>）。</li><li>將 <code>index.html</code> 上載（Add file → Upload files）。</li><li>去 Settings → Pages → Source 揀 <code>main</code> branch，按 Save。</li><li>等一兩分鐘，就可以喺 <code>https://你的名.github.io/cube-kids/</code> 打開，iPad 用 Safari 開再「加入主畫面」，就好似一個 App 咁。</li></ol><p><small>本 App 用咗 three.js（MIT）同 cube.js 解骰演算法（MIT），已經內嵌喺檔案入面。Rubik\'s Cube 係其擁有者嘅商標，本 App 與其無關。</small></p></div>';
     var vs = $('#voiceStatus');
