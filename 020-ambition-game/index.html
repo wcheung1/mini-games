@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#07031a">
+<title>上進心能量核心</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@400;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root{
+  --bg:#07031a; --panel:rgba(22,12,58,.78); --line:rgba(255,255,255,.16);
+  --gold:#ffd166; --orange:#f4a261; --cyan:#4cc9f0; --pink:#f72585; --green:#06d6a0; --red:#ef476f; --purple:#7b2ff7;
+  --txt:#fff; --sub:#cfc6ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);font-family:"Noto Sans HK","PingFang HK","Microsoft JhengHei",system-ui,sans-serif;overflow:hidden}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer}
+#bg{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0}
+#fallbackOrb{display:none;position:fixed;left:50%;top:50%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;z-index:0;
+  background:radial-gradient(circle,#fff6d0 0%,#ffd166 25%,#f4a26188 45%,#7b2ff733 65%,transparent 72%);animation:orbPulse 3s ease-in-out infinite;transition:transform 1s,opacity 1s}
+body.noThree{background:radial-gradient(ellipse at center,#2a1460 0%,#07031a 70%)}
+@keyframes orbPulse{50%{filter:brightness(1.3)}}
+#dimmer{position:fixed;inset:0;background:rgba(6,2,22,.55);z-index:1;opacity:0;pointer-events:none;transition:opacity .6s}
+body.dim #dimmer{opacity:1}
+#app{position:fixed;inset:0;z-index:2}
+.screen{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;padding:84px 16px 60px}
+.screen.on{display:block;animation:fadeIn .5s}
+#intro.screen{padding-top:16px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.panel{background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:26px;padding:22px;max-width:860px;margin:0 auto 18px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+h1,h2,h3{margin:.2em 0 .4em;line-height:1.3}
+h2{font-size:clamp(22px,3vw,30px);color:var(--gold)}
+/* ===== say blocks ===== */
+.say{display:flex;gap:12px;align-items:flex-start;margin:10px 0;font-size:clamp(18px,2.3vw,22px);line-height:1.7}
+.say .tx{flex:1}
+.spk{flex:none;width:46px;height:46px;border-radius:50%;border:none;background:linear-gradient(145deg,#ffe08a,#f4a261);font-size:21px;box-shadow:0 3px 0 #b86a2a,0 0 14px rgba(255,209,102,.45);transition:transform .15s}
+.spk:active{transform:scale(.92)}
+.spk.sm{width:40px;height:40px;font-size:17px}
+.spk.playing{animation:spkPulse .8s infinite;background:linear-gradient(145deg,#8ef5d8,#06d6a0);box-shadow:0 3px 0 #03805f,0 0 20px #06d6a0}
+@keyframes spkPulse{50%{transform:scale(1.12)}}
+/* ===== buttons ===== */
+.btn{border:none;border-radius:18px;padding:14px 26px;font-size:clamp(18px,2.2vw,22px);font-weight:700;color:#1b0f3a;background:linear-gradient(145deg,#ffe08a,#f4a261);box-shadow:0 5px 0 #b86a2a;transition:transform .12s}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #b86a2a}
+.btn.big{font-size:clamp(20px,2.8vw,26px);padding:18px 34px}
+.btn.g{background:linear-gradient(145deg,#8ef5d8,#06d6a0);box-shadow:0 5px 0 #03805f}
+.btn.r{background:linear-gradient(145deg,#ffb0c0,#ef476f);box-shadow:0 5px 0 #a3203f;color:#fff}
+.btn.c{background:linear-gradient(145deg,#a6e9ff,#4cc9f0);box-shadow:0 5px 0 #1f7fa0}
+.btn.ghost{background:rgba(255,255,255,.1);color:#fff;box-shadow:none;border:2px solid var(--line)}
+.btn:disabled{opacity:.45}
+.nav{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:22px}
+.optRow{display:flex;gap:10px;align-items:center;margin:10px 0}
+.opt{flex:1;text-align:left;padding:14px 18px;border-radius:16px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);color:#fff;font-size:clamp(17px,2.1vw,20px);line-height:1.5;transition:all .2s}
+.opt:active{transform:scale(.98)}
+.opt.right{border-color:var(--green);background:rgba(6,214,160,.22)}
+.opt.wrong{border-color:var(--red);background:rgba(239,71,111,.18)}
+.opt.soft{border-color:var(--orange);background:rgba(244,162,97,.18)}
+.fb{margin-top:10px}
+.fb .say{background:rgba(255,255,255,.07);border-radius:16px;padding:10px 12px}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+/* ===== HUD ===== */
+#hud{position:fixed;top:0;left:0;right:0;z-index:5;display:none;align-items:center;gap:10px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));background:linear-gradient(rgba(7,3,26,.95),rgba(7,3,26,.6));backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);flex-wrap:wrap}
+body.hudOn #hud{display:flex}
+#hud .core{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle,#fff6d0,#ffd166 40%,#f4a261 60%,transparent 72%);box-shadow:0 0 18px #ffd166;animation:orbPulse 2s infinite}
+#hud .lv{font-weight:900;font-size:17px;white-space:nowrap}
+#hud .bar{width:clamp(80px,16vw,170px);height:12px;border-radius:8px;background:rgba(255,255,255,.15);overflow:hidden}
+#hud .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--gold));transition:width .8s}
+#hud .sp{flex:1}
+.hb{border:none;border-radius:14px;padding:9px 12px;font-size:16px;font-weight:700;color:#fff;background:rgba(255,255,255,.12)}
+.hb.sos{background:linear-gradient(145deg,#ff8fab,#ef476f);animation:sosGlow 2.5s infinite}
+@keyframes sosGlow{50%{box-shadow:0 0 16px #ef476f}}
+/* ===== intro ===== */
+.introWrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:10px 0 20px}
+.title{font-size:clamp(54px,11vw,120px);font-weight:900;letter-spacing:.08em;margin:0;background:linear-gradient(180deg,#fff6d0,#ffd166 45%,#f4a261);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(255,209,102,.6));animation:titleGlow 3s ease-in-out infinite}
+@keyframes titleGlow{50%{filter:drop-shadow(0 0 40px rgba(255,209,102,.95))}}
+.subtitle{font-size:clamp(18px,3vw,28px);letter-spacing:.4em;color:var(--sub);margin-top:-6px}
+.introLines{max-width:760px;margin:0 auto}
+.introLines .say{display:none;opacity:0;transform:translateY(12px);transition:all .8s;background:rgba(10,4,34,.62);border-radius:18px;padding:10px 14px;text-align:left}
+.introLines .say.on{display:flex}.introLines .say.show{opacity:1;transform:none}
+.voiceWarn{max-width:760px;margin:14px auto 0;font-size:14px;background:rgba(239,71,111,.2);border:1px solid var(--red);border-radius:14px;padding:10px 14px;text-align:left;display:none}
+/* ===== map ===== */
+.mapHead{max-width:860px;margin:0 auto}
+.mapWrap{position:relative;max-width:860px;height:max(620px,calc(100dvh - 250px));margin:0 auto}
+.mapWrap svg{position:absolute;inset:0;width:100%;height:100%}
+.node{position:absolute;transform:translate(-50%,-50%);border:none;background:none;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;width:130px}
+.node .ic{width:86px;height:86px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;background:radial-gradient(circle at 35% 30%,#fff8,var(--c) 45%,#0008 100%);box-shadow:0 0 22px var(--c);border:3px solid #fff6}
+.node .nm{font-size:15px;font-weight:700;line-height:1.3;text-shadow:0 2px 6px #000;background:rgba(7,3,26,.6);padding:2px 8px;border-radius:10px}
+.node.locked .ic{background:#2a2350;box-shadow:none;filter:grayscale(1);opacity:.7}
+.node.locked .nm{opacity:.6}
+.node.next .ic{animation:nodePulse 1.4s infinite}
+@keyframes nodePulse{50%{transform:scale(1.12);box-shadow:0 0 40px var(--c)}}
+.node .ok{position:absolute;top:0;right:22px;background:var(--green);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:900;box-shadow:0 0 10px var(--green)}
+/* ===== level ===== */
+.lvTop{max-width:860px;margin:0 auto 12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.lvTop h2{margin:0;flex:1}
+.dots{display:flex;gap:6px}
+.dots i{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,.2)}
+.dots i.on{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.dots i.now{background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.talk{display:flex;gap:16px;align-items:flex-start}
+.bubble{flex:1}
+.mascot{flex:none;width:84px;height:84px;border-radius:50%;position:relative;background:radial-gradient(circle at 35% 30%,#fffbe6,#ffd166 45%,#f4a261 75%);box-shadow:0 0 30px #ffd166aa;animation:bob 2.4s ease-in-out infinite}
+.mascot::after{content:"";position:absolute;top:-14px;left:36px;width:12px;height:18px;border-radius:50% 50% 0 0;background:#ffd166;transform:rotate(12deg)}
+.mascot .eye{position:absolute;top:30px;width:10px;height:14px;border-radius:50%;background:#2a1460;animation:blink 4s infinite}
+.mascot .eye.l{left:24px}.mascot .eye.r{right:24px}
+.mascot .mouth{position:absolute;left:32px;top:52px;width:20px;height:9px;border-radius:0 0 12px 12px;background:#7a2a2a}
+body.speaking .mascot .mouth{animation:talkM .25s infinite alternate}
+@keyframes talkM{to{height:3px}}
+@keyframes bob{50%{transform:translateY(-8px)}}
+@keyframes blink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.bigEmoji{font-size:64px;text-align:center;line-height:1.2}
+/* story */
+.storyRow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.sCard{border-radius:20px;border:2px solid var(--line);background:rgba(255,255,255,.07);padding:14px;min-height:190px;cursor:pointer}
+.sCard .back{display:none}
+.sCard.open .face .hint{display:none}
+.sCard.open .back{display:block;animation:fadeIn .5s}
+.sCard .hint{text-align:center;color:var(--gold);font-weight:700;animation:bob 1.6s infinite}
+.sCard h3{text-align:center}
+/* gems */
+.gems{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.gem{border:2px dashed var(--line);border-radius:20px;padding:14px;text-align:center;background:rgba(255,255,255,.05);cursor:pointer;min-height:150px}
+.gem .g{font-size:54px;display:block;filter:grayscale(1) brightness(.6);transition:all .5s}
+.gem.open{border-style:solid;border-color:var(--gold);background:rgba(255,209,102,.12)}
+.gem.open .g{filter:none;transform:scale(1.15);text-shadow:0 0 20px #fff}
+.gem .gt{display:none;text-align:left}
+.gem.open .gt{display:block}
+/* sort */
+.sortArea{display:grid;grid-template-columns:1fr 2fr 1fr;gap:10px;align-items:center;margin-top:12px}
+.jar{border-radius:18px 18px 30px 30px;border:3px solid;padding:10px 6px;text-align:center;font-weight:900;min-height:120px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.jar.j1{border-color:var(--gold);background:rgba(255,209,102,.1)}
+.jar.j2{border-color:#8a86b8;background:rgba(138,134,184,.1)}
+.jar .cnt{font-size:34px}
+.scard{border-radius:18px;background:#fff;color:#1b0f3a;padding:14px;min-height:120px;box-shadow:0 6px 20px #0006;transition:all .5s}
+.scard .say{font-size:clamp(17px,2.2vw,21px)}
+.scard.flyL{transform:translateX(-120%) scale(.3);opacity:0}
+.scard.flyR{transform:translateX(120%) scale(.3);opacity:0}
+.sortBtns{display:flex;gap:12px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+/* neuron */
+.neuroBox{position:relative;border-radius:20px;overflow:hidden;background:radial-gradient(circle,#1d0f4a,#0a0520);border:1px solid var(--line);margin-top:12px}
+.neuroBox canvas{display:block;width:100%;height:330px}
+.meter{height:16px;border-radius:10px;background:rgba(255,255,255,.12);overflow:hidden;margin:10px 0}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--pink),var(--gold));transition:width .4s}
+/* yet */
+.sentence{font-size:clamp(22px,3vw,30px);font-weight:900;text-align:center;padding:20px 10px;border-radius:18px;background:rgba(255,255,255,.06);margin:12px 0}
+.slot{display:inline-block;min-width:110px;border-bottom:4px dashed var(--gold);margin:0 6px;color:var(--gold)}
+.sentence.magic{background:linear-gradient(135deg,rgba(255,209,102,.25),rgba(76,201,240,.25));box-shadow:0 0 30px rgba(255,209,102,.5);animation:magicPop .6s}
+@keyframes magicPop{40%{transform:scale(1.05)}}
+.tiles{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.tileWrap{display:flex;gap:6px;align-items:center}
+.tile{border:none;border-radius:14px;padding:12px 18px;font-size:20px;font-weight:700;background:linear-gradient(145deg,#c9b6ff,#7b2ff7);color:#fff;box-shadow:0 4px 0 #4a1a9a}
+/* ladder */
+.goalBox{text-align:center;font-size:clamp(19px,2.5vw,24px);font-weight:900;color:var(--gold);margin:6px 0}
+.stairs{position:relative;height:300px;margin:12px 0;border-radius:18px;background:linear-gradient(#1a3a6e55,#0a052055);border:1px solid var(--line);overflow:hidden}
+.stair{position:absolute;width:24%;height:48px;border-radius:10px;background:rgba(255,255,255,.08);border:2px dashed rgba(255,255,255,.25);font-size:13px;padding:4px 6px;display:flex;align-items:center;line-height:1.25}
+.stair.fill{background:linear-gradient(145deg,#8ef5d8,#06d6a0);color:#063;border-style:solid;border-color:#fff;font-weight:700;animation:magicPop .5s}
+.hero{position:absolute;font-size:40px;transition:all .8s cubic-bezier(.3,1.6,.5,1);z-index:2}
+.flag{position:absolute;right:8px;top:6px;font-size:40px}
+/* battle */
+.arena{display:flex;align-items:center;justify-content:space-around;gap:10px;margin:10px 0;min-height:170px}
+.monster{font-size:100px;transition:transform .5s,filter .5s;filter:drop-shadow(0 0 16px #b14dff)}
+.monster.hit{animation:hit .5s}
+@keyframes hit{20%{transform:translateX(20px) rotate(10deg);filter:brightness(3)}60%{transform:translateX(-10px)}}
+.me{font-size:80px}
+.hp{display:flex;gap:4px;justify-content:center;font-size:24px}
+.speech{position:relative;background:#fff;color:#2a1460;border-radius:18px;padding:10px 14px;margin:10px 0}
+.speech .say{font-size:clamp(18px,2.3vw,22px);font-weight:700;margin:0}
+.beam{position:fixed;height:10px;border-radius:10px;background:linear-gradient(90deg,#fff,var(--gold),var(--cyan));box-shadow:0 0 20px var(--gold);z-index:20;pointer-events:none;transform-origin:left center;animation:beam .5s forwards}
+@keyframes beam{from{transform:scaleX(0)}70%{transform:scaleX(1);opacity:1}to{opacity:0}}
+/* mine */
+.rockZone{text-align:center;margin:10px 0}
+.rock{font-size:110px;border:none;background:none;transition:transform .15s}
+.rock:active{transform:scale(.9) rotate(-6deg)}
+.rock.crack{animation:crack .5s}
+@keyframes crack{30%{transform:rotate(-8deg) scale(1.05)}60%{transform:rotate(8deg)}}
+.gemRow{display:flex;gap:10px;justify-content:center;font-size:40px;min-height:56px;margin:8px 0}
+.gemRow span{animation:magicPop .6s;filter:drop-shadow(0 0 10px #fff)}
+.mistake{background:rgba(239,71,111,.15);border:2px solid var(--red);border-radius:16px;padding:6px 12px}
+/* practice */
+.gameArea{position:relative;height:min(58vh,520px);border-radius:20px;overflow:hidden;background:radial-gradient(ellipse at bottom,#2a1460,#07031a);border:2px solid var(--line);touch-action:none;user-select:none;-webkit-user-select:none}
+.gHud{position:absolute;top:8px;left:12px;right:12px;display:flex;justify-content:space-between;font-size:22px;font-weight:900;z-index:3;pointer-events:none}
+.fall{position:absolute;font-size:48px;line-height:1;width:64px;height:64px;display:flex;align-items:center;justify-content:center;margin-left:-32px}
+.pop{position:absolute;font-weight:900;font-size:26px;pointer-events:none;animation:popUp .7s forwards;z-index:4}
+@keyframes popUp{to{transform:translateY(-50px);opacity:0}}
+.countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:120px;font-weight:900;color:var(--gold);z-index:5;text-shadow:0 0 30px var(--gold)}
+.chart{display:flex;align-items:flex-end;gap:12px;height:190px;padding:10px;border-radius:16px;background:rgba(255,255,255,.06);margin:12px 0}
+.chart .b{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;font-weight:700}
+.chart .b i{display:block;width:100%;max-width:70px;border-radius:10px 10px 4px 4px;background:linear-gradient(var(--gold),var(--orange));transition:height .8s}
+.chart .b.last i{background:linear-gradient(var(--green),var(--cyan));box-shadow:0 0 14px var(--green)}
+.tip{background:rgba(76,201,240,.15);border:2px solid var(--cyan);border-radius:16px;padding:6px 12px;margin-top:10px}
+/* plan / chips */
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.chipWrap{display:flex;gap:6px;align-items:center}
+.chip{border:2px solid var(--line);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:10px 16px;font-size:18px;font-weight:700}
+.chip.sel{border-color:var(--gold);background:rgba(255,209,102,.25)}
+.promise{border-radius:22px;padding:20px;background:linear-gradient(135deg,#fff6d0,#ffd8a8);color:#3a1d00;box-shadow:0 0 40px rgba(255,209,102,.6);margin:14px 0;animation:magicPop .7s}
+.promise h3{color:#b35900;text-align:center}
+.promise .say{font-size:clamp(19px,2.5vw,24px);font-weight:700}
+/* summary */
+.badge{font-size:110px;text-align:center;animation:badgeIn 1.2s cubic-bezier(.3,1.6,.5,1);filter:drop-shadow(0 0 30px var(--gold))}
+@keyframes badgeIn{from{transform:scale(0) rotate(-180deg)}to{transform:none}}
+.points .say{background:rgba(255,209,102,.1);border-left:5px solid var(--gold);border-radius:12px;padding:8px 12px}
+/* sos */
+.breath{width:200px;height:200px;margin:20px auto;border-radius:50%;background:radial-gradient(circle,#a6e9ff,#4cc9f0 55%,#4cc9f000 72%);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:900;color:#07031a;transform:scale(.6);transition:transform 4s ease-in-out}
+.breath.in{transform:scale(1.1)}
+.ring{display:block;margin:10px auto}
+.timerTxt{font-size:56px;font-weight:900;text-align:center;color:var(--gold)}
+.steps4{display:flex;gap:6px;justify-content:center;margin-bottom:10px}
+.steps4 i{padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.1);font-style:normal;font-size:14px}
+.steps4 i.on{background:var(--pink)}
+/* daily */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin:12px 0}
+.day{border-radius:12px;padding:8px 2px;text-align:center;background:rgba(255,255,255,.06);font-size:13px}
+.day b{display:block;font-size:24px}
+.day.on{background:rgba(255,209,102,.25);box-shadow:0 0 12px rgba(255,209,102,.5)}
+/* modal cert */
+.modal{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.modal.on{display:flex}
+.cert{max-width:680px;width:100%;background:linear-gradient(135deg,#fffaf0,#ffefc2);color:#3a1d00;border-radius:24px;padding:28px;border:8px double #d99a2b;text-align:center;box-shadow:0 0 60px #ffd166}
+.cert h1{color:#b35900;font-size:clamp(26px,4vw,38px)}
+.cert input{font-size:26px;text-align:center;border:none;border-bottom:3px solid #d99a2b;background:transparent;color:#3a1d00;width:80%;font-family:inherit;font-weight:900}
+.cert .say{justify-content:center;text-align:left}
+/* floating + confetti */
+.floatT{position:fixed;z-index:40;font-size:30px;font-weight:900;color:var(--gold);text-shadow:0 0 12px #000;pointer-events:none;animation:floatUp 1.4s forwards;transform:translateX(-50%)}
+@keyframes floatUp{to{transform:translate(-50%,-90px);opacity:0}}
+.conf{position:fixed;top:-20px;width:10px;height:16px;z-index:40;pointer-events:none;animation:confFall linear forwards}
+@keyframes confFall{to{transform:translate(var(--dx),110vh) rotate(720deg)}}
+.parents p,.parents li{font-size:17px;line-height:1.7}
+.small{font-size:14px;color:var(--sub)}
+@media (max-width:900px){#hud .lb{display:none}#hud .hb{padding:9px 11px;font-size:18px}#hud{flex-wrap:nowrap}}
+@media (max-width:480px){#hud .lb2{display:none}#hud .lv{font-size:14px}#hud .bar{width:56px}}
+@media (max-width:640px){
+  .storyRow,.gems{grid-template-columns:1fr}
+  .sortArea{grid-template-columns:1fr 1fr}
+  .sortArea .scard{grid-column:1/3;grid-row:1}
+  .mascot{width:60px;height:60px}.mascot .eye{top:20px}.mascot .eye.l{left:16px}.mascot .eye.r{right:16px}.mascot .mouth{left:21px;top:37px}.mascot::after{left:24px}
+  .node{width:104px}.node .ic{width:66px;height:66px;font-size:30px}.node .nm{font-size:13px}
+  .stair{font-size:11px;height:54px}
+}
+@media print{
+  body *{visibility:hidden}
+  #certModal,#certModal *{visibility:visible}
+  #certModal{position:absolute;inset:0;background:#fff}
+  .cert .noPrint,.cert .spk{display:none}
+}
+</style>
+</head>
+<body class="noHud">
+<canvas id="bg"></canvas>
+<div id="fallbackOrb"></div>
+<div id="dimmer"></div>
+
+<div id="hud">
+  <div class="core"></div>
+  <div class="lv">能量 Lv.<span id="lvNum">1</span></div>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="sp"></div>
+  <button class="hb" id="hbMap" type="button">🗺️<span class="lb"> 地圖</span></button>
+  <button class="hb sos" id="hbSos" type="button">🆘<span class="lb2"> 懶懶急救站</span></button>
+  <button class="hb" id="hbDaily" type="button">📅<span class="lb"> 每日打卡</span></button>
+  <button class="hb" id="hbAuto" type="button">🗣️<span class="lb" id="autoLb"> 自動讀：開</span></button>
+  <button class="hb" id="hbParent" type="button">👨‍👩‍👧<span class="lb"> 家長</span></button>
+</div>
+
+<div id="app">
+  <!-- ===== INTRO ===== -->
+  <section class="screen on" id="intro">
+    <div class="introWrap">
+      <div>
+        <h1 class="title">上進心</h1>
+        <div class="subtitle">能 量 核 心</div>
+      </div>
+      <div style="height:30vh" id="introGap"></div>
+      <div style="width:100%">
+        <div class="introLines" id="introLines"></div>
+        <div class="nav">
+          <button class="btn big" id="btnAwake" type="button">✨ 撳一下，喚醒神秘能量</button>
+          <button class="btn big g" id="btnGo" type="button" style="display:none">🚀 開始探險</button>
+        </div>
+        <div class="voiceWarn" id="voiceWarn"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MAP ===== -->
+  <section class="screen" id="map">
+    <div class="panel mapHead" id="mapHead"></div>
+    <div class="mapWrap">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" id="mapPath"></svg>
+      <div id="mapNodes"></div>
+    </div>
+  </section>
+
+  <!-- ===== LEVEL ===== -->
+  <section class="screen" id="level">
+    <div class="lvTop"><h2 id="lvTitle"></h2><div class="dots" id="lvDots"></div></div>
+    <div class="panel" id="stage"></div>
+  </section>
+
+  <!-- ===== SOS ===== -->
+  <section class="screen" id="sos"><div class="panel" id="sosStage"></div></section>
+
+  <!-- ===== DAILY ===== -->
+  <section class="screen" id="daily"><div class="panel" id="dailyStage"></div></section>
+
+  <!-- ===== PARENTS ===== -->
+  <section class="screen" id="parents"><div class="panel parents" id="parentStage"></div></section>
+</div>
+
+<div class="modal" id="certModal">
+  <div class="cert">
+    <div style="font-size:70px">🏅</div>
+    <h1>上進心探險家證書</h1>
+    <p style="font-size:20px">茲證明</p>
+    <input id="certName" placeholder="寫低你嘅名" maxlength="16">
+    <div id="certBody"></div>
+    <p id="certDate" style="font-size:16px"></p>
+    <div class="nav noPrint">
+      <button class="btn" type="button" id="certPrint">🖨️ 列印證書</button>
+      <button class="btn g" type="button" id="certClose">返回地圖</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   上進心能量核心 —— 兒童上進心學習 App
+   純前端、單一檔案。紀錄只存喺本機瀏覽器 (localStorage)。
+   ========================================================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const strip = s => String(s).replace(/<[^>]+>/g, '');
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const todayKey = (d = new Date()) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+/* ===================== 儲存 ===================== */
+const Store = {
+  k: 'sjx_energy_core_v1', d: {},
+  load() {
+    try { this.d = JSON.parse(localStorage.getItem(this.k)) || {}; } catch (e) { this.d = {}; }
+    this.d = Object.assign({ energy: 0, done: {}, checkins: {}, plan: null, practice: [], sos: 0, name: '' }, this.d);
+  },
+  save() { try { localStorage.setItem(this.k, JSON.stringify(this.d)); } catch (e) {} }
+};
+Store.load();
+
+/* ===================== 廣東話語音 ===================== */
+const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}]/gu;
+const Voice = {
+  v: null, auto: true, rate: 0.93, q: [], busy: false, token: 0, curBtn: null, u: null,
+  ok: 'speechSynthesis' in window,
+  pick() {
+    if (!this.ok) return;
+    const vs = speechSynthesis.getVoices();
+    this.v = vs.find(x => /zh[-_]HK/i.test(x.lang)) ||
+             vs.find(x => /yue|cantonese|粵|廣東|sin-?ji|hiugaai|hiumaan|wanlung|tracy|danny/i.test(x.name + ' ' + x.lang)) || null;
+  },
+  clean(t) { return strip(t).replace(EMOJI_RE, '').replace(/[▶✔✅⚡★☆]/g, '').replace(/\s+/g, ' ').trim(); },
+  split(t) {
+    return (t.match(/[^。！？!?；\n]+[。！？!?；]*/g) || []).map(s => s.trim())
+      .filter(s => s.replace(/[，。！？!?；、「」『』…—\-:：（）()\s]/g, '').length);
+  },
+  speak(text, btn) { this.stop(); this.enqueue(text, btn); },
+  enqueue(text, btn) {
+    if (!this.ok) return;
+    const parts = this.split(this.clean(text));
+    if (!parts.length) return;
+    this.q.push({ parts, btn });
+    if (!this.busy) this._next();
+  },
+  _next() {
+    const tok = this.token;
+    if (!this.q.length) { this.busy = false; this._btn(null); document.body.classList.remove('speaking'); return; }
+    this.busy = true;
+    const item = this.q[0];
+    this._btn(item.btn);
+    document.body.classList.add('speaking');
+    const part = item.parts.shift();
+    if (!item.parts.length) this.q.shift();
+    const u = new SpeechSynthesisUtterance(part);
+    u.lang = 'zh-HK'; if (this.v) u.voice = this.v;
+    u.rate = this.rate; u.pitch = 1.08;
+    u.onend = u.onerror = () => { if (tok === this.token) this._next(); };
+    this.u = u;
+    speechSynthesis.speak(u);
+  },
+  stop() {
+    this.token++; this.q = []; this.busy = false;
+    if (this.ok) { try { speechSynthesis.cancel(); } catch (e) {} }
+    this._btn(null); document.body.classList.remove('speaking');
+  },
+  _btn(b) {
+    if (this.curBtn && this.curBtn !== b) this.curBtn.classList.remove('playing');
+    this.curBtn = b; if (b) b.classList.add('playing');
+  }
+};
+if (Voice.ok) { Voice.pick(); speechSynthesis.onvoiceschanged = () => Voice.pick(); setTimeout(() => Voice.pick(), 800); }
+
+// 可讀句子元件（帶小喇叭）
+function S(text, cls = '') {
+  return `<div class="say ${cls}"><button class="spk" type="button" aria-label="播放廣東話語音">🔊</button><div class="tx">${text}</div></div>`;
+}
+// 選項（左邊小喇叭，右邊選擇掣）
+function O(text, attrs = '', cls = 'opt') {
+  return `<div class="optRow"><button class="spk sm" type="button" data-say="${esc(strip(text))}" aria-label="讀出選項">🔊</button><button class="${cls}" type="button" ${attrs}>${text}</button></div>`;
+}
+function autoSay(root) {
+  if (!Voice.auto) return;
+  Voice.stop();
+  root.querySelectorAll('.say.auto').forEach(s => Voice.enqueue(s.querySelector('.tx').textContent, s.querySelector('.spk')));
+}
+function sayNow(text, btn) { if (Voice.auto) Voice.speak(text, btn); }
+function sayEl(el) { if (!el) return; const s = el.querySelector('.say'); if (s) sayNow(s.querySelector('.tx').textContent, s.querySelector('.spk')); }
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.spk');
+  if (!b) return;
+  e.stopPropagation();
+  Sfx.init();
+  if (b.classList.contains('playing')) { Voice.stop(); return; }
+  const t = b.dataset.say || (b.parentElement.querySelector('.tx') || {}).textContent || '';
+  Voice.speak(t, b);
+}, true);
+
+/* ===================== 音效 & 特效 ===================== */
+const Sfx = {
+  ctx: null,
+  init() { if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} } if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); },
+  tone(f, d = .15, type = 'sine', v = .12, when = 0) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime + when, o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + d);
+    o.connect(g); g.connect(this.ctx.destination); o.start(t); o.stop(t + d + .05);
+  },
+  good() { this.tone(660, .15); this.tone(880, .15, 'sine', .12, .1); this.tone(1320, .25, 'sine', .1, .2); },
+  soft() { this.tone(330, .2, 'triangle', .1); this.tone(294, .25, 'triangle', .08, .15); },
+  pop() { this.tone(900, .08, 'triangle', .1); },
+  bad() { this.tone(180, .2, 'sawtooth', .06); },
+  win() { [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, .3, 'sine', .12, i * .12)); },
+  rise() { for (let i = 0; i < 12; i++) this.tone(200 + i * 70, .25, 'sine', .06, i * .08); }
+};
+function confetti(n = 70) {
+  const cols = ['#ffd166', '#4cc9f0', '#f72585', '#06d6a0', '#7b2ff7', '#fff'];
+  for (let i = 0; i < n; i++) {
+    const c = document.createElement('div'); c.className = 'conf';
+    c.style.left = Math.random() * 100 + 'vw'; c.style.background = cols[i % cols.length];
+    c.style.setProperty('--dx', (Math.random() * 200 - 100) + 'px');
+    c.style.animationDuration = (1.8 + Math.random() * 1.8) + 's';
+    c.style.animationDelay = (Math.random() * .5) + 's';
+    document.body.appendChild(c); setTimeout(() => c.remove(), 4200);
+  }
+}
+function floatText(txt, x, y) {
+  const f = document.createElement('div'); f.className = 'floatT'; f.textContent = txt;
+  f.style.left = (x ?? innerWidth / 2) + 'px'; f.style.top = (y ?? innerHeight / 2) + 'px';
+  document.body.appendChild(f); setTimeout(() => f.remove(), 1500);
+}
+function evXY(e) { if (e && e.clientX) return [e.clientX, e.clientY]; return [innerWidth / 2, innerHeight / 2]; }
+
+/* ===================== 能量 ===================== */
+const levelOf = e => Math.floor(e / 50) + 1;
+const powerOf = () => Math.min(1, .12 + Store.d.energy / 450);
+function updateHUD() {
+  const e = Store.d.energy;
+  $('#lvNum').textContent = levelOf(e);
+  $('#barFill').style.width = ((e % 50) / 50 * 100) + '%';
+}
+function addEnergy(n, ev) {
+  const before = levelOf(Store.d.energy);
+  Store.d.energy += n; Store.save(); updateHUD();
+  const [x, y] = evXY(ev); floatText('+' + n + ' ⚡', x, y);
+  Core.setPower(powerOf()); Core.burst(.5);
+  if (levelOf(Store.d.energy) > before) {
+    setTimeout(() => { floatText('能量核心升級！Lv.' + levelOf(Store.d.energy), innerWidth / 2, innerHeight * .4); Sfx.win(); Core.burst(1.6); }, 500);
+  }
+}
+
+/* ===================== Three.js 能量核心 ===================== */
+const Core = { setPower() {}, burst() {} };
+(function initCore() {
+  const fallback = () => {
+    document.body.classList.add('noThree'); $('#bg').style.display = 'none';
+    const o = $('#fallbackOrb'); o.style.display = 'block';
+    Core.setPower = p => { o.style.transform = `scale(${.7 + p * .7})`; o.style.opacity = .5 + p * .5; };
+    Core.burst = () => { o.animate([{ filter: 'brightness(2.5)' }, { filter: 'brightness(1)' }], { duration: 900 }); };
+    Core.setPower(powerOf());
+  };
+  if (!window.THREE) { fallback(); return; }
+  try {
+    const canvas = $('#bg');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x07031a);
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x07031a, 0.008);
+    const camera = new THREE.PerspectiveCamera(55, 1, .1, 600);
+    camera.position.set(0, 0, 7);
+
+    const glowTex = (() => {
+      const c = document.createElement('canvas'); c.width = c.height = 256;
+      const g = c.getContext('2d'), gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+      gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.2, 'rgba(255,255,255,.7)');
+      gr.addColorStop(.5, 'rgba(255,255,255,.18)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, 256, 256);
+      return new THREE.CanvasTexture(c);
+    })();
+
+    // 星空
+    const N = 2200, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const r = 40 + Math.random() * 180, th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      pos[i * 3] = r * Math.sin(ph) * Math.cos(th); pos[i * 3 + 1] = r * Math.sin(ph) * Math.sin(th); pos[i * 3 + 2] = r * Math.cos(ph);
+    }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: .8, transparent: true, opacity: .9, depthWrite: false }));
+    scene.add(stars);
+
+    // 星雲
+    [[0x7b2ff7, -30, 10, -80], [0xf72585, 35, -15, -90], [0x4cc9f0, 0, 25, -100]].forEach(([c, x, y, z]) => {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: c, transparent: true, opacity: .28, blending: THREE.AdditiveBlending, depthWrite: false }));
+      s.position.set(x, y, z); s.scale.set(90, 90, 1); scene.add(s);
+    });
+
+    const group = new THREE.Group(); scene.add(group);
+    const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(.8, 3), new THREE.MeshBasicMaterial({ color: 0xffc94d }));
+    const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, 1), new THREE.MeshBasicMaterial({ color: 0x9fe6ff, wireframe: true, transparent: true, opacity: .5 }));
+    const shell2 = new THREE.Mesh(new THREE.OctahedronGeometry(1.6, 0), new THREE.MeshBasicMaterial({ color: 0xf72585, wireframe: true, transparent: true, opacity: .25 }));
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: 0xffc94d, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+    glow.scale.set(5, 5, 1);
+    group.add(glow, inner, shell, shell2);
+    const rings = [0x4cc9f0, 0xf72585, 0xffd166].map((c, k) => {
+      const r = new THREE.Mesh(new THREE.TorusGeometry(1.9 + k * .5, .014, 8, 160), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .6 }));
+      r.rotation.x = Math.random() * Math.PI; r.rotation.y = Math.random() * Math.PI; group.add(r); return r;
+    });
+    const SN = 700, sp = new Float32Array(SN * 3);
+    for (let i = 0; i < SN; i++) {
+      const r = 1.7 + Math.random() * 2.2, a = Math.random() * Math.PI * 2;
+      sp[i * 3] = Math.cos(a) * r; sp[i * 3 + 1] = (Math.random() - .5) * .6; sp[i * 3 + 2] = Math.sin(a) * r;
+    }
+    const swg = new THREE.BufferGeometry(); swg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    const swirl = new THREE.Points(swg, new THREE.PointsMaterial({ color: 0xffe29a, size: .06, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false }));
+    swirl.rotation.x = .35; group.add(swirl);
+
+    let power = .1, target = powerOf(), burst = 0, mx = 0, my = 0;
+    const cA = new THREE.Color(0x3a5bff), cB = new THREE.Color(0xffc94d), tmp = new THREE.Color();
+    function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.fov = w < h ? 70 : 55; camera.updateProjectionMatrix(); }
+    addEventListener('resize', resize); resize();
+    addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
+    const t0 = performance.now();
+    (function loop() {
+      const t = (performance.now() - t0) / 1000;
+      power += (target - power) * .03; burst *= .95;
+      tmp.copy(cA).lerp(cB, power);
+      inner.material.color.copy(tmp); glow.material.color.copy(tmp);
+      const s = .7 + power * .55 + burst * .35 + Math.sin(t * 2.2) * .03;
+      group.scale.setScalar(s);
+      glow.material.opacity = .3 + power * .65;
+      const gs = 3.2 + power * 3 + burst * 3 + Math.sin(t * 3) * .2; glow.scale.set(gs, gs, 1);
+      inner.rotation.y += .005; inner.rotation.x += .002;
+      shell.rotation.y -= .004 + burst * .03; shell.rotation.x += .002;
+      shell2.rotation.z += .003; shell2.rotation.y += .002 + burst * .02;
+      rings.forEach((r, i) => { r.rotation.z += .003 * (i + 1) + burst * .02; r.material.opacity = .25 + power * .55; });
+      swirl.rotation.y += .004 + power * .012 + burst * .05;
+      stars.rotation.y += .0003; stars.rotation.x += .0001;
+      camera.position.x += (mx * 1.6 - camera.position.x) * .03;
+      camera.position.y += (-my * 1.2 - camera.position.y) * .03;
+      camera.lookAt(0, 0, 0);
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    })();
+    Core.setPower = p => { target = p; };
+    Core.burst = (b = 1) => { burst = Math.max(burst, b); };
+  } catch (err) { fallback(); }
+})();
+
+/* ===================== 畫面切換 ===================== */
+let mapSpoken = false;
+function show(id) {
+  Voice.stop();
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  document.body.classList.toggle('hudOn', id !== 'intro');
+  document.body.classList.toggle('dim', !['intro', 'map'].includes(id));
+  const sc = $('#' + id); if (sc) sc.scrollTop = 0;
+  if (id === 'map') renderMap();
+}
+$('#hbMap').onclick = () => show('map');
+$('#hbSos').onclick = () => startSOS();
+$('#hbDaily').onclick = () => renderDaily();
+$('#hbParent').onclick = () => renderParents();
+$('#hbAuto').onclick = () => {
+  Voice.auto = !Voice.auto; $('#autoLb').textContent = ' 自動讀：' + (Voice.auto ? '開' : '關'); $('#hbAuto').style.opacity = Voice.auto ? 1 : .55;
+  if (!Voice.auto) Voice.stop();
+};
+
+/* ===================== 開場 ===================== */
+const INTRO_LINES = [
+  '喺每個人心入面，都收埋咗一粒神秘嘅能量核心。',
+  '佢嘅名字叫做——「上進心」。',
+  '當你同自己講：「我可以再好少少！」佢就會發光。',
+  '佢愈發光，你就愈強大：學嘢更快、做嘢更好、遇到困難都唔怕。',
+  '呢粒能量核心，可以改變你嘅將來。',
+  '今日開始，你就係「上進心探險家」！'
+];
+$('#introLines').innerHTML = INTRO_LINES.map(l => S(l, 'auto')).join('');
+$('#btnAwake').onclick = () => {
+  Sfx.init(); Sfx.rise(); Core.burst(2.5);
+  $('#btnAwake').style.display = 'none';
+  const ls = [...document.querySelectorAll('#introLines .say')];
+  $('#introGap').style.height = '6vh'; $('#voiceWarn').style.display = 'none';
+  Core.setPower(Math.max(powerOf(), .75));
+  ls.forEach((l, i) => { l.classList.add('on'); setTimeout(() => l.classList.add('show'), 400 + i * 900); });
+  setTimeout(() => { $('#btnGo').style.display = ''; }, 400 + ls.length * 900);
+  Voice.stop();
+  ls.forEach(l => Voice.enqueue(l.querySelector('.tx').textContent, l.querySelector('.spk')));
+};
+$('#btnGo').onclick = () => { Sfx.good(); Core.burst(1); Core.setPower(powerOf()); show('map'); };
+setTimeout(() => {
+  if (!Voice.ok || !Voice.v) {
+    const w = $('#voiceWarn'); w.style.display = 'block';
+    w.innerHTML = '⚠️ 呢部機暫時搵唔到「廣東話（香港）」語音，小喇叭可能讀唔到廣東話。<br>' +
+      '• iPad / iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 中文（香港），下載一把聲，再重新開呢頁。<br>' +
+      '• 電腦：建議用 Microsoft Edge 或 Chrome 開啟；Windows 可以喺「設定 → 時間與語言 → 語音」加入「中文（香港）」。';
+  }
+}, 1800);
+
+/* ===================== 關卡資料 ===================== */
+const LEVELS = [
+  {
+    id: 'L1', name: '喚醒能量核心', icon: '🔮', color: '#b14dff', badge: '🔮', badgeName: '覺醒徽章',
+    steps: [
+      { type: 'talk', title: '我係能量小精靈「能能」！', lines: [
+        '歡迎嚟到第一關！我係你嘅能量小精靈「能能」，我會一路陪住你。',
+        '今日我哋要搵出一個秘密：到底「上進心」係咩嚟？',
+        '上進心，就係你心入面一把細細聲講：「我想再好少少！」嘅力量。',
+        '佢唔係要你即刻變第一名，而係每日都比昨日嘅自己，進步一點點。'] },
+      { type: 'story', intro: '有兩個同學，阿樂同阿晴。老師叫佢哋畫一幅「我嘅屋企」。撳下面兩張卡，睇下佢哋點做。',
+        cards: [
+          { emoji: '🧒', name: '阿樂', text: '阿樂好快咁畫咗間屋，心諗：「得啦得啦，交咗就算。」屋頂冇塗色，人仔只畫咗半塊面。老師問佢：「你鍾意自己幅畫嗎？」阿樂搖搖頭，其實佢心入面有少少失望。' },
+          { emoji: '👧', name: '阿晴', text: '阿晴畫完之後，停一停，望多一次：「咦，屋頂未塗色喎！」佢補好顏色，仲加咗佢最鍾意嘅貓仔。交畫嗰陣，佢笑得好開心，因為呢幅畫係佢盡咗力嘅作品。' }],
+        q: '你覺得邊一個同學，心入面嘅能量核心發緊光？',
+        opts: [
+          { t: '阿樂', ok: false, fb: '阿樂其實都有能力畫得好好，只係今次佢冇用到能量核心。再諗下，邊個肯「停一停，望多一次」？' },
+          { t: '阿晴', ok: true, fb: '答得好！阿晴唔係天生畫得特別叻，佢只係肯「停一停，望多一次，再好少少」。呢個就係上進心！' }] },
+      { type: 'gems', intro: '上進心由三粒能量寶石組成。撳每一粒寶石，睇下佢哋係咩！', items: [
+        { g: '💎', title: '想進步', text: '心入面講：「我想再好少少！」好似遊戲角色想學識新招式咁。' },
+        { g: '🔥', title: '肯行動', text: '唔係淨係諗，仲要真係去做。就算係好細嘅一步，例如練習五分鐘，都算！' },
+        { g: '🛡️', title: '唔放棄', text: '遇到困難，唔會即刻話「算啦」，而係試另一個方法，或者休息一陣再嚟。' }] },
+      { type: 'sort', intro: '考下你嘅眼力！每張卡講緊一件事，你覺得係「⚡上進心」定係「😴得過且過」？', items: [
+        { t: '做完功課，再檢查多一次。', good: true, why: '檢查多一次，就可以捉到小錯誤，係上進心！' },
+        { t: '默書錯咗，話：「算啦，下次先算。」', good: false, why: '呢個係得過且過。上進心嘅做法係：將錯字寫多三次，記住佢。' },
+        { t: '打波輸咗，問教練：「我點樣可以進步？」', good: true, why: '主動問點樣進步，係好強嘅上進心！' },
+        { t: '執書包嗰陣，求其塞晒啲書入去。', good: false, why: '求其塞，第二日就容易漏帶嘢。慢慢執好，自己都會輕鬆啲。' },
+        { t: '識咗十個英文生字，想挑戰多兩個。', good: true, why: '比昨日多學少少，就係上進心！' },
+        { t: '老師話寫字要端正，你諗：「睇到咪得囉。」', good: false, why: '呢句係得過且過怪講嘅說話。試下每日寫靚一行字，慢慢就會進步。' },
+        { t: '彈琴有一段好難，每日慢慢練五分鐘。', good: true, why: '難嘅地方拆細嚟練，仲每日堅持，好有上進心！' },
+        { t: '見到數學題好長，即刻跳過唔做。', good: false, why: '長嘅題目可以一句一句咁讀，唔使即刻放棄。' }] },
+      { type: 'summary', points: [
+        '上進心 = 比昨日嘅自己好少少。',
+        '三粒寶石：想進步、肯行動、唔放棄。',
+        '神奇一招：停一停，望多一次，再好少少！'] }
+    ]
+  },
+  {
+    id: 'L2', name: '大腦魔法肌肉', icon: '🧠', color: '#f72585', badge: '🧠', badgeName: '大腦肌肉徽章',
+    steps: [
+      { type: 'talk', title: '你個腦係會變強嘅！', big: '🧠', lines: [
+        '你知唔知，你個腦係會變強嘅？',
+        '你個腦入面有好多好多細細嘅「神經元」，佢哋之間有一條條小路。',
+        '每次你練習，條小路就會行得更闊、更快。',
+        '就好似學踩單車，第一次成日跌，練多幾次，身體自自然然就識。唔係因為你天生叻，而係因為你練習過！'] },
+      { type: 'neuron', intro: '到你試下！每撳一次「練習」，就好似你真係練習咗一次。睇下大腦入面嘅小路會點變。' },
+      { type: 'talk', title: '神奇嘅「未」字魔法', big: '🪄', lines: [
+        '有一個神奇嘅字，可以即刻令大腦肌肉開始練：就係「未」字！',
+        '講「我唔識」，好似扇門閂埋咗。',
+        '但講「我仲未識」，意思係：我而家未識，不過我學緊，遲啲就會識！扇門即刻打開咗。'] },
+      { type: 'yet', intro: '幫下面啲句子揀一個魔法詞語，令佢哋充滿能量！', items: [
+        { pre: '我', post: '識做分數題。', opts: ['永遠都唔', '仲未', '懶得'], ans: '仲未', full: '我仲未識做分數題，不過我可以一步一步學！' },
+        { pre: '呢題好難，我', post: '做到。', opts: ['點都唔會', '暫時未', '一定唔會'], ans: '暫時未', full: '呢題好難，我暫時未做到，我可以試下另一個方法！' },
+        { pre: '我錯咗三個字，', post: '', opts: ['我好蠢', '我學到要小心呢三個字', '唔緊要，唔使理'], ans: '我學到要小心呢三個字', full: '我錯咗三個字，我學到要小心呢三個字！' },
+        { pre: '我游水', post: '慢。', opts: ['天生就係', '而家仲有少少', '永遠都會'], ans: '而家仲有少少', full: '我游水而家仲有少少慢，每個禮拜練習就會快啲！' }] },
+      { type: 'summary', points: [
+        '大腦好似肌肉，愈練愈強。',
+        '「我仲未識」比「我唔識」有力量得多。',
+        '進步靠三樣嘢：努力、好方法、唔放棄。'] }
+    ]
+  },
+  {
+    id: 'L3', name: '目標階梯', icon: '🪜', color: '#06d6a0', badge: '⛰️', badgeName: '登山家徽章',
+    steps: [
+      { type: 'talk', title: '大目標好似一座高山', big: '⛰️', lines: [
+        '大目標好似一座高山。如果想一步跳上山頂，一定會跌低。',
+        '聰明嘅探險家，會將大目標拆成一級一級嘅細樓梯。',
+        '每一級都細到你會話：「咁易，我做得到！」',
+        '行完一級又一級，唔知不覺，你已經企喺山頂喇！'] },
+      { type: 'ladder', intro: '幫探險家起樓梯！按正確次序，一級一級撳落去。', goals: [
+        { goal: '三個禮拜後，默書由60分升到80分', steps: ['睇清楚默書範圍', '每日讀熟五個詞語', '請屋企人幫手默一次', '錯咗嘅字抄寫，再默多次', '默書前一晚全部溫一次'] },
+        { goal: '學識跳繩，連續跳50下', steps: ['先試下跳10下', '每日練習五分鐘', '記低每日最多跳到幾多下', '每次挑戰多兩下', '跳到50下，同屋企人慶祝！'] }] },
+      { type: 'talk', title: '「能量第一步」秘訣', big: '👣', lines: [
+        '記住呢個秘訣：當你唔想開始，就揀一個細到唔會失敗嘅第一步。',
+        '例如：「我只係打開本書」，或者「我只係做第一題」。',
+        '好多時，開始咗之後，你會發現自己想繼續做落去！'] },
+      { type: 'summary', points: [
+        '大目標要拆成細步驟。',
+        '每一級都要細到「做得到」。',
+        '唔想開始？揀一個細到唔會失敗嘅第一步！'] }
+    ]
+  },
+  {
+    id: 'L4', name: '打敗得過且過怪', icon: '👾', color: '#7b2ff7', badge: '⚔️', badgeName: '勇者徽章',
+    steps: [
+      { type: 'talk', title: '心入面嘅「得過且過怪」', big: '👾', lines: [
+        '有時候，你心入面會出現一把聲：「求其啦！」「聽日先算！」',
+        '呢把聲嚟自「得過且過怪」。佢唔係壞人，佢只係好怕辛苦，想你一直留喺舒服嘅地方。',
+        '打敗佢嘅武器，就係「能量說話」！',
+        '不過要小心：鬧自己「我好蠢」都唔係能量說話，咁只會令你冇晒力。對自己，要好似對好朋友咁鼓勵。'] },
+      { type: 'battle', intro: '得過且過怪出現喇！揀一句「能量說話」打敗佢！', rounds: [
+        { say: '功課做完就得啦，唔使檢查喇！', opts: [
+          { t: '檢查多兩分鐘，可以捉到小錯誤，值得！', k: 'power' },
+          { t: '啱啊，快啲去玩先。', k: 'lazy' },
+          { t: '我成日都錯，檢查都冇用。', k: 'harsh' }] },
+        { say: '咁難，唔好做喇！', opts: [
+          { t: '難，即係我嘅大腦肌肉練緊！我先做第一小步。', k: 'power' },
+          { t: '係喎，太難喇，唔做啦。', k: 'lazy' },
+          { t: '我咁蠢，梗係做唔到。', k: 'harsh' }] },
+        { say: '聽日先溫啦，仲有好多時間。', opts: [
+          { t: '好啦，今日玩先。', k: 'lazy' },
+          { t: '我而家先溫五分鐘，聽日就輕鬆好多。', k: 'power' },
+          { t: '我成日拖，我冇得救。', k: 'harsh' }] },
+        { say: '人哋都係咁求其，你使乜咁認真？', opts: [
+          { t: '我唔係同人比，我係同昨日嘅自己比。', k: 'power' },
+          { t: '都係，大家都係咁。', k: 'lazy' },
+          { t: '我都唔會比人好，算啦。', k: 'harsh' }] },
+        { say: '上次都做唔好，今次都唔會得。', opts: [
+          { t: '上次係練習，今次我知道要改邊度！', k: 'power' },
+          { t: '係喎，唔好再試喇。', k: 'lazy' },
+          { t: '我永遠都係失敗嘅。', k: 'harsh' }] }] },
+      { type: 'summary', points: [
+        '得過且過怪講嘅說話，其實係藉口。',
+        '用能量說話回應：講出你下一步做乜。',
+        '對自己要好似對好朋友咁：鼓勵，唔好鬧。'] }
+    ]
+  },
+  {
+    id: 'L5', name: '錯誤寶石礦場', icon: '💎', color: '#4cc9f0', badge: '💎', badgeName: '寶石獵人徽章',
+    steps: [
+      { type: 'talk', title: '錯誤唔係垃圾，係寶石原石！', big: '🪨➡️💎', lines: [
+        '好多人以為錯誤係垃圾，想快啲掉咗佢。但其實，每個錯誤都係一粒「寶石原石」！',
+        '原石入面收埋咗一個提示：話你知下次點樣做得更好。只要你肯敲開佢，就會搵到寶石。',
+        '好多發明家同運動員，都係錯咗好多好多次，先變得咁厲害。'] },
+      { type: 'mine', intro: '撳三下石頭，敲開佢！然後揀一個方法，將錯誤變成寶石。', rocks: [
+        { m: '做數學加數，漏咗進位，錯咗兩題。', gem: '💎', opts: [
+          { t: '下次計完，用減數倒轉計一次檢查。', ok: true },
+          { t: '數學太難，我唔做數學喇。', ok: false, fb: '咁樣原石就冇得變寶石喇。試下諗一個下次唔會再錯嘅方法？' },
+          { t: '收埋份功課，唔好俾人見到。', ok: false, fb: '收埋錯誤，就收埋咗寶石喇！諗下點樣下次做得更好？' }] },
+        { m: '上美勞堂，唔記得帶顏色筆。', gem: '🔷', opts: [
+          { t: '怪媽媽冇幫我執。', ok: false, fb: '怪人唔會令我哋進步。我哋可以諗下自己可以做啲咩？' },
+          { t: '前一晚跟住手冊，自己執好書包。', ok: true },
+          { t: '算啦，反正都係美勞。', ok: false, fb: '呢句係得過且過怪講嘅！試下揀一個有行動嘅方法。' }] },
+        { m: '足球比賽輸咗，好唔開心。', gem: '💠', opts: [
+          { t: '以後唔踢波喇。', ok: false, fb: '唔開心係正常嘅，可以喊一陣、休息一陣。但放棄就收唔到寶石喇。' },
+          { t: '問教練同隊友：下次可以點改善？', ok: true },
+          { t: '話係對手出茅。', ok: false, fb: '怪人唔會令你變強。諗下自己下次可以練習啲咩？' }] },
+        { m: '作文好短，老師話要寫多啲細節。', gem: '🔶', opts: [
+          { t: '用「邊個、幾時、邊度、做咩、點解」幫自己加細節。', ok: true },
+          { t: '我唔鍾意作文，求其寫夠字數就算。', ok: false, fb: '求其寫就學唔到新招式喇。有冇一個方法可以幫你寫得更好？' },
+          { t: '叫同學寫俾我抄。', ok: false, fb: '抄人嘅，自己個腦就冇機會練習喇！' }] }] },
+      { type: 'talk', title: '送你三條「寶石問題」', big: '❓❓❓', lines: [
+        '每次錯咗，都可以問自己三條寶石問題：',
+        '第一：我錯咗咩？',
+        '第二：點解會錯？',
+        '第三：下次我會點做？',
+        '答完呢三條問題，錯誤就會變成閃閃發光嘅寶石！'] },
+      { type: 'summary', points: [
+        '錯誤係寶石原石，入面有提示。',
+        '唔怪自己、唔怪人，諗下次點做。',
+        '三條寶石問題：錯咗咩？點解錯？下次點做？'] }
+    ]
+  },
+  {
+    id: 'L6', name: '堅持能量訓練場', icon: '⭐', color: '#ffd166', badge: '🏋️', badgeName: '堅持徽章',
+    steps: [
+      { type: 'talk', title: '真正嘅練習時間！', big: '⭐', lines: [
+        '而家係真正嘅練習時間！',
+        '你要喺三十秒入面，撳住落嚟嘅星星，但唔好撳到烏雲。',
+        '第一次可能唔係好好，冇問題！留意你嘅「進步線」，睇下練習會帶嚟咩魔法。',
+        '最少練三次，先可以過關。'] },
+      { type: 'practice' },
+      { type: 'summary', points: [
+        '練習令你慢慢進步。',
+        '有時會退步少少，係好正常嘅，好似行山有上有落。',
+        '好方法加上堅持，就會有更大進步！'] }
+    ]
+  },
+  {
+    id: 'L7', name: '我嘅上進心任務', icon: '🚀', color: '#f4a261', badge: '🌟', badgeName: '能量大師徽章',
+    steps: [
+      { type: 'talk', title: '將能量帶去真實生活！', big: '🚀', lines: [
+        '你已經學識咗好多招式！但係最強嘅能量，係要喺真實生活入面用。',
+        '科學家發現：如果你預先諗好「如果……我就……」，到真係遇到困難嘅時候，你就會自動用出招式！',
+        '我哋而家一齊整一張屬於你嘅「能量承諾卡」。'] },
+      { type: 'plan' },
+      { type: 'talk', title: '你嘅兩件秘密武器', big: '🆘📅', lines: [
+        '第一：當你做嘢想求其嘅時候，撳上面嘅「懶懶急救站」，我會陪你用四步救返個能量核心。',
+        '第二：每日撳「每日打卡」，記低你今日做咗邊件有上進心嘅事。',
+        '每一日一點點，你個能量核心就會愈嚟愈強大！'] },
+      { type: 'summary', points: [
+        '「如果……我就……」計劃，幫你喺困難時自動出招。',
+        '想求其嗰陣，用懶懶急救站。',
+        '每日打卡，令上進心變成習慣。'] }
+    ]
+  }
+];
+
+/* ===================== 地圖 ===================== */
+const POS = [[22, 88], [58, 79], [82, 63], [52, 51], [20, 39], [46, 25], [78, 11]];
+function renderMap() {
+  const done = Store.d.done;
+  let nextI = LEVELS.findIndex((lv, i) => !done[lv.id] && (i === 0 || done[LEVELS[i - 1].id]));
+  const all = LEVELS.every(lv => done[lv.id]);
+  const msg = all ? '嘩！你已經完成晒七個關卡！記住每日打卡，同埋想求其嗰陣用懶懶急救站，令能量核心繼續變強！'
+    : Object.keys(done).length ? '歡迎返嚟，探險家！繼續下一個發光嘅星球啦。每過一關，你嘅能量核心都會更加光。'
+    : '呢度係能量宇宙地圖！一共有七個關卡。每過一關，你嘅能量核心就會更加光。撳發光嘅星球開始啦！';
+  $('#mapHead').innerHTML = `<div class="talk"><div class="mascot"><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div></div><div class="bubble">${S(msg, 'auto')}</div></div>`;
+  $('#mapPath').innerHTML = `<polyline points="${POS.map(p => p.join(',')).join(' ')}" fill="none" stroke="rgba(255,209,102,.55)" stroke-width="0.6" stroke-dasharray="1.5 1.5" vector-effect="non-scaling-stroke" style="stroke-width:4px"/>`;
+  $('#mapNodes').innerHTML = LEVELS.map((lv, i) => {
+    const d = !!done[lv.id], open = i === 0 || !!done[LEVELS[i - 1].id], [x, y] = POS[i];
+    return `<button type="button" class="node ${d ? 'done' : ''} ${open ? 'open' : 'locked'} ${i === nextI ? 'next' : ''}" style="left:${x}%;top:${y}%;--c:${lv.color}" data-i="${i}">
+      <span class="ic">${open ? lv.icon : '🔒'}</span><span class="nm">第${i + 1}關<br>${lv.name}</span>${d ? '<span class="ok">✔</span>' : ''}</button>`;
+  }).join('');
+  $('#mapNodes').querySelectorAll('.node').forEach(n => n.onclick = () => {
+    Sfx.init();
+    const i = +n.dataset.i;
+    if (n.classList.contains('locked')) { Sfx.soft(); n.classList.add('shake'); setTimeout(() => n.classList.remove('shake'), 400); Voice.speak('要先完成上一關，先可以打開呢一關㗎！一步一步嚟！'); return; }
+    Sfx.good(); startLevel(i);
+  });
+  if (!mapSpoken) { mapSpoken = true; setTimeout(() => autoSay($('#mapHead')), 300); }
+}
+
+/* ===================== 關卡引擎 ===================== */
+let cur = null;
+function startLevel(i) { cur = { i, lv: LEVELS[i], idx: 0 }; show('level'); renderStep(); }
+function renderStep() {
+  Voice.stop();
+  const { lv, idx } = cur, st = lv.steps[idx];
+  $('#lvTitle').textContent = `${lv.icon} 第${cur.i + 1}關：${lv.name}`;
+  $('#lvDots').innerHTML = lv.steps.map((_, k) => `<i class="${k < idx ? 'on' : k === idx ? 'now' : ''}"></i>`).join('');
+  const box = $('#stage'); box.innerHTML = ''; $('#level').scrollTop = 0;
+  STEP[st.type](box, st, () => { cur.idx++; renderStep(); });
+}
+function nextBtn(box, next, label = '繼續 ▶') {
+  if (box.querySelector('.nav.nextNav')) return;
+  const d = document.createElement('div'); d.className = 'nav nextNav';
+  d.innerHTML = `<button class="btn big g" type="button">${label}</button>`;
+  d.querySelector('button').onclick = () => { Sfx.pop(); next(); };
+  box.appendChild(d);
+  setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+}
+const mascot = () => `<div class="mascot"><div class="eye l"></div><div class="eye r"></div><div class="mouth"></div></div>`;
+const STEP = {};
+
+STEP.talk = (box, st, next) => {
+  box.innerHTML = `<div class="talk">${mascot()}<div class="bubble">${st.title ? `<h2>${st.title}</h2>` : ''}${st.big ? `<div class="bigEmoji">${st.big}</div>` : ''}${st.lines.map(l => S(l, 'auto')).join('')}</div></div>`;
+  nextBtn(box, next); autoSay(box);
+};
+
+STEP.story = (box, st, next) => {
+  box.innerHTML = S(st.intro, 'auto') + `<div class="storyRow">${st.cards.map((c, i) =>
+    `<div class="sCard" data-i="${i}"><div class="face"><div class="bigEmoji">${c.emoji}</div><h3>${c.name}</h3><div class="hint">👆 撳我睇故事</div></div><div class="back">${S(c.text)}</div></div>`).join('')}</div><div class="qz"></div>`;
+  const seen = new Set();
+  box.querySelectorAll('.sCard').forEach(card => card.addEventListener('click', e => {
+    if (e.target.closest('.spk') || card.classList.contains('open')) return;
+    card.classList.add('open'); Sfx.pop(); seen.add(card.dataset.i);
+    sayNow(st.cards[card.dataset.i].text, card.querySelector('.spk'));
+    if (seen.size === st.cards.length) showQ();
+  }));
+  function showQ() {
+    const q = box.querySelector('.qz');
+    q.innerHTML = `<h2 style="margin-top:18px">🤔 諗一諗</h2>` + S(st.q) + st.opts.map((o, i) => O(o.t, `data-i="${i}"`)).join('') + '<div class="fb"></div>';
+    q.querySelectorAll('.opt').forEach(b => b.onclick = e => {
+      const o = st.opts[b.dataset.i];
+      b.classList.add(o.ok ? 'right' : 'soft');
+      const fb = q.querySelector('.fb'); fb.innerHTML = S((o.ok ? '✅ ' : '💭 ') + o.fb); sayEl(fb);
+      if (o.ok) { Sfx.good(); addEnergy(3, e); nextBtn(box, next); } else Sfx.soft();
+    });
+    if (Voice.auto) Voice.enqueue(st.q, q.querySelector('.say .spk'));
+  }
+  autoSay(box);
+};
+
+STEP.gems = (box, st, next) => {
+  box.innerHTML = S(st.intro, 'auto') + `<div class="gems">${st.items.map((g, i) =>
+    `<div class="gem" data-i="${i}"><span class="g">${g.g}</span><h3>${g.title}</h3><div class="gt">${S(g.text)}</div></div>`).join('')}</div>`;
+  const opened = new Set();
+  box.querySelectorAll('.gem').forEach(el => el.addEventListener('click', e => {
+    if (e.target.closest('.spk')) return;
+    const g = st.items[el.dataset.i];
+    if (!el.classList.contains('open')) { el.classList.add('open'); Sfx.good(); Core.burst(.6); addEnergy(2, e); }
+    opened.add(el.dataset.i);
+    sayNow(g.title + '。' + g.text, el.querySelector('.spk'));
+    if (opened.size === st.items.length) nextBtn(box, next);
+  }));
+  autoSay(box);
+};
+
+STEP.sort = (box, st, next) => {
+  const items = shuffle(st.items); let i = 0, c1 = 0, c2 = 0;
+  box.innerHTML = S(st.intro, 'auto') + `<div class="sortArea"><div class="jar j1">⚡<br>上進心<div class="cnt">0</div></div><div class="scard"></div><div class="jar j2">😴<br>得過且過<div class="cnt">0</div></div></div>
+    <div class="sortBtns"><button class="btn" type="button" data-v="1">⚡ 上進心</button><button class="btn ghost" type="button" data-v="0">😴 得過且過</button></div><div class="fb"></div><p class="small" style="text-align:center" id="sProg"></p>`;
+  const card = box.querySelector('.scard'), fb = box.querySelector('.fb'), btns = box.querySelectorAll('.sortBtns button');
+  function showCard() {
+    const it = items[i]; card.className = 'scard'; card.innerHTML = S(it.t);
+    fb.innerHTML = ''; btns.forEach(b => b.disabled = false);
+    box.querySelector('#sProg').textContent = `第 ${i + 1} / ${items.length} 張`;
+  }
+  btns.forEach(b => b.onclick = e => {
+    const it = items[i], choice = b.dataset.v === '1', ok = choice === it.good;
+    btns.forEach(x => x.disabled = true);
+    card.classList.add(it.good ? 'flyL' : 'flyR');
+    if (it.good) { c1++; box.querySelector('.j1 .cnt').textContent = c1; } else { c2++; box.querySelector('.j2 .cnt').textContent = c2; }
+    fb.innerHTML = S((ok ? '✅ 啱喇！' : '💭 諗多一諗：') + it.why);
+    if (ok) { Sfx.good(); addEnergy(2, e); } else Sfx.soft();
+    sayEl(fb);
+    const nb = document.createElement('div'); nb.className = 'nav';
+    const last = i === items.length - 1;
+    nb.innerHTML = `<button class="btn c" type="button">${last ? '完成分類 ✔' : '下一張 ▶'}</button>`;
+    nb.querySelector('button').onclick = () => {
+      Sfx.pop(); i++;
+      if (i < items.length) { showCard(); sayNow(items[i].t, card.querySelector('.spk')); }
+      else { card.className = 'scard'; card.innerHTML = S('全部分好喇！你已經識得分辨上進心同得過且過，眼力一流！'); fb.innerHTML = ''; sayEl(card); nextBtn(box, next); }
+    };
+    fb.appendChild(nb);
+  });
+  showCard(); autoSay(box);
+  if (Voice.auto) Voice.enqueue(items[0].t, card.querySelector('.spk'));
+};
+
+STEP.neuron = (box, st, next) => {
+  const GOAL = 12; let taps = 0;
+  box.innerHTML = S(st.intro, 'auto') + `<div class="neuroBox"><canvas></canvas></div><div class="meter"><i></i></div><div class="nav"><button class="btn big c" type="button">💪 練習一次！</button></div><div class="fb"></div>`;
+  const cv = box.querySelector('canvas'), ctx = cv.getContext('2d'), fb = box.querySelector('.fb');
+  const W = () => cv.clientWidth, H = () => cv.clientHeight;
+  function size() { const r = window.devicePixelRatio || 1; cv.width = W() * r; cv.height = H() * r; ctx.setTransform(r, 0, 0, r, 0, 0); }
+  size();
+  const nodes = []; for (let k = 0; k < 16; k++) nodes.push({ x: .08 + Math.random() * .84, y: .1 + Math.random() * .8, p: Math.random() * 6 });
+  const edges = [];
+  nodes.forEach((a, ai) => {
+    const near = nodes.map((b, bi) => ({ bi, d: Math.hypot(a.x - b.x, a.y - b.y) })).filter(o => o.bi !== ai).sort((x, y) => x.d - y.d).slice(0, 2);
+    near.forEach(o => { if (!edges.find(e => (e.a === ai && e.b === o.bi) || (e.a === o.bi && e.b === ai))) edges.push({ a: ai, b: o.bi, s: 0 }); });
+  });
+  const pulses = [];
+  const msgs = { 3: '你睇！大腦入面開始出現一條條發光嘅小路喇！', 7: '練得愈多，條路就愈闊、愈光。呢個就係「練習」嘅魔法！', 12: '嘩！成個大腦都發晒光！你親眼見到：練習真係會令大腦變強！' };
+  box.querySelector('.nav button').onclick = e => {
+    if (taps >= GOAL) return;
+    taps++; Sfx.tone(400 + taps * 50, .15, 'sine', .1);
+    shuffle(edges).slice(0, 4).forEach(ed => { ed.s = Math.min(5, ed.s + 1); pulses.push({ ed, t: 0 }); });
+    box.querySelector('.meter i').style.width = (taps / GOAL * 100) + '%';
+    if (msgs[taps]) { fb.innerHTML = S(msgs[taps]); sayEl(fb); }
+    if (taps === GOAL) { Sfx.win(); addEnergy(5, e); confetti(40); edges.forEach(ed => ed.s = Math.max(ed.s, 3)); box.querySelector('.nav button').disabled = true; nextBtn(box, next); }
+  };
+  (function draw(t) {
+    if (!cv.isConnected) return;
+    if (cv.width !== Math.round(W() * (window.devicePixelRatio || 1))) size();
+    const w = W(), h = H(); ctx.clearRect(0, 0, w, h);
+    edges.forEach(ed => {
+      const a = nodes[ed.a], b = nodes[ed.b];
+      ctx.strokeStyle = ed.s ? `rgba(255,${180 + ed.s * 10},${80 + ed.s * 30},${.15 + ed.s * .17})` : 'rgba(255,255,255,.07)';
+      ctx.lineWidth = 1 + ed.s * 1.6; ctx.shadowColor = '#ffd166'; ctx.shadowBlur = ed.s * 4;
+      ctx.beginPath(); ctx.moveTo(a.x * w, a.y * h); ctx.lineTo(b.x * w, b.y * h); ctx.stroke();
+    });
+    ctx.shadowBlur = 0;
+    for (let k = pulses.length - 1; k >= 0; k--) {
+      const p = pulses[k]; p.t += .03; if (p.t > 1) { pulses.splice(k, 1); continue; }
+      const a = nodes[p.ed.a], b = nodes[p.ed.b];
+      ctx.fillStyle = '#fff'; ctx.shadowColor = '#4cc9f0'; ctx.shadowBlur = 16;
+      ctx.beginPath(); ctx.arc((a.x + (b.x - a.x) * p.t) * w, (a.y + (b.y - a.y) * p.t) * h, 4, 0, 7); ctx.fill();
+    }
+    nodes.forEach((n, ni) => {
+      const lit = edges.filter(ed => ed.a === ni || ed.b === ni).reduce((s, ed) => s + ed.s, 0);
+      const r = 5 + Math.min(lit, 10) * .6 + Math.sin((t || 0) / 400 + n.p) * 1;
+      ctx.shadowColor = lit ? '#f72585' : '#000'; ctx.shadowBlur = lit * 3;
+      ctx.fillStyle = lit ? '#ffe0f0' : '#6a5a9a';
+      ctx.beginPath(); ctx.arc(n.x * w, n.y * h, r, 0, 7); ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+    requestAnimationFrame(draw);
+  })();
+  autoSay(box);
+};
+
+STEP.yet = (box, st, next) => {
+  let i = 0;
+  box.innerHTML = S(st.intro, 'auto') + `<div class="yetBody"></div>`;
+  const body = box.querySelector('.yetBody');
+  function render() {
+    const it = st.items[i];
+    body.innerHTML = `<p class="small" style="text-align:center">第 ${i + 1} / ${st.items.length} 句</p>
+      <div class="sentence">${S(`${it.pre}<span class="slot">＿＿＿</span>${it.post}`)}</div>
+      <div class="tiles">${shuffle(it.opts).map(o => `<div class="tileWrap"><button class="spk sm" type="button" data-say="${esc(o)}">🔊</button><button class="tile" type="button" data-o="${esc(o)}">${o}</button></div>`).join('')}</div><div class="fb"></div>`;
+    body.querySelectorAll('.tile').forEach(t => t.onclick = e => {
+      const fb = body.querySelector('.fb');
+      if (t.dataset.o === it.ans) {
+        Sfx.good(); addEnergy(2, e);
+        const sen = body.querySelector('.sentence'); sen.classList.add('magic');
+        sen.innerHTML = S('✨ ' + it.full); body.querySelector('.tiles').remove();
+        fb.innerHTML = ''; sayEl(sen);
+        const nb = document.createElement('div'); nb.className = 'nav';
+        const last = i === st.items.length - 1;
+        nb.innerHTML = `<button class="btn c" type="button">${last ? '魔法完成 ✔' : '下一句 ▶'}</button>`;
+        nb.querySelector('button').onclick = () => { Sfx.pop(); i++; if (i < st.items.length) { render(); sayEl(body.querySelector('.sentence')); } else { body.innerHTML = S('你已經學識「未」字魔法！以後聽到自己講「我唔識」，就即刻改做「我仲未識」啦！'); sayEl(body); nextBtn(box, next); } };
+        body.appendChild(nb);
+      } else {
+        Sfx.soft(); t.parentElement.classList.add('shake'); setTimeout(() => t.parentElement.classList.remove('shake'), 400);
+        fb.innerHTML = S('💭 呢個詞語會令扇門閂埋喎！揀一個令人有希望、肯繼續試嘅詞語。'); sayEl(fb);
+      }
+    });
+  }
+  render(); autoSay(box);
+  if (Voice.auto) Voice.enqueue(body.querySelector('.sentence .tx').textContent.replace('＿＿＿', '，空格，'), body.querySelector('.sentence .spk'));
+};
+
+STEP.ladder = (box, st, next) => {
+  let g = 0;
+  box.innerHTML = S(st.intro, 'auto') + `<div class="ladBody"></div>`;
+  const body = box.querySelector('.ladBody');
+  function render() {
+    const goal = st.goals[g]; let placed = 0;
+    body.innerHTML = `<div class="goalBox">${S('🎯 目標：' + goal.goal)}</div><div class="stairs"><div class="flag">🚩</div><div class="hero">🧗</div>
+      ${goal.steps.map((_, k) => `<div class="stair" style="left:${2 + k * 18.5}%;bottom:${6 + k * 17}%">第${k + 1}級</div>`).join('')}</div>
+      <div class="lOpts">${shuffle(goal.steps).map(s => O(s, `data-s="${esc(s)}"`)).join('')}</div><div class="fb"></div>`;
+    const hero = body.querySelector('.hero'), stairs = body.querySelectorAll('.stair');
+    const moveHero = k => { hero.style.left = (k < 0 ? 1 : 5 + k * 18.5) + '%'; hero.style.bottom = (k < 0 ? 0 : 6 + k * 17 + 12) + '%'; };
+    moveHero(-1);
+    body.querySelectorAll('.opt').forEach(b => b.onclick = e => {
+      const fb = body.querySelector('.fb');
+      if (b.dataset.s === goal.steps[placed]) {
+        stairs[placed].textContent = goal.steps[placed]; stairs[placed].classList.add('fill');
+        moveHero(placed); placed++; b.parentElement.remove(); Sfx.tone(500 + placed * 90, .2); addEnergy(1, e);
+        fb.innerHTML = '';
+        if (placed === goal.steps.length) {
+          Sfx.win(); confetti(50); hero.style.bottom = '78%'; hero.style.left = '84%';
+          fb.innerHTML = S('🎉 到達山頂！你睇，一級一級行，大目標都可以做到！'); sayEl(fb);
+          const nb = document.createElement('div'); nb.className = 'nav';
+          const last = g === st.goals.length - 1;
+          nb.innerHTML = `<button class="btn c" type="button">${last ? '完成 ✔' : '下一座山 ▶'}</button>`;
+          nb.querySelector('button').onclick = () => { Sfx.pop(); g++; if (g < st.goals.length) { render(); sayEl(body.querySelector('.goalBox')); } else nextNow(); };
+          body.appendChild(nb);
+        }
+      } else {
+        Sfx.soft(); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400);
+        fb.innerHTML = S('💭 諗下：邊一步要最先做，先可以做到呢一步？'); sayEl(fb);
+      }
+    });
+  }
+  function nextNow() { next(); }
+  render(); autoSay(box);
+  if (Voice.auto) Voice.enqueue('目標：' + st.goals[0].goal);
+};
+
+STEP.battle = (box, st, next) => {
+  const HP = st.rounds.length; let hp = HP, r = 0, scale = 1;
+  box.innerHTML = S(st.intro, 'auto') + `<div class="arena"><div class="me">🦸</div><div style="text-align:center"><div class="monster">👾</div><div class="hp"></div></div></div>
+    <div class="speech"></div><div class="bOpts"></div><div class="fb"></div>`;
+  const mon = box.querySelector('.monster'), hpEl = box.querySelector('.hp'), sp = box.querySelector('.speech'), opts = box.querySelector('.bOpts'), fb = box.querySelector('.fb');
+  const drawHP = () => hpEl.innerHTML = '💜'.repeat(hp) + '🤍'.repeat(HP - hp);
+  function round() {
+    const rd = st.rounds[r];
+    sp.innerHTML = S('👾 得過且過怪：「' + rd.say + '」');
+    opts.innerHTML = shuffle(rd.opts).map(o => O(o.t, `data-k="${o.k}" data-t="${esc(o.t)}"`)).join('');
+    fb.innerHTML = '';
+    opts.querySelectorAll('.opt').forEach(b => b.onclick = e => {
+      const k = b.dataset.k;
+      if (k === 'power') {
+        b.classList.add('right'); opts.querySelectorAll('.opt').forEach(x => x.disabled = true);
+        shootBeam(box.querySelector('.me'), mon);
+        setTimeout(() => { mon.classList.remove('hit'); void mon.offsetWidth; mon.classList.add('hit'); }, 300);
+        hp--; scale = Math.max(.5, scale - .1); mon.style.transform = `scale(${scale})`; drawHP();
+        Sfx.good(); addEnergy(3, e);
+        fb.innerHTML = S('⚡ 能量說話命中！「' + b.dataset.t + '」得過且過怪縮細咗！'); sayEl(fb);
+        const nb = document.createElement('div'); nb.className = 'nav';
+        nb.innerHTML = `<button class="btn c" type="button">${hp ? '下一回合 ▶' : '睇下發生咩事 ✨'}</button>`;
+        nb.querySelector('button').onclick = () => { Sfx.pop(); r++; if (hp > 0) { round(); sayEl(sp); } else win(); };
+        fb.appendChild(nb);
+      } else if (k === 'lazy') {
+        b.classList.add('wrong'); scale = Math.min(1.5, scale + .12); mon.style.transform = `scale(${scale})`; Sfx.bad();
+        fb.innerHTML = S('😴 哎呀，得過且過怪聽到你咁講，變大咗！呢句係跟住佢講。再揀一句有行動、有能量嘅說話！'); sayEl(fb);
+      } else {
+        b.classList.add('soft'); Sfx.soft();
+        fb.innerHTML = S('💛 等等！鬧自己唔係能量說話，只會令你更加冇力。如果你嘅好朋友遇到呢件事，你會點樣鼓勵佢？用同樣嘅說話對自己講啦！'); sayEl(fb);
+      }
+    });
+  }
+  function win() {
+    Sfx.win(); confetti(80); Core.burst(1.5);
+    mon.style.transform = 'scale(.8)'; mon.textContent = '✨';
+    sp.innerHTML = S('得過且過怪變咗做一粒細細嘅星星！原來，當你用能量說話，佢就會變成你嘅動力。');
+    opts.innerHTML = ''; fb.innerHTML = ''; sayEl(sp); nextBtn(box, next);
+  }
+  drawHP(); round(); autoSay(box);
+  if (Voice.auto) Voice.enqueue(sp.querySelector('.tx').textContent, sp.querySelector('.spk'));
+};
+function shootBeam(from, to) {
+  const a = from.getBoundingClientRect(), b = to.getBoundingClientRect();
+  const x1 = a.left + a.width / 2, y1 = a.top + a.height / 2, x2 = b.left + b.width / 2, y2 = b.top + b.height / 2;
+  const d = document.createElement('div'); d.className = 'beam';
+  d.style.left = x1 + 'px'; d.style.top = y1 + 'px'; d.style.width = Math.hypot(x2 - x1, y2 - y1) + 'px';
+  d.style.transform = `rotate(${Math.atan2(y2 - y1, x2 - x1)}rad)`;
+  d.style.rotate = Math.atan2(y2 - y1, x2 - x1) + 'rad';
+  document.body.appendChild(d); setTimeout(() => d.remove(), 600);
+}
+
+STEP.mine = (box, st, next) => {
+  let i = 0; const got = [];
+  box.innerHTML = S(st.intro, 'auto') + `<div class="gemRow"></div><div class="mBody"></div>`;
+  const body = box.querySelector('.mBody'), row = box.querySelector('.gemRow');
+  function render() {
+    const rk = st.rocks[i]; let hits = 0;
+    body.innerHTML = `<p class="small" style="text-align:center">第 ${i + 1} / ${st.rocks.length} 粒原石</p><div class="rockZone"><button class="rock" type="button">🪨</button><div class="small">👆 撳三下敲開佢</div></div><div class="mq"></div>`;
+    const rock = body.querySelector('.rock');
+    rock.onclick = e => {
+      if (hits >= 3) return;
+      hits++; Sfx.tone(200 + hits * 60, .12, 'square', .08);
+      rock.classList.remove('crack'); void rock.offsetWidth; rock.classList.add('crack');
+      if (hits === 3) {
+        rock.textContent = '💥'; setTimeout(() => rock.textContent = '🔍', 400);
+        body.querySelector('.small').textContent = '';
+        const mq = body.querySelector('.mq');
+        mq.innerHTML = `<div class="mistake">${S('錯誤：' + rk.m)}</div>` + S('揀一個方法，將呢個錯誤變成寶石：') + shuffle(rk.opts).map(o => O(o.t, `data-t="${esc(o.t)}"`)).join('') + '<div class="fb"></div>';
+        if (Voice.auto) { Voice.stop(); Voice.enqueue('錯誤：' + rk.m); Voice.enqueue('揀一個方法，將呢個錯誤變成寶石。'); }
+        mq.querySelectorAll('.opt').forEach(b => b.onclick = ev => {
+          const o = rk.opts.find(x => x.t === b.dataset.t), fb = mq.querySelector('.fb');
+          if (o.ok) {
+            b.classList.add('right'); mq.querySelectorAll('.opt').forEach(x => x.disabled = true);
+            rock.textContent = rk.gem; Sfx.good(); addEnergy(3, ev); got.push(rk.gem);
+            row.innerHTML = got.map(gm => `<span>${gm}</span>`).join('');
+            fb.innerHTML = S('✨ 原石變咗寶石！錯誤話俾你知：' + o.t); sayEl(fb);
+            const nb = document.createElement('div'); nb.className = 'nav';
+            const last = i === st.rocks.length - 1;
+            nb.innerHTML = `<button class="btn c" type="button">${last ? '收集完成 ✔' : '下一粒原石 ▶'}</button>`;
+            nb.querySelector('button').onclick = () => { Sfx.pop(); i++; if (i < st.rocks.length) render(); else { body.innerHTML = S('你將四個錯誤，全部變成咗寶石！以後錯咗，記得嚟礦場敲開佢，搵出入面嘅提示。'); sayEl(body); confetti(50); nextBtn(box, next); } };
+            fb.appendChild(nb);
+          } else {
+            b.classList.add('soft'); Sfx.soft(); fb.innerHTML = S('💭 ' + o.fb); sayEl(fb);
+          }
+        });
+      }
+    };
+  }
+  render(); autoSay(box);
+};
+
+STEP.practice = (box, st, next) => {
+  const scores = [];
+  const TIPS = ['小貼士：先撳最低、就快跌落去嗰粒星。', '小貼士：唔使急，睇清楚係星星先撳，避開烏雲。', '小貼士：眼望住畫面中間，可以用兩隻手指一齊撳！', '小貼士：深呼吸，放鬆肩膊，專心就會更準。'];
+  function intro() {
+    const n = scores.length + 1;
+    box.innerHTML = S(n === 1 ? '準備好未？撳「開始」，喺三十秒入面撳住星星⭐，避開烏雲☁️。' : `第${n}次練習！記住剛才嘅小貼士，試下用新方法。`, 'auto') +
+      (scores.length ? `<div class="tip">${S(TIPS[(scores.length - 1) % TIPS.length])}</div>` : '') +
+      `<div class="nav"><button class="btn big" type="button">▶ 開始第${n}次練習</button></div>`;
+    box.querySelector('.nav .btn').onclick = () => { Sfx.pop(); play(); };
+    autoSay(box);
+    if (scores.length && Voice.auto) Voice.enqueue(TIPS[(scores.length - 1) % TIPS.length]);
+  }
+  function play() {
+    Voice.stop();
+    box.innerHTML = `<div class="gameArea"><div class="gHud"><span>⭐ <b class="sc">0</b></span><span>⏱️ <b class="tm">30</b></span></div><div class="countdown">3</div></div>`;
+    const area = box.querySelector('.gameArea'), cd = box.querySelector('.countdown');
+    let c = 3; Sfx.tone(600, .15);
+    const ci = setInterval(() => {
+      c--; if (c > 0) { cd.textContent = c; Sfx.tone(600, .15); }
+      else { clearInterval(ci); cd.textContent = '開始！'; Sfx.tone(900, .25); setTimeout(() => { cd.remove(); run(area); }, 500); }
+    }, 800);
+  }
+  function run(area) {
+    let score = 0, last = performance.now(), start = last, spawnAcc = 0; const items = [];
+    const scEl = area.querySelector('.sc'), tmEl = area.querySelector('.tm');
+    function spawn(el) {
+      const cloud = Math.random() < (.22 + Math.min(el, 30) * .004);
+      const d = document.createElement('div'); d.className = 'fall'; d.textContent = cloud ? '☁️' : '⭐';
+      const obj = { d, cloud, x: 8 + Math.random() * 84, y: -60, v: 120 + el * 6 + Math.random() * 60, dead: false };
+      d.style.left = obj.x + '%'; d.style.top = '-60px';
+      d.addEventListener('pointerdown', ev => {
+        ev.preventDefault(); if (obj.dead) return; obj.dead = true; d.remove();
+        const p = document.createElement('div'); p.className = 'pop';
+        p.style.left = obj.x + '%'; p.style.top = obj.y + 'px';
+        if (cloud) { score = Math.max(0, score - 1); p.textContent = '-1'; p.style.color = '#ef476f'; Sfx.bad(); area.classList.add('shake'); setTimeout(() => area.classList.remove('shake'), 400); }
+        else { score++; p.textContent = '+1'; p.style.color = '#ffd166'; Sfx.pop(); }
+        scEl.textContent = score; area.appendChild(p); setTimeout(() => p.remove(), 700);
+      });
+      area.appendChild(d); items.push(obj);
+    }
+    function frame(now) {
+      if (!area.isConnected) return;
+      const dt = Math.min(.05, (now - last) / 1000); last = now;
+      const el = (now - start) / 1000, left = Math.max(0, 30 - el);
+      tmEl.textContent = Math.ceil(left);
+      spawnAcc += dt * 1000;
+      const interval = Math.max(380, 850 - el * 16);
+      if (spawnAcc > interval && left > 0) { spawnAcc = 0; spawn(el); }
+      const H = area.clientHeight;
+      items.forEach(o => { if (o.dead) return; o.y += o.v * dt; o.d.style.top = o.y + 'px'; if (o.y > H) { o.dead = true; o.d.remove(); } });
+      if (left <= 0) { items.forEach(o => o.d.remove()); done(score); return; }
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  function done(score) {
+    scores.push(score);
+    Store.d.practice.push(score); Store.save();
+    const first = scores[0], n = scores.length, prev = scores[n - 2];
+    let msg;
+    if (n === 1) msg = `第一次，你撳到 ${score} 粒星！呢個就係你嘅起點，記住呢個數字。`;
+    else if (score > first) msg = `嘩！你比第一次多咗 ${score - first} 粒星！呢個就係練習嘅魔法！` + (score < prev ? '雖然比上一次少少，但整體都進步緊！' : '');
+    else if (score === first) msg = '今次同第一次一樣，冇問題！試下用新嘅小貼士，進步可能就喺下一次。';
+    else msg = '今次少咗少少，好正常！進步好似行山，有上有落。深呼吸，再試一次！';
+    const max = Math.max(...scores, 1);
+    box.innerHTML = `<h2>📈 我嘅進步線</h2><div class="chart">${scores.map((s, k) => `<div class="b ${k === n - 1 ? 'last' : ''}"><span>${s}</span><i style="height:${Math.max(4, s / max * 150)}px"></i><span class="small">第${k + 1}次</span></div>`).join('')}</div>` +
+      S(msg, 'auto') + `<div class="nav"><button class="btn c" type="button" id="again">🔁 再練一次</button>${n >= 3 ? '<button class="btn g" type="button" id="fin">✔ 完成訓練</button>' : ''}</div>` +
+      (n < 3 ? `<p class="small" style="text-align:center">再練 ${3 - n} 次就可以過關</p>` : '');
+    Sfx.good(); addEnergy(3);
+    box.querySelector('#again').onclick = () => { Sfx.pop(); intro(); };
+    if (n >= 3) box.querySelector('#fin').onclick = () => { Sfx.pop(); next(); };
+    autoSay(box);
+  }
+  intro();
+};
+
+STEP.plan = (box, st, next) => {
+  const AREAS = ['📚 做功課同溫書', '⚽ 運動', '🎹 學樂器', '🧹 執房同做家務', '🤝 同朋友相處', '✏️ 寫字同畫畫'];
+  const IFS = ['如果我想求其做完佢', '如果我覺得好難', '如果我想放棄', '如果我做錯咗', '如果我想遲啲先做'];
+  const THENS = ['我就深呼吸三次，同自己講：「再好少少！」', '我就先做最細嘅第一步，做五分鐘', '我就問老師或者屋企人幫手', '我就問自己三條寶石問題', '我就停一停，望多一次，檢查清楚', '我就開「懶懶急救站」'];
+  const pick = { area: null, ifT: null, thenT: null };
+  const stages = [
+    { key: 'area', q: '第一步：你想喺邊方面用上進心？', list: AREAS },
+    { key: 'ifT', q: '第二步：邊個情況最容易令你想得過且過？', list: IFS },
+    { key: 'thenT', q: '第三步：到時你會出咩招式？', list: THENS }];
+  let s = 0;
+  function render() {
+    const stg = stages[s];
+    box.innerHTML = `<div class="steps4">${stages.map((_, k) => `<i class="${k <= s ? 'on' : ''}">${k + 1}</i>`).join('')}</div>` + S(stg.q, 'auto') +
+      `<div class="chips">${stg.list.map((t, k) => `<div class="chipWrap"><button class="spk sm" type="button" data-say="${esc(t)}">🔊</button><button class="chip" type="button" data-k="${k}">${t}</button></div>`).join('')}</div>`;
+    box.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+      pick[stg.key] = stg.list[c.dataset.k]; Sfx.pop();
+      box.querySelectorAll('.chip').forEach(x => x.classList.remove('sel')); c.classList.add('sel');
+      setTimeout(() => { s++; if (s < stages.length) render(); else card(); }, 350);
+    });
+    autoSay(box);
+  }
+  function card() {
+    const area = pick.area.replace(/^\S+\s/, '');
+    const text = `當我${area}嘅時候，${pick.ifT}，${pick.thenT}！`;
+    Store.d.plan = { text, date: todayKey() }; Store.save();
+    box.innerHTML = S('你嘅能量承諾卡整好喇！大聲讀出嚟，會更加有力量！', 'auto') +
+      `<div class="promise"><h3>⚡ 我嘅能量承諾卡 ⚡</h3>${S(text, 'auto')}<p style="text-align:right;margin:0">—— 上進心探險家</p></div>` +
+      S('建議：將呢張卡抄喺紙上，貼喺你嘅書枱。你亦可以喺「每日打卡」再睇返。') +
+      `<div class="nav"><button class="btn ghost" type="button" id="redo">✏️ 重新揀</button></div>`;
+    box.querySelector('#redo').onclick = () => { s = 0; render(); };
+    Sfx.win(); confetti(60); addEnergy(8);
+    nextBtn(box, next); autoSay(box);
+  }
+  render();
+};
+
+STEP.summary = (box, st, next) => {
+  const lv = cur.lv, first = !Store.d.done[lv.id];
+  Store.d.done[lv.id] = true; Store.save();
+  const isLast = cur.i === LEVELS.length - 1;
+  box.innerHTML = `<div class="badge">${lv.badge}</div><h2 style="text-align:center">🎉 恭喜你獲得「${lv.badgeName}」！</h2>` +
+    S(`你肯一步一步完成呢一關，好有上進心！今關你學到：`, 'auto') + `<div class="points">${st.points.map(p => S('⭐ ' + p, 'auto')).join('')}</div>` +
+    (first ? S('能量核心吸收咗三十點能量，變得更光喇！', 'auto') : '') +
+    `<div class="nav"><button class="btn big g" type="button" id="toMap">${isLast ? '🏅 領取證書' : '🗺️ 返回地圖'}</button></div>`;
+  Sfx.win(); confetti(90); Core.burst(2);
+  if (first) setTimeout(() => addEnergy(30), 600);
+  box.querySelector('#toMap').onclick = () => { Sfx.pop(); if (isLast) { show('map'); openCert(); } else show('map'); };
+  autoSay(box);
+};
+
+/* ===================== 懶懶急救站 ===================== */
+function startSOS() {
+  show('sos'); const box = $('#sosStage'); let step = 0; const ctx = { task: '', feel: '', way: '' };
+  const head = () => `<h2>🆘 懶懶急救站</h2><div class="steps4">${['停一停', '想一想', '揀一招', '開始做'].map((t, k) => `<i class="${k <= step ? 'on' : ''}">${k + 1}. ${t}</i>`).join('')}</div>`;
+  function s0() {
+    step = 0;
+    box.innerHTML = head() + `<div class="talk">${mascot()}<div class="bubble">` +
+      S('你而家係咪覺得好悶、好攰，或者想求其做完佢？冇問題，每個人都會有咁嘅時候，連大人都會！', 'auto') +
+      S('我哋一齊用四步，救返你嘅能量核心。第一步：停一停，深呼吸。跟住個圓圈，佢變大就吸氣，變細就呼氣。', 'auto') +
+      `</div></div><div class="breath">準備</div><div class="nav"><button class="btn c" type="button" id="bStart">🌬️ 開始深呼吸</button></div>`;
+    box.querySelector('#bStart').onclick = () => breathe();
+    autoSay(box);
+  }
+  function breathe() {
+    Voice.stop(); const b = box.querySelector('.breath'); box.querySelector('#bStart').remove();
+    let n = 0;
+    const cycle = () => {
+      if (!b.isConnected) return;
+      if (n >= 3) { b.textContent = '好叻！'; Sfx.good(); const nav = document.createElement('div'); nav.className = 'nav'; nav.innerHTML = '<button class="btn g" type="button">下一步 ▶</button>'; nav.querySelector('button').onclick = s1; box.appendChild(nav); sayNow('做得好！你已經冷靜落嚟喇。'); return; }
+      n++; b.classList.add('in'); b.textContent = '吸氣…'; Voice.speak('吸氣，一，二，三，四');
+      setTimeout(() => { if (!b.isConnected) return; b.classList.remove('in'); b.textContent = '呼氣…'; Voice.speak('呼氣，一，二，三，四'); setTimeout(cycle, 4200); }, 4200);
+    };
+    cycle();
+  }
+  function s1() {
+    step = 1; const TASKS = ['📚 做功課', '📖 溫書', '🎹 練琴', '⚽ 運動練習', '🧹 執房', '✨ 其他事'];
+    box.innerHTML = head() + S('第二步：想一想。你而家做緊咩？', 'auto') + chips(TASKS, 't');
+    bindChips('t', v => { ctx.task = v.replace(/^\S+\s/, ''); s1b(); });
+    autoSay(box);
+  }
+  function s1b() {
+    const FEEL = ['😊 好自豪', '😌 好輕鬆，唔使擔心', '🧠 學識新嘢', '💖 屋企人同老師會開心', '🏆 下次會做得更好'];
+    box.innerHTML = head() + S(`閉埋眼諗一諗：如果你認真將「${ctx.task}」做好，做完之後，你會有咩感覺？`, 'auto') + chips(FEEL, 'f');
+    bindChips('f', v => { ctx.feel = v.replace(/^\S+\s/, ''); s2(); });
+    autoSay(box);
+  }
+  function s2() {
+    step = 2; const WAYS = ['🔍 做完檢查多一次', '✍️ 寫整齊少少', '➕ 多做一題或者多練一次', '❓ 唔明就問一個問題', '👣 只做第一小步先', '🎮 做完先玩'];
+    box.innerHTML = head() + S(`記住呢種「${ctx.feel}」嘅感覺！第三步：揀一招「再好少少」嘅方法。唔使做到完美，只要比求其好少少就得！`, 'auto') + chips(WAYS, 'w');
+    bindChips('w', v => { ctx.way = v.replace(/^\S+\s/, ''); s3(); });
+    autoSay(box);
+  }
+  function s3() {
+    step = 3;
+    box.innerHTML = head() + S(`第四步：開始做！你嘅招式係：「${ctx.way}」。揀一個時間，我會陪住你。`, 'auto') +
+      `<div class="nav">${[3, 5, 10].map(m => `<button class="btn c" type="button" data-m="${m}">⏱️ ${m} 分鐘</button>`).join('')}</div>`;
+    box.querySelectorAll('[data-m]').forEach(b => b.onclick = () => timer(+b.dataset.m));
+    autoSay(box);
+  }
+  function timer(min) {
+    Voice.stop();
+    const total = min * 60 * 1000, end = Date.now() + total, R = 90, C = 2 * Math.PI * R;
+    box.innerHTML = head() + S(`能量計時開始！專心做「${ctx.task}」，記住用「${ctx.way}」。你做得到！`, 'auto') +
+      `<svg class="ring" width="220" height="220" viewBox="0 0 220 220"><circle cx="110" cy="110" r="${R}" stroke="rgba(255,255,255,.15)" stroke-width="16" fill="none"/><circle id="rg" cx="110" cy="110" r="${R}" stroke="url(#gg)" stroke-width="16" fill="none" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}" transform="rotate(-90 110 110)"/><defs><linearGradient id="gg"><stop offset="0" stop-color="#4cc9f0"/><stop offset="1" stop-color="#ffd166"/></linearGradient></defs></svg>
+      <div class="timerTxt" id="tt"></div><div class="nav"><button class="btn g" type="button" id="doneEarly">✔ 我做完喇！</button></div>`;
+    autoSay(box);
+    const rg = box.querySelector('#rg'), tt = box.querySelector('#tt');
+    let halfSaid = false;
+    const iv = setInterval(() => {
+      if (!tt.isConnected) { clearInterval(iv); return; }
+      const left = Math.max(0, end - Date.now());
+      rg.setAttribute('stroke-dashoffset', C * (left / total));
+      tt.textContent = Math.floor(left / 60000) + ':' + String(Math.floor(left / 1000) % 60).padStart(2, '0');
+      Core.setPower(Math.min(1, powerOf() + (1 - left / total) * .3));
+      if (!halfSaid && left < total / 2) { halfSaid = true; sayNow('已經做咗一半喇，你嘅能量核心愈嚟愈光！'); }
+      if (left <= 0) { clearInterval(iv); finish(true); }
+    }, 250);
+    box.querySelector('#doneEarly').onclick = () => { clearInterval(iv); finish(false); };
+  }
+  function finish(timeUp) {
+    Store.d.sos++; Store.save(); Core.setPower(powerOf());
+    box.innerHTML = `<div class="badge">🌟</div>` + S((timeUp ? '時間到！' : '') + `你打敗咗得過且過怪！你冇求其做，而係用咗「${ctx.way}」。呢個就係真正嘅上進心！`, 'auto') +
+      S('如果仲未做完，可以再開多一次計時，或者休息五分鐘再嚟。', 'auto') +
+      `<div class="nav"><button class="btn c" type="button" id="again2">🔁 再計時一次</button><button class="btn g" type="button" id="back2">🗺️ 返回地圖</button></div>`;
+    Sfx.win(); confetti(70); addEnergy(15);
+    box.querySelector('#again2').onclick = s3; box.querySelector('#back2').onclick = () => show('map');
+    autoSay(box);
+  }
+  function chips(list, id) { return `<div class="chips" data-g="${id}">${list.map(t => `<div class="chipWrap"><button class="spk sm" type="button" data-say="${esc(t)}">🔊</button><button class="chip" type="button" data-v="${esc(t)}">${t}</button></div>`).join('')}</div>`; }
+  function bindChips(id, cb) { box.querySelectorAll(`[data-g="${id}"] .chip`).forEach(c => c.onclick = () => { Sfx.pop(); c.classList.add('sel'); setTimeout(() => cb(c.dataset.v), 300); }); }
+  s0();
+}
+
+/* ===================== 每日打卡 ===================== */
+function renderDaily() {
+  show('daily'); const box = $('#dailyStage'), tk = todayKey();
+  const OPTS = ['🔍 做完功課檢查多一次', '🛡️ 遇到難題冇即刻放棄', '💎 由錯誤學到嘢', '🎯 練習咗一樣技能', '🪄 講咗「我仲未識」', '🙋 主動問問題或者幫人', '⭐ 比昨日做得好少少'];
+  const ck = Store.d.checkins;
+  let streak = 0; const d = new Date(); if (!ck[todayKey(d)]) d.setDate(d.getDate() - 1);
+  while (ck[todayKey(d)]) { streak++; d.setDate(d.getDate() - 1); }
+  const days = []; for (let k = 13; k >= 0; k--) { const x = new Date(); x.setDate(x.getDate() - k); days.push(x); }
+  const wk = '日一二三四五六';
+  const done = !!ck[tk];
+  box.innerHTML = `<h2>📅 每日能量打卡</h2>` +
+    S(streak ? `你已經連續 ${streak} 日為能量核心充電！堅持落去，上進心就會變成你嘅超能力習慣。` : '每日記低一件有上進心嘅事，能量核心就會每日變強。今日就開始啦！', 'auto') +
+    `<div class="days">${days.map(x => `<div class="day ${ck[todayKey(x)] ? 'on' : ''}">${x.getMonth() + 1}/${x.getDate()}<br>(${wk[x.getDay()]})<b>${ck[todayKey(x)] ? '⚡' : '·'}</b></div>`).join('')}</div>` +
+    (done ? S('今日已經打咗卡喇，好叻！聽日記得再嚟。你今日做咗：' + ck[tk].join('、'), 'auto')
+      : S('今日你做咗邊啲有上進心嘅事？可以揀多過一樣：', 'auto') +
+        `<div class="chips">${OPTS.map(t => `<div class="chipWrap"><button class="spk sm" type="button" data-say="${esc(t)}">🔊</button><button class="chip" type="button" data-v="${esc(t)}">${t}</button></div>`).join('')}</div>
+        <div class="nav"><button class="btn g big" type="button" id="ckBtn" disabled>⚡ 為能量核心充電</button></div>`) +
+    (Store.d.plan ? `<div class="promise"><h3>⚡ 我嘅能量承諾卡 ⚡</h3>${S(Store.d.plan.text)}</div>` : '') +
+    `<p class="small">🏅 已完成關卡：${Object.keys(Store.d.done).length} / 7　｜　🆘 用過急救站：${Store.d.sos} 次　｜　⭐ 練習最高分：${Store.d.practice.length ? Math.max(...Store.d.practice) : '—'}</p>`;
+  if (!done) {
+    const sel = new Set();
+    box.querySelectorAll('.chip').forEach(c => c.onclick = () => {
+      Sfx.pop(); const v = c.dataset.v;
+      if (sel.has(v)) { sel.delete(v); c.classList.remove('sel'); } else { sel.add(v); c.classList.add('sel'); }
+      box.querySelector('#ckBtn').disabled = !sel.size;
+    });
+    box.querySelector('#ckBtn').onclick = e => {
+      Store.d.checkins[tk] = [...sel].map(v => v.replace(/^\S+\s/, '')); Store.save();
+      Sfx.win(); confetti(60); Core.burst(1.5); addEnergy(10 + sel.size * 2, e);
+      setTimeout(renderDaily, 900);
+    };
+  }
+  autoSay(box);
+}
+
+/* ===================== 家長 / 老師指引 ===================== */
+function renderParents() {
+  show('parents');
+  $('#parentStage').innerHTML = `<h2>👨‍👩‍👧 家長及老師指引</h2>
+  ${S('呢個 App 係根據兒童學習心理學設計，目標唔係令小朋友「追分數」，而係幫佢建立「肯進步、肯行動、唔放棄」嘅內在動力。')}
+  <h3>🧩 設計理念</h3>
+  <ul>
+    <li><b>成長型思維（Growth Mindset，Carol Dweck）</b>：第2關用「大腦神經小路」同「未字魔法」，令小朋友明白能力係靠練習同方法提升。</li>
+    <li><b>自我決定理論（自主、勝任、連繫）</b>：小朋友自己揀目標同承諾（自主）；每步都細到做得到（勝任）；能量小精靈「能能」全程陪伴（連繫）。</li>
+    <li><b>近距離小目標與自我效能感（Bandura）</b>：第3關「目標階梯」同「能量第一步」，解決「唔想開始」嘅問題。</li>
+    <li><b>正向自我對話與自我慈悲</b>：第4關分辨「藉口」、「能量說話」同「鬧自己」，避免小朋友用羞恥感推動自己。</li>
+    <li><b>從錯誤中學習</b>：第5關將錯誤重新定義為「寶石原石」，並教「三條寶石問題」反思法。</li>
+    <li><b>刻意練習與進步可視化</b>：第6關真實重複練習，並用「進步線」令小朋友親眼見到努力嘅成果，同時學識接受起伏。</li>
+    <li><b>執行意圖（If-Then Plan，Gollwitzer）</b>：第7關「如果……我就……」承諾卡，幫小朋友喺真實情境自動用出策略。</li>
+    <li><b>習慣養成</b>：「每日打卡」及「能量核心」視覺化累積，獎勵只針對努力同策略，唔針對天份。</li>
+  </ul>
+  <h3>🆘 小朋友做嘢「得過且過」時點用？</h3>
+  <ol>
+    <li>唔好即時責罵，先請佢撳「懶懶急救站」。</li>
+    <li>App 會帶佢：深呼吸冷靜 → 想像做好之後嘅感覺 → 揀一招「再好少少」 → 3／5／10 分鐘專注計時。</li>
+    <li>完成後，請具體讚賞過程，例如：「你肯檢查多一次，好有上進心！」而唔係「你好聰明」。</li>
+  </ol>
+  <h3>📆 建議用法</h3>
+  <ul>
+    <li>每次玩一關（約 10–15 分鐘），玩完同小朋友傾兩句：「今日學到咩招式？聽日喺邊度用？」</li>
+    <li>將「能量承諾卡」抄低貼喺書枱；每晚一齊做「每日打卡」。</li>
+    <li>全部完成後可重玩，第6關訓練場尤其適合重複練習。</li>
+  </ul>
+  <h3>🔊 廣東話語音設定</h3>
+  <ul>
+    <li>iPad／iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 中文（香港），下載語音後重新開啟本頁。</li>
+    <li>電腦：建議使用 Microsoft Edge（內建自然嘅粵語語音）或 Chrome；Windows 可喺「設定 → 時間與語言 → 語音」加入「中文（香港）」。</li>
+    <li>上方「🗣️ 自動讀」可開關自動朗讀；每段文字旁邊嘅 🔊 可隨時重播。</li>
+  </ul>
+  <h3>🔒 私隱</h3>
+  <p>所有進度只儲存喺呢部機嘅瀏覽器入面，唔會上載到任何地方。</p>
+  <div class="nav"><button class="btn ghost" type="button" id="resetAll">🗑️ 清除所有進度</button><button class="btn g" type="button" id="pBack">🗺️ 返回地圖</button></div>`;
+  $('#pBack').onclick = () => show('map');
+  $('#resetAll').onclick = () => {
+    if (confirm('確定要清除所有進度同能量？')) { try { localStorage.removeItem(Store.k); } catch (e) {} Store.load(); updateHUD(); Core.setPower(powerOf()); show('map'); }
+  };
+}
+
+/* ===================== 證書 ===================== */
+function openCert() {
+  $('#certName').value = Store.d.name || '';
+  $('#certBody').innerHTML = S('已經完成七大能量關卡，喚醒咗心入面嘅「上進心能量核心」！由今日開始，每日都要比昨日嘅自己，好少少！');
+  const d = new Date(); $('#certDate').textContent = `日期：${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日　｜　能量核心 Lv.${levelOf(Store.d.energy)}`;
+  $('#certModal').classList.add('on'); Sfx.win(); confetti(120);
+  sayNow('恭喜你！你已經完成七大能量關卡，成為真正嘅上進心探險家！寫低你嘅名，領取你嘅證書啦！');
+}
+$('#certName').oninput = e => { Store.d.name = e.target.value; Store.save(); };
+$('#certPrint').onclick = () => window.print();
+$('#certClose').onclick = () => { $('#certModal').classList.remove('on'); Voice.stop(); };
+
+/* ===================== 啟動 ===================== */
+updateHUD();
+Core.setPower(powerOf());
+document.addEventListener('visibilitychange', () => { if (document.hidden) Voice.stop(); });
+</script>
+</body>
+</html>
