@@ -248,6 +248,8 @@ details.parents ul{margin:4px 0;padding-left:20px}
 .ollc{background:#fff;border-radius:14px;padding:6px;text-align:center;box-shadow:0 2px 0 #e6e1f5;display:flex;flex-direction:column;align-items:center}
 .ollc b{font-size:13.5px;margin-top:2px}
 .ollc span{font-size:11px;color:var(--ink2);font-family:ui-rounded,system-ui;line-height:1.3}
+.grp{align-items:flex-start}
+.grp .pchip{background:rgba(255,255,255,.85)}
 /* responsive */
 @media (max-width:500px){ .viewpad{grid-template-columns:repeat(3,32px)!important;grid-template-rows:repeat(3,32px)!important;gap:2px;bottom:24px!important} .viewpad button{width:32px!important;height:32px!important;font-size:15px!important;border-radius:10px} }
 @media (max-width:1000px){ .work-body{grid-template-columns:minmax(0,1fr) 340px} .mvb{width:56px;height:54px} }
@@ -800,6 +802,22 @@ details.parents ul{margin:4px 0;padding-left:20px}
     }
     return null;
   }
+
+  // 指定顏色最快整好一面
+  function faceSearchColor(s, col, maxD = 6) {
+    const ok = x => FN.some((f, fi) => faceUniform(x, fi) && x[fi * 4] === col);
+    if (ok(s)) return [];
+    for (let d = 1; d <= maxD; d++) {
+      const path = [];
+      const dfs = (cur, depth, last) => {
+        if (depth === 0) return ok(cur);
+        for (const m of SM) { if (m[0] === last) continue; path.push(m); if (dfs(apply(cur, [m]), depth - 1, m[0])) return true; path.pop(); }
+        return false;
+      };
+      if (dfs(s, d, '')) return path;
+    }
+    return null;
+  }
   // 層嘅狀態：數側面有幾多條「車頭燈」（同一層兩格一樣色）
   function layerBars(s, top) {
     let n = 0;
@@ -939,7 +957,7 @@ details.parents ul{margin:4px 0;padding-left:20px}
     parse, perm, apply, toks, inv, invSeq, STD, REFS, LESSON_SOLVED, isSolved, layerDone, whiteLayerFace, stageOf,
     faceUniform, analyse, solve, buildTables, planA, planB, planC, planStage, DANCE, HEADLIGHT_ALG, scramble, rnd,
     stickerOn, slotOfSticker, findPiece, pieceName, SM, distOf, neighbours, distHistogram, homeInfo, pieceAt,
-    OLL_ALGS, PBL_ALGS, stageOfOrtega, ortegaPlan, faceSearch, layerBars, solveCount, countMoves, faceList
+    OLL_ALGS, PBL_ALGS, stageOfOrtega, ortegaPlan, faceSearch, layerBars, solveCount, countMoves, faceList, faceSearchColor, barKind, KIND_ZH
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1505,7 +1523,8 @@ class Guide {
           const tk = this.toks[this.ptr];
           if (tk.dbl === 1) h += '<div class="small-note" style="margin-top:6px">（轉兩下嘅第二下）</div>';
         }
-        if (ch.oll) h += `<div style="display:flex;gap:10px;align-items:center;margin-top:8px"><div style="flex:0 0 72px">${ollDiagram(C.OLL_ALGS.find(a => a.id === ch.oll), 72)}</div><div class="small-note">呢個就係佢嘅圖案（由上面睇落去，黃色＝頂面嘅顏色）</div></div>`;
+        if (ch.oll) h += `<div style="display:flex;gap:10px;align-items:center;margin-top:8px"><div style="flex:0 0 72px">${ollDiagram(C.OLL_ALGS.find(a => a.id === ch.oll), 72)}</div><div class="small-note">呢個就係佢嘅圖案（由上面睇落去，黃色＝頂面嘅顏色）<br>✋ ${OLL_INFO[ch.oll].hold}</div></div>`;
+        if (ch.pbl) h += `<div style="margin-top:8px;text-align:center">${bandDiagram(App.state, 250)}<div class="small-note">而家嘅側面一圈 ✋ ${PBL_INFO[ch.pbl].hold}</div></div>`;
       }
       h += '</div>';
     }
@@ -1546,8 +1565,9 @@ class Guide {
 
 /* ---------- 高手方法用嘅圖 ---------- */
 // OLL 圖案：由上面睇落去，頂色＝黃，其他＝灰；四邊細條＝側面頂排嘅黃色
-function ollDiagram(A, size = 90) {
-  const st = C.apply(LS, C.invSeq(A.seq)), Y = C.Y, on = '#ffd21f', off = '#dcd9e6';
+function ollDiagram(A, size = 90) { return ollDiagramState(C.apply(LS, C.invSeq(A.seq)), size, A.name); }
+function ollDiagramState(st, size = 90, name = 'OLL') {
+  const Y = C.Y, on = '#ffd21f', off = '#dcd9e6';
   const c = i => st[i] === Y ? on : off, tab = i => st[i] === Y ? on : 'none';
   let g = '';
   for (let r = 0; r < 2; r++) for (let k = 0; k < 2; k++) g += `<rect x="${20 + k * 28}" y="${20 + r * 28}" width="26" height="26" rx="5" fill="${c(r * 2 + k)}" stroke="#26213d" stroke-width="1.5"/>`;
@@ -1557,7 +1577,7 @@ function ollDiagram(A, size = 90) {
     g += `<rect x="79" y="${21 + (1 - k) * 28}" width="8" height="24" rx="3" fill="${tab(4 + k)}"/>`;   // 右
     g += `<rect x="9" y="${21 + k * 28}" width="8" height="24" rx="3" fill="${tab(16 + k)}"/>`;         // 左
   }
-  return `<svg viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${A.name} 圖案"><rect width="96" height="96" rx="12" fill="#f6f4ff"/>${g}<text x="48" y="94" text-anchor="middle" font-size="7" fill="#8a86a0">前</text></svg>`;
+  return `<svg viewBox="0 0 96 96" width="${size}" height="${size}" role="img" aria-label="${name} 圖案"><rect width="96" height="96" rx="12" fill="#f6f4ff"/>${g}<text x="48" y="94" text-anchor="middle" font-size="7" fill="#8a86a0">前</text></svg>`;
 }
 // 側面一圈：上排＝頂層，下排＝底層，睇車頭燈
 function bandDiagram(st, w = 260) {
@@ -1728,7 +1748,7 @@ const LESSONS = [
     ],
     activity: { type: 'guided', stages: ['A', 'B', 'C'], rounds: 1, canHide: true, gen: () => genUntil(() => C.scramble(20), s => C.stageOf(s) === 'A') }
   },
-  /* ===== 🏎️ 高手之路 ===== */
+  /* ===== 🏎️ 高手之路（教科書版） ===== */
   {
     id: 'records', section: 'pro', emo: '🏆', title: '世界紀錄點樣扭？', sub: '0.39 秒！高手用咩方法？',
     pad: null, spin: true,
@@ -1740,11 +1760,11 @@ const LESSONS = [
         visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>🔢</b>步數少</div><div class="stepcard"><b>⚡</b>手快</div><div class="stepcard"><b>🧠</b>15 秒諗定先</div></div>' },
       { text: '我哋學嘅三大步方法，因為小舞步要跳好多次，步數好多。高手用嘅方法步數少好多！睇下粒粒幫你量度嘅結果：', visual: '__METHOD_CHART__',
         say: '我哋學嘅三大步方法，因為小舞步要跳好多次，步數好多。高手用嘅方法步數少好多！睇下粒粒幫你量度嘅結果。' },
-      { text: '高手方法係一級級咁升嘅：<br>🧒 <b>三大步</b>：2 條公式，最易明。<br>🏎️ <b>Ortega</b>：整一面 → 1 條 OLL → 1 條 PBL，共 12 條公式。<br>🚀 <b>CLL</b>：整好一層，再用 1 條公式完成，要學 42 條。<br>🏆 <b>EG</b>：只整一面，就用 1 條公式完成，要學三組各 42 條。<br>頂尖選手多數用 <b>CLL 同 EG</b>，仲會學更多（例如 TCLL、LEG-1）。',
+      { text: '高手方法係一級級咁升嘅：<br>🧒 <b>三大步</b>：2 條公式，最易明。<br>🏎️ <b>Ortega</b>：整一面 → 1 條 OLL → 1 條 PBL，共 12 條公式。<br>🚀 <b>CLL</b>：整好一層，再用 1 條公式完成，要學 42 條。<br>🏆 <b>EG</b>：只整一面，就用 1 條公式完成，要學三組各 42 條。<br>頂尖選手多數用 <b>CLL 同 EG</b>。',
         visual: '<div style="font-size:30px;letter-spacing:6px">🧒 ➜ 🏎️ ➜ 🚀 ➜ 🏆</div>',
-        say: '高手方法係一級級咁升嘅：三大步，兩條公式，最易明。Ortega，整一面，然後一條OLL，一條PBL，共十二條公式。CLL，整好一層，再用一條公式完成，要學四十二條。EG，只整一面，就用一條公式完成，要學三組各四十二條。頂尖選手多數用CLL同EG，仲會學更多。' },
-      { text: '今日我哋由 <b>Ortega</b> 開始，佢係通往世界紀錄方法嘅第一級！只有 3 步：① 整好<b>一面</b>（唔使理側面，大約 3 步）② <b>OLL</b>：7 條公式揀 1 條，令對面都同色 ③ <b>PBL</b>：5 條公式揀 1 條，一次過排好兩層。之後幾關逐步學！',
-        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>🎨</b>① 一面</div><div class="stepcard"><b>🐟</b>② OLL</div><div class="stepcard"><b>🔀</b>③ PBL</div></div>' }
+        say: '高手方法係一級級咁升嘅：三大步，兩條公式，最易明。Ortega，整一面，然後一條OLL，一條PBL，共十二條公式。CLL，整好一層，再用一條公式完成，要學四十二條。EG，只整一面，就用一條公式完成，要學三組各四十二條。頂尖選手多數用CLL同EG。' },
+      { text: '呢本「高手教科書」會帶你一步步學 <b>Ortega</b>：<br>📖 第 10 關：15 秒觀察<br>📖 第 11 關：插角三招<br>🎯 第 12 關：一面實戰<br>📖 第 13 關：OLL 7 個圖案<br>🎯 第 14 關：OLL 實戰<br>📖 第 15 關：PBL 5 條公式<br>🎯 第 16 關：PBL 實戰<br>🏎️ 第 17 關：全程計時<br>每個 📖 課本關都有<b>圖、3D 慢動作示範同自己試</b>！',
+        say: '呢本高手教科書會帶你一步步學 Ortega：先學觀察，再學插角三招，然後一面實戰；之後學 OLL 七個圖案同實戰，再學 PBL 五條公式同實戰，最後全程計時。每個課本關都有圖、3D 慢動作示範同自己試！' }
     ],
     activity: {
       type: 'quiz', questions: [
@@ -1757,43 +1777,83 @@ const LESSONS = [
     }
   },
   {
-    id: 'oface', section: 'pro', emo: '🎨', title: 'Ortega ①：最快整一面', sub: '只要一面同色，側面唔使夾',
+    id: 'look', section: 'pro', emo: '👀', title: '📖 15 秒觀察：揀顏色', sub: '邊種顏色最快整一面？',
+    pad: null,
+    pages: [
+      { text: '比賽開始前，你可以拎起個骰<b>睇 15 秒</b>，但係唔可以扭。高手會用呢 15 秒決定：<b>用邊種顏色整第一面？點樣轉？</b>',
+        visual: '<div style="font-size:54px">⏱️👀🧊</div>' },
+      { text: '點揀？搵<b>已經黐埋一齊</b>嘅同色格仔：<br>① 有冇一面已經有 <b>2–3 格</b>同色？<br>② 有冇兩粒同色嘅角仔已經<b>企埋一齊</b>（一對）？<br>黐埋一齊嘅越多，就越快！',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>🟩🟩</b>已經有一對<br>👍 好揀</div><div class="stepcard"><b>🟩⬜</b><br>散晒<br>🤔 慢啲</div></div>' },
+      { text: '記住「<b>顏色中立</b>」：白、黃、綠、藍、紅、橙，邊種最快就用邊種。初學可以先揀 2 種練（例如白同黃），慢慢加多啲。' },
+      { text: '練習：粒粒打亂個骰，你用拖動或者箭咀掣<b>轉嚟轉去睇</b>，然後揀你覺得最快嘅顏色。粒粒會話你知每種顏色最少要幾多步！' }
+    ],
+    activity: { type: 'observe', rounds: 4 }
+  },
+  {
+    id: 'insert', section: 'pro', emo: '🧩', title: '📖 插角三招', sub: '白色向右、向前、向上，各有一招',
     pad: ['U', 'R', 'F', 'D', 'L', 'B'],
     pages: [
-      { text: '三大步嘅第一步要整好<b>一層</b>（側面都要夾）。Ortega 只要<b>一面</b>同色就得，側面亂都唔緊要！咁樣平均只要大約 <b>3 步</b>。',
-        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>⬜</b>一層：面同色＋側面夾</div><div class="stepcard"><b>🟨</b>一面：淨係面同色</div></div>' },
-      { text: '高手係「<b>顏色中立</b>」：唔一定揀白色，邊種顏色最快就用邊種。比賽嘅 <b>15 秒觀察時間</b>，就係用嚟搵「邊一面最快」同埋諗好點轉。' },
-      { text: '練習方法：粒粒會用電腦搵出<b>最快</b>嗰一面，同埋點樣轉。你跟住做，留意佢點諗——慢慢你自己都會「睇」到。練 3 次！' }
+      { text: '點樣整一面？將你揀嘅顏色（例如<b>白色</b>）擺喺<b>下面</b>，然後逐粒將白色角仔由頂層「<b>插</b>」落底層，好似將積木塞入空位。Ortega 只要一面，所以<b>側面顏色唔使理</b>！' },
+      { text: '每次插角都係 2 步：① <b>擺</b>：轉頂層，將白色角仔擺喺<b>空位正上面</b>（前右上）。② <b>插</b>：睇白色向邊，用啱嗰招：',
+        visual: '__FACE_TRIGS__', say: '每次插角都係兩步：第一，擺：轉頂層，將白色角仔擺喺空位正上面，即係前右上。第二，插：睇白色向邊，用啱嗰招。' },
+      '__TRIG_right__', '__TRIG_front__', '__TRIG_up__',
+      { text: '特別情況：<br>🔸 白色角仔<b>卡咗喺底層</b>但白色冇向下？用任何一招將佢「踢」上頂層先，再照做。<br>🔸 空位入面有<b>其他顏色</b>嘅角仔？唔緊要，插嘅時候佢會自動俾踢走。<br>🔸 要插第二、三粒？將成個骰轉一轉，將下一個空位轉去<b>前右下</b>。' },
+      { text: '練習：粒粒會出 5 條題目。每題你要：① 轉頂層擺好位置 ② 揀啱嗰招 ③ 親手做出嚟。出發！' }
+    ],
+    activity: { type: 'drill', rounds: 5 }
+  },
+  {
+    id: 'oface', section: 'pro', emo: '🎯', title: '🎯 一面實戰', sub: '跟住高手嘅計劃整一面',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'],
+    pages: [
+      { text: '而家用晒學到嘅嘢：<b>觀察 → 揀顏色 → 插角</b>。粒粒會話你知觀察完之後<b>最快嘅計劃</b>（高手就係咁諗），通常 2–5 步就整好一面！你跟住做，留意佢點樣將角仔砌埋一齊。練 3 次！' }
     ],
     activity: { type: 'guided', method: 'ortega', stages: ['OF'], rounds: 3, gen: () => genUntil(() => C.scramble(20), s => C.stageOfOrtega(s) === 'OF') }
   },
   {
-    id: 'oll', section: 'pro', emo: '🐟', title: 'Ortega ②：OLL 7 個圖案', sub: '數一數幾格向上，認出圖案',
+    id: 'ollbook', section: 'pro', emo: '📖', title: '📖 OLL 7 個圖案', sub: '點認、點拎、點做，逐個學',
     pad: ['U', 'R', 'F', 'D', 'L', 'B'],
     pages: [
-      { text: '一面整好咗，就將佢擺喺<b>下面</b>。而家要令<b>頂面</b>都同色（頂面嘅顏色，係底面嘅「死對頭」）。只需要睇一樣嘢：<b>頂面有幾多格已經向上？</b>',
-        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>1 格</b>魚仔／反魚仔</div><div class="stepcard"><b>0 格</b>H／Pi</div><div class="stepcard"><b>2 格</b>U／T／L</div></div>' },
-      { text: '呢個就係 7 個 OLL 圖案（由上面睇落去；黃色＝向上或者喺側面向外嘅頂色）。認圖案，再做啱嗰條公式就得！', visual: '__OLL_GALLERY__',
-        say: '呢個就係七個OLL圖案，由上面睇落去。認圖案，再做啱嗰條公式就得！' },
-      { text: '「魚仔」你喺第 6 關已經見過！其他公式都唔長，最短嘅 U 字只有 6 步。唔使一次過記晒，粒粒會喺旁邊提你。練 3 次！' }
+      { text: '一面整好咗，將佢擺喺<b>下面</b>。OLL 嘅目標：令<b>頂面</b>都同色（頂面嘅顏色，係底面嘅死對頭）。認圖案第一招：<b>數頂面有幾多格已經向上</b>！',
+        visual: '<div style="display:flex;gap:8px;width:100%"><div class="stepcard"><b>1 格</b>魚仔<br>反魚仔</div><div class="stepcard"><b>0 格</b>H 字<br>Pi 字</div><div class="stepcard"><b>2 格</b>U・T・L</div></div>' },
+      { text: '認圖案第二招：睇<b>側面</b>嘅黃色喺邊。下面每個圖案都係<b>由上面睇落去</b>：中間 4 格係頂面，四邊嘅細條就係側面向外嘅黃色。<b>前面</b>永遠喺下面。', visual: '__OLL_GALLERY__',
+        say: '認圖案第二招：睇側面嘅黃色喺邊。每個圖案都係由上面睇落去：中間四格係頂面，四邊嘅細條就係側面向外嘅黃色。前面永遠喺下面。' },
+      '__OLL_sune__', '__OLL_anti__', '__OLL_h__', '__OLL_pi__', '__OLL_u__', '__OLL_t__', '__OLL_l__',
+      { text: '你發現未？好多 OLL 公式入面都藏住<b>小舞步</b> {R} {U} {R\'} {U\'}！Pi 字＝F＋小舞步兩次＋F\'；U 字＝F＋小舞步＋F\'；T 字＝小舞步＋大錘。將長公式<b>分段記</b>，就易好多。準備好就做「認圖案小測驗」！' }
+    ],
+    activity: { type: 'quiz', genQuestions: () => genOllQuiz() }
+  },
+  {
+    id: 'oll', section: 'pro', emo: '🐟', title: '🎯 OLL 實戰', sub: '認圖案 → 擺位 → 做公式',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'],
+    pages: [
+      { text: '實戰時間！粒粒會幫你認圖案、話你知點拎。目標係<b>唔使睇提示都認得出</b>——有信心可以撳「🙈 收埋提示」挑戰自己。練 3 次！' }
     ],
     activity: {
-      type: 'guided', method: 'ortega', stages: ['OO'], rounds: 3,
+      type: 'guided', method: 'ortega', stages: ['OO'], rounds: 3, canHide: true,
       gen: () => genUntil(() => { let s = []; for (let i = 0; i < 4; i++) s = s.concat(pick(C.OLL_ALGS).seq, pick([['U'], ["U'"], ['U2'], []]), pick([[], ['D'], ["D'"]])); return s; }, s => C.stageOfOrtega(s) === 'OO' && C.faceUniform(s, 3))
     }
   },
   {
-    id: 'pbl', section: 'pro', emo: '🔀', title: 'Ortega ③：PBL 排好兩層', sub: '睇車頭燈，一條公式排好兩層',
+    id: 'pblbook', section: 'pro', emo: '📘', title: '📖 PBL 5 條公式', sub: '睇車頭燈，點拎、點做',
     pad: ['U', 'R', 'F', 'D', 'L', 'B'],
     pages: [
-      { text: '頂同底兩面都同色喇！最後要將兩層嘅角仔<b>排好位置</b>。睇每一層側面嘅<b>車頭燈</b>（兩格一樣色）：<br>✅ 4 對車頭燈＝已經對好<br>🔁 得 1 對＝<b>相鄰交換</b><br>❌ 冇車頭燈＝<b>對角交換</b>',
-        visual: '__BANDS__', say: '頂同底兩面都同色喇！最後要將兩層嘅角仔排好位置。睇每一層側面嘅車頭燈：四對車頭燈，即係已經對好；得一對，就係相鄰交換；冇車頭燈，就係對角交換。' },
-      { text: '兩層各自有 3 種情況，配合起嚟用 5 條 PBL 公式。如果只係<b>底層</b>有問題，就先將成個骰<b>上下調轉</b>，變成頂層問題。', visual: '__PBL_LIST__',
-        say: '兩層各自有三種情況，配合起嚟用五條PBL公式。如果只係底層有問題，就先將成個骰上下調轉，變成頂層問題。' },
-      { text: '最短嘅「雙對角」只有 3 步：{R2} {F2} {R2}！粒粒會幫你認情況同擺位置，你跟住做。練 3 次！' }
+      { text: '頂同底兩面都同色喇！最後要將兩層嘅角仔<b>排好位置</b>。睇每一層側面嘅<b>車頭燈</b>（同一層兩格一樣色）：<br>✅ 4 對＝已經對好（可能要轉一轉）<br>🔁 得 1 對＝<b>相鄰交換</b><br>❌ 冇＝<b>對角交換</b>',
+        visual: '__BANDS__', say: '頂同底兩面都同色喇！最後要將兩層嘅角仔排好位置。睇每一層側面嘅車頭燈：四對，即係已經對好；得一對，就係相鄰交換；冇車頭燈，就係對角交換。' },
+      { text: '兩層各有 3 種情況，配合起嚟用 <b>5 條</b>公式。如果只係<b>底層</b>有問題，先將成個骰<b>上下調轉</b>（z2），變成頂層問題。<br>做公式之前，記得先轉頂層或者底層，將車頭燈擺去<b>公式要求嘅位置</b>。' },
+      '__PBL_dd__', '__PBL_ad__', '__PBL_aa__', '__PBL_adj__', '__PBL_diag__',
+      { text: '總結：先睇頂層、再睇底層 → 決定用邊條 → 擺好車頭燈 → 做公式 → 轉一轉對齊。準備好就做「認情況小測驗」！' }
+    ],
+    activity: { type: 'quiz', genQuestions: () => genPblQuiz() }
+  },
+  {
+    id: 'pbl', section: 'pro', emo: '🔀', title: '🎯 PBL 實戰', sub: '一條公式排好兩層',
+    pad: ['U', 'R', 'F', 'D', 'L', 'B'],
+    pages: [
+      { text: '實戰時間！粒粒會幫你認情況同擺位，你跟住做。有信心可以撳「🙈 收埋提示」。練 3 次！' }
     ],
     activity: {
-      type: 'guided', method: 'ortega', stages: ['OP'], rounds: 3,
+      type: 'guided', method: 'ortega', stages: ['OP'], rounds: 3, canHide: true,
       gen: () => genUntil(() => { let s = []; for (let i = 0; i < 3; i++) s = s.concat(pick(C.PBL_ALGS).seq, pick([['U'], ["U'"], ['U2'], []]), pick([['D'], ["D'"], ['D2'], []])); return s; }, s => C.stageOfOrtega(s) === 'OP')
     }
   },
@@ -1801,17 +1861,106 @@ const LESSONS = [
     id: 'ortega', section: 'pro', emo: '🏎️', title: 'Ortega 全程計時挑戰', sub: '一面 → OLL → PBL，同三大步比步數',
     pad: ['U', 'R', 'F', 'D', 'L', 'B'], timer: true, final: true,
     pages: [
-      { text: '用 Ortega 由頭解到尾：① 最快一面 ② OLL ③ PBL。完成之後，粒粒會話你知同一個打亂，用三大步要幾多步，你就知 Ortega 慳咗幾多！想挑戰自己，可以撳「🙈 收埋提示」。' }
+      { text: '用 Ortega 由頭解到尾：① 觀察＋最快一面 ② OLL ③ PBL。完成之後，粒粒會話你知同一個打亂，用三大步要幾多步，你就知 Ortega 慳咗幾多！想挑戰自己，可以撳「🙈 收埋提示」。' }
     ],
     activity: { type: 'guided', method: 'ortega', stages: ['OF', 'OO', 'OP'], rounds: 1, canHide: true, gen: () => genUntil(() => C.scramble(20), s => C.stageOfOrtega(s) === 'OF') }
+  },
+  {
+    id: 'nextstep', section: 'pro', emo: '🚀', title: '下一站：CLL 同 EG', sub: '世界紀錄選手再學啲咩？',
+    pad: null, spin: true,
+    pages: [
+      { text: '識咗 Ortega，你已經行咗第一大步！世界紀錄選手會再學：<br>🚀 <b>CLL</b>：先整好<b>一層</b>（側面都要夾），然後用 <b>1 條</b>公式一次過完成。要學 42 條（入面有 7 條係你識嘅 OLL 同 PBL）。<br>🏆 <b>EG</b>：只整<b>一面</b>，然後用 1 條公式完成。分 CLL、EG-1（底層相鄰交換）、EG-2（底層對角交換）三組。',
+        say: '識咗 Ortega，你已經行咗第一大步！世界紀錄選手會再學：CLL，先整好一層，然後用一條公式一次過完成，要學四十二條。EG，只整一面，然後用一條公式完成，分 CLL、EG一、EG二三組。' },
+      { text: '除咗公式，高手仲會練：<br>✋ <b>手指技巧</b>：用手指撥，唔使成隻手轉，一秒轉十幾下。<br>👀 <b>預判</b>：做緊一步時，已經睇定下一步。<br>🧠 <b>觀察</b>：15 秒內諗好第一面，甚至估到之後嘅情況。' },
+      { text: '練習小貼士：<b>每日練少少</b>好過一次練好耐；計 5 次<b>平均</b>，記低嚟睇下自己進步；同埋最重要——<b>玩得開心</b>！🎉' }
+    ],
+    activity: {
+      type: 'quiz', questions: [
+        { q: 'CLL 方法第一步做咩？', opts: ['整好一面', '整好一層（側面都夾）', '整好頂層'], a: 1, hint: 'CLL 比 Ortega 第一步多咗少少要求。' },
+        { q: 'EG 方法整完一面之後，用幾多條公式完成？', opts: ['1 條', '2 條', '3 條'], a: 0, hint: '所以 EG 咁快！' },
+        { q: '邊個練習方法最好？', opts: ['一個月練一次，一次練 5 粒鐘', '每日練少少，記低平均', '唔練，靠運氣'], a: 1, hint: '細水長流！' }
+      ]
+    }
   }
 ];
-LESSONS.forEach(L => (L.pages || []).forEach(p => {
-  if (p.visual === '__OLL_GALLERY__') p.visualFn = () => `<div class="ollgal">${C.OLL_ALGS.map(A => `<div class="ollc">${ollDiagram(A, 78)}<b>${A.name}</b><span>${A.alg}</span></div>`).join('')}</div>`;
-  if (p.visual === '__METHOD_CHART__') p.visualFn = methodChart;
-  if (p.visual === '__BANDS__') p.visualFn = () => [['✅ 已經對好', LS], ['🔁 頂層相鄰交換', C.apply(LS, C.invSeq(C.PBL_ALGS.find(a => a.id === 'adj').seq))], ['❌ 頂層對角交換', C.apply(LS, C.invSeq(C.PBL_ALGS.find(a => a.id === 'diag').seq))]].map(([t, st]) => `<div style="width:100%;text-align:center"><div style="font-weight:800;font-size:14px">${t}</div>${bandDiagram(st)}</div>`).join('');
-  if (p.visual === '__PBL_LIST__') p.visualFn = () => `<table class="tbl" style="width:100%;font-size:14px">${C.PBL_ALGS.map(A => `<tr><td><b>${A.name}</b></td><td style="font-family:ui-rounded,system-ui">${A.alg}</td></tr>`).join('')}</table>`;
-}));
+
+/* ---------- 高手教科書資料 ---------- */
+const OLL_INFO = {
+  sune: { look: '頂面得 <b>1 格</b>向上。', hold: '向上嗰格擺喺<b>左前</b>；前面<b>右邊</b>嗰格係黃色。', groups: [['R', 'U', "R'"], ['U'], ['R', 'U2', "R'"]], tip: '似小舞步，不過頂層要轉兩下。' },
+  anti: { look: '頂面得 <b>1 格</b>向上（同魚仔反方向）。', hold: '向上嗰格擺喺<b>右後</b>；前面<b>左邊</b>嗰格係黃色。', groups: [['R', 'U2', "R'"], ["U'"], ['R', "U'", "R'"]], tip: '反魚仔＝魚仔<b>倒轉做</b>（記唔記得著襪著鞋？）' },
+  h: { look: '頂面 <b>0 格</b>向上；前後兩面各有<b>一對</b>黃色。', hold: '兩對黃色擺喺<b>前面</b>同<b>後面</b>。', groups: [['R2', 'U2'], ['R'], ['U2', 'R2']], tip: '前後對稱，好似一個打側嘅 H 字。' },
+  pi: { look: '頂面 <b>0 格</b>向上；只有一邊有<b>一對</b>黃色。', hold: '嗰對黃色擺喺<b>左邊</b>。', groups: [['F'], ['R', 'U', "R'", "U'"], ['R', 'U', "R'", "U'"], ["F'"]], tip: 'F ＋ 小舞步<b>兩次</b> ＋ F\'！' },
+  u: { look: '頂面 <b>2 格</b>向上，並排；側面有一對黃色車頭燈。', hold: '兩格向上嘅擺喺<b>右邊</b>，車頭燈擺<b>左邊</b>。', groups: [['F'], ['R', 'U', "R'", "U'"], ["F'"]], tip: 'F ＋ 小舞步<b>一次</b> ＋ F\'，最短嘅 OLL！' },
+  t: { look: '頂面 <b>2 格</b>向上，並排；側面兩格黃色一前一後。', hold: '兩格向上嘅擺喺<b>右邊</b>；左邊兩格黃色，一個向前、一個向後。', groups: [['R', 'U', "R'", "U'"], ["R'", 'F', 'R', "F'"]], tip: '小舞步 ＋「大錘」R\' F R F\'。' },
+  l: { look: '頂面 <b>2 格</b>向上，<b>斜對角</b>。', hold: '向上嘅兩格擺喺<b>左後</b>同<b>右前</b>；前面<b>左邊</b>嗰格係黃色。', groups: [['F'], ['R', "U'", "R'", "U'"], ['R', 'U', "R'"], ["F'"]], tip: 'F 開頭、F\' 收尾，好似夾住一份三文治。' }
+};
+const PBL_INFO = {
+  dd: { look: '頂層同底層都<b>冇車頭燈</b>。', hold: '點拎都得！', groups: [['R2'], ['F2'], ['R2']], tip: '最短嘅 PBL，只有 3 步！' },
+  ad: { look: '頂層有 <b>1 對</b>車頭燈；底層<b>冇</b>。', hold: '頂層車頭燈擺<b>前面</b>。', groups: [['R', "U'", 'R'], ['F2'], ["R'", 'U', "R'"]], tip: '前後對稱：R U\' R，F2，R\' U R\'。' },
+  aa: { look: '頂層同底層都有 <b>1 對</b>車頭燈。', hold: '兩層嘅車頭燈都擺<b>前面</b>。', groups: [['R2', "U'"], ['B2'], ['U2', 'R2'], ["U'", 'R2']], tip: '多數係 R2 同兩下轉，唔難記。' },
+  adj: { look: '頂層有 <b>1 對</b>車頭燈；底層<b>已經好</b>。', hold: '頂層車頭燈擺<b>左邊</b>。', groups: [['R', 'U', "R'", "U'"], ["R'", 'F', 'R2', "U'", "R'", "U'"], ['R', 'U', "R'", "F'"]], tip: '開頭係小舞步！呢條叫「T 字公式」，3×3 都會用到。' },
+  diag: { look: '頂層<b>冇</b>車頭燈；底層<b>已經好</b>。', hold: '點拎都得（底層對齊就得）。', groups: [['F', 'R', "U'", "R'", "U'"], ['R', 'U', "R'", "F'"], ['R', 'U', "R'", "U'"], ["R'", 'F', 'R', "F'"]], tip: '後半段係小舞步＋大錘，同 T 字 OLL 一樣！' }
+};
+const FACE_TRIGS = [
+  { id: 'right', name: '右手招', alg: "R U R'", look: '白色<b>向右</b>', icon: '👉' },
+  { id: 'front', name: '前手招', alg: "F' U' F", look: '白色<b>向前</b>（向住你）', icon: '👇' },
+  { id: 'up', name: '長招', alg: "R U2 R' U' R U R'", look: '白色<b>向上</b>', icon: '☝️' }
+].map(o => ({ ...o, seq: C.toks(o.alg) }));
+const caseOf = seq => () => C.apply(LS, C.invSeq(seq));
+const GRP_BG = ['#ffe0ec', '#e0f3ff', '#fff1c9', '#e2f7e9', '#efe6ff', '#ffe9d6'];
+const groupsHtml = groups => `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${groups.map((g, i) => `<div class="grp" style="background:${GRP_BG[i % GRP_BG.length]}">${g.map(t => `<span class="mv" style="font-size:18px">${t}</span>`).join('')}</div>`).join('')}</div>`;
+function casePageFrom(kind, id) {
+  const A = kind === 'oll' ? C.OLL_ALGS.find(a => a.id === id) : kind === 'pbl' ? C.PBL_ALGS.find(a => a.id === id) : FACE_TRIGS.find(a => a.id === id);
+  const info = kind === 'oll' ? OLL_INFO[id] : kind === 'pbl' ? PBL_INFO[id] : { look: A.look, hold: '白色角仔擺喺<b>前右上</b>（空位正上面）。', groups: [A.seq], tip: kind === 'face' && id === 'up' ? '白色向上最麻煩：先「藏」起佢，再插返落去，所以長啲。' : '插完之後，白色就會向下喺底層。' };
+  const pic = () => kind === 'oll' ? ollDiagram(A, 120) : kind === 'pbl' ? bandDiagram(caseOf(A.seq)(), 280) : '';
+  const title = kind === 'face' ? `${A.icon} ${A.name}：${A.look.replace(/<[^>]+>/g, '')}` : A.name;
+  return {
+    t: title, caseFn: caseOf(A.seq), alg: A.seq, groups: info.groups,
+    text: `<b style="font-size:21px">${title}</b><br>👀 <b>點認：</b>${info.look}<br>✋ <b>點拎：</b>${info.hold}<br>💡 ${info.tip}`,
+    visualFn: () => `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;width:100%">${pic()}${groupsHtml(info.groups)}<div class="small-note">左邊 3D 骰已經擺好呢個情況，撳下面「🎬 3D 慢動作」睇點做！</div></div>`,
+    say: `${title}。點認：${cleanSay(info.look)}。點拎：${cleanSay(info.hold)}。${cleanSay(info.tip)}`
+  };
+}
+LESSONS.forEach(L => {
+  if (!L.pages) return;
+  L.pages = L.pages.map(p => {
+    if (typeof p !== 'string') return p;
+    const m = /^__(OLL|PBL|TRIG)_(\w+)__$/.exec(p);
+    return casePageFrom(m[1] === 'OLL' ? 'oll' : m[1] === 'PBL' ? 'pbl' : 'face', m[2]);
+  });
+  L.pages.forEach(p => {
+    if (p.visual === '__OLL_GALLERY__') p.visualFn = () => `<div class="ollgal">${C.OLL_ALGS.map(A => `<div class="ollc">${ollDiagram(A, 78)}<b>${A.name}</b><span>${A.alg}</span></div>`).join('')}</div>`;
+    if (p.visual === '__METHOD_CHART__') p.visualFn = methodChart;
+    if (p.visual === '__BANDS__') p.visualFn = () => [['✅ 已經對好', LS], ['🔁 頂層相鄰交換', caseOf(C.PBL_ALGS.find(a => a.id === 'adj').seq)()], ['❌ 頂層對角交換', caseOf(C.PBL_ALGS.find(a => a.id === 'diag').seq)()]].map(([t, st]) => `<div style="width:100%;text-align:center"><div style="font-weight:800;font-size:14px">${t}</div>${bandDiagram(st)}</div>`).join('');
+    if (p.visual === '__FACE_TRIGS__') p.visualFn = () => `<div style="display:flex;gap:8px;width:100%">${FACE_TRIGS.map(T => `<div class="stepcard"><b>${T.icon}</b>${T.look}<br><span class="mv">${T.alg}</span><br>${T.name}</div>`).join('')}</div>`;
+  });
+});
+
+/* 認圖案測驗 */
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function genOllQuiz() {
+  return shuffle(C.OLL_ALGS).map(A => {
+    const st = C.apply(caseOf(A.seq)(), [pick(['', 'U', "U'", 'U2'])].filter(Boolean));
+    const same = C.OLL_ALGS.filter(B => B.id !== A.id && B.up === A.up), other = C.OLL_ALGS.filter(B => B.id !== A.id && B.up !== A.up);
+    const opts = shuffle([A].concat(shuffle(same).slice(0, 1), shuffle(other).slice(0, 2 - Math.min(1, same.length))));
+    return { q: '呢個係邊個 OLL 圖案？（記住可以轉頂層）', state: st, visual: ollDiagramState(st, 130), opts: opts.map(o => o.name), a: opts.indexOf(A), hint: cleanSay(OLL_INFO[A.id].look) };
+  });
+}
+const PBL_NAMES = { ok: '已經好', adj: '相鄰交換', diag: '對角交換' };
+function genPblQuiz() {
+  const combos = []; ['ok', 'adj', 'diag'].forEach(t => ['ok', 'adj', 'diag'].forEach(b => { if (t !== 'ok' || b !== 'ok') combos.push(t + '|' + b); }));
+  const label = c => { const [t, b] = c.split('|'); return `頂：${PBL_NAMES[t]}｜底：${PBL_NAMES[b]}`; };
+  return shuffle(combos).slice(0, 6).map(c => {
+    let st;
+    for (let i = 0; i < 200; i++) {
+      let s = []; for (let k = 0; k < 3; k++) s = s.concat(pick(C.PBL_ALGS).seq, pick([['U'], ["U'"], ['U2'], []]), pick([['D'], ["D'"], ['D2'], []]));
+      const x = C.apply(LS, s);
+      if (C.barKind(C.layerBars(x, true)) + '|' + C.barKind(C.layerBars(x, false)) === c) { st = x; break; }
+    }
+    const opts = shuffle([c].concat(shuffle(combos.filter(x => x !== c)).slice(0, 2)));
+    return { q: '睇下面側面一圈：頂層同底層係咩情況？（3D 骰都係同一個樣，可以轉嚟睇）', state: st, visual: bandDiagram(st, 300), opts: opts.map(label), a: opts.indexOf(c), hint: '數下每層有幾對車頭燈：4 對＝已經好，1 對＝相鄰，0 對＝對角。' };
+  });
+}
 
 /* ---------- 主頁 ---------- */
 function renderHome() {
@@ -1832,7 +1981,7 @@ function renderHome() {
     <details class="parents"><summary>👨‍👩‍👧 家長／老師小貼士（教學設計）</summary>
     <h4>用咩方法教？</h4>
     <p>採用最正統嘅<b>層先法（Layer-by-Layer）</b>：① 白色一層 ② 黃色面 ③ 頂層角位排好。成個方法只需要記<b>兩條公式</b>：「小舞步」R U R' U'（第一、二步都用佢），同埋 Rubik's 官方教學都用嘅「車頭燈公式」R' F R' B2 R F' R' B2 R2。第二步用「翻轉大法」重用小舞步，令小朋友少記一條公式；第 6 關亦有介紹更快嘅「魚仔公式」（Sune）作延伸。</p>
-    <h4>🏎️ 高手之路（第 9–13 關）</h4><p>學識三大步之後，可以學世界紀錄選手方法嘅第一級：<b>Ortega</b>（一面 → OLL 7 條 → PBL 5 條，共 12 條公式）。喺你部機量度，平均大約 22 步，三大步就要 80 幾步。頂尖選手再進一步用 CLL（42 條）同 EG（三組各 42 條），仲會利用 15 秒觀察時間諗好成個解法。紀錄資料（截至 2026 年 8 月）：單次 0.39 秒（葉梓渝，2025 年 10 月）；平均 0.86 秒（Sujan Feist，2025 年 12 月）。</p>
+    <h4>🏎️ 高手之路（第 9–18 關，教科書版）</h4><p>學識三大步之後，可以學世界紀錄選手方法嘅第一級：<b>Ortega</b>（一面 → OLL 7 條 → PBL 5 條，共 12 條公式）。每個技巧都係「📖 課本關 → 🎯 實戰關」：課本關逐個情況講「點認、點拎、點做」，有圖、分段公式、3D 慢動作示範同「✋ 自己試」，最後有認圖案測驗；實戰關先用粒粒個腦陪練，再可以收埋提示。另有「15 秒觀察」同「插角三招」練習，教小朋友自己整一面，而唔係只跟電腦。喺你部機量度，平均大約 22 步，三大步就要 80 幾步。頂尖選手再進一步用 CLL（42 條）同 EG（三組各 42 條），仲會利用 15 秒觀察時間諗好成個解法。紀錄資料（截至 2026 年 8 月）：單次 0.39 秒（葉梓渝，2025 年 10 月）；平均 0.86 秒（Sujan Feist，2025 年 12 月）。</p>
     <h4>第一性原理</h4><ul>
     <li>扭計骰只有 8 粒角仔；「解」＝ 每粒返屋企＋企正。</li>
     <li>每一下都可以還原；還原要<b>倒轉次序</b>（第 2 關親手發現）。</li>
@@ -1899,13 +2048,23 @@ function showStory(p) {
     <div class="dots" style="margin-bottom:10px">${L.pages.map((_, k) => `<i class="${k <= p ? 'on' : ''}"></i>`).join('')}</div>
     <div class="txt">${fmt(pg.text)}</div>
     ${pg.visualFn ? `<div class="visual">${pg.visualFn()}</div>` : pg.visual ? `<div class="visual">${pg.visual}</div>` : ''}
+    ${pg.alg ? `<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn pink" data-act="cdemo">🎬 3D 慢動作</button><button class="btn" data-act="ctry">✋ 自己試</button><button class="btn ghost sm" data-act="creset">↩ 重設</button></div>` : ''}
     ${pg.demo ? `<div style="text-align:center;margin-top:12px"><button class="btn pink" data-act="demo">▶ 睇示範：${pg.demo.map(t => `<span class="mv" style="background:#fff">${t}</span>`).join(' ')}</button></div>` : ''}
     <div class="navrow"><button class="btn ghost" data-act="prev" ${p === 0 ? 'disabled' : ''}>◀ 上一頁</button>
     ${last ? '<button class="btn green" data-act="go">開始練習 ▶</button>' : '<button class="btn" data-act="next">下一頁 ▶</button>'}</div>
     ${L.pad ? '<p class="small-note" style="margin-top:14px">💡 睇緊講解嘅時候，你都可以撳下面啲按鈕試下轉。</p>' : ''}</div>`;
+  if (pg.caseFn) { setState(pg.caseFn()); view.resetView(); }
   side().onclick = async e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const a = b.dataset.act;
+    if (a === 'cdemo') { playCaseDemo(pg); return; }
+    if (a === 'creset') { if (!App.locked) setState(pg.caseFn()); return; }
+    if (a === 'ctry') {
+      if (App.locked) return;
+      algTrainer({ state: pg.caseFn(), seq: pg.alg, groups: pg.groups, title: `✋ 自己試：${pg.t}`, intro: '跟住粉紅色箭咀同閃緊嘅按鈕做。做錯會自動幫你轉返轉頭！',
+        onDone: r => trainerDone(r, () => showStory(p), () => side().querySelector('[data-act="again"]')), onBack: () => showStory(p) });
+      return;
+    }
     if (a === 'prev') showStory(p - 1);
     else if (a === 'next') showStory(p + 1);
     else if (a === 'go') startActivity();
@@ -1923,6 +2082,157 @@ function showStory(p) {
 }
 $('#reviewBtn').onclick = () => { if (App.lesson && $('#reviewBtn').dataset.ctx !== 'free') { leaveMode(); showStory(0); } };
 
+async function playCaseDemo(pg) {
+  if (App.locked) return; App.locked = true;
+  setState(pg.caseFn()); await sleep(300);
+  const groups = pg.groups || [pg.alg];
+  for (let gi = 0; gi < groups.length; gi++) {
+    Voice.maybe(`第${gi + 1}段：` + groups[gi].map(t => MOVE_SAY[t]).join('，'));
+    for (const t of groups[gi]) { view.showArrow(t); await doMove(t, 'demo'); await sleep(380); }
+    await sleep(500);
+  }
+  view.showArrow(null); App.locked = false; App.history = []; App.moves = 0; hud();
+  toast('🎉 做完喇！睇下個骰變成點？'); Voice.maybe('做完喇！睇下個骰變成點？想再睇就撳重設。');
+}
+function trainerDone(r, back, again) {
+  const good = r.wrong === 0 && !r.demo;
+  const t = good ? '一次過做啱晒！好勁！' : '做完喇！多練幾次就會越嚟越順。';
+  side().insertAdjacentHTML('beforeend', `<div class="okbox" style="margin-top:10px">🎉 ${t}</div><div class="actions" style="margin-top:10px"><button class="btn green" data-act="back2">📖 返去課本</button></div>`);
+  side().querySelector('[data-act="back2"]').onclick = e => { e.stopPropagation(); back(); };
+  confetti(); Voice.maybe(t);
+}
+/* 公式練習器：跟住一串步驟做，做錯自動還原 */
+function algTrainer(o) {
+  if (o.state) setState(o.state);
+  App.history = [];
+  const toks = [];
+  o.seq.forEach(t => { if (t.endsWith('2') && !'xyz'.includes(t[0])) { toks.push({ t: t[0], dbl: 0 }); toks.push({ t: t[0], dbl: 1 }); } else toks.push({ t }); });
+  let ptr = 0, msg = null, wrong = 0, demo = 0, done = false;
+  const mode = {
+    destroy() { done = true; view.showArrow(null); padHint(null); view.setHL(null); },
+    render() {
+      if (done) return;
+      const exp = ptr < toks.length ? toks[ptr].t : null;
+      view.showArrow(exp); padHint(exp); view.setHL(o.hl ? o.hl() : null);
+      let idx = 0, chips = '';
+      const groups = o.groups || [o.seq];
+      groups.forEach((g, gi) => {
+        chips += `<div class="grp" style="background:${GRP_BG[gi % GRP_BG.length]}">`;
+        g.forEach(t => {
+          const n = t.endsWith('2') && !'xyz'.includes(t[0]) ? 2 : 1, s0 = idx, s1 = idx + n; idx = s1;
+          const cls = ptr >= s1 ? 'done' : ptr >= s0 ? 'cur' : '';
+          chips += `<div class="pchip ${cls}">${t}<div style="font-size:11px;font-weight:700">${MOVE_SHORT[t] || ''}</div></div>`;
+        });
+        chips += '</div>';
+      });
+      side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>${o.title}</h3>${spk(cleanSay(o.intro || ''))}</div>
+        ${o.intro ? `<div class="thought" style="font-size:16px">${fmt(o.intro)}${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}</div>` : ''}
+        <div class="plan"><div class="lbl">步驟（${Math.min(ptr, toks.length)} / ${toks.length}）${ptr < toks.length && toks[ptr].dbl === 1 ? '　轉兩下嘅第二下' : ''}</div><div class="chips" style="gap:4px">${chips}</div></div>
+        <div class="actions"><button class="btn sm pink" data-act="tdemo">🎬 示範</button><button class="btn sm ghost" data-act="undo">↩ 返轉頭</button>${o.onBack ? '<button class="btn sm ghost" data-act="tback">📖 返去</button>' : ''}</div>`;
+      side().onclick = async e => {
+        const b = e.target.closest('[data-act]'); if (!b) return;
+        const a = b.dataset.act;
+        if (a === 'undo') undo();
+        else if (a === 'tback') { done = true; o.onBack(); }
+        else if (a === 'tdemo') {
+          if (App.locked) return; demo++; App.locked = true;
+          try { while (!done && ptr < toks.length) { await doMove(toks[ptr].t, 'demo'); await sleep(120); } } finally { App.locked = false; }
+        }
+      };
+    },
+    onMove(tok, src) {
+      if (done) return;
+      if (src === 'undo') { if (ptr > 0) ptr--; msg = null; this.render(); return; }
+      const e = toks[ptr];
+      if (e && (tok === e.t || (e.dbl === 0 && tok === C.inv(e.t)))) {
+        if (tok !== e.t) { e.t = tok; toks[ptr + 1].t = tok; }
+        ptr++; msg = null;
+        if (ptr >= toks.length) { this.render(); done = true; view.showArrow(null); padHint(null); view.setHL(null); setTimeout(() => o.onDone && o.onDone({ wrong, demo }), 450); return; }
+        this.render(); return;
+      }
+      wrong++; msg = { type: 'dev', text: `咦，呢個係 {${tok}}。唔緊要，我幫你轉返轉頭！` };
+      this.render(); Voice.maybe('咦，唔係呢個。唔緊要，我幫你轉返轉頭！');
+      App.locked = true;
+      setTimeout(async () => { await doMove(C.inv(tok), 'fix'); App.history.pop(); App.locked = false; this.render(); }, 600);
+    }
+  };
+  App.mode = mode; mode.render();
+  return mode;
+}
+
+/* 15 秒觀察練習 */
+function runObserve(A) {
+  let r = 0, right = 0;
+  const round = async () => {
+    App.mode = { destroy() {} };
+    side().innerHTML = `<div class="card-title">${mascot(42)} 粒粒打亂緊個骰…</div>`;
+    await setupFrom(LS, C.scramble(20));
+    const st = App.state.slice();
+    const counts = [0, 1, 2, 3, 4, 5].map(c => { const p = C.faceSearchColor(st, c); return { c, p, n: p ? p.length : 7 }; });
+    const min = Math.min(...counts.map(x => x.n));
+    const intro = `第 ${r + 1} 輪：用拖動或者箭咀掣轉嚟轉去睇。你覺得<b>邊種顏色</b>最快整好一面？`;
+    side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>👀 15 秒觀察（${r + 1} / ${A.rounds}）</h3>${spk(cleanSay(intro))}</div>
+      <div class="thought" style="font-size:17px">${intro}<div class="small-note" style="margin-top:6px">提示：搵已經<b>黐埋一齊</b>嘅同色格仔。</div></div>
+      <div class="palette" style="justify-content:center">${COLORS.map((col, k) => `<button class="pal" data-c="${k}" style="background:${col}">${C.CNAME[k]}</button>`).join('')}</div>`;
+    Voice.maybe(cleanSay(intro));
+    side().onclick = e => {
+      const b = e.target.closest('[data-c]'); if (!b) return;
+      const k = +b.dataset.c, mine = counts[k], ok = mine.n === min;
+      if (ok) right++;
+      const best = counts.filter(x => x.n === min);
+      const maxN = Math.max(...counts.map(x => x.n));
+      const rows = counts.slice().sort((a, b) => a.n - b.n).map(x => `<div class="rb" style="grid-template-columns:62px 1fr 58px;${x.c === k ? 'background:#fff3c4' : ''}"><span class="rl" style="color:var(--ink)"><span class="sw" style="width:14px;height:14px;background:${COLORS[x.c]}"></span> ${C.CNAME[x.c]}</span><span class="rt" style="height:16px"><i style="width:${x.n / maxN * 100}%;${x.n === min ? 'background:#19b36b' : ''}"></i></span><span class="rn">${x.n > 6 ? '6+' : x.n} 步${x.n === min ? ' ⭐' : ''}</span></div>`).join('');
+      const t = ok ? `好眼光！${C.CNAME[k]}色只要 ${mine.n} 步，係最快之一！` : `差少少！${C.CNAME[k]}色要 ${mine.n > 6 ? '6 步以上' : mine.n + ' 步'}；最快係${best.map(x => C.CNAME[x.c]).join('、')}色，只要 ${min} 步。`;
+      side().innerHTML = `<div class="brain-head">${mascot(40, ok ? 'wow' : 'happy')}<h3>👀 觀察結果</h3>${spk(t)}</div>
+        <div class="${ok ? 'okbox' : 'errbox'}">${ok ? '✅' : '🤔'} ${t}</div>
+        <div class="plan" style="margin-top:10px"><div class="lbl">每種顏色最少要幾多步整好一面（⭐＝最快）</div><div class="ripple">${rows}</div></div>
+        <div class="actions"><button class="btn pink" data-act="show">🎬 睇粒粒點整${C.CNAME[best[0].c]}色</button><button class="btn green" data-act="nxt">${r + 1 < A.rounds ? '下一輪 ▶' : '完成 ✔'}</button></div>`;
+      Voice.maybe(t);
+      side().onclick = async e2 => {
+        const b2 = e2.target.closest('[data-act]'); if (!b2 || App.locked) return;
+        if (b2.dataset.act === 'show') {
+          App.locked = true; setState(st); await sleep(300);
+          for (const m of best[0].p) { view.showArrow(m); await doMove(m, 'demo'); await sleep(350); }
+          view.showArrow(null); App.locked = false; toast(`🎉 ${C.CNAME[best[0].c]}色一面整好喇！`);
+        } else { r++; if (r < A.rounds) round(); else lessonDone(right >= A.rounds - 1 ? 3 : right >= 2 ? 2 : 1); }
+      };
+    };
+  };
+  round();
+}
+
+/* 插角三招練習 */
+function runDrill(A) {
+  let r = 0, mistakes = 0;
+  const order = shuffle(FACE_TRIGS).concat(Array.from({ length: Math.max(0, A.rounds - 3) }, () => pick(FACE_TRIGS)));
+  const round = () => {
+    const T = order[r], u = pick(['U', "U'", 'U2', '']);
+    const st = C.apply(caseOf(T.seq)(), u ? [u] : []);
+    const cols = C.SLOT.DFR.st.map(i => LS[i]);
+    const hl = () => { const sl = C.findPiece(App.state, cols); return sl ? new Set(sl.st) : null; };
+    const ask = () => {
+      App.mode = { destroy() {} }; view.setHL(hl()); view.showArrow(null); padHint(null);
+      const q = '白色角仔已經喺空位正上面。白色向邊？用邊招？';
+      side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>🧩 第 ${r + 1} / ${A.rounds} 題</h3>${spk(q)}</div>
+        <div class="thought" style="font-size:17px">${q}<div class="small-note">（閃緊嗰粒就係白色角仔，可以轉下視角睇清楚）</div></div>
+        <div class="opts" style="display:grid;gap:10px">${FACE_TRIGS.map(x => `<button class="opt" data-id="${x.id}">${x.icon} ${x.look.replace(/<[^>]+>/g, '')} → ${x.name} <span class="mv">${x.alg}</span></button>`).join('')}</div><div id="qfb"></div>`;
+      Voice.maybe(q);
+      side().onclick = e => {
+        const b = e.target.closest('.opt'); if (!b || b.disabled) return;
+        if (b.dataset.id === T.id) {
+          b.classList.add('right'); Voice.maybe(`啱喇！用${T.name}。`);
+          setTimeout(() => algTrainer({ seq: T.seq, title: `🧩 ${T.name}：插落去！`, intro: `用${T.name}：${T.alg}`, hl,
+            onDone: res => { mistakes += res.wrong + res.demo; r++; toast('🎉 插好喇！'); Voice.maybe('插好喇！'); setTimeout(() => r < A.rounds ? round() : lessonDone(mistakes === 0 ? 3 : mistakes <= 3 ? 2 : 1), 900); } }), 700);
+        } else { mistakes++; b.classList.add('wrong'); b.disabled = true; $('#qfb').innerHTML = '<div class="errbox">🤔 再睇清楚白色向邊？向右、向前（向住你）定向上？</div>'; Voice.maybe('再睇清楚白色向邊？'); }
+      };
+    };
+    setState(st);
+    if (u) algTrainer({ seq: [C.inv(u)], title: `🧩 第 ${r + 1} / ${A.rounds} 題：先擺位`, intro: '第一步：<b>轉頂層</b>，將閃緊嘅白色角仔擺去<b>前右上</b>（空位正上面）。', hl, onDone: res => { mistakes += res.wrong; ask(); } });
+    else ask();
+  };
+  round();
+}
+
 function startActivity() {
   const L = App.lesson, A = L.activity;
   leaveMode(); view.setSpin(false);
@@ -1930,6 +2240,8 @@ function startActivity() {
   if (A.type === 'quiz') runQuiz(A);
   else if (A.type === 'tasks') runTasks(A);
   else if (A.type === 'dance6') runDance6();
+  else if (A.type === 'observe') runObserve(A);
+  else if (A.type === 'drill') runDrill(A);
   else runGuidedRound();
 }
 function lessonDone(stars) {
@@ -1950,14 +2262,16 @@ function lessonDone(stars) {
 }
 
 /* 小測驗 */
-function runQuiz(A) {
+function runQuiz(A0) {
+  const A = A0.genQuestions ? { ...A0, questions: A0.genQuestions() } : A0;
   let qi = 0, firstTry = 0, tried = false;
-  view.setSpin(true);
+  view.setSpin(!A0.genQuestions);
   App.mode = { destroy() {} };
   const show = () => {
     const Q = A.questions[qi];
+    if (Q.state) { setState(Q.state); view.resetView(); }
     side().innerHTML = `<div class="quiz"><div class="card-title">${mascot(42)} 小測驗 ${qi + 1} / ${A.questions.length}<span style="flex:1"></span>${spk(Q.q + '。' + Q.opts.join('，定係'))}</div>
-      <div class="q">${Q.q}</div><div class="opts">${Q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><div id="qfb"></div></div>`;
+      <div class="q">${Q.q}</div>${Q.visual ? `<div class="visual" style="display:flex;justify-content:center;margin-bottom:10px">${Q.visual}</div>` : ''}<div class="opts">${Q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><div id="qfb"></div></div>`;
     Voice.maybe(Q.q + '。' + Q.opts.join('，定係') + '？');
     tried = false;
     side().onclick = e => {
@@ -2539,7 +2853,7 @@ function boot() {
   renderHome();
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
-window.__app = { App, LESSONS, doMove, openLesson, openSolver, openFree, startActivity };
+window.__app = { App, LESSONS, OLL_INFO, PBL_INFO, FACE_TRIGS, doMove, openLesson, openSolver, openFree, startActivity };
 })();
 
 </script>
