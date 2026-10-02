@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05070f">
+<meta name="description" content="謀略學堂：用遊戲教小朋友察言觀色、推斷人心、掌握時機、結盟談判、識穿伎倆。全廣東話語音。">
+<title>謀略學堂 · 夜梟軍師</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05070f;--panel:rgba(13,17,33,.88);--panel2:rgba(26,32,58,.92);--line:rgba(224,182,90,.30);--gold:#e0b65a;--gold2:#f6dc98;--ink:#eee9dc;--muted:#aaa7bb;--red:#ef6f6f;--green:#5bcc93;--blue:#6ab2ec;--purple:#a990f2;--r:18px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang HK","PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;font-size:18px;line-height:1.75}
+body{min-height:100vh;overflow-x:hidden;touch-action:manipulation;-webkit-text-size-adjust:100%}
+body.nobg{background:radial-gradient(ellipse at 50% 20%,#1b2140 0%,#070914 60%,#030409 100%) fixed}
+#bg{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block}
+#vig{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 35%,rgba(0,0,0,.78) 100%)}
+#app{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:0 16px 90px}
+.serif{font-family:"Noto Serif TC","Songti TC","STSong","PMingLiU",serif}
+h1,h2,h3{margin:.3em 0;line-height:1.35}
+h2.hd,h3.hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+a{color:var(--gold2)}
+/* top bar */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));margin:0 -16px 16px;background:linear-gradient(180deg,rgba(5,7,15,.96),rgba(5,7,15,.78));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.brand{font-family:"Noto Serif TC",serif;font-weight:900;color:var(--gold2);font-size:21px;letter-spacing:3px;cursor:pointer;white-space:nowrap}
+.sp{flex:1}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(224,182,90,.08);font-size:15px;white-space:nowrap}
+.ibtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:20px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:50px;padding:10px 20px;border-radius:14px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:17px;font-weight:700;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .12s,filter .2s;font-family:inherit;text-align:center}
+.btn:active{transform:scale(.96)}
+.btn.gold{background:linear-gradient(180deg,#f4d488,#c8953a);color:#1d1406;border-color:#f6dc98;box-shadow:0 4px 18px rgba(224,182,90,.35)}
+.btn.ghost{background:rgba(255,255,255,.03)}
+.btn.red{background:linear-gradient(180deg,#e77,#b44);color:#fff}
+.btn.big{font-size:20px;min-height:60px;padding:12px 28px}
+.btn.dis,.btn[disabled]{opacity:.35;pointer-events:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0 4px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:0 12px 50px rgba(0,0,0,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.mt{margin-top:16px}
+/* speakable text */
+.say{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
+.say .tx{flex:1;white-space:pre-line}
+.say.big .tx{font-size:20px}
+.say.ctx{background:rgba(106,178,236,.08);border-left:4px solid var(--blue);padding:10px 12px;border-radius:10px}
+.spk{flex:none;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:rgba(224,182,90,.14);font-size:18px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;color:inherit;padding:0;line-height:1}
+.spk.playing{background:var(--gold);animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,182,90,.75)}100%{box-shadow:0 0 0 16px rgba(224,182,90,0)}}
+.muted{color:var(--muted)}
+.tag{display:inline-block;padding:3px 12px;border-radius:999px;background:rgba(224,182,90,.15);color:var(--gold2);font-size:14px;font-weight:700}
+/* splash */
+#splash{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;background:radial-gradient(ellipse at center,rgba(5,7,15,.2),rgba(5,7,15,.85))}
+.eye{width:120px;height:120px;border-radius:50%;margin:0 auto 10px;background:radial-gradient(circle at 50% 50%,#fff3c8 0 8%,#e0b65a 9% 22%,#3a2a0a 23% 40%,transparent 41%),radial-gradient(circle,rgba(224,182,90,.35),transparent 70%);animation:breathe 3.5s ease-in-out infinite}
+@keyframes breathe{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.4)}}
+.title{font-family:"Noto Serif TC",serif;font-weight:900;font-size:clamp(46px,11vw,96px);letter-spacing:.18em;margin:0;background:linear-gradient(180deg,#fff2c4,#e0b65a 55%,#8a6420);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 40px rgba(224,182,90,.25)}
+.subt{font-family:"Noto Serif TC",serif;color:var(--gold2);letter-spacing:.5em;font-size:clamp(15px,3.6vw,22px);margin:4px 0 22px}
+.whisper{max-width:620px;margin:0 auto 26px;min-height:5.5em;color:#d9d3c2;font-size:18px}
+.whisper p{margin:.35em 0;opacity:0;animation:fadein 1.4s forwards}
+@keyframes fadein{to{opacity:1}}
+/* home */
+.hero{text-align:center;padding:10px 0 6px}
+.hero h1{font-family:"Noto Serif TC",serif;color:var(--gold2);font-size:clamp(28px,6vw,44px);letter-spacing:.15em;margin:0}
+.owlbox{display:flex;gap:14px;align-items:flex-start}
+.owl{font-size:52px;line-height:1;filter:drop-shadow(0 0 12px rgba(224,182,90,.5))}
+.map{position:relative;margin:22px 0;display:flex;flex-direction:column;gap:14px}
+.map:before{content:"";position:absolute;left:50%;top:20px;bottom:20px;width:2px;background:linear-gradient(var(--gold),transparent);opacity:.35}
+.node{position:relative;display:flex;align-items:center;gap:12px;width:min(560px,100%);padding:12px 14px;border-radius:18px;background:var(--panel);border:1px solid var(--line);cursor:pointer;transition:transform .15s}
+.node:active{transform:scale(.98)}
+.node.l{align-self:flex-start}.node.r{align-self:flex-end}
+.node .disc{flex:none;width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;background:radial-gradient(circle at 35% 30%,#3a3256,#141830);border:2px solid var(--gold);box-shadow:0 0 18px rgba(224,182,90,.35)}
+.node.locked{opacity:.55}.node.locked .disc{border-color:#555;box-shadow:none}
+.node.done .disc{background:radial-gradient(circle at 35% 30%,#f4d488,#a5762a)}
+.nb{flex:1;min-width:0}.nt{font-weight:900;font-size:18px}.ns{font-size:14.5px;color:var(--muted);line-height:1.5}
+.stars{color:var(--gold);letter-spacing:2px;font-size:16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+.tile{padding:16px;border-radius:16px;background:var(--panel);border:1px solid var(--line);cursor:pointer;display:flex;gap:12px;align-items:center}
+.tile .ti{font-size:34px}.tile b{display:block;font-size:17px}.tile small{color:var(--muted);font-size:14px;line-height:1.4;display:block}
+/* chapter */
+.chead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.ctitle{font-weight:900;font-size:18px;flex:1}
+.dots{display:flex;gap:5px;width:100%}
+.dots i{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.12)}
+.dots i.on{background:var(--gold)}.dots i.cur{background:var(--gold2);box-shadow:0 0 8px var(--gold)}
+.scene{font-size:56px;text-align:center;letter-spacing:8px;margin:4px 0 8px}
+.bubble{border-radius:16px;padding:10px 14px;margin:10px 0;animation:pop .35s}
+.bubble.owl{background:rgba(224,182,90,.10);border:1px solid var(--line)}
+.bubble.npc{background:rgba(106,178,236,.08);border:1px solid rgba(106,178,236,.3)}
+.bubble.nar{background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.18)}
+.who{font-weight:900;color:var(--gold2);font-size:15px}
+@keyframes pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ttop{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;color:var(--muted)}
+.tcard{animation:pop .35s}
+.ticon{font-size:58px;text-align:center}
+.why{margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(169,144,242,.10);border:1px solid rgba(169,144,242,.35)}
+.why .lab{font-weight:900;color:#cdbdff;font-size:15px}
+/* choices */
+.choice{display:flex;gap:10px;align-items:center;padding:12px 14px;margin:10px 0;border-radius:14px;background:var(--panel2);border:1px solid var(--line);cursor:pointer;transition:transform .12s,background .2s}
+.choice:active{transform:scale(.98)}
+.choice .tx{flex:1}
+.choice.right{background:rgba(91,204,147,.18);border-color:var(--green)}
+.choice.wrong{background:rgba(239,111,111,.15);border-color:var(--red)}
+.choice.off{pointer-events:none;opacity:.6}
+.choice.off.right{opacity:1}
+.part .hit{pointer-events:all}
+.fb{margin-top:12px;padding:12px 14px;border-radius:14px;animation:pop .3s}
+.fb.good{background:rgba(91,204,147,.12);border:1px solid var(--green)}
+.fb.bad{background:rgba(239,111,111,.10);border:1px solid var(--red)}
+.fb.info{background:rgba(224,182,90,.10);border:1px solid var(--line)}
+/* sort */
+.pool{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.chip{display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);cursor:pointer}
+.chip .tx{flex:1}
+.chip.sel{border-color:var(--gold2);box-shadow:0 0 0 3px rgba(224,182,90,.4);background:rgba(224,182,90,.12)}
+.buckets{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;position:sticky;bottom:8px;z-index:5}
+.bucket{padding:12px 8px;border-radius:14px;border:2px dashed var(--gold);background:rgba(13,17,33,.95);text-align:center;font-weight:900;cursor:pointer;min-height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bucket .cnt{font-size:13px;color:var(--muted);font-weight:400}
+.bucket.hot{background:rgba(224,182,90,.18);animation:glow 1s infinite alternate}
+@keyframes glow{to{box-shadow:0 0 18px rgba(224,182,90,.6)}}
+.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-4px)}}
+/* spot */
+.spot{display:grid;grid-template-columns:minmax(220px,300px) 1fr;gap:16px;align-items:start}
+@media(max-width:640px){.spot{grid-template-columns:1fr}}
+.fig{background:radial-gradient(circle at 50% 30%,#232a4a,#0f1226);border-radius:18px;border:1px solid var(--line);padding:6px}
+.fig svg{width:100%;height:auto;display:block}
+.part{cursor:pointer}
+.part .hit{fill:rgba(224,182,90,0);stroke:none;transition:fill .2s}
+.part:hover .hit{fill:rgba(224,182,90,.12)}
+.part.seen .hit{fill:rgba(255,255,255,.07);stroke:rgba(255,255,255,.3);stroke-dasharray:4 4}
+.part.key .hit{fill:rgba(224,182,90,.22);stroke:var(--gold2);stroke-width:2;stroke-dasharray:none}
+.clue{padding:6px 10px;border-radius:10px;margin:6px 0;font-size:16px;animation:pop .3s}
+.clue.k{background:rgba(224,182,90,.13);border:1px solid var(--line)}
+.clue.n{background:rgba(255,255,255,.04)}
+/* timing */
+.tbar{position:relative;height:56px;border-radius:14px;overflow:hidden;background:linear-gradient(90deg,#5a1f2a,#7a2a33);border:2px solid var(--line);margin:18px 0 8px}
+.tbar .z{position:absolute;top:0;bottom:0}
+.z.y{background:#b9922e}.z.g{background:linear-gradient(180deg,#5bd99b,#2f9a64)}
+.needle{position:absolute;top:-4px;bottom:-4px;width:6px;margin-left:-3px;background:#fff;box-shadow:0 0 12px #fff;border-radius:3px}
+.tlegend{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+/* meters */
+.meters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px 0 12px}
+.meter{font-size:13px;text-align:center}
+.meter .bar{height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:3px}
+.meter .bar i{display:block;height:100%;background:var(--gold);transition:width .5s}
+.eff{display:inline-block;margin:2px 4px;padding:1px 8px;border-radius:999px;font-size:13px;font-weight:700}
+.eff.p{background:rgba(91,204,147,.2);color:#9ff0c4}.eff.m{background:rgba(239,111,111,.2);color:#ffb3b3}
+/* alliance */
+.voters{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.voter{padding:12px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
+.voter.win{border-color:var(--green);box-shadow:0 0 0 2px rgba(91,204,147,.3)}
+.voter .vn{font-weight:900;font-size:17px}
+.voter .obs{font-size:14px;color:var(--muted);line-height:1.5;margin:3px 0}
+.voter .need{font-size:14px;color:var(--gold2)}
+.sbar{height:10px;border-radius:5px;background:rgba(255,255,255,.1);position:relative;overflow:hidden;margin:6px 0}
+.sbar i{display:block;height:100%;background:linear-gradient(90deg,#6ab2ec,#5bcc93);transition:width .4s}
+.sbar:after{content:"";position:absolute;left:60%;top:0;bottom:0;width:2px;background:#fff}
+.vact{display:flex;gap:6px;flex-wrap:wrap}
+.vact .btn{min-height:40px;padding:6px 10px;font-size:14px;border-radius:10px}
+.log{max-height:220px;overflow:auto;font-size:15px;background:rgba(0,0,0,.25);border-radius:12px;padding:8px 12px;margin-top:10px}
+.log div{padding:3px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .panel{max-width:560px;width:100%;max-height:88vh;overflow:auto}
+/* negotiate */
+.ken{display:flex;align-items:center;gap:14px;font-size:16px}
+.ken .face{font-size:60px}
+.offer{font-size:34px;font-weight:900;color:var(--gold2)}
+input[type=range]{width:100%;height:36px;accent-color:var(--gold)}
+/* card */
+.xwrap{perspective:1000px;display:flex;justify-content:center;margin:12px 0}
+.xcard{width:min(340px,90vw);height:440px;position:relative;transform-style:preserve-3d;transition:transform .9s;cursor:pointer}
+.xcard.open{transform:rotateY(180deg)}
+.xf,.xb{position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center}
+.xf{background:repeating-linear-gradient(45deg,#1a1f3a 0 12px,#141830 12px 24px);border:3px solid var(--gold);font-size:70px}
+.xf div{font-size:24px;font-family:"Noto Serif TC",serif;color:var(--gold2);letter-spacing:.3em}
+.xb{transform:rotateY(180deg);background:linear-gradient(160deg,#2b2412,#141018);border:3px solid var(--gold2)}
+.xk{font-family:"Noto Serif TC",serif;font-size:88px;color:var(--gold2);line-height:1.1;text-shadow:0 0 30px rgba(224,182,90,.6)}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.mini{padding:14px;border-radius:16px;border:2px solid var(--gold);background:linear-gradient(160deg,#2b2412,#141018);text-align:center}
+.mini .xk{font-size:52px}
+.mini.lock{border-color:#444;background:#11131f;opacity:.5}
+/* mission */
+.mis{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:var(--panel2);margin:8px 0;cursor:pointer}
+.mis .ck{flex:none;width:30px;height:30px;border-radius:8px;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900}
+.mis.on .ck{background:var(--gold);color:#1b1306}
+textarea,input[type=text]{width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--ink);font-size:17px;padding:10px 12px;font-family:inherit}
+textarea{min-height:80px}
+/* five steps */
+.five{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0}
+@media(max-width:640px){.five{grid-template-columns:1fr}}
+.five .st{text-align:center;padding:12px 8px;border-radius:14px;background:var(--panel2);border:1px solid var(--line)}
+.five .st .xk{font-size:46px}
+.result{text-align:center}
+.bigstar{font-size:60px;color:var(--gold);letter-spacing:6px;text-shadow:0 0 20px rgba(224,182,90,.7)}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;background:#222844;border:1px solid var(--gold);padding:10px 18px;border-radius:12px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.on{opacity:1}
+.list li{margin:6px 0}
+.cert{border:6px double var(--gold);padding:26px;border-radius:12px;text-align:center;background:linear-gradient(160deg,#241e10,#0e0c14)}
+.set-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,.1)}
+.set-row label{flex:1;min-width:200px}
+select{font-size:16px;padding:8px;border-radius:10px;background:#141830;color:var(--ink);border:1px solid var(--line);max-width:100%}
+.switch{width:64px;height:36px;border-radius:18px;background:#333;position:relative;cursor:pointer;flex:none}
+.switch:after{content:"";position:absolute;top:4px;left:4px;width:28px;height:28px;border-radius:50%;background:#fff;transition:left .2s}
+.switch.on{background:var(--gold)}.switch.on:after{left:32px}
+@media print{#bg,#vig,.top,.row,.spk{display:none!important}body{background:#fff;color:#000}.cert{background:#fff;color:#000}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="vig"></div>
+<div id="app"></div>
+<div id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+'use strict';
+/* ================= 課程內容 ================= */
+/* story lines: [who, text]  who: 'O' = 夜梟軍師, 'N' = 旁白, 其他 = 角色名 */
+const CH = [
+/* ---------- 第一章 ---------- */
+{id:'c1',icon:'👁️',title:'第一章 · 睇人眉頭眼額',sub:'觀察力：人哋未開口，身體已經講咗',steps:[
+{type:'story',scene:'🏫 👩‍🏫 🧒',lines:[
+['O','歡迎你，新來嘅小謀士。我係夜梟軍師。喺呢個世界，好多嘢人哋唔會講出口，但係佢哋嘅面、身體同聲音，早就講咗出嚟。'],
+['N','你同媽媽講：「我想買新玩具！」媽媽口講「等陣先」，但係眉頭皺晒，一路望住電話，打字打得好快。'],
+['O','你覺得媽媽心入面諗緊乜？係真係「等陣」，定係「而家唔好煩我」？'],
+['O','識睇人眉頭眼額嘅人，好似戴咗一副隱形眼鏡，睇到其他人睇唔到嘅嘢。佢哋知道幾時應該開口，幾時應該收聲。今日，我教你戴上呢副眼鏡。']]},
+{type:'teach',title:'軍師授課：觀察術',cards:[
+['👀','三個觀察位：面、身、聲','面：眉頭、眼神、嘴角。\n身：手放喺邊、腳指向邊、坐得近定遠。\n聲：講得快定慢、大聲定細聲、語氣同平時一唔一樣。','人嘅情緒，係由腦入面一個好古老、反應好快嘅部分控制。佢郁得快過我哋諗嘢。所以人可以控制自己講乜，但好難完全控制自己個面同身體。呢啲「漏出嚟」嘅訊號，就係你嘅線索。'],
+['🦶','腳唔識講大話','一個人如果想走，佢對腳通常會先指向門口。手可以扮，個樣可以扮，但好少人記得控制對腳。','我哋由細到大練習得最多嘅，係控制個面，因為人人都望住個面。離個面越遠嘅身體部分，越少人刻意控制，所以越誠實。'],
+['😊','真笑定假笑？','真心笑嘅時候，眼角會有笑紋，眼會瞇埋少少。假笑就只係嘴郁，對眼冇變。','嘴角嘅肌肉，我哋話郁就郁得；但眼角嗰組肌肉，多數只會喺真正開心嗰陣自己郁。所以要睇真定假，望對眼，唔好淨係望個嘴。'],
+['📏','基準線：同佢平時比較','阿明平時好多嘢講，今日一句都唔出聲——呢個先係線索。但如果阿明平時都好靜，今日靜就唔代表乜嘢。','每個人都有自己嘅「正常模式」。線索唔係「佢做咗乜」，而係「佢做嘅嘢同平時有冇唔同」。有改變，先至係訊號。所以要先了解一個人平時係點。'],
+['🧩','3C 法則：唔好靠一個線索落結論','第一個C，場合：而家係咩環境？\n第二個C，一堆線索：有冇幾個線索指向同一個方向？\n第三個C，改變：同平時有冇唔同？\n三樣都齊，先比較肯定。','抱住手可能係嬲，但都可能只係凍，或者佢習慣咁企。單一線索有好多個可能；幾個線索一齊出現，可能性先會收窄。好似偵探咁，要有幾個證據先可以拉人。'],
+['🎤','聽弦外之音','「隨便你啦」、「冇所謂」、「都OK嘅」——好多時意思係「我其實唔係好鍾意，但唔想講」。留意佢講嗰陣語氣有冇拖長、聲音有冇變低。','好多人怕衝突、怕冇面，所以唔會直接講「唔好」。佢哋會用好含糊嘅說話，等你自己估。識聽嘅人，就唔會撞板；唔識聽嘅人，得罪咗人都唔知。']]},
+{type:'spot',scenes:[
+{who:'陳老師',ctx:'放學後，你想問陳老師一條數學題。佢企喺課室門口。',col:'#7b5ea7',look:{brow:'flat',eye:'down',mouth:'tight',arm:'watch',foot:'door',extra:'bag'},
+ clues:{brow:'眉頭冇乜特別。',eye:'佢對眼望落手錶。',mouth:'嘴唇抿埋，冇笑容。',arm:'佢舉起手睇錶！',foot:'佢對腳已經指向門口。',extra:'佢一隻手揸住手袋同車匙。'},
+ keys:['eye','arm','foot','extra'],q:'你推斷陳老師而家……',opts:['好得閒，好想同你傾','趕時間，好想走','好嬲你'],a:1,
+ tip:'睇錶、腳指向門口、揸住車匙，三個線索指向同一個方向，即係3C入面嘅「一堆線索」。最好嘅策略係：「Miss，你係咪趕時間？我聽日小息再問你得唔得？」咁樣你唔會阻住佢，佢仲會覺得你好識諗，對你印象加分。'},
+{who:'阿明',ctx:'今日好熱，三十三度。阿明同你講：「我冇嬲呀。」',col:'#c0504d',look:{brow:'angry',eye:'side',mouth:'tight',arm:'crossed',foot:'front',extra:'none'},
+ clues:{brow:'眉頭向中間壓低，皺埋一齊。',eye:'佢避開你嘅眼神，望去另一邊。',mouth:'嘴唇抿到好實。',arm:'佢抱住雙手。今日咁熱，唔係因為凍。',foot:'對腳企得好定，冇乜特別。'},
+ keys:['brow','eye','mouth','arm'],q:'你推斷阿明……',opts:['真係冇嬲','其實好嬲，但唔想講','覺得好凍'],a:1,
+ tip:'口講冇嬲，但成個身都講緊嬲。今日咁熱，抱手唔係因為凍（場合）。策略：唔好逼佢即刻講，講句「好，你想講嘅時候我喺度」，俾佢空間。等佢冷靜咗，再私底下問：「係咪我頭先做咗啲嘢令你唔開心？」'},
+{who:'媽媽',ctx:'媽媽啱啱返完工，入門口。你想問佢星期六可唔可以去同學生日會。',col:'#4f8a6b',look:{brow:'worried',eye:'tired',mouth:'frown',arm:'open',foot:'front',extra:'sweat'},
+ clues:{brow:'眉尾垂低。',eye:'對眼半開半合，有黑眼圈。',mouth:'嘴角向下。',arm:'兩隻手垂低，好冇力。',foot:'對腳冇乜特別。',extra:'額頭有汗，好似好辛苦。'},
+ keys:['eye','mouth','arm','extra'],q:'你推斷媽媽而家……',opts:['好開心，係開口嘅好時機','好攰，等佢休息完先講比較好','好嬲你'],a:1,
+ tip:'人攰嘅時候，「耐性電池」好低，最容易講「唔好」。策略：先斟杯水俾媽媽，等佢食完飯、放鬆咗先問；仲可以順便話佢知你已經做完功課。先送禮，後開口，成功率高好多。'},
+{who:'新同學小晴',ctx:'今日班入面嚟咗個新同學小晴，佢企喺課室後面。',col:'#d08a3a',look:{brow:'worried',eye:'wide',mouth:'smile',arm:'fidget',foot:'front',extra:'none'},
+ clues:{brow:'眉頭微微向上提。',eye:'眼瞪得好大，但眼角冇笑紋。',mouth:'嘴係笑緊，但對眼冇跟住笑。',arm:'兩隻手指不停郁來郁去，捽住手。',foot:'對腳冇乜特別。'},
+ keys:['brow','eye','mouth','arm'],q:'你推斷小晴……',opts:['好有自信，唔使理佢','好緊張，好想有人同佢玩','想蝦人'],a:1,
+ tip:'嘴笑但眼冇笑、手指不停郁、眉頭向上，係緊張嘅訊號。策略：主動行過去打招呼，介紹佢識其他同學。新嚟嘅人最需要朋友，你係佢第一個朋友，佢會記住你好耐。呢個亦係建立盟友最好嘅時機。'},
+{who:'班長阿詩',ctx:'小息，你想同班長阿詩提議班會搞一個遊戲日。',col:'#3a7bd5',look:{brow:'flat',eye:'happy',mouth:'smile',arm:'open',foot:'front',extra:'none'},
+ clues:{brow:'眉頭好放鬆。',eye:'眼瞇埋，眼角有笑紋！係真笑。',mouth:'嘴角向上，笑得好自然。',arm:'雙手打開，好放鬆。',foot:'對腳向住你。'},
+ keys:['eye','mouth','arm','foot'],q:'你推斷阿詩而家……',opts:['心情好，係提議嘅好時機','扮開心，其實好嬲','想走'],a:0,
+ tip:'眼角有笑紋（真笑）、手打開、腳向住你，佢又放鬆又歡迎你。呢個係出手嘅好時機！記住，真笑嘅關鍵係對眼。'}
+]},
+{type:'sort',title:'推斷擂台：可靠定想多咗？',intro:'將每句說話放入啱嘅盒。先撳一句，再撳一個盒。',buckets:['🔍 可靠推斷','🙈 想多咗'],items:[
+{t:'佢今日冇同我講早晨，一定係嬲我！',b:1,why:'只係一個線索，可能佢只係未瞓醒。要有一堆線索先好落結論。'},
+{t:'阿詩平時好多嘢講，今日唔出聲、避開我眼神，小息仲同其他人坐。',b:0,why:'有改變，又有一堆線索指向同一個方向，呢個推斷比較可靠。'},
+{t:'老師打咗個喊路露，即係佢覺得我好悶。',b:1,why:'可能佢琴晚瞓得少。一個動作有好多個原因。'},
+{t:'爸爸講「好好好」講得好快，眼都冇離開過電視。',b:0,why:'語氣快，加上冇望你，即係佢其實冇聽入耳。'},
+{t:'同學抱住手，即係佢唔鍾意我。',b:1,why:'可能佢凍，或者佢習慣咁企。要睇場合同其他線索。'},
+{t:'媽媽話「冇嬲」，但係關門關得好大力，煮飯一句都冇講。',b:0,why:'講嘅同做嘅唔一樣，信佢做嘅。'}]},
+{type:'card',name:'觀',t:'人講乜係表面，做乜先係真相。睇面、睇身、聽聲，用3C法則：場合、一堆線索、改變，先落結論。'},
+{type:'mission',items:['揀一個屋企人，靜靜觀察佢「平時」係點（基準線）。然後留意佢有一日同平時唔同嘅地方，諗下點解。','下次同人講嘢嘅時候，望一望佢對腳指向邊。','留意一次有人講「隨便」或者「冇所謂」，佢真正嘅意思係乜？']}
+]},
+/* ---------- 第二章 ---------- */
+{id:'c2',icon:'🧮',title:'第二章 · 人人心中有個算盤',sub:'推斷力：佢想要乜？佢怕乜？',steps:[
+{type:'story',scene:'🧒 🍬 👧👧👧',lines:[
+['N','小美好想加入阿詩嗰班人一齊玩。佢日日送糖俾阿詩，但阿詩都係冇叫佢一齊玩。'],
+['小美','我對佢咁好，點解佢唔理我？'],
+['O','因為小美只係諗「我想要乜」，冇諗「阿詩想要乜、怕乜」。原來阿詩怕嘅係：多咗個新人，佢喺班入面嘅位置會被分薄。'],
+['O','每個人心入面都有一個算盤，噼哩啪啦咁計緊：做呢件事，我會得到乜？會失去乜？識得睇穿呢個算盤，你就識得點樣同人打交道。']]},
+{type:'teach',title:'軍師授課：人心六顆珠',cards:[
+['💰','第一顆珠：利益——有冇著數？','得到鍾意嘅嘢、時間、分數、零用錢、玩具。','人同所有動物一樣，會靠近對自己有好處嘅嘢。呢個唔係壞，係天性。明白呢點，你就唔會怪人「咁現實」，而係諗：點樣令佢都有著數？'],
+['😳','第二顆珠：面子——會唔會冇面？','人好怕喺其他人面前出醜、輸、被笑。為咗面子，好多人寧願唔要著數。','人係群居動物。喺遠古時代，被群體睇唔起，就可能被趕走，好危險。所以「面子」喺我哋腦入面，同「安全」差唔多咁重要。'],
+['🛡️','第三顆珠：安全感——會唔會有損失？','怕被罰、怕失去朋友、怕改變。好多人唔肯試新嘢，唔係因為新嘢唔好，而係因為怕。','心理學家發現，人失去一樣嘢嘅痛，大約係得到同一樣嘢嘅開心嘅兩倍。所以「怕失去」往往比「想得到」更有力。'],
+['🌟','第四顆珠：被重視——有冇人認同我？','人人都想被睇見、被讚、覺得自己重要。','被重視，等於喺群體有地位，有地位就有安全同資源。所以一句真心嘅「多謝你，冇你唔得」，可能比一粒糖更有用。'],
+['😮‍💨','第五顆珠：怕麻煩——會唔會好煩好攰？','就算一件事係好事，如果太麻煩，人都唔想做。','個腦好慳電，會自動揀最輕鬆嘅路。所以你想人幫你，就要令件事變得簡單。'],
+['🔥','第六顆珠：情緒——佢而家心情點？','嬲、驚、攰、肚餓嘅時候，人好難冷靜計數。','情緒好似天氣，會影響個算盤點計。同一個請求，佢開心嗰陣同嬲嬲豬嗰陣，答案可以完全唔同。'],
+['🧊','冰山定律','人講出口嘅，只係冰山頂一小部分。佢真正想要嘅、怕嘅，喺水底，先係大塊。','好多需要講出口會冇面，或者唔安全，所以人會包裝。你要問自己：佢講呢句話，背後係保護緊乜？'],
+['🔄','換位思考三問','第一問：如果我係佢，我想要乜？\n第二問：我怕乜？\n第三問：點樣先可以令我覺得「答應你」係著數？','只要你搵到一個方法，令對方覺得「幫你等於幫佢自己」，事情就會順好多。呢個叫「雙贏」，係所有謀略入面最強嘅一招。']]},
+{type:'sort',title:'算盤偵探：佢最關心邊顆珠？',intro:'每句說話背後，最主要係邊顆珠？先撳句子，再撳盒。',buckets:['💰 利益','😳 面子','🛡️ 安全感','🌟 被重視','😮‍💨 怕麻煩'],items:[
+{t:'哥哥話：「我唔玩呢隻遊戲，好幼稚。」（其實佢成日輸）',b:1,why:'成日輸好冇面，所以佢話個遊戲幼稚嚟保護面子。'},
+{t:'同學話：「你借功課我抄，我請你食雪糕。」',b:0,why:'佢用著數嚟換著數，係利益交換。（不過抄功課會一齊出事！）'},
+{t:'媽媽話：「唔好轉新補習社啦，舊嗰間都OK。」',b:2,why:'改變有風險，人自然想維持現狀，係安全感。'},
+{t:'班長話：「呢個主意好呀，係我之前諗出嚟㗎！」',b:3,why:'佢想人知道佢有功勞，想被重視。'},
+{t:'爸爸啱啱返完工，話：「下次先算啦，今日唔好去咁遠。」',b:4,why:'攰嘅時候，人最怕麻煩。'},
+{t:'同學唔肯同新嚟嘅人坐，怕自己嘅好朋友被搶。',b:2,why:'怕失去朋友，係安全感問題。'},
+{t:'老師話：「你哋自己搞掂佢，唔好嚟搵我。」',b:4,why:'老師好忙，唔想多一件麻煩事。'},
+{t:'組長堅持要喺老師面前由佢一個人報告。',b:3,why:'喺老師面前報告，可以被睇見、被讚，係被重視。'}]},
+{type:'quiz',qs:[
+['小美想加入阿詩嗰班人，最聰明嘅做法係？',['再送多啲糖','喺其他人面前真心讚阿詩，令佢有面；表示自己唔會搶佢位，仲可以帶新遊戲俾大家玩','去同老師投訴阿詩排斥人'],1,'阿詩怕嘅係位置被分薄（安全感），想要嘅係面子同好玩。小美俾佢面、令佢安心、帶嚟好處，三顆珠一齊處理。'],
+['「失去」同「得到」，邊樣令人反應大啲？',['得到','失去，大約係兩倍','一樣大'],1,'所以話人「唔做會失去乜」，往往比話人「做咗會得到乜」更有說服力。'],
+['你想爸爸幫你砌模型，點講最容易成功？',['「你幫我砌啦，好簡單之嘛」','「我已經分好零件同睇晒說明書，你幫我砌最難嗰兩步，大約十分鐘，之後我請你飲杯茶」','「你唔幫我就係唔錫我」'],1,'你處理咗佢「怕麻煩」（準備好、時間短），又俾咗佢小小著數。第三個係情緒勒索，會令人反感。']]},
+{type:'card',name:'推',t:'人人心中有個算盤：利益、面子、安全感、被重視、怕麻煩、情緒。搵到佢嘅算盤，就搵到開門嘅鎖匙。'},
+{type:'mission',items:['今個星期，揀一個你想請佢幫手嘅人，用「換位思考三問」諗清楚先開口。','觀察一次有人講嘢，諗下佢冰山底下真正想要乜。','試下一次「令幫你等於幫佢自己」嘅講法。']}
+]},
+/* ---------- 第三章 ---------- */
+{id:'c3',icon:'⏳',title:'第三章 · 識時務者為俊傑',sub:'時機與冷靜：早一秒遲一秒，結果完全唔同',steps:[
+{type:'story',scene:'📞😡 ☕😌',lines:[
+['N','阿仔考完試，即刻衝去同爸爸講：「我想買新遊戲機！」嗰陣爸爸啱啱收到公司電話，好嬲。'],
+['爸爸','買乜嘢買！成日掛住玩！'],
+['N','兩個星期後嘅星期日早上，爸爸食完一餐好味嘅早餐，坐喺梳化好放鬆。阿仔先拎成績表出嚟，再問：「爸爸，我今次進步咗，可唔可以考慮一下獎勵？」'],
+['爸爸','（笑）好呀，講嚟聽下。'],
+['O','同一個要求，換咗個時間，結果完全唔同。「識時務者為俊傑」，意思係：聰明人會睇清楚形勢先出手。']]},
+{type:'teach',title:'軍師授課：時機與冷靜',cards:[
+['🌤️','揀心情好嘅時候','食飽、放鬆、啱啱有好事發生：好時機。\n肚餓、攰、趕時間、啱啱被人鬧：壞時機。','人嘅「耐性電池」用得七七八八嘅時候，個腦會傾向講「唔好」，因為講唔好最慳力、最安全。'],
+['👥','睇觀眾','有啲嘢要喺人多嘅時候講，例如讚人。有啲嘢一定要私底下講，例如提醒人做錯。','有觀眾嘅時候，人會更加在乎面子。當眾話人錯，佢為咗保面子會死撐，就算佢知自己錯都唔會認。'],
+['🎁','先送禮，後開口','想人幫你之前，先幫人、先有好表現。例如想要獎勵，先拎出好成績。','人有「互惠」本能：人哋對我好，我會覺得欠咗人情，想還返。呢個本能喺世界上所有文化都有。'],
+['🛑','唔出手，都係一種出手','時機唔啱嘅時候，最叻嘅做法係「等」。急住開口，只會浪費機會。','一次被拒絕之後，對方會記住「我已經講咗唔好」。下次要佢改口就更難，因為人想保持前後一致。所以唔好浪費第一槍。'],
+['🧊','先控制自己，先控制局面','一嬲就衝口而出，等於將主導權交咗俾人。嬲嘅時候：深呼吸三下、心入面數到十、講「我諗一諗先」。','嬲嘅時候，腦入面負責諗後果嘅部分會好似斷咗線。所以有人會故意激嬲你，因為你一嬲就容易講錯嘢、做錯嘢。冷靜嘅人，永遠有最多選擇。'],
+['🗺️','天時、地利、人和','天時：時間啱唔啱？\n地利：地方啱唔啱，私下定公開？\n人和：身邊有冇支持你嘅人？\n三樣都齊，成功率最高。','古代軍事家都知道，就算你好有道理，形勢唔啱都會輸。好消息係：形勢係可以「等」出嚟，亦可以「造」出嚟嘅。']]},
+{type:'timing',rounds:[
+{ctx:'你想問爸爸星期六可唔可以去朋友屋企。爸爸食完晚飯，喺梳化睇緊足球，佢支持嘅隊啱啱入咗波！',z:[[0.32,0.72]],speed:0.011,why:'心情高峰係最佳時機！不過要把握，因為比賽繼續落去，佢可能又會好緊張。'},
+{ctx:'媽媽一邊煲湯，一邊聽緊電話，細佬仲喺隔離喊緊。你想問佢簽手冊。',wait:true,speed:0.014,why:'佢同時做緊三樣嘢，耐性電池差唔多冇電。等佢搞掂先問，或者將手冊放喺枱面，等佢得閒先講。'},
+{ctx:'老師啱啱讚完全班秩序好，笑住話：「仲有一分鐘落堂。」你想申請做壁報組。',z:[[0.44,0.6]],speed:0.02,why:'心情好，但時間好短！要快、要簡短：一句講完你想做乜，同埋你會點做。'},
+{ctx:'哥哥啱啱打機輸咗，大力放低手掣，好大聲「唉」咗一聲。你想問佢借耳機。',wait:true,speed:0.016,why:'啱啱輸咗，面子受損又嬲，呢個時候問借嘢，十問九唔得。等佢冷靜咗先。'},
+{ctx:'同學阿詩啱啱知道自己默書一百分，好開心咁同人傾偈。你想邀請佢參加你嘅小組。',z:[[0.28,0.68]],speed:0.013,why:'佢好開心，又好想被讚。先真心恭喜佢，然後先提出邀請。'},
+{ctx:'班主任皺住眉改緊一大疊簿。但係張回條今日一定要交，佢只需要簽個名。',z:[[0.47,0.55]],speed:0.017,why:'有時唔可以等，就要「縮細個請求」：預備好筆、指住要簽嘅位，講一句「Miss，對唔住阻你兩秒，簽個名就得」。時間窗好細，但令佢最唔麻煩，就做得到。'}]},
+{type:'quiz',qs:[
+['同學故意笑你：「你好蠢呀！」想激嬲你。最高手嘅反應係？',['即刻鬧返佢','喊','冷靜咁講「係咩？」然後做返自己嘢，唔俾佢得逞'],2,'佢想你嬲，因為你一嬲就會出醜或者做錯嘢。你唔嬲，佢就冇戲唱。真係過分，先搵老師處理。'],
+['你想提醒好朋友佢牙齒有菜，最好嘅做法係？',['喺全班面前大聲講','私底下靜靜咁同佢講','唔講，等佢自己發現'],1,'私下講，保住佢面子，佢會好感激你。當眾講，佢會好尷尬。'],
+['你想問老師借課室搞活動，邊個係最好時機？',['老師趕住去開會嘅時候','老師改緊一大疊簿嘅時候','老師啱啱讚完你哋班，準備落堂嘅時候'],2,'心情好、有空檔、你哋班啱啱有好表現：天時人和都齊。']]},
+{type:'card',name:'時',t:'唔係有道理就講，係時機啱先講。時機唔啱，就等或者造。冷靜嘅人，永遠有最多選擇。'},
+{type:'mission',items:['下次想問屋企人要嘢之前，先睇佢心情，揀一個好時機。','如果有人激嬲你，試下深呼吸三下、數到十，先至回應。','試一次「先送禮後開口」：先幫人做一件事，第二日先請佢幫你。']}
+]},
+/* ---------- 第四章 ---------- */
+{id:'c4',icon:'👞',title:'第四章 · 擦鞋都係一門學問',sub:'讚美嘅藝術：令人舒服，又唔會俾人覺得你假',steps:[
+{type:'story',scene:'👩‍🏫 😍🧒 🙂👧',lines:[
+['N','班入面有兩個同學都想做壁報組長。阿威成日同老師講：「Miss你好靚呀！Miss你最好呀！」老師笑笑口，但同學喺背後叫佢「擦鞋仔」。'],
+['N','另一個同學阿晴，有日同老師講：「Miss，你上次教我哋用顏色分類筆記，我試咗，今次溫書快咗好多，多謝你。」老師好感動，記住咗阿晴。'],
+['O','兩個都係「擦鞋」，但一個低級，一個高級。高手讚人，令人覺得你真心、有眼光；低手讚人，令人覺得你有目的。'],
+['O','最後，邊個做咗壁報組長？當然係阿晴。今日我教你點樣做一個「讚美高手」。']]},
+{type:'teach',title:'軍師授課：讚美之道',cards:[
+['🧲','點解讚美有用？','每個人都好想被睇見、被認同。你讚到佢心坎，佢會覺得你明白佢，自然想親近你、幫你。','被認同係人類好基本嘅需要（記得「被重視」呢顆珠）。仲有，人會鍾意令自己感覺良好嘅人，呢個叫「喜好原理」。人亦都比較願意幫自己鍾意嘅人。'],
+['🎯','讚具體，唔好讚空泛','低手：「你好叻呀！」\n高手：「你頭先解嗰題數嘅方法好特別，我都冇諗到可以咁計。」','具體嘅讚美證明你真係有留意，所以人會信。空泛嘅讚美人人都識講，聽落似客套，或者似有目的。'],
+['💪','讚努力同選擇，唔好只讚天份','「你練咗咁多日，終於入到波！」比「你好有天份」更打動人。','努力係佢自己揀嘅、控制到嘅。讚佢努力，等於話佢「你係一個肯捱嘅人」，呢種認同更深入，佢會更想繼續努力。'],
+['👂','最高級嘅擦鞋：認真聽','留心聽人講、記住佢講過嘅嘢，之後再問返佢：「你上次講嗰個比賽點呀？」','好少人會真心聽人講嘢。你記住佢嘅事，等於話佢：「你喺我心目中係重要嘅。」呢個比任何讚美都有力。'],
+['🎭','俾面：公開讚，私下勸','讚人要喺人多嘅地方講；提點人做錯，要私底下講。有人做錯，留條「台階」俾佢落。','喺人前讚佢，佢嘅面子同地位上升，會好感激你；喺人前話佢，佢面子受損，就算你啱，佢都會記仇。'],
+['🗣️','借第三者把口','「阿晴話你畫畫好靚喎！」轉述第三者嘅讚美，有時比自己直接讚更可信。仲有：喺人背後講佢好說話，好多時會傳返去佢耳仔。','當面讚，人會懷疑你有目的；第三者嘅讚美冇利益關係，所以人更加信。背後讚人，傳到佢耳仔，效果比當面讚強好多倍。'],
+['⚠️','擦鞋三大禁忌','一忌：讚完即刻開口要嘢，太明顯。\n二忌：讚得太誇張、講大話，會俾人識穿。\n三忌：為咗擦一個人，踩低另一個人，會得罪人，仲會傳開。','讚美嘅力量來自「可信」。一旦人發現你有目的或者講大話，之前所有讚美都會變成負分，仲會被人叫「擦鞋仔」。'],
+['🙇','好擦鞋同壞擦鞋嘅分別','好嘅擦鞋：講真話，但揀講佢好嘅嗰面。\n壞嘅擦鞋：講大話、出賣良心去討好人。','你可以揀講邊啲真話，但唔好講假話。咁樣你一世都唔怕俾人識穿，仲會建立「有眼光、講真話」嘅名聲。']]},
+{type:'sort',title:'擦鞋鑑定所',intro:'呢句讚美係低級、高手，定係會出事？',buckets:['😬 低級擦鞋','👍 高手讚美','⚠️ 會出事'],items:[
+{t:'「Miss你係全世界最靚嘅老師！可唔可以俾多啲分我？」',b:2,why:'讚完即刻要嘢，又誇張，老師即刻知你有目的。'},
+{t:'「你今日演講開頭用嗰個笑話好吸引，全班都笑咗。」',b:1,why:'具體，證明你有認真聽。'},
+{t:'「你好勁呀！你好勁呀！」',b:0,why:'空泛，聽完冇感覺。'},
+{t:'「阿明畫得麻麻地，你畫得靚好多。」',b:2,why:'踩低第三者，傳出去你會得罪阿明。'},
+{t:'「我留意到你成日都早啲返嚟幫手執課室，多謝你。」',b:1,why:'讚佢嘅努力同選擇，又具體。'},
+{t:'「哇，你件衫好靚，你乜都好！」',b:0,why:'太空泛，似客套。'},
+{t:'喺全班面前講：「多謝阿Sam幫我哋組搵咗咁多資料。」',b:1,why:'公開讚，俾足面子。'},
+{t:'喺老師面前大聲讚佢，轉個頭就同同學講老師壞話。',b:2,why:'兩面人遲早俾人識穿，會失去所有人嘅信任。'}]},
+{type:'branch',start:'s',nodes:{
+s:{t:'你想說服班主任陳老師，批准你哋組搞「流浪貓籌款」。小息，陳老師喺教員室，張枱好亂，佢皺住眉改緊作文。你會點？',c:[
+ ['即刻衝埋去：「Miss你好靚呀！可唔可以批我哋搞籌款？」','bad1',{trust:-10,rep:-5},'時機錯，擦鞋又太明顯。'],
+ ['見佢好忙，等放學佢執好嘢、心情鬆啲先搵佢；仲先寫好一頁計劃。','n2',{trust:5,power:5},'識等，又做好準備。']]},
+bad1:{t:'陳老師頭都冇抬：「我好忙，遲啲先講。」你浪費咗第一次機會，佢仲對你有少少印象唔好。',c:[['學乖咗，放學揀過時間再試','n2',{},'']]},
+n2:{t:'放學，陳老師執緊嘢，似乎心情唔錯。你點開場？',c:[
+ ['「Miss，你上次堂講到動物都有感受，我哋組諗咗好耐，想做啲嘢幫公園啲流浪貓。」','n3',{trust:10,heart:5},'具體，仲連結到佢自己嘅教學，佢會覺得自己教得好有用。'],
+ ['「Miss，全班最好嘅老師就係你，所以你一定會批嘅，係咪？」','n3b',{trust:-5},'讚美變咗壓力，令人有戒心。'],
+ ['「Miss，其他班都有得搞活動，點解我哋冇？好唔公平！」','n3c',{trust:-10,power:-5},'一開口就令老師冇面。']]},
+n3b:{t:'陳老師笑容有少少僵：「呃……你哋想搞乜呀？」佢有少少戒心。',c:[['補救：誠懇咁講返個計劃，同埋點解想做','n3',{trust:3},'']]},
+n3c:{t:'陳老師面色一沉：「每班情況唔同。」氣氛好差。',c:[['道歉：「Sorry Miss，我太心急。其實我哋係想幫流浪貓……」','n3',{trust:3,heart:3},'識得俾台階自己落，都係一種智慧。']]},
+n3:{t:'陳老師：「有心喎。但係搞籌款好麻煩，又要申請，又要人手……」你推斷佢擔心乜？點回應？',c:[
+ ['「我哋已經分好工，申請表我哋自己填好，Miss你只需要睇一睇同簽個名就得。」','good',{power:10,trust:10},'你睇穿咗佢「怕麻煩」，仲幫佢解決咗。'],
+ ['「唔會麻煩㗎Miss，信我哋啦！」','mid',{},'空口講冇用，冇處理到佢真正嘅擔心。']]},
+good:{end:1,score:1,t:'陳老師：「好，你哋咁有準備，我就幫你哋同校長講。」\n✅ 你用咗三招：揀時機、具體讚美、解決佢嘅擔心（怕麻煩）。'},
+mid:{end:1,score:0.55,t:'陳老師：「等我諗下先。」個申請拖咗兩個星期都未有回覆。\n💡 你冇處理佢「怕麻煩」嘅擔心。下次記住：佢擔心乜，你就幫佢解決乜。'}}},
+{type:'card',name:'讚',t:'讚具體、讚努力、公開讚、私下勸。只講真話，但揀講好嘅嗰面。最高級嘅讚美，係認真聽。'},
+{type:'mission',items:['今個星期，用「具體讚美」讚一個屋企人同一個同學。','喺第三者面前講一個人嘅好說話（要真心㗎）。','記住一個朋友講過嘅事，過幾日再問返佢。']}
+]},
+/* ---------- 第五章 ---------- */
+{id:'c5',icon:'💎',title:'第五章 · 吊高來賣',sub:'價值與談判：越急越蝕底，識得等先有價',steps:[
+{type:'story',scene:'🃏✨ 🧒 🍬🍬',lines:[
+['N','阿Ken好想要你手上嗰張限量版閃卡。你好開心，即刻話：「好呀好呀！你俾幾多我都得！」'],
+['N','結果阿Ken只係俾咗你兩粒糖。之後你先知道，原來佢肯俾成盒貼紙。'],
+['O','你越心急，人哋就越覺得你唔值錢。「吊高來賣」唔係扮嘢，而係明白自己嘅價值，同埋唔好太早亮底牌。'],
+['O','呢一課，你會學識談判高手嘅秘密。之後，你仲要同阿Ken真刀真槍咁傾一次。']]},
+{type:'teach',title:'軍師授課：價值與談判',cards:[
+['💎','物以罕為貴','一樣嘢越少、越難得到，人就越想要。你嘅時間、幫助、友誼都一樣：隨時隨地任人攞，人就唔識珍惜。','呢個叫「稀缺效應」。個腦會自動覺得難得嘅嘢比較有價值，因為喺遠古時代，稀少嘅資源要搶先先有。'],
+['🃏','唔好一開始就亮底牌','唔好話人知「我好需要」、「我好急」、「你俾幾多都得」。','對方知道你嘅底線，就會將條件壓到最低。談判好似玩啤牌，邊個先露底，邊個蝕底。'],
+['🚪','有後備方案，先夠膽講唔好','談判之前，先諗定：如果傾唔成，我仲有乜選擇？例如另一個同學都想要張卡。','專家叫呢個做「最佳替代方案」。有後備方案，你就唔使驚對方走，自然有底氣；冇後備方案，你就會變成求人。'],
+['⚓','先開價嘅「定錨效應」','第一個講出嚟嘅數字，會好似船錨咁，令之後嘅傾價都圍住佢轉。如果你知道行情，可以由你先開一個合理但偏高嘅價。','人腦好難完全由零開始諗，會不知不覺用第一個數字做參考點。所以邊個先定錨，邊個就有優勢。'],
+['📣','講價值，唔好淨係講價錢','「呢張卡全校得三張，仲係新淨冇花。」講清楚佢點解值錢，對方就肯出多啲。','人唔係買「東西」，係買「價值」。你幫佢睇到價值，佢個算盤就會計多啲。'],
+['🐢','以退為進','有時講：「唔緊要，我唔急，你諗清楚先。」反而令對方更想要。','你退一步，壓力就轉咗去對方身上：佢會怕失去機會。記得：怕失去，比想得到更強烈。'],
+['🙅','識得講「唔好」','唔係人哋要乜你就俾乜。禮貌咁講：「唔好意思，呢個我唔可以。」你嘅「好」先至有價值。','一個從來唔識講唔好嘅人，佢嘅幫忙會被當成理所當然。識拒絕，係保護自己嘅價值。'],
+['⚖️','紅線：唔好呃人','吊高來賣，係講真嘢、揀時機、唔露底；唔係講大話，例如話張卡新淨，但其實有花。','一次呃人，之後全世界都唔再同你交易。名聲係你最值錢嘅資產，比任何一張卡都值錢。']]},
+{type:'negotiate'},
+{type:'quiz',qs:[
+['你想賣舊漫畫俾同學，以下邊句最蝕底？',['「呢套係全套，冇缺本。」','「我好急要錢，你俾幾多都得。」','「我唔急，你考慮下先。」'],1,'一講「好急」同「幾多都得」，就等於亮晒底牌。'],
+['後備方案有乜用？',['等我可以呃人','傾唔成都唔怕，所以夠膽講唔好','冇用'],1,'有後路，先有底氣。'],
+['同學成日叫你幫佢做值日，你唔想。最好嘅講法係？',['「好啦……」（其實好唔想）','「唔好意思，今日我有事做唔到。下次你需要，可以早啲問我，我睇下得唔得。」','「你好煩呀！」'],1,'有禮貌、清楚講唔好，仲留咗後路。你嘅「好」先會有價值。']]},
+{type:'card',name:'價',t:'越急越蝕底。知道自己嘅價值，準備好後備方案，唔好先亮底牌。吊高來賣，但唔講大話。'},
+{type:'mission',items:['下次有人要你幫手，唔好即刻答應，講「我諗一諗」，諗清楚先決定。','試一次有禮貌咁講「唔好」。','做任何決定之前，問自己：「如果唔成，我嘅後備方案係乜？」']}
+]},
+/* ---------- 第六章 ---------- */
+{id:'c6',icon:'🤝',title:'第六章 · 結盟與派系',sub:'團結大多數：一個人行得快，一班人行得遠',steps:[
+{type:'story',scene:'🗳️ 🧒 vs 😈👥',lines:[
+['N','你想做班長，因為你想喺班入面搞義賣，幫醫院嘅小朋友。但係大Joe都想做班長，佢身邊有一班跟班。'],
+['N','你一個人，再有道理都只係一票。全班七個同學，你要攞到四票先贏。'],
+['O','喺任何團體入面，都有「派系」，即係一班班有共同利益嘅人。想成事，你要睇清楚：邊個同邊個好、邊個講嘢有分量、每個人想要乜。然後，搵到共同利益，結成同盟。'],
+['O','記住，大Joe都會拉票。你嘅精力有限，每一步都要計。']]},
+{type:'teach',title:'軍師授課：結盟之道',cards:[
+['🗺️','畫一張人際地圖','邊個同邊個好？邊個講嘢多人聽？邊個好少出聲但好有影響力？邊個同邊個有過節？','人唔係一個一個咁獨立做決定，而係受身邊嘅人影響。識得張地圖，你就知道應該先搵邊個。'],
+['🔑','搵關鍵人物','說服一個「人氣王」，好多時等於說服咗佢身邊一班人。','呢個叫「社會認同」：人唔肯定嘅時候，會望下身邊嘅人點做，因為跟大隊最安全。關鍵人物，就係大隊嘅方向盤。'],
+['🧩','共同利益，先係最牢固嘅膠水','結盟唔係靠「我哋係好朋友」，而係「我哋一齊做，大家都有著數」。','友情會變，但當一件事對雙方都有好處，合作就自然維持到。所以結盟之前，要先搵到雙贏點。'],
+['🕵️','先打聽，後出手','未了解人哋想要乜就亂咁應承，好容易應錯嘢。先問、先聽、先觀察。','情報係謀略嘅基礎。孫子兵法講：「知彼知己，百戰不殆。」你知得越多，每一步就越準。'],
+['🤥','唔好亂開空頭支票','唔好同兩個人都應承同一樣嘢，例如同兩個人都話會俾佢做副班長。','一旦被人發現，你喺所有人心目中嘅信用都會一齊跌。承諾少啲，但講得出做得到。'],
+['⚔️','拉一派打一派？要識，但要用得正','「分化」即係令對手嘅人分裂，或者聯合一班人對付另一班人。你一定要認得呢招，因為有人會用嚟對付你。如果你要用，只可以用嚟「團結大多數，孤立欺凌者」，例如聯合全班一齊唔接受大Joe蝦人。','一班人團結就強，分裂就弱，呢個係權力嘅基本規律。但如果用嚟欺負無辜嘅人，你會變成你最討厭嗰種人，最後亦會被人用同一招對付返你。'],
+['🌉','唔好樹敵，留後路','今日嘅對手，聽日可能係隊友。贏咗都唔好踩人，輸咗都唔好反面。','世界好細，人際關係係一場長期遊戲。今日留一條路俾人，聽日就係留一條路俾自己。'],
+['🗡️','抹黑會反彈','散播對手壞話，短期可能有用，但一俾人揭發，你就會變成「奸人」。','人最憎被利用同被呃。抹黑嘅人一旦被識穿，連支持你嘅人都會走。']]},
+{type:'alliance'},
+{type:'quiz',qs:[
+['大Joe班人成日蝦阿肥。用「團結大多數」嘅方法，你會點做？',['加入大Joe班一齊蝦，咁就唔會蝦到自己','同班入面其他同學傾，大家一齊表明唔接受欺凌，同埋話俾老師知','唔關我事'],1,'團結大多數，孤立欺凌者，呢個係分化術嘅正當用法。'],
+['選舉贏咗之後，對輸咗嘅大Joe，最聰明嘅做法係？',['喺全班面前笑佢','有禮貌咁多謝佢參選，邀請佢一齊幫手搞義賣','以後唔理佢'],1,'唔樹敵、留後路。今日嘅對手，聽日可能係隊友，仲會令其他人覺得你有氣量。']]},
+{type:'card',name:'盟',t:'先打聽，再對症下藥。搵關鍵人物，靠共同利益結盟。唔開空頭支票，唔抹黑人，唔樹敵。'},
+{type:'mission',items:['喺紙上畫一張你班嘅人際地圖：邊個同邊個好？邊個係人氣王？','搵一個同你有共同目標嘅同學，一齊做一件事。','觀察一次：有冇人用「拉一派打一派」？佢點做？']}
+]},
+/* ---------- 第七章 ---------- */
+{id:'c7',icon:'🐟',title:'第七章 · 水清則無魚',sub:'灰色地帶：世界唔係得黑同白',steps:[
+{type:'story',scene:'🧑‍⚖️ 🙅‍♂️🙅‍♀️',lines:[
+['N','阿正係班入面最正直嘅人。佢見到有同學遲咗一分鐘交功課，即刻話俾老師知；見到有人食少少零食，又話俾風紀知。'],
+['N','有一次，朋友收到阿正送嘅禮物，話「好鍾意」。阿正當眾拆穿：「你講大話！你明明唔鍾意！」'],
+['N','結果，冇人想同阿正做朋友。當阿正真係遇到麻煩、需要人幫手嘅時候，全班都冇人出聲。'],
+['O','水太清，魚就冇得住。一個人要求太嚴、乜都要計清楚，身邊就冇人敢接近。真正嘅智慧，係分得清：邊啲事要堅持，邊啲事可以隻眼開隻眼閉。']]},
+{type:'teach',title:'軍師授課：灰色地帶',cards:[
+['🌫️','世界有灰色地帶','唔係所有事都係「啱」或者「錯」。好多事係「唔係咁理想，但可以接受」。','人唔係完美嘅，規矩都唔可能寫晒所有情況。要求每個人每件事都完美，結果只會係同所有人為敵。'],
+['🪜','俾台階人落','人做錯少少，唔好拆穿到佢冇面。可以私下講，或者幫佢搵個藉口：「可能你冇留意啫。」','人一冇面就會死撐、記仇。你俾台階佢，佢會改，仲會記住你嘅好。'],
+['⚔️','揀戰場','每次衝突都要用力，你嘅力氣有限。問自己：呢件事一個月後仲重唔重要？唔重要，就放手。','戰略嘅核心係「集中力量」。將力氣留俾真正重要嘅事，先打得贏關鍵嘅仗。'],
+['📜','明規矩同潛規則','明規矩係寫出嚟嘅，例如校規。潛規則係冇寫出嚟，但大家都跟嘅，例如：新同學唔好一嚟就搶最好嘅位、小息某張乒乓波枱通常係高年級先用。','潛規則係一個群體慢慢形成嘅習慣。唔理潛規則，雖然冇犯規，但會得罪人。先睇清楚，再決定跟唔跟、幾時改。'],
+['🎭','善意嘅說話藝術','朋友問：「我幅畫靚唔靚？」你覺得麻麻，可以講：「你用色好大膽，我好鍾意個天空！」你講咗真話，只係揀咗好嘅嗰面講。','呢個唔係呃人，係顧及對方感受。重點係：唔好為咗自己嘅利益，講傷害人嘅大話。'],
+['🚨','但係，紅線唔可以退','有啲事一定要堅持，一定要講：有人被欺凌、有人有危險、有大人叫你瞞住屋企人、有人要你做違法或者傷害人嘅事。','灰色地帶係俾「小事」用嘅。涉及安全同傷害，就冇灰色，只有黑白。分得清呢兩樣，先係真智慧。'],
+['🧱','水清無魚，唔等於任人魚肉','隻眼開隻眼閉，唔係叫你做「好好先生」。俾台階之餘，要守住你嘅界線。','如果你次次都忍，對方會學識：「呢個人點樣都唔會出聲。」寬容要有底線，先叫智慧；冇底線，叫畀人蝦。']]},
+{type:'sort',title:'戰場選擇器',intro:'呢件事，值得爭取、放手算數，定係紅線一定要講？',buckets:['⚔️ 值得爭取','🐟 放手算數','🚨 紅線：一定要講'],items:[
+{t:'同學排隊嗰陣打尖咗一個位。',b:1,why:'小事，一個月後冇人記得。最多輕輕提一句，唔使搞大。'},
+{t:'有同學日日被人搶午餐錢。',b:2,why:'欺凌涉及傷害，一定要話俾老師或者信得過嘅大人知。'},
+{t:'小組作業上面，你個名被人寫漏咗。',b:0,why:'影響你嘅分數同功勞，值得私下有禮貌咁更正。'},
+{t:'朋友話好鍾意你送嘅禮物，但你覺得佢其實麻麻。',b:1,why:'善意嘅說話，唔使拆穿。'},
+{t:'一個網上認識嘅人，叫你唔好話俾爸媽知你哋傾偈。',b:2,why:'叫你瞞住屋企人，係危險訊號，一定要講。'},
+{t:'老師計錯你測驗分數，少咗十分。',b:0,why:'值得爭取，但要私下、有禮貌咁問：「老師，呢題我想請教下。」'},
+{t:'同學唱歌走音。',b:1,why:'無傷大雅，放手。'},
+{t:'有人叫你一齊喺網上改圖笑一個同學。',b:2,why:'網上欺凌，唔好參與，仲要話俾大人知。'},
+{t:'細佬食多咗你一塊餅。',b:1,why:'小事，計較會傷感情。'}]},
+{type:'branch',start:'s',nodes:{
+s:{t:'小組報告聽日要交。組員小強話：「Sorry，部電腦壞咗，未做到。」但你昨晚見到佢喺網上打機。全組人望住你，你係組長。你會點？',c:[
+ ['當眾拆穿：「你講大話！我見到你打機！」','e1',{trust:-5,rep:-5},''],
+ ['私下同佢講：「我明，可能你琴晚好攰。但我哋好需要你嗰部分，今晚九點前傳俾我得唔得？我可以幫你搵資料。」','e2',{trust:10,power:5,heart:5},''],
+ ['唔出聲，自己通宵做埋佢嗰份。','e3',{power:-10},'']]},
+e1:{end:1,score:0.3,t:'小強面紅晒，嬲嬲地走咗，之後成組人氣氛好僵，佢仲同人講你壞話。\n💡 你啱，但你輸咗。當眾拆穿，令佢冇台階落，佢只會死撐同記仇。'},
+e2:{end:1,score:1,t:'小強鬆咗一口氣：「多謝你……我今晚一定搞掂。」佢真係交咗，之後仲對你特別好。\n✅ 你俾咗台階（「可能你好攰」），又守住咗界線（今晚九點前一定要交）。呢個就係水清無魚嘅真正用法。'},
+e3:{end:1,score:0.4,t:'你搞掂咗，但攰到病。之後小強每次都咁做，因為佢知道你會執手尾。\n⚠️ 水清則無魚，唔係叫你做好好先生。俾台階之餘，一定要守住你嘅界線。'}}},
+{type:'card',name:'容',t:'小事放手，俾人台階；揀戰場，留力氣俾大事。寬容要有底線，紅線永遠唔退。'},
+{type:'mission',items:['今個星期，揀一件小事，試下隻眼開隻眼閉。','有人做錯少少，試下私下講，俾佢一個台階。','寫低你自己嘅三條紅線：邊啲事你一定唔會退讓？']}
+]},
+/* ---------- 第八章 ---------- */
+{id:'c8',icon:'🛡️',title:'第八章 · 防人之心不可無',sub:'識穿伎倆：害人之心不可有，防人之心不可無',steps:[
+{type:'story',scene:'😇🍬 → 😈📄',lines:[
+['N','有個同學平時好少同你講嘢，突然有日走埋嚟：「你好叻呀！你係全班最好人嘅！你可唔可以借份功課我抄吓？」'],
+['N','你好開心被人讚，就借咗。結果老師發現兩份功課一模一樣，你同佢一齊被罰。之後，佢都冇再搵過你。'],
+['O','你學識咗謀略，人哋都識。最危險嘅唔係壞人，而係你認唔出佢用緊乜招。'],
+['O','今日，我教你識穿最常見嘅伎倆。學識咗，冇人可以輕易利用你。']]},
+{type:'teach',title:'軍師授課：伎倆圖鑑',cards:[
+['🍬','糖衣陷阱：突然好熱情','平時唔理你嘅人，突然大讚你，然後即刻要你幫手。\n防禦：問自己：「佢讚我，係因為我，定係因為佢想要嘢？」','讚美會令我哋開心，開心嘅時候我哋會冇咁小心。呢招就係利用你嘅好心情，令你冇時間諗。'],
+['⏰','製造緊迫：「快啲！得今日！」','「你唔即刻答應就冇機會㗎啦！」\n防禦：越催得急，越要慢。講：「我要諗一諗。」','時間壓力會令個腦冇時間計數，只靠直覺做決定。真正嘅好機會，好少會因為你諗一晚就消失。'],
+['😢','情緒勒索：「你唔幫我，就唔係我朋友」','用內疚、恐懼、友情嚟逼你。\n防禦：真朋友唔會用絕交嚟威脅你。講：「我當你係朋友，但呢件事我唔可以做。」','怕失去朋友（怕失去）係好強烈嘅感覺，佢就係利用呢點。你一認出佢，佢就冇力。'],
+['🪓','挑撥離間：「佢喺背後講你壞話㗎」','有人走嚟講第三者壞話，想你哋反面。\n防禦：唔好即刻信，亦唔好即刻去質問。觀察多啲，或者冷靜咁同當事人傾。','呢個就係「拉一派打一派」：令其他人分裂，挑撥嘅人就得益。你要問：「佢話我知呢件事，佢有乜著數？」'],
+['🦶','得寸進尺：先細後大','先借支筆，再借功課，再叫你考試幫佢傳答案。\n防禦：每次都問：「如果第一次佢就問呢個，我會唔會應承？」','人想保持前後一致：應承咗細嘅，就覺得唔好意思唔應承大嘅。佢就係一級一級咁拉你落水。'],
+['👥','人多勢眾：「大家都係咁做㗎啦」','用一班人嚟壓你。\n防禦：大家都做，唔等於啱。問自己：如果冇人睇住，我仲覺唔覺得呢件事啱？','人天生怕同群體唔同。但一班人一齊錯，都仲係錯。'],
+['🌀','扭曲事實：「你諗多咗啦」、「我從來冇講過」','明明發生咗嘅事，佢話冇，令你懷疑自己。\n防禦：重要嘅嘢留低記錄，例如訊息、筆記，同信得過嘅人傾。','如果你唔信自己嘅記憶，就只能夠信佢，咁佢就控制咗你。記錄係你嘅盾牌。'],
+['🎣','套料：不知不覺問晒你啲秘密','好似閒聊咁問你：屋企住邊、幾時得你一個、你嘅密碼、你朋友嘅秘密。\n防禦：私隱唔講，朋友嘅秘密唔講。','資訊就係力量。你講出去嘅每一個秘密，都可能變成人哋手上嘅籌碼。'],
+['🚨','特別警報：叫你「保守秘密」嘅大人','如果有大人，包括網上認識嘅人，送禮物俾你、叫你唔好話俾爸爸媽媽知、或者令你覺得唔舒服，即刻話俾信得過嘅大人知。你唔會有麻煩，你係保護緊自己。','真正關心你嘅大人，唔會要求你瞞住屋企人。秘密，係壞人最鍾意用嘅工具。']]},
+{type:'sort',title:'伎倆辨識器',intro:'佢用緊邊一招？',buckets:['🍬 糖衣','⏰ 緊迫','😢 勒索','🪓 挑撥','🦶 得寸進尺','👥 人多勢眾'],items:[
+{t:'「你唔借我抄，我就同全班講你孤寒，以後冇人同你玩！」',b:2,why:'用失去朋友嚟威脅你。'},
+{t:'「快啲決定！呢個優惠過咗今晚就冇㗎啦！」',b:1,why:'用時間壓你，等你冇時間諗。'},
+{t:'「我同你講，阿琪喺背後話你好假㗎……你唔好再同佢玩啦。」',b:3,why:'令你同阿琪反面，問下佢有乜著數。'},
+{t:'「全班都有買呢對鞋，得你冇咋！」',b:5,why:'用「大家都係咁」嚟壓你。'},
+{t:'「上次借咗你枝筆咋嘛，今次借份功課嚟抄吓啫。」',b:4,why:'由細到大，一步步拉你落水。'},
+{t:'「你真係全校最聰明嘅人！咦，你可唔可以幫我做埋份功課？」',b:0,why:'先讚，即刻要嘢。'},
+{t:'「你係咪朋友嚟㗎？係朋友就幫我隱瞞！」',b:2,why:'用友情嚟逼你。'},
+{t:'「最後三個名額，唔報就冇得玩㗎啦！」',b:1,why:'製造緊迫感。'}]},
+{type:'quiz',qs:[
+['一個網上認識嘅「朋友」送遊戲點數俾你，仲話：「唔好同你爸爸媽媽講，呢個係我哋嘅秘密。」你應該點做？',['收咗先，佢對我咁好','即刻話俾爸爸媽媽或者老師知','自己靜靜雞封鎖佢就算'],1,'叫你瞞住屋企人，就係危險訊號。話俾信得過嘅大人知，你唔會有麻煩，你係保護緊自己。'],
+['阿B同你講：「阿C喺背後笑你。」最聰明嘅第一步係？',['即刻衝去鬧阿C','先唔好信住，觀察多啲，諗下阿B講呢件事有乜著數','同全班講阿C壞話'],1,'可能係挑撥離間。先冷靜，搵多啲證據。'],
+['同學話：「得今日有效！快啲將你遊戲帳號密碼俾我，我幫你升級！」你會？',['俾佢，機會難得','講「我諗一諗」，然後問大人；密碼永遠唔俾人','俾一半密碼佢'],1,'製造緊迫加套料，雙重伎倆！密碼係私隱，永遠唔好俾人。']]},
+{type:'card',name:'防',t:'越急越要慢，越甜越要醒。問自己：佢做呢件事，有乜著數？叫你瞞住屋企人嘅，一定要講。'},
+{type:'mission',items:['今個星期，留意廣告或者身邊嘅人，搵出一次「製造緊迫」嘅例子。','練習講呢句：「我要諗一諗先。」','同爸爸媽媽傾下：如果有人叫我保守秘密，我應該點做？']}
+]},
+/* ---------- 第九章 ---------- */
+{id:'c9',icon:'🌧️',title:'第九章 · 現實殘酷課',sub:'世界唔一定公平，但你可以變強',steps:[
+{type:'story',scene:'🌧️ 🦉 🧒',lines:[
+['O','呢一課，我要講啲大人好少同你講嘅真相。'],
+['O','有啲嘢你聽完會覺得：「點解會咁㗎？好唔公平！」係，好多時真係唔公平。'],
+['O','但係，知道世界真實嘅樣，先可以保護自己。唔知道嘅人，只會一次又一次咁受傷，仲唔知點解。'],
+['O','每一個真相，我都會教你點樣應對。準備好未？']]},
+{type:'teach',title:'十個殘酷真相',cards:[
+['🌧️','真相一：世界唔一定公平','老師會偏心，教練會揀自己鍾意嘅人，努力嘅人未必贏。\n應對：唔好淨係嬲。諗：「喺呢個唔公平嘅規則入面，我點做先最有利？」','做決定嘅係人，人有感情、有喜好，會偏向令佢舒服同信任嘅人。所以除咗實力，「關係」同「印象」都計分。'],
+['🙈','真相二：做得好，唔代表有人知','你默默做晒，功勞可能係講得最大聲嗰個攞。\n應對：學識有技巧咁「匯報」：「老師，我哋組嘅資料搜集部分，我整理咗呢份。」','老師同上司都好忙，佢哋只會見到佢哋睇到嘅嘢。唔講出嚟，就等於冇發生過。呢個唔係吹水，係令事實被睇見。'],
+['🦊','真相三：有人會搶你功勞','應對：留低痕跡，喺群組報告進度、做嘢有記錄、交嘢時寫明分工。','搶功勞嘅人，靠嘅係「冇證據」。你有記錄，佢就搶唔到。保護自己，要喺事發之前做。'],
+['🍂','真相四：朋友會變','升班、分班、有新朋友、利益唔同咗，友情都會變。\n應對：唔好將所有秘密講晒俾一個人知，唔好只得一個朋友圈。','人嘅關係，好多時同環境同利益有關。環境變，關係就可能變。呢個唔一定係邊個衰，而係人之常情。'],
+['🗣️','真相五：有人會喺背後講你','就算你冇做錯嘢，都會有人講你壞話，因為妒忌、因為好玩、或者因為佢想贏你。\n應對：唔好逐個去吵，用長期嘅行動建立名聲；真係太過分，搵大人幫手。','講人是非，可以令講嘅人覺得自己有地位、同聽嘅人更親密。你控制唔到人哋把口，但你控制到大部分人見到嘅你。'],
+['⚖️','真相六：有道理，唔一定贏','好多決定唔係睇邊個啱，而係睇邊個有支持、有時機、識講。\n應對：道理、盟友、時機，三樣齊先出手。','做決定嘅人都有自己嘅算盤：面子、怕麻煩、關係。你只有道理，冇處理佢嘅算盤，佢都未必揀你。'],
+['🧮','真相七：大部分人首先諗自己','唔係因為佢哋壞，而係人嘅天性。\n應對：唔好期望人無條件幫你，搵雙贏，令幫你等於幫佢自己。','人要先保護好自己，先可以照顧人。明白呢點，你就唔會因為人哋自私而太受傷，反而識得點合作。'],
+['🏦','真相八：冇人有義務幫你','平時你幫人，有事人先會幫你。\n應對：平時「儲人情」，多啲幫人、多啲多謝人、記住人哋嘅好。','人情好似銀行戶口，平時要存錢，有需要先拎得出。從來唔存、淨係識借嘅人，好快冇人肯借。'],
+['🪞','真相九：第一印象好難改','人好快就會幫你貼標籤，例如「懶」、「叻」、「麻煩友」，之後只會留意符合呢個標籤嘅嘢。\n應對：新環境頭幾日特別重要：守時、有禮、做好份內事。','個腦為咗慳力，會好快幫人分類，之後只搵證據支持自己嘅判斷，呢個叫「確認偏誤」。所以要改印象，要好多次、好長時間。'],
+['💪','真相十：錯唔係你，但後果可能要你承擔','例如有人整爛你啲嘢、搵你笨。嬲係正常，但抱怨唔會令事情變好。\n應對：先保護自己、止蝕，再諗點樣討回公道。','世界唔會因為「唔係我錯」就自動幫你修好。識得先處理後果嘅人，先可以重新拎返主導權。']]},
+{type:'branch',start:'s',nodes:{
+s:{t:'你同阿Leo一齊做科學專題，九成工夫都係你做嘅。匯報嗰日，阿Leo喺全班同老師面前講：「呢個實驗係我設計嘅。」老師讚佢好叻。你會點？',c:[
+ ['當場大嗌：「講大話！係我做嘅！」','e1',{rep:-10,trust:-5},''],
+ ['唔出聲，返屋企先喊。','e2',{power:-10},''],
+ ['匯報完，私下冷靜咁搵老師，拎出你嘅草稿、相片同群組記錄：「老師，想同你講下我哋組嘅分工……」','e3',{power:10,trust:10,rep:5},'']]},
+e1:{end:1,score:0.3,t:'全班嘩然。老師分唔清邊個講真話，覺得你哋兩個都好麻煩，兩個都扣分。\n💡 你啱，但你當時冇證據，又令老師冇面（佢啱啱先讚完阿Leo）。'},
+e2:{end:1,score:0.2,t:'冇人知你做咗嘢。阿Leo發現呢招有效，下次會再嚟。\n⚠️ 沉默唔係永遠都係金。唔講出嚟，就等於冇發生過。'},
+e3:{end:1,score:1,t:'老師睇完記錄，明白咗。佢冇當眾話阿Leo，但私下同佢傾咗，又喺評語寫明你嘅貢獻。\n✅ 你用咗：冷靜、證據、私下講、俾台階。下次記得：一開始就留低記錄！'}}},
+{type:'quiz',qs:[
+['小組作業，點樣最有效防止功勞被搶？',['做完先算','一開始就喺群組分工、定期報告進度、留低草稿記錄','咩都唔做，信人'],1,'保護自己，要喺事發之前做。'],
+['你覺得老師偏心另一個同學，最有用嘅諗法係？',['「老師好衰，我以後唔做功課」','「老師都係人，會鍾意令佢舒服同可靠嘅人。我可以點樣令佢對我印象更好？同時做好自己。」','上網鬧老師'],1,'接受現實，再諗點樣喺現實入面做到最好。'],
+['「有道理就一定贏」，啱唔啱？',['啱','唔啱：道理、盟友、時機三樣齊，先最有機會'],1,'道理只係其中一張牌。']]},
+{type:'card',name:'實',t:'世界唔一定公平，但識規則嘅人，可以喺唔公平入面搵到出路。留記錄、儲人情、做好第一印象。'},
+{type:'mission',items:['下次做小組作業，試下一開始就喺群組寫低分工。','今個星期，主動幫一個人，儲一次人情。','諗一次你覺得唔公平嘅事，用「喺呢個規則入面，我點做先最有利？」重新諗過。']}
+]},
+/* ---------- 第十章 ---------- */
+{id:'c10',icon:'👑',title:'第十章 · 終極試煉：軍師之路',sub:'綜合運用所有心法，冇提示',steps:[
+{type:'story',scene:'🐾 🏫 👑',lines:[
+['O','恭喜你行到最後一關。今次冇提示，你要自己用晒所有心法。'],
+['O','任務：你想喺學校搞一個「流浪動物義賣日」，幫動物之家籌錢。呢件係好事，但要成事，你要過五關：老師、組員、對手、小食部，同埋你自己。'],
+['O','記住：謀略係工具，目標要正。信任、實力、名聲、良心，四樣都會計分。開始！']]},
+{type:'branch',start:'n1',final:1,nodes:{
+n1:{t:'第一關：你要先說服訓導主任李Sir，佢出名嚴肅。你喺走廊見到佢，佢啱啱俾一個家長投訴完，面色好差。',c:[
+ ['即刻上前講計劃，打鐵趁熱。','n1b',{trust:-5},''],
+ ['等第二日早上，佢飲緊咖啡嘅時候，拎住一頁清清楚楚嘅計劃書去搵佢。','n2',{trust:10},'']]},
+n1b:{t:'李Sir：「而家唔得閒！」佢已經對你有少少印象唔好。',c:[['第二日早上再試，仲帶埋計劃書','n2',{},'']]},
+n2:{t:'李Sir睇完計劃書，問：「出咗事邊個負責？」你推斷佢最擔心乜？',c:[
+ ['「李Sir放心，我哋請咗陳老師做顧問老師，每個攤位都有負責人同時間表，所有錢由老師保管。」','n3',{power:10,trust:10},''],
+ ['「唔會出事㗎，我哋好乖！」','n2b',{trust:-5},'']]},
+n2b:{t:'李Sir：「你哋返去準備好安全安排先再嚟。」你要多花一個星期。',c:[['返去補充安全安排，再搵李Sir','n3',{power:-5},'']]},
+n3:{t:'第二關：批咗！你組咗一個小組。但組員阿杰好懶，阿詩好勤力，兩個成日嗌交。你點分工？',c:[
+ ['按每個人嘅強項同興趣：阿杰鍾意畫畫，就負責海報；阿詩細心，負責管數。兩個分開做，各自有功勞。','n4',{power:10,trust:10},''],
+ ['喺全組面前話阿杰懶，叫佢「學下阿詩」。','n4',{trust:-10,rep:-5},''],
+ ['自己做晒，費事煩。','n4',{power:-10},'']]},
+n4:{t:'第三關：隔離班嘅大Joe都想搞活動，佢同人講：「佢哋搞義賣，只係為咗出風頭咋。」流言開始傳開。',c:[
+ ['同大Joe當眾對質，嗌一場。','n5',{rep:-10},''],
+ ['唔理流言，但主動邀請大Joe班一齊參與，分一個攤位俾佢哋，大家都有功勞。','n5',{rep:10,trust:10,power:5},''],
+ ['都去散播大Joe壞話，以牙還牙。','n5',{heart:-15,rep:-5},'']]},
+n5:{t:'第四關：你要同小食部陳太傾，借佢啲枱同請佢捐啲小食。陳太話：「借枱可以，每張五十蚊。」',c:[
+ ['即刻答應：「好好好！唔該晒！」','n6',{power:-5},''],
+ ['「陳太，呢個係幫流浪動物嘅活動，我哋會喺海報同廣播多謝小食部支持，當日好多家長都會嚟。如果可以免費借，我哋會特別介紹你嘅新產品。」','n6',{power:10,trust:5},''],
+ ['「其他學校嘅小食部都係免費㗎！你好孤寒！」','n6',{trust:-10,rep:-5},'']]},
+n6:{t:'第五關，你自己：義賣日大成功，籌到八千蚊！校長喺週會請你上台講幾句。你會點講？',c:[
+ ['「全靠我一個人策劃！」','end',{rep:-10,trust:-15},''],
+ ['「多謝李Sir批准、陳老師指導、陳太支持。仲有我嘅組員：阿杰嘅海報吸引咗好多人，阿詩管數一個仙都冇錯，仲有大Joe班幫手。」','end',{rep:15,trust:15,heart:10},''],
+ ['唔上台，費事出風頭。','end',{rep:-5},'']]},
+end:{end:1,calc:1,t:''}}},
+{type:'card',name:'謀',t:'觀其色，推其心，三謀而後動，動後必自省。謀略為工具，良心是羅盤。'}
+]}
+];
+
+/* 時機計等通用名稱 */
+const METERS={trust:['💙','信任'],power:['⚡','實力'],rep:['⭐','名聲'],heart:['🧭','良心']};
+
+const RANKS=[[0,'🪶','書僮'],[4,'📜','小謀士'],[10,'🎋','謀士'],[17,'🦉','軍師'],[24,'🐉','大軍師'],[29,'👑','國師']];
+
+const QUOTES=['先觀其色，再推其心。','人講乜係表面，做乜先係真相。','越急越蝕底，越甜越要醒。','唔出手，都係一種出手。','公開讚，私下勸。','水清則無魚，但紅線永遠唔退。','有道理唔一定贏，道理、盟友、時機三樣齊先出手。','人人心中有個算盤。','害人之心不可有，防人之心不可無。','冷靜嘅人，永遠有最多選擇。'];
+
+const FIVE=[
+['觀','觀察','睇面、睇身、聽聲。用3C法則：場合、一堆線索、改變。','佢嘅面、身、聲有咩線索？同佢平時有冇唔同？而家係咩場合？'],
+['推','推斷','佢心入面嘅算盤點計？利益、面子、安全感、被重視、怕麻煩、情緒。','佢想要乜？佢怕乜？佢最在乎邊顆珠？'],
+['謀','謀劃','諗最少三個方案，預計每個嘅後果，揀雙贏嗰個。檢查有冇踩紅線。','我有邊三個做法？每個做完會點？邊個係雙贏？有冇傷害無辜嘅人？'],
+['動','行動','揀啱時機、啱地方、啱觀眾。先控制自己嘅情緒。','幾時講？喺邊度講？有冇其他人睇住？我夠唔夠冷靜？'],
+['省','反省','做完之後回顧：邊度做得好？邊度下次可以改？','結果點？同我預計嘅一唔一樣？下次我會點做？']];
+
+const BLIND=[
+['👂','只聽人講乜，唔睇人做乜','人哋講「冇嘢」，你就信冇嘢。','第一章教你睇面、身、聲，信佢做嘅，多過信佢講嘅。'],
+['🪞','只諗自己想要乜，唔諗對方想要乜','你想要嘢，就淨係講自己幾想要。','第二章嘅換位思考三問，幫你先諗對方嘅算盤。'],
+['⏰','揀錯時間開口','人哋好忙、好嬲嘅時候，仍然衝埋去問。','第三章嘅時機計，訓練你睇形勢先出手。'],
+['😳','當眾令人冇面','當住全班講人錯，以為自己好正義。','第四同第七章：公開讚、私下勸、俾台階。'],
+['🔥','一嬲就衝口而出','被人激嬲，就講咗後悔嘅說話。','第三章：深呼吸、數到十，冷靜嘅人有最多選擇。'],
+['1️⃣','只得一個方案','A唔得，就唔知點算。','五步心法嘅「謀」：永遠諗最少三個方案，同埋後備方案。'],
+['🍬','太快信人，乜都講晒','人哋讚兩句，就借晒功課、講晒秘密。','第八章：越甜越要醒，私隱唔講。'],
+['⚖️','以為有道理就一定贏','覺得自己啱，就唔理盟友同時機。','第六同第九章：道理、盟友、時機三樣齊。'],
+['👀','唔記得旁邊有觀眾','以為只係同一個人講嘢，其實全班都聽到。','每一個決定，都諗下：仲有邊個睇緊？'],
+['🌉','唔留後路','一嬲就絕交、鬧到好盡。','第六章：唔樹敵，今日嘅對手可能係聽日嘅隊友。']];
+
+const ADVISOR=[
+{k:'ask',i:'🙏',t:'我想人答應我一件事',tips:['揀佢心情好、得閒嘅時候先開口。','先幫人，或者先拎出好表現（先送禮，後開口）。','講清楚：答應你，對佢有乜好處？','令件事變得好簡單，幫佢解決「怕麻煩」。','預備好後備方案，佢唔答應都唔使驚。']},
+{k:'conflict',i:'⚡',t:'我同人有衝突／有人激嬲我',tips:['先冷靜：深呼吸三下，數到十。','唔好當眾嗌，搵機會私底下傾。','諗下佢點解咁做，佢怕乜？佢係咪覺得冇面？','俾佢一個台階落。','問自己：呢件事一個月後仲重唔重要？唔重要就放手。']},
+{k:'trick',i:'🛡️',t:'我覺得有人想利用我／呃我',tips:['越催得急，越要慢，講「我諗一諗先」。','問自己：佢叫我做呢件事，佢有乜著數？','如果第一次佢就問呢個，我會唔會應承？','重要嘅嘢留低記錄。','叫你瞞住屋企人嘅，一定要話俾信得過嘅大人知。']},
+{k:'join',i:'🤝',t:'我想融入一班人／搵盟友',tips:['先觀察呢班人嘅潛規則，唔好一嚟就搶風頭。','搵共同興趣，或者可以一齊做嘅事。','先聽多過講，記住人哋講過嘅嘢。','搵一個願意幫你介紹嘅「橋樑人物」。','令自己對呢班人有用，帶嚟好處。']},
+{k:'unfair',i:'🌧️',t:'我受到唔公平嘅對待',tips:['先保護自己、止蝕，唔好做衝動嘅事。','收集證據：訊息、記錄、證人。','私底下搵有權力處理嘅人，例如老師或者家長。','講事實，唔好淨係講情緒。','長遠諗：喺呢個規則入面，我點做先最有利？']}];
+
+const REDLINES=[
+['🙅','唔害無辜嘅人','謀略係用嚟保護自己、達成好目標，唔係用嚟欺負弱小。','因為：你今日點對人，聽日人就點對你。名聲一壞，所有謀略都冇用。'],
+['🤐','唔講傷害人嘅大話','你可以揀講邊啲真話，可以唔講晒，但唔好講假話去害人或者騙人。','因為：大話遲早會穿，一穿就失去所有信任，信任係最難賺返嘅嘢。'],
+['📣','涉及安全、欺凌、秘密嘅事，一定要話俾信得過嘅大人知','有人被蝦、有人有危險、有人叫你瞞住屋企人，呢啲冇灰色地帶。','因為：有啲事超出一個小朋友處理到嘅範圍。求助唔係軟弱，係最聰明嘅策略。']];
+/* ================= 引擎 ================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const rand=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=a[i];a[i]=a[j];a[j]=t}return a}
+
+const S={stars:{},cards:[],done:{},mis:{},unlockAll:false,auto:false,rate:0.95,lite:false,voice:'',name:'',notes:{},seenIntro:false};
+const KEY='moulok_academy_v1';
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY)||'{}');Object.assign(S,d)}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+/* ---------- 廣東話語音 ---------- */
+const TTS={v:null,list:[],tok:0,btn:null,ok:('speechSynthesis' in window),
+ init(){if(!this.ok)return;const pick=()=>{this.list=speechSynthesis.getVoices()||[];const named=this.list.find(v=>v.name===S.voice);
+  this.v=named||this.list.find(v=>/zh[-_]HK/i.test(v.lang))||this.list.find(v=>/yue|canton|粵|廣東|sin-?ji|hiugaai|hiumaan|wanlung|tracy|danny/i.test(v.name+' '+v.lang))||null};
+  pick();try{speechSynthesis.addEventListener('voiceschanged',pick)}catch(e){speechSynthesis.onvoiceschanged=pick}setTimeout(pick,700);setTimeout(pick,2000)},
+ isHK(){return !!this.v&&/HK|yue|canton|粵|廣東/i.test(this.v.lang+' '+this.v.name)},
+ clean(t){return String(t).replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{20E3}]/gu,' ').replace(/[「」『』《》【】（）()]/g,' ').replace(/\$(\d+)/g,'$1蚊').replace(/→/g,'，').replace(/[ \t]+/g,' ').trim()},
+ stop(){this.tok++;if(this.ok){try{speechSynthesis.cancel()}catch(e){}}if(this.btn)this.btn.classList.remove('playing');this.btn=null},
+ toggle(t,b){if(b&&this.btn===b){this.stop();return}this.say(t,b)},
+ say(t,b){if(!this.ok){toast('呢部機唔支援語音朗讀');return}
+  this.stop();const my=this.tok;
+  const parts=(this.clean(t).match(/[^。！？!?；;\n]+[。！？!?；;]*/g)||[]).map(s=>s.trim()).filter(s=>s.replace(/[，。！？、：\s]/g,'').length);
+  if(!parts.length)return;this.btn=b||null;if(b)b.classList.add('playing');let i=0;
+  const end=()=>{if(my!==this.tok)return;if(this.btn)this.btn.classList.remove('playing');this.btn=null};
+  const next=()=>{if(my!==this.tok)return;if(i>=parts.length){end();return}
+   const u=new SpeechSynthesisUtterance(parts[i++]);u.lang=this.v?this.v.lang:'zh-HK';if(this.v)u.voice=this.v;u.rate=S.rate;u.pitch=1;
+   u.onend=next;u.onerror=end;speechSynthesis.speak(u)};
+  setTimeout(next,60)}};
+
+const SAY=[];
+function sp(t){SAY.push(t);return '<button class="spk" data-say="'+(SAY.length-1)+'" aria-label="播放廣東話語音" title="播放廣東話">🔊</button>'}
+function P(t,c){return '<div class="say '+(c||'')+'"><div class="tx">'+esc(t)+'</div>'+sp(t)+'</div>'}
+function HD(t,tag){tag=tag||'h2';return '<'+tag+' class="hd">'+esc(t)+' '+sp(t)+'</'+tag+'>'}
+function autoSay(t,el){if(S.auto)TTS.say(t,el||null)}
+document.addEventListener('click',e=>{const b=e.target.closest('.spk');if(b){e.preventDefault();e.stopPropagation();TTS.toggle(SAY[+b.dataset.say],b)}},true);
+
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600)}
+
+/* ---------- 進度 ---------- */
+const totalStars=()=>CH.reduce((s,c)=>s+(S.stars[c.id]||0),0);
+function rank(){const t=totalStars();let r=RANKS[0];RANKS.forEach(x=>{if(t>=x[0])r=x});return r}
+const unlocked=i=>S.unlockAll||i===0||!!S.done[CH[i-1].id];
+
+/* ---------- 版面 ---------- */
+function topbar(){const r=rank();return '<div class="top"><div class="brand" data-go="home">🦉 謀略學堂</div><div class="sp"></div><span class="pill">'+r[1]+' '+r[2]+'</span><span class="pill">★ '+totalStars()+'</span><button class="ibtn" data-go="cards" title="心法卡冊">🎴</button><button class="ibtn" data-go="settings" title="設定">⚙️</button></div>'}
+function view(html){TTS.stop();$('#app').innerHTML=topbar()+html;window.scrollTo(0,0)}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){go(g.dataset.go)}});
+function go(n){({home,cards:cardBook,settings,five:fivePage,advisor,blind:blindPage,red:redPage,parents:parentPage})[n]()}
+
+/* ---------- 開場 ---------- */
+function splash(){
+ const d=document.createElement('div');d.id='splash';
+ d.innerHTML='<div class="eye"></div><h1 class="title">謀略學堂</h1><div class="subt">睇穿人心 · 運籌帷幄</div><div class="whisper serif" id="wh"></div><button class="btn gold big" id="enter">🔊 進入學堂</button><div class="muted" style="margin-top:14px;font-size:14px">建議開聲 · 撳每段文字旁邊嘅 🔊 可以聽廣東話</div>';
+ document.body.appendChild(d);
+ const lines=['棋盤上每一粒棋子，都以為自己喺度自己行。','其實，背後有一隻睇唔見嘅手。','識睇人心、識揀時機、識結盟嘅人，就係嗰隻手。','今日開始，你唔再做棋子。'];
+ lines.forEach((l,i)=>{const p=document.createElement('p');p.textContent=l;p.style.animationDelay=(i*1.3)+'s';$('#wh').appendChild(p)});
+ $('#enter').onclick=()=>{home();TTS.say(lines.join('')+'你要學做下棋嘅人。');d.style.transition='opacity .8s';d.style.opacity=0;setTimeout(()=>d.remove(),800)};
+}
+
+/* ---------- 主頁地圖 ---------- */
+function home(){
+ const q=QUOTES[new Date().getDate()%QUOTES.length];
+ const intro=S.seenIntro?'歡迎返嚟，小謀士。今日嘅心法係：'+q:'我係夜梟軍師。呢度唔係普通學校，係教你睇穿人心、運籌帷幄嘅謀略學堂。跟住地圖一關一關咁行，每一關都會學到一個心法，仲要喺遊戲入面實戰。準備好就由第一章開始！';
+ let map='';CH.forEach((c,i)=>{const op=unlocked(i),st=S.stars[c.id]||0;
+  map+='<div class="node '+(i%2?'r':'l')+(op?'':' locked')+(S.done[c.id]?' done':'')+'" data-ch="'+i+'"><div class="disc">'+(op?c.icon:'🔒')+'</div><div class="nb"><div class="nt">'+esc(c.title)+'</div><div class="ns">'+esc(c.sub)+'</div><div class="stars">'+'★'.repeat(st)+'☆'.repeat(3-st)+'</div></div>'+sp(c.title+'。'+c.sub)+'</div>'});
+ const tiles=[['five','☯️','五步心法','所有謀略嘅核心邏輯'],['advisor','🧭','臨場軍師','遇到真實難題？即刻用'],['blind','🕳️','最易忽略嘅十件事','小朋友最常跌嘅坑'],['red','🚩','軍師三條紅線','謀略嘅底線'],['cards','🎴','心法卡冊','收集你嘅心法'],['parents','👪','家長及老師須知','設計理念同使用建議']];
+ view('<div class="hero"><h1>謀略學堂</h1><div class="muted serif" style="letter-spacing:.3em">觀 · 推 · 謀 · 動 · 省</div></div>'+
+  '<div class="panel"><div class="owlbox"><div class="owl">🦉</div><div style="flex:1">'+P(intro)+'</div></div></div>'+
+  '<div class="map">'+map+'</div>'+
+  '<h2 class="serif" style="color:var(--gold2)">🗝️ 軍師錦囊</h2><div class="tiles">'+tiles.map(t=>'<div class="tile" data-go="'+t[0]+'"><div class="ti">'+t[1]+'</div><div><b>'+t[2]+'</b><small>'+t[3]+'</small></div></div>').join('')+'</div>'+
+  '<div class="row"><button class="btn ghost" id="ua">'+(S.unlockAll?'🔓 已全部解鎖':'🔓 直接解鎖全部章節')+'</button></div>');
+ if(!S.seenIntro){S.seenIntro=true;save()}
+ document.querySelectorAll('.node').forEach(n=>n.onclick=e=>{if(e.target.closest('.spk'))return;const i=+n.dataset.ch;if(!unlocked(i)){toast('完成上一章就會解鎖，或者撳下面「直接解鎖全部章節」');return}startChapter(i)});
+ $('#ua').onclick=()=>{S.unlockAll=!S.unlockAll;save();home()};
+}
+
+/* ---------- 章節 ---------- */
+let R=null;
+function startChapter(i){R={ch:CH[i],idx:i,i:0,scores:[]};renderStep()}
+function renderStep(){const ch=R.ch,st=ch.steps[R.i];
+ view('<div class="chead"><button class="btn ghost" data-go="home">← 地圖</button><div class="ctitle">'+ch.icon+' '+esc(ch.title)+'</div><div class="dots">'+ch.steps.map((s,k)=>'<i class="'+(k<R.i?'on':k===R.i?'cur':'')+'"></i>').join('')+'</div></div><div id="stage" class="panel"></div>');
+ REND[st.type](st,$('#stage'));
+}
+function nextStep(){R.i++;if(R.i>=R.ch.steps.length)finishChapter();else renderStep()}
+function nextBtn(el,label){const d=document.createElement('div');d.className='row';d.innerHTML='<button class="btn gold big">'+(label||'下一步 ▶')+'</button>';d.firstChild.onclick=nextStep;el.appendChild(d);setTimeout(()=>d.scrollIntoView({behavior:'smooth',block:'end'}),100)}
+function finishChapter(){const ch=R.ch;const sc=R.scores;const avg=sc.length?sc.reduce((a,b)=>a+b,0)/sc.length:1;
+ const stars=avg>=0.85?3:avg>=0.6?2:1;const before=rank();S.stars[ch.id]=Math.max(S.stars[ch.id]||0,stars);S.done[ch.id]=true;save();const after=rank();
+ const nxt=CH[R.idx+1];
+ const msg=stars===3?'完美！你已經掌握咗呢一章嘅心法。':stars===2?'做得好！再玩多次，可以攞齊三粒星。':'過關喇！謀略要靠練習，再試多次會更叻。';
+ view('<div class="panel result"><div class="scene">'+ch.icon+'</div>'+HD('過關：'+ch.title)+'<div class="bigstar">'+'★'.repeat(stars)+'<span style="opacity:.25">'+'★'.repeat(3-stars)+'</span></div>'+P(msg)+
+ (after!==before?P('🎉 升級！你而家係「'+after[2]+'」'+after[1]):'')+
+ (ch.id==='c10'?'<div class="row"><button class="btn gold" id="cert">📜 領取軍師證書</button></div>':'')+
+ '<div class="row"><button class="btn ghost" id="again">🔁 再玩一次</button>'+(nxt?'<button class="btn gold" id="nx">下一章：'+esc(nxt.title.split('·')[1]||nxt.title)+' ▶</button>':'')+'<button class="btn ghost" data-go="home">🗺️ 返地圖</button></div></div>');
+ autoSay(msg);$('#again').onclick=()=>startChapter(R.idx);if(nxt)$('#nx').onclick=()=>startChapter(R.idx+1);if($('#cert'))$('#cert').onclick=certificate;
+}
+
+const REND={};
+/* 故事 */
+REND.story=(st,el)=>{let k=0;
+ el.innerHTML='<div class="scene">'+st.scene+'</div><div id="lines"></div><div class="row"><button class="btn gold big" id="more">繼續 ▶</button></div>';
+ const more=()=>{const L=st.lines[k++];const w=L[0];const box=document.createElement('div');
+  box.className='bubble '+(w==='O'?'owl':w==='N'?'nar':'npc');
+  box.innerHTML=(w==='N'?'':'<div class="who">'+(w==='O'?'🦉 夜梟軍師':esc(w))+'</div>')+P(L[1]);
+  $('#lines').appendChild(box);autoSay(L[1],box.querySelector('.spk'));
+  if(k>=st.lines.length){$('#more').textContent='明白！下一步 ▶';$('#more').onclick=nextStep}
+  setTimeout(()=>$('#more').scrollIntoView({behavior:'smooth',block:'end'}),80)};
+ $('#more').onclick=more;more();};
+/* 教學卡 */
+REND.teach=(st,el)=>{let k=0;const draw=()=>{const c=st.cards[k];
+ el.innerHTML='<div class="ttop"><span class="tag">📖 '+esc(st.title)+'</span><span>'+(k+1)+' / '+st.cards.length+'</span></div><div class="tcard"><div class="ticon">'+c[0]+'</div>'+HD(c[1])+P(c[2],'big')+'<div class="why"><div class="lab">🔍 點解會咁？拆解背後原理</div>'+P(c[3])+'</div></div><div class="row"><button class="btn ghost'+(k?'':' dis')+'" id="pv">◀ 上一張</button><button class="btn gold" id="nx">'+(k<st.cards.length-1?'下一張 ▶':'學識晒！下一步 ▶')+'</button></div>';
+ autoSay(c[1]+'。'+c[2]+'。'+c[3]);
+ $('#pv').onclick=()=>{if(k>0){k--;draw();el.scrollIntoView()}};
+ $('#nx').onclick=()=>{if(k<st.cards.length-1){k++;draw();el.scrollIntoView()}else nextStep()}};draw()};
+/* 測驗 */
+REND.quiz=(st,el)=>{let k=0,right=0;const draw=()=>{const q=st.qs[k];
+ el.innerHTML='<div class="ttop"><span class="tag">🧠 軍師考考你</span><span>'+(k+1)+' / '+st.qs.length+'</span></div>'+HD(q[0],'h3')+q[1].map((o,j)=>'<div class="choice" data-j="'+j+'"><div class="tx">'+esc(o)+'</div>'+sp(o)+'</div>').join('')+'<div id="qfb"></div>';
+ autoSay(q[0]);
+ el.querySelectorAll('.choice').forEach(c=>c.onclick=e=>{if(e.target.closest('.spk'))return;const j=+c.dataset.j,ok=j===q[2];if(ok)right++;
+  el.querySelectorAll('.choice').forEach(x=>{x.classList.add('off');if(+x.dataset.j===q[2])x.classList.add('right')});if(!ok)c.classList.add('wrong');
+  const t=(ok?'✅ 啱晒！':'❌ 差少少。')+q[3];$('#qfb').innerHTML='<div class="fb '+(ok?'good':'bad')+'">'+P(t)+'</div>';autoSay(t);
+  const d=document.createElement('div');d.className='row';d.innerHTML='<button class="btn gold">'+(k<st.qs.length-1?'下一題 ▶':'完成 ▶')+'</button>';
+  d.firstChild.onclick=()=>{if(k<st.qs.length-1){k++;draw()}else{R.scores.push(right/st.qs.length);nextStep()}};$('#qfb').appendChild(d)})};draw()};
+/* 分類 */
+REND.sort=(st,el)=>{let sel=null,right=0,done=0;const items=shuffle(st.items.map((x,i)=>Object.assign({i:i},x)));const cnt=st.buckets.map(()=>0);
+ el.innerHTML='<span class="tag">🗂️ 分類挑戰</span>'+HD(st.title)+P(st.intro)+'<div class="pool" id="pool">'+items.map(it=>'<div class="chip" data-i="'+it.i+'"><div class="tx">'+esc(it.t)+'</div>'+sp(it.t)+'</div>').join('')+'</div><div id="sfb"></div><div class="buckets">'+st.buckets.map((b,j)=>'<div class="bucket" data-b="'+j+'">'+esc(b)+'<span class="cnt" id="bc'+j+'">0</span></div>').join('')+'</div>';
+ autoSay(st.title+'。'+st.intro);
+ el.querySelectorAll('.chip').forEach(c=>c.onclick=e=>{if(e.target.closest('.spk'))return;el.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');sel=+c.dataset.i;el.querySelectorAll('.bucket').forEach(b=>b.classList.add('hot'))});
+ el.querySelectorAll('.bucket').forEach(b=>b.onclick=()=>{if(sel===null){toast('先撳一句說話，再撳盒');return}
+  const it=st.items[sel],j=+b.dataset.b,ok=it.b===j;const chip=el.querySelector('.chip[data-i="'+sel+'"]');
+  if(ok)right++;else b.classList.add('shake');setTimeout(()=>b.classList.remove('shake'),400);
+  cnt[it.b]++;$('#bc'+it.b).textContent=cnt[it.b];chip.remove();done++;sel=null;el.querySelectorAll('.bucket').forEach(x=>x.classList.remove('hot'));
+  const t=(ok?'✅ 啱！':'❌ 應該係「'+st.buckets[it.b].replace(/^\S+\s/,'')+'」。')+it.why;
+  $('#sfb').innerHTML='<div class="fb '+(ok?'good':'bad')+'"><b>「'+esc(it.t)+'」</b>'+P(t)+'</div>';autoSay(t);
+  if(done===st.items.length){R.scores.push(right/st.items.length);$('#sfb').innerHTML+='<div class="fb info">'+P('完成！你答啱咗 '+right+' / '+st.items.length+' 題。')+'</div>';nextBtn($('#sfb'))}});
+};
+/* 心法卡 */
+REND.card=(st,el)=>{if(!S.cards.includes(st.name)){S.cards.push(st.name);save()}
+ el.innerHTML='<span class="tag">🎴 獲得心法卡</span><div class="xwrap"><div class="xcard" id="xc"><div class="xf">🦉<div>心法卡</div><small style="font-size:15px;color:var(--muted)">撳一下翻開</small></div><div class="xb"><div class="xk">'+st.name+'</div><div style="margin-top:12px">'+P(st.t)+'</div></div></div></div><div id="cn"></div>';
+ $('#xc').onclick=e=>{if(e.target.closest('.spk'))return;if($('#xc').classList.contains('open'))return;$('#xc').classList.add('open');autoSay('心法：'+st.name+'。'+st.t);nextBtn($('#cn'),R.ch.steps[R.i+1]?'收好心法卡 ▶':'完成本章 ▶')}};
+/* 現實任務 */
+REND.mission=(st,el)=>{
+ el.innerHTML='<span class="tag">🎯 現實任務：學以致用</span>'+HD('今個星期嘅秘密任務')+P('遊戲入面學識唔算數，喺真實生活用到先係真本事。揀一個或者多個任務去試，做完返嚟剔低。記住五步心法：觀、推、謀、動、省。')+st.items.map((m,j)=>{const k=R.ch.id+'_'+j;return '<div class="mis'+(S.mis[k]?' on':'')+'" data-k="'+k+'"><div class="ck">'+(S.mis[k]?'✓':'')+'</div><div class="tx" style="flex:1">'+esc(m)+'</div>'+sp(m)+'</div>'}).join('')+'<h3>📝 反省筆記（可以唔寫）</h3><textarea id="note" placeholder="試咗之後，發生咩事？下次會點做？">'+esc(S.notes[R.ch.id]||'')+'</textarea><div id="mn"></div>';
+ el.querySelectorAll('.mis').forEach(m=>m.onclick=e=>{if(e.target.closest('.spk'))return;const k=m.dataset.k;S.mis[k]=!S.mis[k];save();m.classList.toggle('on');m.querySelector('.ck').textContent=S.mis[k]?'✓':''});
+ $('#note').oninput=e=>{S.notes[R.ch.id]=e.target.value;save()};nextBtn($('#mn'),'完成本章 ▶')};
+
+/* ---------- 觀察偵探 ---------- */
+function figure(L,col){
+ const sk='#f0c7a1',ln='#231a2b',cl=col||'#5a6bb0';
+ const brow={flat:'M70 50 L92 50 M108 50 L130 50',angry:'M70 45 L93 55 M107 55 L130 45',worried:'M70 55 L92 46 M108 46 L130 55'}[L.brow||'flat'];
+ const E=x=>{switch(L.eye){
+  case 'side':return '<circle cx="'+x+'" cy="66" r="7" fill="#fff"/><circle cx="'+(x+4)+'" cy="66" r="3.5" fill="'+ln+'"/>';
+  case 'down':return '<circle cx="'+x+'" cy="66" r="7" fill="#fff"/><circle cx="'+x+'" cy="70" r="3.5" fill="'+ln+'"/>';
+  case 'tired':return '<path d="M'+(x-8)+' 66 Q'+x+' 63 '+(x+8)+' 66" stroke="'+ln+'" stroke-width="3" fill="none"/><path d="M'+(x-7)+' 67 Q'+x+' 72 '+(x+7)+' 67 Z" fill="'+ln+'"/><path d="M'+(x-7)+' 75 Q'+x+' 78 '+(x+7)+' 75" stroke="#8a6a80" stroke-width="2.5" fill="none"/>';
+  case 'wide':return '<circle cx="'+x+'" cy="66" r="9.5" fill="#fff" stroke="'+ln+'" stroke-width="1"/><circle cx="'+x+'" cy="66" r="3" fill="'+ln+'"/>';
+  case 'happy':return '<path d="M'+(x-8)+' 69 Q'+x+' 59 '+(x+8)+' 69" stroke="'+ln+'" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+  default:return '<circle cx="'+x+'" cy="66" r="7" fill="#fff"/><circle cx="'+x+'" cy="66" r="3.5" fill="'+ln+'"/>'}};
+ let eyes=E(83)+E(117);if(L.eye==='happy')eyes+='<path d="M66 64 l-7 -3 M66 69 l-8 1 M134 64 l7 -3 M134 69 l8 1" stroke="'+ln+'" stroke-width="2"/>';
+ const mouth={smile:'<path d="M84 90 Q100 106 116 90" stroke="'+ln+'" stroke-width="3.5" fill="none" stroke-linecap="round"/>',tight:'<path d="M88 96 L112 96" stroke="'+ln+'" stroke-width="4" stroke-linecap="round"/>',frown:'<path d="M85 101 Q100 89 115 101" stroke="'+ln+'" stroke-width="3.5" fill="none" stroke-linecap="round"/>'}[L.mouth||'tight'];
+ const A=(d)=>'<path d="'+d+'" stroke="'+cl+'" stroke-width="15" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
+ const hand=(x,y)=>'<circle cx="'+x+'" cy="'+y+'" r="8" fill="'+sk+'"/>';
+ let arms='';switch(L.arm){
+  case 'crossed':arms=A('M70 142 Q74 178 126 168')+A('M130 142 Q126 182 74 176')+hand(126,168)+hand(74,176);break;
+  case 'watch':arms=A('M70 142 L54 210')+hand(54,212)+A('M130 142 L152 176 L114 162')+'<rect x="112" y="152" width="14" height="14" rx="3" fill="#ddd" stroke="#333" stroke-width="2"/>'+hand(108,162);break;
+  case 'fidget':arms=A('M70 142 L94 204')+A('M130 142 L106 204')+hand(95,207)+hand(106,207)+'<path d="M90 216 l-4 6 M100 218 l0 7 M110 216 l4 6" stroke="#ffd36b" stroke-width="2"/>';break;
+  default:arms=A('M70 142 L50 212')+A('M130 142 L150 212')+hand(50,214)+hand(150,214)}
+ const door=L.foot==='door';
+ const legs=door?'<path d="M90 234 L100 286 M110 234 L124 286" stroke="#2c3047" stroke-width="15" stroke-linecap="round"/>':'<path d="M90 234 L88 286 M110 234 L112 286" stroke="#2c3047" stroke-width="15" stroke-linecap="round"/>';
+ const feet=door?'<ellipse cx="110" cy="292" rx="15" ry="6" fill="#111"/><ellipse cx="136" cy="292" rx="15" ry="6" fill="#111"/>':'<ellipse cx="86" cy="293" rx="10" ry="7" fill="#111"/><ellipse cx="114" cy="293" rx="10" ry="7" fill="#111"/>';
+ let extra='';if(L.extra==='bag')extra='<rect x="30" y="205" width="34" height="30" rx="5" fill="#8a5a2b"/><path d="M38 205 Q47 192 56 205" stroke="#8a5a2b" stroke-width="3" fill="none"/><text x="160" y="232" font-size="16">🔑</text>';
+ if(L.extra==='sweat')extra='<path d="M140 40 Q133 52 140 56 Q147 52 140 40 Z" fill="#7cc6ff"/><path d="M58 50 Q53 59 58 62 Q63 59 58 50 Z" fill="#7cc6ff"/>';
+ const hit=(p,x,y,w,h)=>'<g class="part" data-p="'+p+'"><rect class="hit" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="10"/></g>';
+ let hits=hit('arm',28,136,144,92)+hit('brow',62,38,76,22)+hit('eye',62,58,76,22)+hit('mouth',76,82,48,26)+hit('foot',66,270,(door?100:68),34);
+ if(L.extra==='bag')hits+=hit('extra',24,186,46,54)+hit('extra',150,212,30,28);if(L.extra==='sweat')hits+=hit('extra',128,34,24,28);
+ return '<svg viewBox="0 0 200 310" xmlns="http://www.w3.org/2000/svg">'+(door?'<rect x="168" y="150" width="30" height="148" fill="#5b3b22" stroke="#e0b65a" stroke-width="2"/><circle cx="173" cy="226" r="3" fill="#e0b65a"/><text x="183" y="146" font-size="10" fill="#e0b65a" text-anchor="middle">門</text>':'')+
+  legs+feet+'<path d="M68 136 Q100 124 132 136 L127 238 L73 238 Z" fill="'+cl+'"/><rect x="92" y="108" width="16" height="22" fill="'+sk+'"/><circle cx="100" cy="70" r="42" fill="'+sk+'"/><path d="M58 64 Q60 22 100 24 Q142 22 142 64 Q130 40 100 42 Q72 40 58 64 Z" fill="#2b1d16"/>'+
+  '<path d="'+brow+'" stroke="'+ln+'" stroke-width="4" stroke-linecap="round" fill="none"/>'+eyes+mouth+arms+extra+hits+'</svg>'}
+REND.spot=(st,el)=>{let k=0,score=0;const run=()=>{const sc=st.scenes[k];const found=new Set(),seen=new Set();
+ el.innerHTML='<div class="ttop"><span class="tag">🔎 觀察偵探 '+(k+1)+' / '+st.scenes.length+'</span><span>對象：'+esc(sc.who)+'</span></div>'+P('情境：'+sc.ctx,'ctx')+
+ '<div class="spot"><div class="fig">'+figure(sc.look,sc.col)+'</div><div>'+P('撳佢身上唔同嘅位置去搜證：眉、眼、嘴、手、腳，同埋身邊嘅嘢。要搵齊 '+sc.keys.length+' 個關鍵線索！')+'<div class="tag" id="prog">🔑 線索 0 / '+sc.keys.length+'</div><div id="found"></div></div></div><div id="judge"></div>';
+ autoSay('情境：'+sc.ctx);
+ el.querySelectorAll('.part').forEach(g=>g.addEventListener('click',()=>{const p=g.dataset.p;if(seen.has(p))return;seen.add(p);
+  el.querySelectorAll('.part[data-p="'+p+'"]').forEach(x=>x.classList.add('seen'));const key=sc.keys.includes(p);
+  if(key){found.add(p);el.querySelectorAll('.part[data-p="'+p+'"]').forEach(x=>x.classList.add('key'))}
+  const t=sc.clues[p]||'冇乜特別。';const d=document.createElement('div');d.className='clue '+(key?'k':'n');d.innerHTML=P((key?'🔑 ':'· ')+t);$('#found').prepend(d);autoSay(t,d.querySelector('.spk'));
+  $('#prog').textContent='🔑 線索 '+found.size+' / '+sc.keys.length;if(found.size===sc.keys.length)judge()}));
+ const judge=()=>{$('#judge').innerHTML='<div class="fb info">'+HD('🧩 線索齊晒！'+sc.q,'h3')+sc.opts.map((o,j)=>'<div class="choice" data-j="'+j+'"><div class="tx">'+esc(o)+'</div>'+sp(o)+'</div>').join('')+'<div id="jfb"></div></div>';
+  autoSay('線索齊晒！'+sc.q);$('#judge').scrollIntoView({behavior:'smooth'});
+  $('#judge').querySelectorAll('.choice').forEach(c=>c.onclick=e=>{if(e.target.closest('.spk'))return;const ok=+c.dataset.j===sc.a;if(ok)score++;
+   $('#judge').querySelectorAll('.choice').forEach(x=>{x.classList.add('off');if(+x.dataset.j===sc.a)x.classList.add('right')});if(!ok)c.classList.add('wrong');
+   const t=(ok?'✅ 推斷正確！':'❌ 再睇下啲線索。')+sc.tip;$('#jfb').innerHTML='<div class="fb '+(ok?'good':'bad')+'"><b>🦉 軍師策略：</b>'+P(t)+'</div>';autoSay(t);
+   const d=document.createElement('div');d.className='row';d.innerHTML='<button class="btn gold">'+(k<st.scenes.length-1?'下一個偵查對象 ▶':'完成偵查 ▶')+'</button>';
+   d.firstChild.onclick=()=>{if(k<st.scenes.length-1){k++;run();el.scrollIntoView()}else{R.scores.push(score/st.scenes.length);nextStep()}};$('#jfb').appendChild(d)})}};run()};
+
+/* ---------- 時機計 ---------- */
+REND.timing=(st,el)=>{let k=0,score=0;const run=()=>{const r=st.rounds[k];let pos=Math.random()*.2,dir=1,live=true,raf;
+ let zones='';(r.z||[]).forEach(z=>{zones+='<div class="z y" style="left:'+((z[0]-.08)*100)+'%;width:'+((z[1]-z[0]+.16)*100)+'%"></div><div class="z g" style="left:'+(z[0]*100)+'%;width:'+((z[1]-z[0])*100)+'%"></div>'});
+ el.innerHTML='<div class="ttop"><span class="tag">⏳ 時機計 '+(k+1)+' / '+st.rounds.length+'</span><span>得分 '+score.toFixed(1)+'</span></div>'+P(r.ctx,'ctx')+
+ P('白色指針會左右移動。綠色係最佳時機，黃色係麻麻，紅色係壞時機。睇清楚情境：如果根本冇好時機，就撳「等陣先」！')+
+ '<div class="tbar">'+zones+'<div class="needle" id="ndl"></div></div><div class="tlegend"><span>😣 壞時機</span><span>好時機 😊</span></div><div class="row"><button class="btn gold big" id="go">⚡ 出手！</button><button class="btn ghost big" id="wt">🛑 等陣先</button></div><div id="tfb"></div>';
+ autoSay(r.ctx);
+ const ndl=$('#ndl');const loop=()=>{if(!live)return;pos+=dir*r.speed;if(pos>1){pos=1;dir=-1}if(pos<0){pos=0;dir=1}ndl.style.left=(pos*100)+'%';raf=requestAnimationFrame(loop)};loop();
+ const fin=(pts,txt,good)=>{live=false;cancelAnimationFrame(raf);score+=pts;$('#go').classList.add('dis');$('#wt').classList.add('dis');
+  const t=txt+r.why;$('#tfb').innerHTML='<div class="fb '+(good?'good':'bad')+'">'+P(t)+'</div>';autoSay(t);
+  const d=document.createElement('div');d.className='row';d.innerHTML='<button class="btn gold">'+(k<st.rounds.length-1?'下一回合 ▶':'完成 ▶')+'</button>';
+  d.firstChild.onclick=()=>{if(k<st.rounds.length-1){k++;run()}else{R.scores.push(score/st.rounds.length);nextStep()}};$('#tfb').appendChild(d)};
+ $('#go').onclick=()=>{if(r.wait){fin(0,'❌ 呢個時候根本冇好時機，應該等！',false);return}let z='r';(r.z||[]).forEach(q=>{if(pos>=q[0]&&pos<=q[1])z='g';else if(z!=='g'&&pos>=q[0]-.08&&pos<=q[1]+.08)z='y'});
+  if(z==='g')fin(1,'✅ 完美時機！',true);else if(z==='y')fin(.5,'🟡 時機麻麻，可能成功，可能唔成功。',false);else fin(0,'❌ 時機唔啱，對方好大機會拒絕你。',false)};
+ $('#wt').onclick=()=>{if(r.wait)fin(1,'✅ 好眼光！識得等，係高手。',true);else fin(.2,'🤔 其實呢度有好時機㗎，等得太耐可能錯失機會。',false)};
+ };run()};
+
+/* ---------- 分支劇情 ---------- */
+REND.branch=(st,el)=>{const m={trust:50,power:50,rep:50,heart:50};let node=st.start;
+ const meters=()=>'<div class="meters">'+Object.keys(METERS).map(k=>'<div class="meter">'+METERS[k][0]+' '+METERS[k][1]+' <b>'+m[k]+'</b><div class="bar"><i style="width:'+clamp(m[k],0,100)+'%"></i></div></div>').join('')+'</div>';
+ const effs=e=>Object.keys(e||{}).map(k=>'<span class="eff '+(e[k]>0?'p':'m')+'">'+METERS[k][0]+METERS[k][1]+(e[k]>0?'+':'')+e[k]+'</span>').join('');
+ const draw=()=>{const n=st.nodes[node];
+  if(n.end){let t=n.t,sc=n.score;
+   if(n.calc){const tot=m.trust+m.power+m.rep+m.heart;sc=clamp((tot-170)/150,0,1);
+    t=tot>=310?'🏆 大軍師級表現！你揀啱時機、處理到每個人嘅算盤、化敵為友、仲將功勞分俾大家。義賣日之後，老師同學都信你、撐你，下次你想做乜，大家都會幫手。':tot>=260?'👍 好有軍師嘅樣！大部分決定都好聰明，有幾步可以再諗深一層。睇下邊個數值低咗，再玩一次。':'🌱 義賣辦成咗，但你蝕咗唔少信任同名聲。返去重溫邊一章，再挑戰一次！';
+    if(m.heart<45)t+='\n⚠️ 你嘅良心值好低。用奸計可能贏一場仗，但會輸咗你自己，同埋所有人對你嘅信任。謀略係工具，良心係羅盤。';
+    else t+='\n🧭 你守住咗良心。記住：謀略係工具，目標要正。'}
+   R.scores.push(sc);el.innerHTML=meters()+'<div class="fb '+(sc>=.7?'good':'info')+'">'+P(t,'big')+'</div>';autoSay(t);nextBtn(el);return}
+  el.innerHTML='<span class="tag">🎭 情境抉擇</span>'+meters()+P(n.t,'big')+'<div id="cs">'+n.c.map((c,j)=>'<div class="choice" data-j="'+j+'"><div class="tx">'+esc(c[0])+'</div>'+sp(c[0])+'</div>').join('')+'</div><div id="bfb"></div>';
+  autoSay(n.t);
+  el.querySelectorAll('.choice').forEach(c=>c.onclick=e=>{if(e.target.closest('.spk'))return;const ch=n.c[+c.dataset.j];
+   el.querySelectorAll('.choice').forEach(x=>x.classList.add('off'));c.classList.add('right');
+   Object.keys(ch[2]||{}).forEach(k=>m[k]=clamp(m[k]+ch[2][k],0,100));
+   if(ch[3]||Object.keys(ch[2]||{}).length){$('#bfb').innerHTML='<div class="fb info">'+effs(ch[2])+(ch[3]?P(ch[3]):'')+'</div>';if(ch[3])autoSay(ch[3])}
+   const d=document.createElement('div');d.className='row';d.innerHTML='<button class="btn gold">繼續 ▶</button>';d.firstChild.onclick=()=>{node=ch[1];draw();el.scrollIntoView()};$('#bfb').appendChild(d)})};draw()};
+
+/* ---------- 結盟：班長選舉 ---------- */
+REND.alliance=(st,el)=>{
+ const NEED={face:'想被重視、有地位',ball:'想小息有多啲時間踢波',fun:'想班入面多啲好玩活動',quiet:'想有安靜地方睇書',protect:'怕被大Joe班人蝦，想有安全感',fair:'好憎唔公平，想分工公平',study:'擔心成績，想有人一齊溫書'};
+ const PROM=[['face','請你做副班長，一齊管班務'],['ball','爭取小息多啲時間用球場'],['fun','每月搞一次班會遊戲日'],['quiet','喺課室設一個安靜閱讀角'],['protect','我會帶頭企出嚟制止欺凌'],['fair','值日同分組輪流，公平分工'],['study','考試前搞溫書互助小組']];
+ const V=[{n:'子軒',e:'😎',need:'face',obs:'身邊成日圍住一班人，佢講嘢好多人聽。',friends:[1,2]},{n:'阿強',e:'🙂',need:'ball',obs:'書包掛住一個足球扣。'},{n:'美美',e:'🙂',need:'fun',obs:'冇乜特別，同子軒好老友。'},{n:'小靜',e:'🙂',need:'quiet',obs:'小息成日自己一個坐喺度睇書。'},{n:'阿肥',e:'🙂',need:'protect',obs:'見到大Joe班人就避開。'},{n:'嘉嘉',e:'🙂',need:'fair',obs:'冇乜特別。'},{n:'書仔',e:'🙂',need:'study',obs:'冇乜特別。'}].map(v=>Object.assign(v,{s:40+rand(0,8),known:false,prom:false,helped:false,boosted:false}));
+ let en=10,vp=0,smeared=false,smearCaught=false,over=false;const log=[];
+ const L=t=>{log.unshift(t)};
+ const intro='規則：全班七個同學，支持度過咗白線（六十分）就會投你。你要攞到四票先贏。你有十點精力。觀察係免費嘅，打聽要用一點；承諾要用一點；幫佢做一件事要用兩點。大Joe每一回合都會拉票。';
+ const rival=()=>{const c=V.filter(v=>v.s<72);if(!c.length)return;const v=c[rand(0,c.length-1)];v.s=Math.max(0,v.s-6);L('😈 大Joe拉攏'+v.n+'，佢對你嘅支持跌咗。')};
+ const kol=()=>{const z=V[0];if(z.s>=60&&!z.boosted){z.boosted=true;z.friends.forEach(i=>{V[i].s+=15});L('🌟 子軒公開支持你！佢嘅朋友阿強同美美都對你多咗好感。呢個就係「關鍵人物」同「社會認同」。')}};
+ const act=(cost,fn)=>{if(over)return;if(en<cost){toast('精力唔夠喇');return}en-=cost;fn();kol();rival();kol();if(en<=0)finish();else draw()};
+ const draw=()=>{const votes=V.filter(v=>v.s>=60).length;
+  el.innerHTML='<span class="tag">🗳️ 班長選舉：結盟大作戰</span>'+P(intro)+'<div class="row" style="justify-content:space-between"><span class="pill">⚡ 精力 '+en+' / 10</span><span class="pill">🗳️ 預計票數 '+votes+' / 7（要4票）</span></div>'+
+  '<div class="voters">'+V.map((v,i)=>'<div class="voter'+(v.s>=60?' win':'')+'"><div class="vn">'+v.e+' '+v.n+(i===0?' <span class="tag">人氣王</span>':'')+'</div><div class="obs">👀 '+esc(v.obs)+'</div><div class="need">'+(v.known?'💡 '+NEED[v.need]:'❓ 未知佢最關心乜')+'</div><div class="sbar"><i style="width:'+clamp(v.s,0,100)+'%"></i></div><div class="vact"><button class="btn'+(v.known?' dis':'')+'" data-a="ask" data-i="'+i+'">🕵️ 打聽 (1)</button><button class="btn'+(v.prom?' dis':'')+'" data-a="prom" data-i="'+i+'">🤝 承諾 (1)</button><button class="btn'+(v.helped?' dis':'')+'" data-a="help" data-i="'+i+'">🎁 幫佢 (2)</button></div></div>').join('')+'</div>'+
+  '<div class="row"><button class="btn red'+(smeared?' dis':'')+'" id="smear">🗡️ 散播大Joe壞話 (1)</button><button class="btn gold" id="end">🏁 結束拉票，開始投票</button></div><div class="log">'+(log.length?log.map(x=>'<div>'+esc(x)+'</div>').join(''):'<div>拉票日誌會喺度顯示。</div>')+'</div>';
+  el.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{const v=V[+b.dataset.i],a=b.dataset.a;
+   if(a==='ask')act(1,()=>{v.known=true;L('🕵️ 你同'+v.n+'傾偈，發現佢最關心：'+NEED[v.need]+'。')});
+   if(a==='help')act(2,()=>{v.helped=true;v.s+=20;L('🎁 你幫'+v.n+'搬咗一大堆簿。佢覺得欠你人情（互惠），支持度上升。')});
+   if(a==='prom')promise(v)});
+  $('#smear').onclick=()=>act(1,()=>{smeared=true;if(Math.random()<.7){smearCaught=true;V.forEach(v=>v.s-=15);L('💥 你散播大Joe壞話，但被人揭發！全班覺得你係奸人，所有人對你嘅支持都跌咗。')}else{V.forEach(v=>v.s+=4);L('🤫 壞話傳開咗，暫時冇人發現係你。但呢個係計時炸彈……')}});
+  $('#end').onclick=finish};
+ const promise=v=>{const m=document.createElement('div');m.className='modal';
+  m.innerHTML='<div class="panel">'+HD('你想向'+v.n+'承諾乜？','h3')+(v.known?'':P('提示：你仲未打聽佢最關心乜，可以靠觀察估，但可能會估錯。'))+PROM.map(p=>'<div class="choice" data-k="'+p[0]+'"><div class="tx">'+esc(p[1])+'</div>'+sp(p[1])+'</div>').join('')+'<div class="row"><button class="btn ghost" id="cx">取消</button></div></div>';
+  document.body.appendChild(m);$('#cx').onclick=()=>m.remove();
+  m.querySelectorAll('.choice').forEach(c=>c.onclick=e=>{if(e.target.closest('.spk'))return;const k=c.dataset.k;m.remove();
+   act(1,()=>{v.prom=true;if(k==='face'){vp++;if(vp>=2){V.forEach(x=>x.s-=12);L('💥 你同兩個人都應承咗做副班長！消息傳開，大家覺得你亂開空頭支票，全班支持度下跌。')}}
+    if(k===v.need){v.s+=30;L('✅ 「'+PROM.find(p=>p[0]===k)[1]+'」正中'+v.n+'心水！支持度大升。')}else{v.s+=4;L('😐 '+v.n+'覺得你嘅承諾同佢冇乜關係。')}})})};
+ const finish=()=>{if(over)return;over=true;const votes=V.filter(v=>v.s>=60).length,win=votes>=4;
+  let sc=win?(smearCaught||vp>=2?.7:1):votes/7*.6;R.scores.push(sc);
+  const lessons=[];const asked=V.filter(v=>v.known).length;
+  lessons.push(asked>=3?'✅ 你識得先打聽，後出手。':'💡 你打聽得少，好多承諾係靠估，容易估錯。');
+  lessons.push(V[0].boosted?'✅ 你搞掂咗關鍵人物子軒，佢幫你帶埋朋友。':'💡 子軒係人氣王，搞掂佢可以一次過影響三個人。');
+  if(vp>=2)lessons.push('⚠️ 你同多過一個人應承副班長，空頭支票會反彈。');
+  if(smearCaught)lessons.push('⚠️ 抹黑被揭發，全班信任大跌。抹黑會反彈！');else if(smeared)lessons.push('⚠️ 抹黑今次好彩冇人發現，但遲早會穿。');
+  if(V[4].s>=60)lessons.push('✅ 你保護咗阿肥，呢個就係「團結大多數，孤立欺凌者」。');
+  const t=(win?'🎉 你以 '+votes+' 票當選班長！':'😢 你得 '+votes+' 票，大Joe當選咗。')+'\n'+lessons.join('\n');
+  el.innerHTML='<span class="tag">🗳️ 投票結果</span><div class="scene">'+(win?'👑':'🥈')+'</div>'+P(t,'big')+'<div class="log">'+log.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div><div class="row"><button class="btn ghost" id="retry">🔁 再選一次</button></div>';
+  autoSay(t);$('#retry').onclick=()=>{R.scores.pop();REND.alliance(st,el)};nextBtn(el)};
+ draw();autoSay(intro)};
+
+/* ---------- 談判：吊高來賣 ---------- */
+REND.negotiate=(st,el)=>{const max0=40+rand(0,12);let max=max0,offer=12,pat=4,batna=null,valueN=0,over=false,asked=false;const log=[];
+ const mood=()=>pat>=4?'😊':pat===3?'🙂':pat===2?'😐':'😤';
+ const intro='你手上有一張限量版閃卡。阿Ken好想要。你嘅目標：用最好嘅價錢賣出去，但唔可以講大話。阿Ken嘅耐性有限，佢唔耐煩就會走。';
+ const L=t=>log.unshift(t);
+ const draw=()=>{el.innerHTML='<span class="tag">💎 談判桌：吊高來賣</span>'+P(intro)+'<div class="panel" style="margin:10px 0"><div class="ken"><div class="face">'+mood()+'</div><div><b>阿Ken 而家出價</b><div class="offer">$'+offer+'</div><div class="muted">耐性：'+'❤️'.repeat(Math.max(pat,0))+'</div>'+(batna?'<div class="tag">🚪 後備方案：小美肯出 $'+batna+'</div>':'')+'</div></div></div>'+
+  '<div class="choice" data-a="info"'+(asked?' style="opacity:.4;pointer-events:none"':'')+'><div class="tx">🕵️ 先打聽行情，問下其他同學</div></div>'+
+  '<div class="choice" data-a="value"'+(valueN>=2?' style="opacity:.4;pointer-events:none"':'')+'><div class="tx">📣 講出張卡嘅真實價值（全校得三張、新淨）</div></div>'+
+  '<div class="choice" data-a="cool"><div class="tx">🐢 「我唔係好急，你慢慢諗。」</div></div>'+
+  '<div class="choice" data-a="walk"><div class="tx">🚪 「咁算啦，我諗下賣俾其他人。」轉身行開</div></div>'+
+  '<div class="choice" data-a="reveal"><div class="tx">😰 老實講：「其實我好需要錢買媽媽生日禮物……」</div></div>'+
+  '<div class="panel" style="margin-top:10px"><b>💬 還價：</b> <span class="offer" id="cv" style="font-size:24px">$'+Math.max(offer+10,30)+'</span><input type="range" id="cr" min="10" max="100" value="'+Math.max(offer+10,30)+'"><div class="row"><button class="btn" id="ct">💬 開呢個價</button><button class="btn gold" id="ac">🤝 接受 $'+offer+'</button></div></div>'+
+  '<div class="log">'+(log.length?log.map(x=>'<div>'+esc(x)+'</div>').join(''):'<div>談判記錄會喺度顯示。</div>')+'</div>';
+  $('#cr').oninput=e=>$('#cv').textContent='$'+e.target.value;
+  $('#ct').onclick=()=>counter(+$('#cr').value);$('#ac').onclick=()=>deal(offer,'你接受咗阿Ken嘅出價。');
+  el.querySelectorAll('[data-a]').forEach(c=>c.onclick=()=>action(c.dataset.a))};
+ const tick=()=>{if(!over&&pat<=0){end('阿Ken：「唉，算啦，我唔要喇。」佢走咗。')}else if(!over)draw()};
+ const action=a=>{if(over)return;
+  if(a==='info'){asked=true;batna=22;L('🕵️ 小美話，如果你唔賣俾阿Ken，佢願意出 $22。你而家有後備方案喇！')}
+  if(a==='value'){valueN++;max+=5;offer=Math.min(max,offer+4);L('📣 你講出張卡點解咁難得。阿Ken：「全校得三張？咁……我加到 $'+offer+'。」')}
+  if(a==='cool'){if(pat>=2){offer=Math.min(max,offer+5);L('🐢 阿Ken有啲急：「唔好咁啦，我加到 $'+offer+' 啦！」')}else L('🐢 阿Ken開始唔耐煩……');pat--}
+  if(a==='walk'){if(offer<max-4&&pat>=2){offer=max-rand(0,3);pat=1;L('🚪 你一轉身，阿Ken即刻追上嚟：「等等！$'+offer+'，最後價！」')}else{end('🚪 你行開咗，阿Ken：「咁算啦。」佢真係唔要喇。');return}}
+  if(a==='reveal'){max=Math.max(offer,max-12);offer=Math.max(8,offer-4);L('😰 阿Ken笑咗：「咁你應該好急喎……我出返 $'+offer+' 啦。」（亮咗底牌！）')}
+  tick()};
+ const counter=x=>{if(over)return;
+  if(x<=offer){deal(x,'你開嘅價仲低過佢出價！阿Ken即刻答應。💡 唔好低過對方肯出嘅價。');return}
+  if(x<=max){if(x-offer<=6){deal(x,'阿Ken諗咗一陣：「好啦，成交！」');return}offer=Math.round(offer+(x-offer)*.5);pat--;L('💬 你開價 $'+x+'。阿Ken：「太貴喇……$'+offer+' 啦。」')}
+  else if(x<=max*1.4){offer=Math.min(max,offer+3);pat--;L('💬 你開價 $'+x+'。阿Ken：「咁貴？最多 $'+offer+'。」')}
+  else{pat-=2;L('💬 你開價 $'+x+'。阿Ken：「你搶錢呀？！」佢好唔高興。')}
+  tick()};
+ const deal=(p,why)=>{over=true;finish(p,why,true)};
+ const end=why=>{over=true;const p=batna||8;finish(p,why+(batna?' 好彩你有後備方案，賣咗俾小美 $'+batna+'。':' 你冇後備方案，最後只可以平賣 $8。'),false)};
+ const finish=(p,why,dealt)=>{const ratio=clamp(p/max0,0,1.2);const sc=clamp(ratio,0,1);R.scores.push(sc);
+  const grade=ratio>=.9?'🏆 談判高手！你幾乎攞盡阿Ken嘅最高價。':ratio>=.65?'👍 唔錯！仲可以再吊高少少。':'🌱 蝕底咗。試下先打聽、講價值、唔好亮底牌。';
+  const t=why+'\n最後成交價：$'+p+'。阿Ken原本最高肯出 $'+max0+'。\n'+grade;
+  el.innerHTML='<span class="tag">💎 談判結果</span><div class="scene">'+(ratio>=.65?'🤝':'😅')+'</div>'+P(t,'big')+'<div class="fb info">'+P('高手秘訣：先打聽行情，攞到後備方案；講出真實價值；唔好亮底牌；開價要高過對方出價，但唔好離譜；識得以退為進。')+'</div><div class="log">'+log.map(x=>'<div>'+esc(x)+'</div>').join('')+'</div><div class="row"><button class="btn ghost" id="retry">🔁 再傾一次</button></div>';
+  autoSay(t);$('#retry').onclick=()=>{R.scores.pop();REND.negotiate(st,el)};nextBtn(el)};
+ draw();autoSay(intro)};
+
+/* ---------- 其他頁面 ---------- */
+function page(t,html){view('<div class="chead"><button class="btn ghost" data-go="home">← 地圖</button></div><div class="panel">'+HD(t)+html+'</div>')}
+function fivePage(){page('☯️ 五步心法：謀略嘅核心邏輯',P('所有謀略，無論係擦鞋、結盟、談判定係防人，背後都係同一套思考步驟。將佢變成習慣，就係「心法」。')+
+ '<div class="five">'+FIVE.map(f=>'<div class="st"><div class="xk">'+f[0]+'</div><b>'+f[1]+'</b></div>').join('')+'</div>'+
+ FIVE.map(f=>'<div class="why" style="margin:10px 0"><div class="lab">'+f[0]+' · '+f[1]+'</div>'+P(f[2])+P('問自己：'+f[3])+'</div>').join('')+
+ '<div class="cert" style="margin-top:16px">'+HD('心法口訣','h3')+'<div class="serif" style="font-size:22px;color:var(--gold2);line-height:2">先觀其色，再推其心；<br>三謀而後動，動後必自省；<br>謀略為工具，良心是羅盤。</div>'+sp('先觀其色，再推其心；三謀而後動，動後必自省；謀略為工具，良心是羅盤。')+'</div>')}
+function blindPage(){page('🕳️ 小朋友最易忽略嘅十件事',P('面對形勢同人嘅時候，好多小朋友，甚至大人，都會跌入呢十個坑。每個坑旁邊，都寫咗呢個學堂點樣幫你。')+
+ BLIND.map(b=>'<div class="why" style="margin:12px 0"><div class="lab">'+b[0]+' '+esc(b[1])+'</div>'+P('例子：'+b[2])+P('學堂點幫你：'+b[3])+'</div>').join(''))}
+function redPage(){page('🚩 軍師三條紅線',P('謀略好強大，所以更加要有底線。歷史上最成功嘅謀士，唔係最奸嗰個，而係最多人信佢嗰個。')+
+ REDLINES.map((r,i)=>'<div class="why" style="margin:12px 0"><div class="lab">'+r[0]+' 第'+'一二三'[i]+'條：'+esc(r[1])+'</div>'+P(r[2])+P(r[3])+'</div>').join('')+
+ P('害人之心不可有，防人之心不可無。學謀略，係為咗保護自己同身邊嘅人，同埋將好事做成。'))}
+function advisor(){page('🧭 臨場軍師',P('遇到真實難題？揀一個最似你而家情況嘅選項，跟住五步心法一步步諗。你寫嘅嘢只會留喺呢部機。')+
+ '<div class="tiles">'+ADVISOR.map((a,i)=>'<div class="tile" data-ad="'+i+'"><div class="ti">'+a.i+'</div><div><b>'+esc(a.t)+'</b></div></div>').join('')+'</div><div id="adv"></div>');
+ document.querySelectorAll('[data-ad]').forEach(t=>t.onclick=()=>{const a=ADVISOR[+t.dataset.ad];
+  $('#adv').innerHTML='<h3 class="mt">'+a.i+' '+esc(a.t)+'</h3>'+FIVE.map((f,j)=>'<div class="why" style="margin:10px 0"><div class="lab">'+f[0]+' · '+f[1]+'</div>'+P(f[3])+'<textarea data-f="'+j+'" placeholder="寫低你嘅諗法……"></textarea></div>').join('')+
+  '<div class="row"><button class="btn gold" id="gen">📜 生成我嘅錦囊</button></div><div id="kit"></div>';$('#adv').scrollIntoView({behavior:'smooth'});
+  $('#gen').onclick=()=>{const ans=[...document.querySelectorAll('[data-f]')].map(x=>x.value.trim());
+   $('#kit').innerHTML='<div class="cert">'+HD('🦉 軍師錦囊','h3')+ans.map((v,j)=>v?'<div style="text-align:left"><b>'+FIVE[j][0]+'：</b>'+esc(v)+'</div>':'').join('')+'<hr style="border-color:var(--line)"><div style="text-align:left">'+a.tips.map(x=>P('💡 '+x)).join('')+P('🚩 最後檢查：有冇傷害無辜嘅人？有冇講傷人嘅大話？涉及安全嘅事，有冇話俾大人知？')+'</div></div>';
+   autoSay(a.tips.join('。'))}})}
+function cardBook(){const all=[];CH.forEach(c=>c.steps.forEach(s=>{if(s.type==='card')all.push([c,s])}));
+ page('🎴 心法卡冊（'+S.cards.length+' / '+all.length+'）',P('每過一章，就會得到一張心法卡。集齊十張，你就係真正嘅軍師。')+
+ '<div class="cardgrid">'+all.map(x=>{const has=S.cards.includes(x[1].name);return '<div class="mini'+(has?'':' lock')+'"><div class="xk">'+(has?x[1].name:'？')+'</div><div style="font-size:14px">'+esc(x[0].title.split('·')[1]||'')+'</div>'+(has?sp(x[1].name+'。'+x[1].t):'')+'</div>'}).join('')+'</div>'+
+ (S.done.c10?'<div class="row"><button class="btn gold" id="cert">📜 睇我嘅軍師證書</button></div>':''));if($('#cert'))$('#cert').onclick=certificate}
+function certificate(){const r=rank();view('<div class="chead"><button class="btn ghost" data-go="home">← 地圖</button></div><div class="cert"><div class="eye" style="width:80px;height:80px"></div><div class="serif" style="font-size:34px;color:var(--gold2);letter-spacing:.3em">軍師證書</div><p>茲證明</p><input type="text" id="nm" placeholder="寫低你嘅名" value="'+esc(S.name||'')+'" style="text-align:center;font-size:24px;max-width:320px"><p>已完成謀略學堂全部試煉，獲授銜頭</p><div class="serif" style="font-size:42px;color:var(--gold2)">'+r[1]+' '+r[2]+'</div><p>★ '+totalStars()+' / 30 · 心法卡 '+S.cards.length+' 張</p><p class="serif" style="color:var(--gold2)">謀略為工具，良心是羅盤。</p><p class="muted">'+new Date().toLocaleDateString('zh-HK')+' · 夜梟軍師 🦉</p></div><div class="row"><button class="btn gold" onclick="window.print()">🖨️ 列印證書</button></div>');
+ $('#nm').oninput=e=>{S.name=e.target.value;save()};TTS.say('恭喜你！你已經完成謀略學堂全部試煉。記住：謀略為工具，良心是羅盤。')}
+function parentPage(){page('👪 家長及老師須知',
+ P('呢個學堂教嘅，係大人世界每日都用緊、但好少人正式教小朋友嘅「社交智能」同「策略思維」：察言觀色、推斷動機、把握時機、讚美、談判、結盟、識穿操縱、面對現實。')+
+ '<h3>🧠 設計所依據嘅兒童學習原理</h3>'+
+ ['故事先行：每章由一個小朋友熟悉嘅生活故事開始，先引起共鳴，再講道理。','由淺入深嘅鷹架：觀察 → 推斷 → 時機 → 讚美 → 談判 → 結盟 → 灰色地帶 → 防禦 → 現實 → 綜合，每一章都建基於前一章。','第一性原理：每個技巧都有「點解會咁？」，由人性最底層嘅需要（利益、面子、安全感、被重視、怕麻煩、情緒）拆解，令小朋友明白原理，識得舉一反三，而唔係死記招式。','主動練習同即時回饋：觀察偵探、分類、時機計、分支劇情、選舉模擬、談判，每個決定都即時見到後果。','提取練習：每章有小測同分類，幫助記憶由短期轉為長期。','後設認知：五步心法（觀、推、謀、動、省）訓練小朋友諗自己點樣諗。','遷移到真實生活：每章有現實任務同反省筆記，「臨場軍師」可以喺真實情況即時用。','成長心態：星星可以重複挑戰攞，強調謀略係練出嚟嘅。','多感官：全部文字可以用廣東話朗讀，照顧識字未多或者鍾意聽嘅小朋友。'].map(x=>P('• '+x)).join('')+
+ '<h3>🧭 價值框架</h3>'+P('學堂明確設定三條紅線，並喺每一章強調：謀略係保護自己、達成正面目標嘅工具；唔可以用嚟欺負無辜、講傷人大話。分化術只教辨認同「團結大多數、孤立欺凌者」嘅正當用法。第八章包括辨認陌生人或者網上人士要求「保守秘密」嘅安全警號。')+
+ '<h3>💬 建議點用</h3>'+['每次玩一章，大約十五至二十五分鐘。','玩完同小朋友傾：「你有冇遇過類似嘅事？你當時點做？而家會點做？」','一齊揀一個現實任務，下星期傾下結果。','當小朋友遇到真實難題，可以一齊打開「臨場軍師」。','小朋友講出殘酷真相時，先認同佢嘅感受，再傾應對方法。'].map(x=>P('• '+x)).join('')+
+ '<h3>🔊 廣東話語音</h3>'+P('語音用瀏覽器內置嘅語音合成。iPad／iPhone：設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文 → 中文（香港），下載一個聲音。Windows：設定 → 時間與語言 → 語音 → 新增語音 → 中文（香港）。Mac：系統設定 → 輔助使用 → 朗讀內容 → 系統聲音 → 管理聲音 → 中文（香港）。Android：安裝 Google 文字轉語音並下載粵語。'))}
+function settings(){const vs=TTS.list.filter(v=>/zh|yue|canton|chinese/i.test(v.lang+v.name));
+ page('⚙️ 設定',
+ '<div class="set-row"><label>🔊 語音狀態：'+(TTS.ok?(TTS.isHK()?'✅ 已搵到廣東話語音（'+esc(TTS.v.name)+'）':'⚠️ 未搵到廣東話語音，可能會讀成普通話或者冇聲。請睇「家長及老師須知」嘅安裝方法。'):'❌ 呢個瀏覽器唔支援語音')+'</label><button class="btn" id="test">▶ 試聽</button></div>'+
+ (vs.length?'<div class="set-row"><label>選擇聲音</label><select id="vsel"><option value="">自動揀</option>'+vs.map(v=>'<option value="'+esc(v.name)+'"'+(S.voice===v.name?' selected':'')+'>'+esc(v.name+' ('+v.lang+')')+'</option>').join('')+'</select></div>':'')+
+ '<div class="set-row"><label>語速：<b id="rv">'+S.rate.toFixed(2)+'</b></label><input type="range" id="rate" min="0.6" max="1.3" step="0.05" value="'+S.rate+'" style="max-width:260px"></div>'+
+ '<div class="set-row"><label>📢 自動朗讀（每段新內容自動讀出嚟）</label><div class="switch'+(S.auto?' on':'')+'" id="sw1"></div></div>'+
+ '<div class="set-row"><label>🔓 直接解鎖全部章節</label><div class="switch'+(S.unlockAll?' on':'')+'" id="sw2"></div></div>'+
+ '<div class="set-row"><label>🐢 減少背景動畫（舊機用）</label><div class="switch'+(S.lite?' on':'')+'" id="sw3"></div></div>'+
+ '<div class="set-row"><label>🗑️ 重設所有進度</label><button class="btn red" id="reset">重設</button></div>');
+ $('#test').onclick=()=>TTS.say('你好，我係夜梟軍師。歡迎嚟到謀略學堂。');
+ if($('#vsel'))$('#vsel').onchange=e=>{S.voice=e.target.value;save();TTS.init();settings()};
+ $('#rate').oninput=e=>{S.rate=+e.target.value;$('#rv').textContent=S.rate.toFixed(2);save()};
+ $('#sw1').onclick=()=>{S.auto=!S.auto;save();settings()};$('#sw2').onclick=()=>{S.unlockAll=!S.unlockAll;save();settings()};$('#sw3').onclick=()=>{S.lite=!S.lite;save();settings()};
+ $('#reset').onclick=()=>{if(confirm('確定要重設所有進度？')){const keep={rate:S.rate,voice:S.voice};Object.assign(S,{stars:{},cards:[],done:{},mis:{},notes:{},unlockAll:false,name:'',seenIntro:false},keep);save();home()}}}
+
+/* ---------- three.js 神秘棋局背景 ---------- */
+function initBG(){const cv=$('#bg');
+ if(!window.THREE){cv.style.display='none';document.body.classList.add('nobg');return}
+ let ren;try{ren=new THREE.WebGLRenderer({canvas:cv,antialias:true})}catch(e){cv.style.display='none';document.body.classList.add('nobg');return}
+ ren.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+ const sc=new THREE.Scene();sc.background=new THREE.Color(0x05070f);sc.fog=new THREE.FogExp2(0x05070f,0.052);
+ const cam=new THREE.PerspectiveCamera(48,1,0.1,100);
+ sc.add(new THREE.AmbientLight(0x3d4670,0.7));
+ const gold=new THREE.PointLight(0xffc870,1.8,32);gold.position.set(0,8,0);sc.add(gold);
+ const rim=new THREE.DirectionalLight(0x6f86ff,0.45);rim.position.set(-6,5,-7);sc.add(rim);
+ const N=8,s=1.2,off=(N-1)/2;
+ const mA=new THREE.MeshStandardMaterial({color:0x1a2038,roughness:.55,metalness:.35}),mB=new THREE.MeshStandardMaterial({color:0x0a0d1a,roughness:.7,metalness:.2});
+ const tg=new THREE.BoxGeometry(s*.98,.16,s*.98);
+ for(let i=0;i<N;i++)for(let j=0;j<N;j++){const t=new THREE.Mesh(tg,(i+j)%2?mA:mB);t.position.set((i-off)*s,-.08,(j-off)*s);sc.add(t)}
+ const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(N*s+.3,.2,N*s+.3)),new THREE.LineBasicMaterial({color:0xe0b65a,transparent:true,opacity:.7}));edge.position.y=-.08;sc.add(edge);
+ const V2=a=>a.map(p=>new THREE.Vector2(p[0],p[1]));
+ const pawnG=new THREE.LatheGeometry(V2([[0,0],[.4,0],[.4,.08],[.28,.16],[.2,.5],[.14,.76],[.24,.84],[.12,.9],[.2,1.02],[.2,1.12],[.12,1.2],[0,1.24]]),28);
+ const kingG=new THREE.LatheGeometry(V2([[0,0],[.46,0],[.46,.1],[.32,.2],[.22,.7],[.18,1.2],[.32,1.3],[.2,1.38],[.26,1.6],[.14,1.7],[0,1.72]]),28);
+ const gM=new THREE.MeshStandardMaterial({color:0xd9a945,metalness:.85,roughness:.25,emissive:0x2a1800});
+ const dM=new THREE.MeshStandardMaterial({color:0x2b3150,metalness:.6,roughness:.35,emissive:0x05060c});
+ const occ={},pieces=[],anchor=new THREE.Vector3(0,9.5,0);
+ const strMat=new THREE.LineBasicMaterial({color:0xe0b65a,transparent:true,opacity:.22});
+ const free=()=>{let i,j;do{i=rand(0,7);j=rand(0,7)}while(occ[i+','+j]);return[i,j]};
+ for(let k=0;k<12;k++){const king=k===0||k===6;const m=new THREE.Mesh(king?kingG:pawnG,k<6?gM:dM);const[i,j]=free();occ[i+','+j]=1;m.position.set((i-off)*s,0,(j-off)*s);if(king){const c1=new THREE.Mesh(new THREE.BoxGeometry(.06,.3,.06),k<6?gM:dM);c1.position.y=1.85;m.add(c1);const c2=new THREE.Mesh(new THREE.BoxGeometry(.22,.06,.06),k<6?gM:dM);c2.position.y=1.88;m.add(c2)}sc.add(m);
+  const lg=new THREE.BufferGeometry().setFromPoints([m.position.clone(),anchor.clone()]);const line=new THREE.Line(lg,strMat);sc.add(line);
+  pieces.push({m,i,j,line,h:king?1.75:1.25,anim:null})}
+ const eye=new THREE.Mesh(new THREE.SphereGeometry(.28,24,24),new THREE.MeshBasicMaterial({color:0xffe6a0}));eye.position.copy(anchor);sc.add(eye);
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(1.1,.03,8,64),new THREE.MeshBasicMaterial({color:0xe0b65a,transparent:true,opacity:.6}));ring.position.copy(anchor);ring.rotation.x=Math.PI/2;sc.add(ring);
+ const ring2=new THREE.Mesh(new THREE.TorusGeometry(1.8,.015,8,80),new THREE.MeshBasicMaterial({color:0xa990f2,transparent:true,opacity:.35}));ring2.position.copy(anchor);ring2.rotation.x=Math.PI/2.4;sc.add(ring2);
+ const PN=600,pp=new Float32Array(PN*3);for(let i=0;i<PN;i++){pp[i*3]=(Math.random()-.5)*30;pp[i*3+1]=Math.random()*14;pp[i*3+2]=(Math.random()-.5)*30}
+ const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+ const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0xf6dc98,size:.06,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false}));sc.add(pts);
+ const resize=()=>{const w=window.innerWidth,h=window.innerHeight;ren.setSize(w,h,false);cam.aspect=w/h;cam.fov=w<700?62:48;cam.updateProjectionMatrix()};window.addEventListener('resize',resize);resize();
+ let t0=performance.now(),lastMove=0,ang=0,paused=false,frame=0;document.addEventListener('visibilitychange',()=>{paused=document.hidden});
+ const move=now=>{const p=pieces[rand(0,pieces.length-1)];if(p.anim)return;const dirs=shuffle([[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1],[2,1],[1,2]]);
+  for(const d of dirs){const ni=p.i+d[0],nj=p.j+d[1];if(ni<0||nj<0||ni>7||nj>7||occ[ni+','+nj])continue;delete occ[p.i+','+p.j];occ[ni+','+nj]=1;
+   p.anim={fx:p.m.position.x,fz:p.m.position.z,tx:(ni-off)*s,tz:(nj-off)*s,st:now,dur:1300};p.i=ni;p.j=nj;break}};
+ const loop=now=>{requestAnimationFrame(loop);if(paused)return;frame++;if(S.lite&&frame%3)return;const t=(now-t0)/1000;
+  ang+=S.lite?.0006:.0011;const R_=window.innerWidth<700?13:11;cam.position.set(Math.sin(ang)*R_,6.6+Math.sin(t*.25)*.6,Math.cos(ang)*R_);cam.lookAt(0,1.6,0);
+  if(now-lastMove>(S.lite?3500:1700)){lastMove=now;move(now)}
+  pieces.forEach(p=>{if(p.anim){const a=p.anim,k=clamp((now-a.st)/a.dur,0,1),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;p.m.position.x=a.fx+(a.tx-a.fx)*e;p.m.position.z=a.fz+(a.tz-a.fz)*e;p.m.position.y=Math.sin(k*Math.PI)*.9;if(k>=1){p.anim=null;p.m.position.y=0}}
+   const pa=p.line.geometry.attributes.position;pa.setXYZ(0,p.m.position.x,p.m.position.y+p.h,p.m.position.z);pa.setXYZ(1,anchor.x+Math.sin(t+p.i)*.15,anchor.y,anchor.z+Math.cos(t+p.j)*.15);pa.needsUpdate=true});
+  ring.rotation.z=t*.4;ring2.rotation.z=-t*.25;const pulse=1+Math.sin(t*2)*.18;eye.scale.set(pulse,pulse,pulse);gold.intensity=1.5+Math.sin(t*1.3)*.3;
+  pts.rotation.y=t*.02;strMat.opacity=.16+Math.sin(t*1.5)*.08;
+  ren.render(sc,cam)};requestAnimationFrame(loop)}
+
+/* ---------- 啟動 ---------- */
+load();TTS.init();try{initBG()}catch(e){document.body.classList.add('nobg')}splash();
+</script>
+</body>
+</html>
