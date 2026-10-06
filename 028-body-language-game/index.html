@@ -2135,7 +2135,23 @@ function setBubble(text) {
 function makeTag(line1, line2) {
   const c = document.createElement("canvas");
   c.width = 640; c.height = 180;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), transparent: true, depthTest: false }));
+  sp.material.map.colorSpace = THREE.SRGBColorSpace;
+  sp.scale.set(1.45, 0.41, 1);
+  sp.visible = false;
+  sp.renderOrder = 6;
+  sp.userData.canvas = c;
+  sp.userData.lines = [line1, line2];
+  paintTag(sp);
+  scene.add(sp);
+  return sp;
+}
+function paintTag(sp) {
+  const c = sp.userData.canvas;
   const g = c.getContext("2d");
+  const line1 = sp.userData.lines[0];
+  const line2 = sp.userData.lines[1];
+  g.clearRect(0, 0, c.width, c.height);
   g.fillStyle = "rgba(255,250,243,.96)";
   roundRect(g, 8, 10, 624, 160, 36); g.fill();
   g.textAlign = "center"; g.textBaseline = "middle";
@@ -2145,16 +2161,8 @@ function makeTag(line1, line2) {
   g.fillStyle = "#5e564c";
   g.font = '500 36px "KidRound", "Yuanti TC", "Yuanti SC", sans-serif';
   g.fillText(line2, 320, 118);
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false }));
-  sp.scale.set(1.45, 0.41, 1);
-  sp.visible = false;
-  sp.renderOrder = 6;
-  scene.add(sp);
-  return sp;
+  sp.material.map.needsUpdate = true;
 }
-await document.fonts.load('700 64px "KidRound"');
 const tagLeft = makeTag("我知道", "低頭，好似想走");
 const tagRight = makeTag("我知道", "企直，望住人");
 const tagMid = makeTag("聽嘅人", "望住企直嗰個");
@@ -4855,7 +4863,7 @@ function primeSpeech(e) {
       coverSpoken = true;
       speechPrimed = true;
       spokenKey = "cover";
-      if (e.target && e.target.closest && e.target.closest("#cover-go")) swallowCoverClick = true;
+      if (e.target && e.target.closest && e.target.closest("#cover-go")) return;
       const hint = document.getElementById("cover-hint");
       if (hint) hint.textContent = "再撳開始，入去。";
       speakSeq(COVER_LINES, true);
@@ -4873,6 +4881,10 @@ function primeSpeech(e) {
 document.addEventListener("pointerdown", primeSpeech, true);
 speechSynthesis.getVoices();
 go("cover");
+document.fonts.load('700 64px "KidRound"').then(() => {
+  [tagLeft, tagRight, tagMid].forEach(paintTag);
+  if (bubbleNow) { const t = bubbleNow; bubbleNow = ""; setBubble(t); }
+}).catch(() => {});
 window.__ready = true;
 requestAnimationFrame(frame);
 
