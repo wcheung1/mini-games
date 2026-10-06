@@ -190,13 +190,20 @@
   .side b { display: block; font-family: var(--serif); font-size: 16px; margin-top: 2px; }
   .side span { display: block; color: #6d4e22; font-size: 12px; margin-top: 2px; }
   .side.listen .flag.no { background: #fff6e0; color: #6a4a20; }
-  .side.play { background: #e15a3a; color: #fff8f4; }
-  .side.play em { color: #ffe08a; }
-  .side.play span { color: #ffe8df; }
-  .side.play .flag.no { background: rgba(255,248,244,.22); color: #fff8f4; }
-  .side.play .flag.ok { background: #146b4a; color: #f3fff8; }
-  .side.done { box-shadow: inset 4px 0 0 #146b4a; }
-  #panel .btn.soft { background: #7eb8d4; color: #102430; border: 0; padding-right: 40px; }
+  .side.listen { background: #f3d48a; color: #3a2508; }
+  .side.book {
+    background: #efe6d6; color: #3a3228;
+    box-shadow: inset 0 0 0 1.5px #e2b15a;
+  }
+  .side.book em { color: #8a5a22; }
+  .side.book span { color: #6a5648; }
+  .side.play { background: #5c4030; color: #f4ecdf; }
+  .side.play em { color: #e2b15a; }
+  .side.play span { color: #f0e2cc; }
+  .side.play .flag.no { background: rgba(244,236,223,.18); color: #f4ecdf; }
+  .side.play .flag.ok { background: #1d6a50; color: #f3fff8; }
+  .side.done { box-shadow: inset 4px 0 0 #1d6a50; }
+  #panel .btn.soft { background: #fffaf3; color: #3a3228; border: 1.5px solid #e2b15a; padding-right: 40px; }
   .doneflag { font-family: var(--serif); font-size: 22px; font-weight: 700; color: #1d6a50; margin: 0 0 8px; }
   .remember { color: var(--gold-ink); font-weight: 700; margin: 0 0 8px; }
   .grouplabel { font-family: var(--serif); font-size: 18px; margin: 12px 0 6px; }
@@ -2990,7 +2997,7 @@ function renderPanel() {
     html += '<div class="book-entry">' + cornerBtn(
       "<em>聽書</em><b>點解要咁做</b><span>遊戲入面剪走嘅道理，喺呢度講完。聽過 " + bookN + " / " + BOOK.length + "</span>",
       'data-act="go" data-go="book"',
-      "side listen",
+      "side book",
       "聽書。呢度專門講點解。你鍾意先撳入去聽。聽過 " + bookN + " 課，一共 " + BOOK.length + " 課。"
     ) + "</div>";
     CHAPTERS.forEach((c) => {
