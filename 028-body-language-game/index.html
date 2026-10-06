@@ -4351,7 +4351,7 @@ document.body.addEventListener("click", (e) => {
     e.stopPropagation();
     shieldClicks();
     syncAuto();
-    go(state.seen ? "hub" : "boot");
+    go("boot");
     return;
   }
   if (act === "go") {
@@ -4859,8 +4859,9 @@ let speechPrimed = false;
 let coverSpoken = false;
 let swallowCoverClick = false;
 const COVER_LINES = [
-  "身體語言好重要。你嘅表情同姿勢，係人第一眼見到你嘅印象。",
-  "睇場合，開放同友善，對方先肯聽你講、同你互動。否則，人對你冇興趣。"
+  "身體語言好重要。",
+  "你嘅表情同姿勢，係人第一眼見到你嘅印象。",
+  "睇場合，開放同友善，人先肯聽你講。否則，人對你冇興趣。"
 ];
 function primeSpeech(e) {
   try { ac(); } catch (err) {}
