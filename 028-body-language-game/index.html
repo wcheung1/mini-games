@@ -33,7 +33,10 @@
   html, body { margin: 0; height: 100%; overflow: hidden; background: var(--night); color: var(--paper); }
   body {
     font-family: var(--sans); font-size: 17px; line-height: 1.45;
-    -webkit-tap-highlight-color: transparent; user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
     display: grid;
     grid-template-areas: "stage" "dock";
     grid-template-rows: minmax(180px, 1fr) minmax(220px, 48dvh);
@@ -41,6 +44,13 @@
   }
   button, input { font-family: inherit; font-size: 17px; }
   button { cursor: pointer; touch-action: manipulation; }
+  button, img, svg, canvas {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  [data-hold], .drum { touch-action: none; -webkit-touch-callout: none; }
   #stage { position: relative; min-width: 0; min-height: 0; grid-area: stage; }
   #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
   #c:active { cursor: grabbing; }
@@ -4560,9 +4570,17 @@ document.body.addEventListener("click", (e) => {
     }
   }
 });
+document.addEventListener("contextmenu", (e) => e.preventDefault());
+document.addEventListener("selectstart", (e) => e.preventDefault());
+document.addEventListener("dragstart", (e) => e.preventDefault());
+document.addEventListener("gesturestart", (e) => e.preventDefault());
+document.addEventListener("touchstart", (e) => {
+  if (e.target.closest && e.target.closest("[data-hold]")) e.preventDefault();
+}, { passive: false });
 document.body.addEventListener("pointerdown", (e) => {
   const h = e.target.closest("[data-hold]");
   if (!h) return;
+  e.preventDefault();
   try { ac(); } catch (err) {}
   if (h.dataset.hold === "voice" && (mode === "free" || mode === "persona") && heroPose.voice > 0.12) {
     heroPose.voice = 0;
