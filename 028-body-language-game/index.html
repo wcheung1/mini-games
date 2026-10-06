@@ -29,12 +29,13 @@
     font-family: var(--sans); font-size: 17px; line-height: 1.45;
     -webkit-tap-highlight-color: transparent; user-select: none;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) minmax(168px, 38dvh);
+    grid-template-areas: "stage" "dock";
+    grid-template-rows: minmax(180px, 1fr) minmax(220px, 48dvh);
     grid-template-columns: minmax(0, 1fr);
   }
   button, input { font-family: inherit; font-size: 17px; }
   button { cursor: pointer; touch-action: manipulation; }
-  #stage { position: relative; min-width: 0; min-height: 0; }
+  #stage { position: relative; min-width: 0; min-height: 0; grid-area: stage; }
   #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
   #c:active { cursor: grabbing; }
   #ui { position: absolute; inset: 0; pointer-events: none; display: flex; flex-direction: column; }
@@ -50,6 +51,7 @@
     background: rgba(26,23,20,.35); color: var(--paper); display: grid; place-items: center; padding: 0;
   }
   #dock {
+    grid-area: dock;
     min-height: 0; min-width: 0;
     display: flex; flex-direction: column;
     background: #14110e;
@@ -191,6 +193,15 @@
   .remember { color: var(--gold-ink); font-weight: 700; margin: 0 0 8px; }
   .grouplabel { font-family: var(--serif); font-size: 18px; margin: 12px 0 6px; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .chips .corner { flex: 1 1 calc(50% - 6px); max-width: calc(50% - 3px); }
+  .chips .chip { width: 100%; text-align: left; border-radius: 14px; min-height: 48px; padding: 8px 32px 8px 10px; }
+  .chips .corner-horn { width: 24px; height: 24px; top: 4px; right: 4px; }
+  .groupcorner { margin: 10px 0 6px; }
+  .groupcorner .grouplabel { margin: 0; padding: 2px 32px 2px 0; }
+  .countcorner { margin-bottom: 4px; }
+  .countcorner .teach { margin: 0; padding-right: 32px; }
+  #free-pose .two { margin-top: 8px; }
+  #free-pose .corner > .drum { width: 100%; min-height: 52px; margin-top: 8px; }
   .chip { border-radius: 999px; border: 1.5px solid #e0d3c0; background: #fff; color: var(--ink); min-height: 40px; padding: 6px 10px; }
   .chip em { display: block; font-style: normal; font-size: 11px; font-weight: 700; color: var(--muted); }
   .chip em.ok { color: var(--good); }
@@ -250,13 +261,17 @@
     .grid { grid-template-columns: 1fr 1fr; }
     #coach p { font-size: 18px; }
   }
-  @media (orientation: landscape), (min-width: 900px) {
-    body {
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
-      grid-template-rows: minmax(0, 1fr);
-    }
-    #dock { border-top: 0; border-left: 1px solid rgba(226,177,90,.28); padding: 12px 12px 12px 14px; }
+  body[data-orient="land"] {
+    grid-template-areas: "stage dock";
+    grid-template-columns: minmax(0, 1fr) minmax(280px, min(420px, 36vw));
+    grid-template-rows: minmax(0, 1fr);
   }
+  body[data-orient="land"] #dock {
+    border-top: 0;
+    border-left: 1px solid rgba(226,177,90,.28);
+    padding: 12px 12px 12px 14px;
+  }
+  body[data-orient="port"] #coach p { font-size: 18px; }
   #open[hidden] { display: none !important; }
   #open {
     position: fixed; inset: 0; z-index: 40;
@@ -339,19 +354,19 @@
       </g>
     </svg>
     <div class="line open-say">
-      <button class="horn" type="button" data-say="未開口之前。身體語言先講。" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
+      <button class="horn" type="button" data-say="身體語言好重要。你嘅表情同姿勢，係人第一眼見到你嘅印象。" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
       <div>
         <p class="open-kicker">未開口之前</p>
-        <h1>身體語言先講。</h1>
+        <h1>身體語言好重要。</h1>
       </div>
     </div>
     <div class="line open-say">
-      <button class="horn" type="button" data-say="你一句都未出，人已經信咗一邊。" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
-      <p class="open-line">你一句都未出，人已經信咗一邊。</p>
+      <button class="horn" type="button" data-say="你嘅表情同姿勢，係人第一眼見到你嘅印象。" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
+      <p class="open-line">你嘅表情同姿勢，係人第一眼見到你嘅印象。</p>
     </div>
     <div class="line open-say">
-      <button class="horn" type="button" data-say="同一句「我知道」，人望住企直嗰個。" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
-      <p class="open-gold">同一句「我知道」，人望住企直嗰個。</p>
+      <button class="horn" type="button" data-say="睇場合，開放同友善，人先肯聽你講。否則，人對你冇興趣。" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
+      <p class="open-gold">睇場合，開放同友善，人先肯聽你講。</p>
     </div>
     <div class="minirow" style="justify-content:center">
       <button class="horn" type="button" data-say="開始" aria-label="讀出嚟"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 10v4h3.2L12 18.5V5.5L6.2 10H3z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M16 9.2a3.6 3.6 0 010 5.6M18.2 7a6.2 6.2 0 010 10"/></svg></button>
@@ -659,7 +674,7 @@ const PEOPLE = [
         O("點下頭就走，當打過招呼", { gazeMode: "shoes", dist: 1.8, spine: 0.5 }, 1, "你怕阻住人。完全唔望，招呼就冇送到。")
       ]),
       R("你應佢一句。", [
-        O("清楚講早晨，唔使大叫", { voice: 0.58, gazeMode: "other", spine: 0.9, arm: "still" }, 2, "門口嘈。清楚、短、望住，就就夠清楚。"),
+        O("清楚講早晨，唔使大叫", { voice: 0.58, gazeMode: "other", spine: 0.9, arm: "still" }, 2, "門口嘈。講得清楚、短、望住佢，就夠。"),
         O("細到自己先聽到", { voice: 0.12, gazeMode: "shoes" }, 0, "你有講。保安聽唔到，等於冇講。"),
         O("大叫加揮手，想好玩", { voice: 0.95, arm: "open", smile: 0.8 }, 1, "開心得。門口仲有其他人。太大就變咗攪亂。")
       ])
@@ -668,76 +683,52 @@ const PEOPLE = [
 
 const NOTES = [
   { id: "spine", title: "金線", paras: [
-    "記住：先拉直，再開口。",
-    "由頭頂到腳跟，想像一條金線。條線直，人未聽到你把聲，已經覺得你知道自己要講咩。",
-    "縮埋唔係謙虛。縮埋係個身先話「我唔肯定」。你仍然可以細聲，但條線要直。",
-    "對住老師、校長、爸爸、保安都一樣。人高過你，你抬高對眼，條線唔好跟住彎。"
+    "先拉直條金線，再開口。",
+    "條線直，人未聽到你把聲，已經覺得你知道自己要講咩。"
   ] },
   { id: "feet", title: "腳同企", paras: [
-    "記住：提起再踏，兩腳大概同肩咁闊。",
-    "鞋底擦地嗰陣沙沙聲，會搶走你想講嗰句。行路嘅時候，腳離地少少，再輕輕踏落。",
-    "企得太窄，人一近你就縮。企得太闊，好似準備打交。同肩差唔多，風吹都穩。",
-    "想遠離嘅人，腳步停住，唔好跟埋去。想識嘅人，先走近一步，再停。"
+    "行路要提起腳再踏，兩腳大概同肩咁闊。",
+    "鞋底一擦地，沙沙聲就搶走你想講嗰句。"
   ] },
   { id: "eyes", title: "眼", paras: [
-    "記住：望對眼一帶，望一望就得，唔好盯到人唔舒服。",
-    "望鞋、望窗、望天花板，個身話「我唔喺度」。對方要估你講緊定唔講。",
-    "人高過你，個圈就高啲。提起眼，下巴收少少。唔好成個人仰到後面。",
-    "妹妹矮過你，你蹲低，令自己對眼同佢一樣高。呢個係你遷就佢，唔係叫佢仰頭。"
+    "望對眼一帶，望一望就得，唔好盯實。",
+    "人先覺得你喺度聽。人高過你，提起眼，唔好成個人仰後。"
   ] },
   { id: "hands", title: "手", paras: [
-    "記住：打開係請人入嚟，指住就尖，聽嘅時候手停低。",
-    "手一直郁，人會睇住你隻手，你句話就散。小事用小手勢，大事先動手。",
-    "指住工人姐姐、指住同學、指住自己推責任，句嘢都會變凶。",
-    "對住好朋友，手可以打開。對住想遠離嘅人，手停低，唔好揮去拉住人。"
+    "手打開，係請人入嚟。指住人，句嘢就變尖。",
+    "聽人講嘅時候手要停。手一直郁，人睇住你隻手，句話就散。"
   ] },
   { id: "voice", title: "聲", paras: [
-    "記住：由胸口送到對方嗰個位，講完停一停。",
-    "太細，人要估。太大，人只聽到急。剛剛到對方耳仔，就啱。",
-    "婆婆、爺爺、嫲嫲、公公，要清楚，唔好快，亦都唔好當佢哋一定聽唔到而大叫。",
-    "妹妹用柔聲。保安、校長要清楚。好朋友唔好佔滿成段對話。停一停，個人位先出現。"
+    "把聲由胸口送到對方，講完停一停。",
+    "太細，人要估你講咩。太大，人只聽到你急。"
   ] },
   { id: "sit", title: "坐同做功課", paras: [
-    "記住：坐入凳入面，兩腳落地，背直，字先清。",
-    "趴喺枱，眼離書太近，你要用力睇。背一屈，頭就重，功課會慢，人亦都覺得你心散。",
-    "做功課嘅時候，條金線仍然要喺度。攰咗就停十秒企直，唔好邊屈邊硬撐。",
-    "有人叫你，先轉頭望住應一聲，再講你做到邊。唔好只對住書嗯一聲。"
+    "坐上凳，兩腳落地，背脊直，字先睇得清。",
+    "背一屈，字就糊，人亦覺得你心散。"
   ] },
   { id: "tired", title: "攰咗", paras: [
-    "記住：攰唔係嬲。你只係冇電。",
-    "冇電嘅時候，個身會縮、會望走。人以為你嬲。其實你未開口。",
-    "先拖條金線企直。企直之後，個身要一直直，唔好轉吓肩又歪返。",
-    "然後轉左肩、轉右肩，再吸一口氣。吸完先可以話：我聽緊。"
+    "攰唔係嬲，你只係冇電。但個身一縮，人以為你唔想理佢。",
+    "先企直，再轉左肩、右肩，吸一口氣，然後先開口。"
   ] },
   { id: "sort", title: "大細事同人設", paras: [
-    "記住：先問自己，呢一段我想得到咩。個身跟住個用意。",
-    "人設唔係扮成另一個人。係你揀：我想人聽完我講、想做朋友、想大人信我、想屋企人當我認真，定係想離遠少少。",
-    "用意清楚，你先知道要企多近、聲多大、手開唔開。",
-    "邊樣先值得望，唔係呢一課。下一課「三粒注意力」先分大事小事。"
+    "先問自己，呢一段我想得到咩，個身先跟住。",
+    "唔係扮成另一個人。用意清楚，人先知道你想點。"
   ] },
   { id: "law", title: "未開口", paras: [
-    "記住：同一句說話，個身可以先講另一句。",
-    "有個心理學家叫 Albert Mehrabian。佢研究人點樣收到情緒。有人講成百分之五十五睇樣、百分之三十八把聲、百分之七先至係字。",
-    "呢組數字唔係每一句都啱，唔使背。你只要記住：好多時人先見到你，再聽到你把聲，最後先整理你嘅字。",
-    "所以個循環係：你個身先穩，人轉過嚟，你自己又會企得更直。玩完呢啲，係用得著，唔係背金句。"
+    "同一句說話，個身可以先講另一句。",
+    "人先見到你嘅樣同姿勢，先至聽到你把聲。"
   ] },
   { id: "reset", title: "三秒重置", drill: "tired", paras: [
-    "未諗到句嘢都唔緊要。有三秒，就做四樣。",
-    "第一，兩腳踏實。第二，背脊拉高少少。第三，眼望住前面個人。第四，吸一口氣，先開口。",
-    "呢四樣喺走廊、課室、屋企、門口都用得著。你唔使變成另一個人。",
-    "個身放返同一個位，句話先有人信。假大聲只會拆穿。"
+    "未諗到句嘢都得。三秒之內，腳踏實、背拉高、眼望住、吸一口氣。",
+    "做完呢四樣，先開口。人先肯聽。"
   ] },
   { id: "read", title: "讀人三步", drill: "people", paras: [
-    "第一時間成日想：佢針對我。呢個係故事，未必係你見到嘅。",
-    "第一步，只講你真係見到嘅：佢望走、聲變細、手停咗。",
-    "第二步，暫估：可能佢攰，可能佢急，可能佢唔清楚。估完唔好當係事實。",
-    "第三步，核對：你企直、望住、問一句短嘅。睇對方個身點變，先至算答案。"
+    "唔好一開始就覺得人針對你。",
+    "先講你見到嘅，再估，再企直問一句短嘅，睇對方肯唔肯應你。"
   ] },
   { id: "coins", title: "三粒注意力", drill: "sort", paras: [
-    "記住：你只有三粒注意力。用咗喺小事，大事就冇位。",
-    "小事可以遲一步：鞋帶鬆少少、揀邊支筆靚、地下一粒塵、隔離同學一陣嘈音、衫上有粒毛。",
-    "大事要而家望：老師問你做到邊、朋友由笑變成唔笑（唔係變陌生人，係佢好似唔妥）、婆婆叫你過嚟幫手、功課就快收、保安叫你畀學生證。",
-    "大方，就係肯放過小事，先望住大事。"
+    "你只有三粒注意力。用咗喺小事，就冇位望大事。",
+    "大事先望，小事可以遲一步。人先覺得你識得分寸。"
   ] }
 ];
 
@@ -788,29 +779,29 @@ const DRILLS = [
 ];
 
 const CHAPTERS = [
-  { n: "一", title: "點解要學", teach: "人未聽到你句話，已經見到你個身。同一句說話，身體可以先幫你，或者拆你台。", pairs: [
+  { n: "一", title: "點解要學", teach: "人未聽到你句話，已經睇到你個樣同姿勢。個身可以幫你，亦可以拆你台。", pairs: [
     { note: "law", drills: ["day"] }
   ] },
-  { n: "二", title: "企同行", teach: "教背脊金線、腳點提起、兩腳企幾闊。未開口，人已經知道你穩唔穩。", pairs: [
+  { n: "二", title: "企同行", teach: "企直、提起腳、兩腳同肩闊，人先覺得你穩，先肯聽你講。", pairs: [
     { note: "spine", drills: ["spine"] },
     { note: "feet", drills: ["walk", "stance"] }
   ] },
-  { n: "三", title: "眼同手", teach: "教你望邊、望幾耐，同埋手係請人入嚟，定係指住人。", pairs: [
+  { n: "三", title: "眼同手", teach: "望住人，手打開係請人入嚟。指住人，人就唔想再聽。", pairs: [
     { note: "eyes", drills: ["eyes"] },
     { note: "hands", drills: ["hands"] }
   ] },
-  { n: "四", title: "把聲", teach: "教聲由胸口定由鼻送、大細啱唔啱、講完點停一停。", pairs: [
+  { n: "四", title: "把聲", teach: "把聲由胸口送，剛剛到到對方。太大或者太細，人都聽唔入耳。", pairs: [
     { note: "voice", drills: ["voice"] }
   ] },
-  { n: "五", title: "坐低同冇電", teach: "教坐定點做功課，同埋攰嘅時候用三秒重置，唔好俾人以為你嬲。", pairs: [
+  { n: "五", title: "坐低同冇電", teach: "坐直，字先清楚。攰唔係嬲，但個身一縮，人以為你唔想理佢。", pairs: [
     { note: "sit", drills: ["sit"] },
     { notes: ["tired", "reset"], drills: ["tired"] }
   ] },
-  { n: "六", title: "邊樣先值得理", teach: "大細事同人設：先決定你想得到咩。三粒注意力：邊樣係大事先望，邊樣可以放手。", pairs: [
+  { n: "六", title: "邊樣先值得理", teach: "先決定你想得到咩。大事先望，小事放手，人先覺得你識得分寸。", pairs: [
     { note: "sort", drills: ["persona"] },
     { note: "coins", drills: ["sort"] }
   ] },
-  { n: "七", title: "對住真人", teach: "教讀人三步，再對住老師、朋友、屋企、長輩，用個身試一次。", pairs: [
+  { n: "七", title: "對住真人", teach: "對住老師、朋友、屋企人、長輩，用個身試一次，睇佢肯唔肯聽你講。", pairs: [
     { note: "read", drills: ["people", "free"] }
   ] }
 ];
@@ -967,18 +958,32 @@ function freeTriedCount() {
   const m = state.freeTried || {};
   return PEOPLE.filter((p) => m[p.id]).length;
 }
+function freeTip(p) {
+  const pref = p.pref || {};
+  const arm = pref.arm === "open" ? "兩隻手攤開，放喺腰下面。" : "兩隻手垂低，唔好指住。";
+  const band = distBand(pref.dist || 1.2);
+  const dist = band === "near" ? "行近少少。" : band === "far" ? "企遠少少，唔好衝埋去。" : "唔近唔遠。";
+  const body = pref.squat ? "要蹲低，對齊佢對眼。" : "要企直，望住佢。";
+  const v = pref.voice ?? 0.5;
+  const voice = v >= 0.55 ? "把聲清楚，送到佢正前方。" : v <= 0.42 ? "把聲柔啲，剛剛到到佢。" : "把聲剛剛到到佢，唔好大叫。";
+  return "對住" + p.name + "。" + body + arm + dist + voice;
+}
 function freePeopleHTML() {
   const m = state.freeTried || {};
   const count = "要試晒全部先算玩完。試咗 " + freeTriedCount() + " / " + PEOPLE.length + "。";
-  let html = '<div class="line">' + hornBtn("", "#free-count") + '<p class="teach" id="free-count">' + esc(count) + "</p></div>";
+  let html = '<div class="corner countcorner"><p class="teach" id="free-count">' + esc(count) + '</p><button class="horn corner-horn" type="button" data-say="' + esc(count) + '" aria-label="讀出嚟">' + HORN + "</button></div>";
   ["學校", "朋友", "屋企", "長輩", "其他人"].forEach((g) => {
     const people = PEOPLE.filter((p) => p.group === g);
     const groupSay = g + "。" + people.map((p) => p.name + (m[p.id] ? "試過" : "未試")).join("，") + "。";
-    html += '<div class="line">' + hornBtn(groupSay) + '<div class="grouplabel">' + g + "</div></div><div class=\"chips\">";
+    html += '<div class="corner groupcorner"><div class="grouplabel">' + g + '</div><button class="horn corner-horn" type="button" data-say="' + esc(groupSay) + '" aria-label="讀出嚟">' + HORN + '</button></div><div class="chips">';
     people.forEach((p) => {
       const tried = !!m[p.id];
-      const say = p.name + "。" + (tried ? "試過。" : "未試。");
-      html += '<span class="chipwrap">' + hornBtn(say) + '<button class="chip' + (p.id === freeId ? " on" : "") + (tried ? " tried" : "") + '" type="button" data-act="free" data-id="' + p.id + '">' + esc(p.name) + '<em class="' + (tried ? "ok" : "no") + '">' + (tried ? "試過" : "未試") + "</em></button></span>";
+      html += cornerBtn(
+        esc(p.name) + '<em class="' + (tried ? "ok" : "no") + '">' + (tried ? "試過" : "未試") + "</em>",
+        'data-act="free" data-id="' + p.id + '"',
+        "chip" + (p.id === freeId ? " on" : "") + (tried ? " tried" : ""),
+        freeTip(p)
+      );
     });
     html += "</div>";
   });
@@ -987,7 +992,12 @@ function freePeopleHTML() {
 function refreshFreeMarks() {
   const m = state.freeTried || {};
   const count = document.getElementById("free-count");
-  if (count) count.textContent = "要試晒全部先算玩完。試咗 " + freeTriedCount() + " / " + PEOPLE.length + "。";
+  if (count) {
+    const t = "要試晒全部先算玩完。試咗 " + freeTriedCount() + " / " + PEOPLE.length + "。";
+    count.textContent = t;
+    const horn = count.parentElement && count.parentElement.querySelector(".horn");
+    if (horn) horn.dataset.say = t;
+  }
   document.querySelectorAll("#panel .chip").forEach((b) => {
     const tried = !!m[b.dataset.id];
     b.classList.toggle("tried", tried);
@@ -998,7 +1008,7 @@ function refreshFreeMarks() {
     }
     const p = PEOPLE.find((x) => x.id === b.dataset.id);
     const horn = b.parentElement && b.parentElement.querySelector(".horn");
-    if (horn && p) horn.dataset.say = p.name + "。" + (tried ? "試過。" : "未試。");
+    if (horn && p) horn.dataset.say = freeTip(p);
   });
   ["學校", "朋友", "屋企", "長輩", "其他人"].forEach((g) => {
     const people = PEOPLE.filter((p) => p.group === g);
@@ -1126,9 +1136,14 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
+function fitOrient() {
+  document.body.dataset.orient = window.innerWidth > window.innerHeight ? "land" : "port";
+}
+fitOrient();
 resize();
+addEventListener("resize", () => { fitOrient(); resize(); });
+addEventListener("orientationchange", () => setTimeout(() => { fitOrient(); resize(); }, 80));
 if (window.ResizeObserver) new ResizeObserver(() => resize()).observe(document.getElementById("stage"));
-else addEventListener("resize", resize);
 
 scene.add(new THREE.HemisphereLight(0xfff8f0, 0xd9c4ae, 1.45));
 scene.add(new THREE.AmbientLight(0xfff3e4, 0.55));
@@ -2123,6 +2138,14 @@ let holding = null;
 let shake = 0;
 let personaId = "heard";
 let freeId = "teacher";
+let freeScroll = false;
+function scrollFreePose() {
+  const card = document.querySelector("#panel .card");
+  const pose = document.getElementById("free-pose");
+  if (!card || !pose) return;
+  const top = pose.getBoundingClientRect().top - card.getBoundingClientRect().top + card.scrollTop;
+  card.scrollTo({ top: Math.max(0, top - 4), behavior: "smooth" });
+}
 let personId = "teacher";
 let roundI = 0;
 let picks = [];
@@ -2190,13 +2213,14 @@ function pop(text, ok) {
 function showGap(kind, text) {
   const el = document.getElementById("gap");
   if (!el || !text) return;
+  if ((mode === "free" || mode === "persona") && !judged) return;
   const cls = kind === true || kind === "ok" ? "ok" : kind === false || kind === "bad" ? "bad" : "wait";
   if (el.dataset.t === text && el.dataset.c === cls) return;
   el.dataset.t = text;
   el.dataset.c = cls;
   el.className = "verdict " + cls;
   el.textContent = text;
-  if (state.autoRead && (mode === "free" || mode === "persona")) speak(text);
+  if (state.autoRead && judged && (mode === "free" || mode === "persona")) speak(text);
 }
 function setCoach(text, say) {
   if (text === coachText && $("#coach").dataset.lock === "1") return;
@@ -2381,8 +2405,10 @@ function phraseFor(pose, pref) {
 
 let coachSet = "";
 let entering = false;
+let judged = false;
 function go(next) {
   entering = true;
+  judged = false;
   stopSpeak();
   mode = next;
   const showKnees = next === "walk";
@@ -2423,7 +2449,7 @@ function showResult(r) {
   save();
   setCoach(r.title, false);
   renderPanel();
-  if (state.autoRead) speakSeq([r.title ? "完成咗。" + r.title : "", r.remember ? "記住：" + r.remember : "", r.line || ""]);
+  if (state.autoRead) speakSeq([r.title || "", r.remember ? "記住。" + r.remember : ""]);
   chime();
   spray(hero.position.x, 1.3, hero.position.z, 0xe2b15a, 14, 1.4);
 }
@@ -2453,7 +2479,7 @@ function onEnter(next) {
     otherPose.spine = 0.82; otherPose.smile = 0.2; otherPose.arm = "still"; otherPose.gazeMode = "hero";
     tagLeft.visible = tagRight.visible = tagMid.visible = true;
     shot([0.05, 1.35, 4.6], [0.05, 0.9, 0]);
-    sayCoach("兩個人都講「我知道」。聽嘅人望住企直嗰個。");
+    sayCoach(POINT.boot);
   } else if (next === "try") {
     tryPhase = 0; tryHelp = false; tryHelped = false; hold = 0;
     showOnly({ hero: true, other: true, line: true });
@@ -2462,13 +2488,13 @@ function onEnter(next) {
     resetHero({ spine: 0.28, gazeMode: "shoes", arm: "down" });
     otherPose.spine = 0.7; otherPose.gazeMode = "away"; otherPose.smile = 0.1;
     framePair();
-    sayCoach("拖中間粒金珠，由下拉到頂上。");
+    sayCoach(POINT.try);
   } else if (next === "hub") {
     showOnly({ hero: true, line: true });
     hero.position.set(0, 0, 0.2); hero.rotation.y = 0;
     heroPose.spine = 0.9; heroPose.arm = "still"; heroPose.smile = 0.4; heroPose.gazeMode = "cam"; heroPose.stance = 0.52; heroPose.squat = 0;
     shot([0.22, 1.05, 3.6], [0, 0.72, 0.08]);
-    setCoach("七章都係學身體語言。先睇每一章教咩，再逐章聽。", false);
+    setCoach(POINT.hub, false);
   } else if (next === "spine") {
     spineGot = 0; hold = 0;
     showOnly({ hero: true, other: true, line: true });
@@ -2477,7 +2503,7 @@ function onEnter(next) {
     resetHero({ spine: 0.3, gazeMode: "cam" });
     otherPose.gazeMode = "away"; otherPose.smile = 0.1;
     framePair();
-    sayCoach(cfgTitle || "拉直條金線，停一陣。人就會轉過嚟。");
+    sayCoach(POINT.spine);
   } else if (next === "walk") {
     walkHits = 0; walkT = 0; stepAnim = null; footPadY = "";
     walkLive = false;
@@ -2492,7 +2518,7 @@ function onEnter(next) {
     heroPose.arm = "down"; heroPose.spine = 1; heroPose.gazeMode = "cam";
     otherPose.gazeMode = "away"; otherPose.spine = 0.75;
     shot([ -0.4, 1.25, 2.85], [-0.2, 0.8, 0]);
-    sayCoach("邊隻鞋底發光，就撳「抬起」嗰隻。唔撳，隻腳企定。過咗時間，先會擦住地行。");
+    sayCoach(POINT.walk);
   } else if (next === "stance") {
     stanceGusts = 0; stanceT = 0; hold = 0;
     showOnly({ hero: true, other: true, line: true });
@@ -2501,12 +2527,12 @@ function onEnter(next) {
     resetHero({ stance: 0.15, spine: 0.8, gazeMode: "other" });
     otherPose.gazeMode = "hero";
     framePair();
-    sayCoach("拖一隻腳，開到同肩差唔多。風嚟都企穩。");
+    sayCoach(POINT.stance);
   } else if (next === "eyes") {
     eyeI = 0; eyeGot = 0; hold = 0;
     showOnly({ hero: true, other: true, line: true });
     setupEyeRound();
-    sayCoach(cfgTitle || "拖道光，放到金圈上。灰圈係陷阱。");
+    sayCoach(POINT.eyes);
   } else if (next === "hands") {
     handRound = 0; handScore = 0; handBead = 0; jabT = 0; hold = 0; handPicked = null; handWrong = 0; handSaid = "";
     showOnly({ hero: true, other: true, line: true });
@@ -2523,14 +2549,14 @@ function onEnter(next) {
     resetHero({ spine: 0.86, arm: "still", gazeMode: "other", voice: 0 });
     otherPose.gazeMode = "hero"; otherPose.smile = 0.2;
     framePair();
-    sayCoach(cfgTitle || "由胸口送。撳住鼓，聲一啱，條棒就會去到盡。");
+    sayCoach(POINT.voice);
   } else if (next === "sit") {
     sitPhase = 0; sitFeet = { L: false, R: false }; letterI = 0; hold = 0;
     showOnly({ hero: true, chair: true, desk: true, line: true });
     hero.position.set(-0.55, 0, 0.55); hero.rotation.y = 0.2;
     resetHero({ spine: 0.45, gazeMode: "cam", squat: 0 });
     shot([0.85, 1.15, 2.65], [0.15, 0.55, 0.12]);
-    sayCoach("拖地下個光點，坐入張凳入面。");
+    sayCoach(POINT.sit);
   } else if (next === "tired") {
     tiredStep = 0; tiredShown = -1; tiredBatt = 1; tiredLock = false; tiredSide = "L"; circlePts = []; hold = 0;
     showOnly({ hero: true, other: true, line: true });
@@ -2539,7 +2565,7 @@ function onEnter(next) {
     resetHero({ spine: 0.28, gazeMode: "other", arm: "down" });
     otherPose.gazeMode = "away"; otherPose.smile = 0.05;
     framePair();
-    sayCoach("你攰，個身縮埋。人以為你嬲。你唔係嬲，你只係冇電。先拖條金線企直。企直之後要一直直。然後轉左肩、轉右肩，再吸一口氣。");
+    sayCoach(POINT.tired);
   } else if (next === "sort") {
     sortItems = shuffle([
       ["老師問你做到邊", true, "老師問你：你做到邊？呢個係大事，要望。"],
@@ -2559,7 +2585,7 @@ function onEnter(next) {
     heroPose.spine = 0.86; heroPose.gazeMode = "cam"; heroPose.arm = "still";
     shot([0.2, 1.15, 3.6], [0, 0.72, 0]);
     nextSort(true);
-    setCoach("金卡係大事，撳佢。灰卡放過佢飛走。", false);
+    setCoach(POINT.sort, false);
   } else if (next === "persona") {
     showOnly({ hero: true, other: true, line: true, bubble: true });
     dress({ shirt: 0x31445c, h: 1.12 });
@@ -2568,7 +2594,7 @@ function onEnter(next) {
     heroPose.dist = 1.3;
     otherPose.gazeMode = "hero";
     framePair();
-    sayCoach("人設唔係扮到唔似你。你想喺呢段得到咩？");
+    sayCoach(POINT.persona);
   } else if (next === "free") {
     const p = PEOPLE.find((x) => x.id === freeId) || PEOPLE[0];
     showOnly({ hero: true, other: true, line: true, bubble: true });
@@ -2578,14 +2604,13 @@ function onEnter(next) {
     heroPose.distHome = 1.25;
     otherPose.gazeMode = "hero";
     framePair();
-    const tried = !!(state.freeTried && state.freeTried[p.id]);
-    sayCoach("對住" + p.name + "。" + (tried ? "呢個試過。" : "呢個未試。") + "要試晒全部先算玩完。試咗 " + freeTriedCount() + " 個，仲有 " + (PEOPLE.length - freeTriedCount()) + " 個。");
+    sayCoach(freeTip(p));
   } else if (next === "people") {
     showOnly({ hero: true, line: true });
     hero.position.set(0, 0, 0.2); hero.rotation.y = 0.2;
     heroPose.spine = 0.88; heroPose.gazeMode = "cam"; heroPose.smile = 0.35;
     shot([0.4, 1.4, 3.2], [0, 1.05, 0]);
-    setCoach("揀一個人。睇個身，唔好淨係睇句字。", false);
+    setCoach(POINT.people, false);
   } else if (next === "person") {
     roundI = 0; picks = []; choiceWhy = null; pending = null;
     const p = PEOPLE.find((x) => x.id === personId) || PEOPLE[0];
@@ -2595,7 +2620,7 @@ function onEnter(next) {
     resetHero({ spine: 0.55, gazeMode: "other", arm: "down" });
     otherPose.gazeMode = "hero"; otherPose.smile = 0.15; otherPose.spine = 0.7;
     framePair();
-    sayCoach(p.name + "。" + p.say);
+    sayCoach(POINT.people);
   } else if (next === "notes" || next === "note") {
     showOnly({ hero: true, line: true });
     hero.position.set(0.2, 0, 0.3); hero.rotation.y = -0.2;
@@ -2609,7 +2634,7 @@ function onEnter(next) {
     placePair(1.2);
     resetHero({ spine: 0.7, gazeMode: "other" });
     framePair();
-    sayCoach("由朝早玩到小息。媽媽叫「起身喇」，你應「知道，我起身」。跟住校門、課室，最後先到小息。");
+    sayCoach(POINT.day);
   } else if (next === "loop") {
     showOnly({ hero: true, other: true, line: true });
     dress({ shirt: 0x31445c, h: 1.16 });
@@ -2617,7 +2642,7 @@ function onEnter(next) {
     heroPose.spine = 0.3; heroPose.smile = 0.1; heroPose.gazeMode = "shoes"; heroPose.arm = "down";
     otherPose.gazeMode = "away"; otherPose.smile = 0.05; otherPose.spine = 0.6;
     framePair();
-    sayCoach("你個身先講。");
+    sayCoach(POINT.loop);
   }
 }
 
@@ -2717,7 +2742,7 @@ function setupHandScene() {
   otherPose.spine = 0.7;
   placePair(sc.dist);
   framePair();
-  sayCoach(cfgTitle || sc.say);
+  sayCoach(POINT.hands);
 }
 function layoutHands() { setupHandScene(); }
 let handsOnly = null;
@@ -2792,9 +2817,8 @@ function renderPanel() {
     const doneN = practice.filter((d) => state.done[d[0]]).length;
     const heardN = NOTES.filter((n) => lessonHeard(n)).length;
     let html = '<div class="card">';
-    const intro = "呢個 app 教身體語言。同一句「我知道」，你可以企直，又可以低頭。人會望住企直嗰個。每一章左邊聽、右邊練，係同一關。";
+    const intro = POINT.hub;
     html += lineHTML(intro);
-    html += lineHTML("你個角色可以揀男仔或者女仔。揀咗，成個遊戲都用呢個。");
     html += '<div class="two">' +
       cornerBtn("我係男仔", 'data-act="who" data-who="boy"', "btn " + (state.girl ? "soft" : "on"), "我係男仔。成個遊戲都用男仔。") +
       cornerBtn("我係女仔", 'data-act="who" data-who="girl"', "btn " + (state.girl ? "on" : "soft"), "我係女仔。成個遊戲都用女仔。") +
@@ -2851,27 +2875,27 @@ function renderPanel() {
       : mode === "stance"
         ? '<div class="two">' + actRow("窄啲", 'data-act="nudge" data-dir="-1"') + actRow("闊啲", 'data-act="nudge" data-dir="1"', "ink") + "</div>"
         : lineHTML("光貼住金圈，條棒就會去到盡。");
-    panel.innerHTML = '<div class="card"><div class="meter"><i id="meter"></i></div>' + gapBox("做緊。未過到會話你差咩。") + '<p class="muted" id="sub"></p>' + assist + "</div>";
+    panel.innerHTML = '<div class="card"><div class="meter"><i id="meter"></i></div>' + gapBox("做緊。") + '<p class="muted" id="sub"></p>' + assist + "</div>";
   } else if (mode === "tired") {
-    const explain = "你攰，個身縮埋。人以為你嬲。你唔係嬲，你只係冇電。";
+    const explain = POINT.tired;
     let extra = "";
     if (tiredStep === 0) extra = actRow("拉住金線，條棒去到盡", 'data-hold="spineup"', "ink");
     else if (tiredStep === 1) extra = lineHTML(tiredSide === "L" ? "企直咗。而家圍住左肩個金圈，畫一個圈。背脊唔好再歪。" : "左肩轉咗。而家圍住右肩個金圈，畫一個圈。背脊繼續直。");
     else if (tiredStep === 2) extra = '<div class="minirow">' + hornBtn("吸一口氣。") + '<button class="drum" type="button" data-hold="voice">吸</button></div>';
     panel.innerHTML = '<div class="card">' + lineHTML(explain) + '<div class="meter"><i id="meter"></i></div>' + gapBox("做緊。") + '<p class="muted" id="sub"></p>' + extra + "</div>";
   } else if (mode === "walk") {
-    const say = "邊隻鞋底發光，就撳「抬起」嗰隻。唔撳，隻腳企定。過咗時間，先會擦住地行。";
+    const say = POINT.walk;
     if (!walkLive) {
-      panel.innerHTML = '<div class="card">' + lineHTML(say) +
+      panel.innerHTML = '<div class="card">' + lineHTML(say) + lineHTML("邊隻鞋底發光，就抬起嗰隻腳。") +
         actRow("開始", 'data-act="walk-start"', "") +
-        '<p class="muted">可以聽完先撳。想即刻玩，而家撳都得，把聲會收聲。</p></div>';
+        "</div>";
     } else {
       panel.innerHTML = '<div class="card">' + gapBox("邊隻鞋底發光，就撳「抬起」嗰隻。") + '<div class="line">' + hornBtn("", "#walkscore") + '<p id="walkscore">0 / 10</p></div></div>';
     }
   } else if (mode === "hands") {
     const sc = handScene();
     const armBtn = (arm, label) => actRow(label, 'data-act="hand-arm" data-arm="' + arm + '"', heroPose.arm === arm ? "" : "ghost");
-    panel.innerHTML = '<div class="card"><div class="meter"><i id="meter"></i></div>' + lineHTML(sc.say) +
+    panel.innerHTML = '<div class="card"><div class="meter"><i id="meter"></i></div>' + lineHTML(POINT.hands) + lineHTML(sc.say) +
       gapBox("撳下面個掣，公仔隻手會跟住郁。") +
       '<div class="two">' + armBtn("open", "打開手") + armBtn("still", "手停低") + "</div>" +
       '<div class="two">' + armBtn("point", "指住") + armBtn("circle", "手郁") + "</div>" +
@@ -2894,7 +2918,7 @@ function renderPanel() {
       const w = WANTS.find((x) => x.id === personaId);
       panel.innerHTML = '<div class="card">' + lineHTML(w.title + "。調到你覺得啱，再鎖定。") +
         '<div class="meter gold"><i id="livemeter"></i></div><div class="line">' + hornBtn("", "#livephrase") + '<p id="livephrase"></p></div>' +
-        gapBox("調個身。未啱會話你差邊樣。") +
+        gapBox("跟住上面嗰句調個身。") +
         '<div class="two">' + actRow("企直", 'data-act="pose" data-pose="spine"') + actRow("望住", 'data-act="pose" data-pose="eyes"') + "</div>" +
         '<div class="two">' + actRow("打開手", 'data-act="pose" data-pose="open"') + actRow("手停低", 'data-act="pose" data-pose="still"') + "</div>" +
         lineHTML("近少少：好朋友、妹妹、媽媽、婆婆。遠少少：想遠離、校長、保安。老師同普通同學，兩個掣都唔好撳。") +
@@ -2905,16 +2929,22 @@ function renderPanel() {
     }
   } else if (mode === "free") {
     const p = PEOPLE.find((x) => x.id === freeId) || PEOPLE[0];
+    const tip = freeTip(p);
+    const poseBtn = (label, pose) => cornerBtn(label, 'data-act="pose" data-pose="' + pose + '"', "btn ghost", label);
     panel.innerHTML = '<div class="card">' + freePeopleHTML() +
+      '<div id="free-pose">' + lineHTML(tip) +
       '<div class="meter"><i id="livemeter"></i></div><div class="line">' + hornBtn("", "#livephrase") + '<p id="livephrase">' + esc(p.name) + "</p></div>" +
-      gapBox("調個身。未啱會話你差邊樣。") +
-      '<div class="two">' + actRow("企直", 'data-act="pose" data-pose="spine"') + actRow("望住", 'data-act="pose" data-pose="eyes"') + "</div>" +
-      '<div class="two">' + actRow("打開手", 'data-act="pose" data-pose="open"') + actRow("手停", 'data-act="pose" data-pose="still"') + "</div>" +
-      lineHTML("近少少：好朋友、妹妹、媽媽、婆婆。遠少少：想遠離、校長、保安。老師同普通同學，兩個掣都唔好撳。蹲低只係對住妹妹。對住大人或者朋友蹲低，扣分。撳啱加分，撳錯扣分。再撳一次還原。") +
-      '<div class="two">' + actRow("近少少", 'data-act="pose" data-pose="near"') + actRow("遠少少", 'data-act="pose" data-pose="far"') + "</div>" +
-      '<div class="two">' + actRow("蹲低", 'data-act="pose" data-pose="squat"') + actRow("指住", 'data-act="pose" data-pose="point"') + "</div>" +
-      '<div class="minirow">' + hornBtn("聲。撳住送。") + '<button class="drum" type="button" data-hold="voice">聲</button></div></div>';
+      gapBox("跟住上面嗰句調個身。") +
+      '<div class="two">' + poseBtn("企直", "spine") + poseBtn("望住", "eyes") + "</div>" +
+      '<div class="two">' + poseBtn("打開手", "open") + poseBtn("手停", "still") + "</div>" +
+      '<div class="two">' + poseBtn("近少少", "near") + poseBtn("遠少少", "far") + "</div>" +
+      '<div class="two">' + poseBtn("蹲低", "squat") + poseBtn("指住", "point") + "</div>" +
+      '<div class="corner"><button class="drum" type="button" data-hold="voice">聲</button><button class="horn corner-horn" type="button" data-say="撳住，把聲送到對方正前方。" aria-label="讀出嚟">' + HORN + "</button></div></div></div>";
     markPoseBtns();
+    if (freeScroll) {
+      freeScroll = false;
+      requestAnimationFrame(scrollFreePose);
+    }
   } else if (mode === "people") {
     let html = '<div class="card">';
     ["學校", "朋友", "屋企", "長輩", "其他人"].forEach((g) => {
@@ -2968,23 +2998,34 @@ function renderPanel() {
   }
   readCurrentPage(false);
 }
+const POINT = {
+  hub: "身體語言好重要。表情同姿勢，係人第一眼對你嘅印象。",
+  boot: "同一句說話，個身企直，人先肯聽你。",
+  try: "個身一直，人先肯望住你。",
+  spine: "講嘢之前，背脊要直。人未聽到你把聲，已經覺得你知道自己要講咩。",
+  walk: "行路要提起腳再踏。鞋底擦地，聲會搶走你句話。",
+  stance: "企要穩。兩腳大概同肩咁闊。太窄好似想縮，太闊好似想打交。",
+  eyes: "講嘢要望住對方對眼一帶。人先覺得你喺度聽。",
+  hands: "手打開係請人入嚟。指住人，人就唔想再聽。",
+  voice: "講嘢嘅時候，把聲要送到對方正前方。",
+  sit: "做功課要坐直。背一屈，字就糊，人亦覺得你心散。",
+  tired: "攰唔係嬲。個身一縮，人以為你唔想理佢。",
+  sort: "你只有三粒注意力。大事先望，小事可以遲一步。",
+  persona: "開口之前，先決定你想得到咩。個身跟住個用意。",
+  free: "同一個身，對住唔同人，要唔同。調到佢肯望住你。",
+  people: "唔好淨係聽句字。個身先話你知，佢肯唔肯聽。",
+  day: "同一句說話，把聲同個身要啱個場合，人先肯聽。",
+  loop: "你句說話未出，人已經見到你個身。個身一穩，人先肯轉過嚟。"
+};
 function pageLines() {
-  if (mode === "hub") return [
-    "呢個 app 教身體語言。同一句「我知道」，你可以企直，又可以低頭。人會望住企直嗰個。",
-    "下面有七章。每一章左邊聽、右邊練。想知呢章教咩，撳嗰章個喇叭。而家唔讀晒成個目錄。"
-  ];
-  if (mode === "boot") return [
-    "左邊個同學講「我知道」，但係低頭、縮埋，好似想走。",
-    "右邊個同學都講「我知道」，但係企直、望住人。",
-    "中間嗰個係聽嘅人。句說話一樣，所以佢望住企直嗰個。",
-    "你想自己都企到咁？可以揀男仔或者女仔。"
-  ];
+  if (mode === "hub") return [POINT.hub, "左邊聽，右邊練。"];
+  if (mode === "boot") return [POINT.boot, "兩個人都講「我知道」。一個縮埋，一個企直。聽嘅人望住企直嗰個。"];
   if (mode === "note") {
     const n = NOTES.find((x) => x.id === noteId) || NOTES[0];
-    return [n.title].concat(n.paras);
+    return n.paras.slice(0, 2);
   }
-  if (mode === "notes") return ["小筆記。揀一課，我先讀嗰課。"];
-  if (mode === "people") return ["揀一個人。撳個名，我先講佢發生咩事。"];
+  if (mode === "notes") return ["想再記住點解，先聽重點。"];
+  if (mode === "people") return [POINT.people];
   if (mode === "person") {
     const p = PEOPLE.find((x) => x.id === personId) || PEOPLE[0];
     const round = p.rounds[roundI];
@@ -2992,44 +3033,38 @@ function pageLines() {
     if (choiceWhy) {
       const ok = choiceWhy.good >= 2;
       const mid = choiceWhy.good === 1;
-      const tag = ok ? "啱，加分。" : mid ? "一半，少少分。" : "錯，扣分。";
+      const tag = ok ? "啱，加分。" : mid ? "一半。" : "錯，扣分。";
       return [tag + choiceWhy.why];
     }
-    return [p.name + "。" + round.q].concat(round.opts.map((o, i) => (NUMS[i] || "下一個") + "。" + o.t));
+    return [POINT.people, p.name + "。" + round.q].concat(round.opts.map((o, i) => (NUMS[i] || "下一個") + "。" + o.t));
   }
-  if (mode === "persona" && !personaPicked) {
-    return ["你想喺呢段得到咩。"].concat(WANTS.map((w, i) => (NUMS[i] || "下一個") + "。" + w.title + "。" + w.sub));
-  }
+  if (mode === "persona" && !personaPicked) return [POINT.persona].concat(WANTS.map((w, i) => (NUMS[i] || "下一個") + "。" + w.title));
   if (mode === "persona") {
     const w = WANTS.find((x) => x.id === personaId);
-    return [w ? w.title + "。調個身，到你覺得啱再鎖定。" : "調個身。", "近少少：好朋友、妹妹、媽媽、婆婆。遠少少：想遠離、校長、保安。老師同普通同學，兩個都唔好撳。"];
+    return [POINT.persona, w ? w.title + "。調到啱，再鎖定。" : "調個身。"];
   }
   if (mode === "free") {
     const p = PEOPLE.find((x) => x.id === freeId) || PEOPLE[0];
-    const tried = !!(state.freeTried && state.freeTried[p.id]);
-    return [
-      "對住" + p.name + "。" + (tried ? "呢個試過。" : "呢個未試。") + "試咗 " + freeTriedCount() + " 個，仲有 " + (PEOPLE.length - freeTriedCount()) + " 個。",
-      "近少少先撳：好朋友、妹妹、媽媽、婆婆。遠少少先撳：想遠離、校長、保安。老師同普通同學，兩個都唔好撳。蹲低只係對住妹妹。對住大人或者朋友蹲低，扣分。"
-    ];
+    return [freeTip(p)];
   }
   if (mode === "hands") {
     const sc = handScene();
-    return [sc.say, "撳個掣，公仔隻手會跟住郁。做啱加分，做錯扣分。"];
+    return [POINT.hands, cfgTitle || sc.say];
   }
-  if (mode === "voice") return [cfgTitle || "由胸口送。", "第一個，由胸口送，穩，到得到。", "第二個，由鼻送，聲會細，會飄。"];
+  if (mode === "voice") return [POINT.voice, cfgTitle || "由胸口送，剛剛到到對方。太大太細，人都聽唔入耳。"];
   if (mode === "walk") {
     if (walkLive) return [];
-    return ["邊隻鞋底發光，就撳「抬起」嗰隻。唔撳，隻腳企定。過咗時間，先會擦住地行。"];
+    return [POINT.walk, "邊隻鞋底發光，就抬起嗰隻腳。"];
   }
-  if (mode === "tired") return ["你攰，個身縮埋。人以為你嬲。你唔係嬲，你只係冇電。先拖條金線企直。企直之後要一直直。然後轉左肩、轉右肩，再吸一口氣。"];
-  if (mode === "stance") return ["企穩。兩腳開到同肩差唔多。太窄會縮，太闊似打交。"];
-  if (mode === "day") return [
-    "由朝早玩到小息。玩完先停。",
-    "媽媽叫：起身喇。你應：知道，我起身。把聲剛剛到到媽媽。",
-    "跟住校門保安，然後老師，最後先到小息朋友。"
-  ];
-  if (mode === "loop") return ["人未聽到你句話，已經見到你個身。人轉過嚟。你自己又企直少少。"];
-  if (mode === "sort") return [];
+  if (mode === "spine") return [POINT.spine, cfgTitle || "拉直條金線。"];
+  if (mode === "eyes") return [POINT.eyes, cfgTitle || "拖道光，放到佢對眼個金圈。"];
+  if (mode === "try") return [POINT.try, "拖粒金珠，由下拉到頂。"];
+  if (mode === "tired") return [POINT.tired, "先拉直金線。企直之後，轉肩都唔好再歪。然後吸一口氣。"];
+  if (mode === "stance") return [POINT.stance, "拖一隻腳，調到同肩差唔多。"];
+  if (mode === "sit") return [POINT.sit, "拖個光點，坐上張凳。"];
+  if (mode === "sort") return [POINT.sort, "金卡係大事，撳佢。灰卡係小事，放佢走。"];
+  if (mode === "day") return [POINT.day, "由朝早玩到小息。媽媽叫你起身，你應「知道，我起身」。"];
+  if (mode === "loop") return [POINT.loop];
   if (coachText) return [coachText];
   return [];
 }
@@ -3059,6 +3094,7 @@ function rememberPose() {
   };
 }
 function setPoseBtn(which) {
+  judged = true;
   const armKeys = ["open", "still", "point", "circle"];
   const backKeys = ["spine", "slouch"];
   if (backKeys.indexOf(which) >= 0) {
@@ -3279,6 +3315,7 @@ canvas.addEventListener("pointermove", (e) => {
   }
   lastOrbit = { x: pt.x, y: pt.y };
   if (!dragKind || dragKind === "none") return;
+  if ((mode === "free" || mode === "persona") && dragMoved > 18 && (dragKind === "spine" || dragKind === "stance" || dragKind === "eyes")) judged = true;
   if (dragKind === "spine") {
     const h = hitZ(hero.position.z + 0.35);
     if (h) heroPose.spine = clamp((h.y - 0.45) / 0.95, 0.05, 1);
@@ -3828,7 +3865,7 @@ function update(dt) {
       const lp = $("#livephrase");
       if (lp && lp.dataset.ph !== ph) { lp.dataset.ph = ph; lp.textContent = p.name + " · " + ph; }
       const already = !!(state.freeTried && state.freeTried[p.id]);
-      showGap(g.ok, already && g.ok ? "啱。" + p.name + "試過。揀下一個未試嘅。" : g.text);
+      showGap(g.ok, already && g.ok ? "啱。你對住" + p.name + "調過，佢肯聽。揀下一個未試嘅。" : g.text);
       otherPose.smile = sc; otherPose.spine = 0.55 + sc * 0.35;
       otherPose.gazeMode = g.ok || sc > 0.58 ? "hero" : "away";
       const mid = 0.05;
@@ -3849,18 +3886,18 @@ function update(dt) {
             id: "free",
             stars: 3,
             hideAgain: true,
-            title: "贏咗。全部人都去到最盡。",
-            remember: "每個角色，個身都唔同。",
-            line: "你試晒 " + PEOPLE.length + " 個。每次條棒都去到最盡，先算贏。"
+            title: "你贏晒。每個人都肯聽你。",
+            remember: "贏嘅係你。你識得對住唔同人，用唔同嘅身。",
+            line: "你試晒 " + PEOPLE.length + " 個。每次都調到條棒最盡，呢關先算你贏。"
           });
         } else {
           showResult({
             stars: 3,
             hideAgain: true,
             next: "free",
-            title: p.name + "贏咗。條棒去到最盡。",
-            remember: "呢個身啱晒。",
-            line: "仲有 " + left + " 個未試。揀下一個，再將條棒推到最盡。"
+            title: "你贏咗。對住" + p.name + "，佢肯聽你。",
+            remember: "贏嘅係你。你個身啱咗，" + p.name + "先肯望住你。",
+            line: "仲有 " + left + " 個未試。揀下一個，再調到佢肯望住你。"
           });
         }
       }
@@ -4183,6 +4220,7 @@ document.body.addEventListener("click", (e) => {
   }
   else if (act === "want") {
     personaId = b.dataset.id; personaPicked = true;
+    judged = false;
     const w = WANTS.find((x) => x.id === personaId);
     heroPose.dist = 1.25;
     heroPose.distHome = 1.25;
@@ -4212,6 +4250,7 @@ document.body.addEventListener("click", (e) => {
     });
   } else if (act === "free") {
     freeId = b.dataset.id;
+    freeScroll = true;
     go("free");
   } else if (act === "person") {
     personId = b.dataset.id;
@@ -4289,6 +4328,7 @@ document.body.addEventListener("pointerdown", (e) => {
     return;
   }
   holding = h.dataset.hold;
+  if ((mode === "free" || mode === "persona") && holding === "voice") judged = true;
   h.classList.add("on");
 });
 window.addEventListener("pointerup", () => {
@@ -4598,10 +4638,8 @@ let speechPrimed = false;
 let coverSpoken = false;
 let swallowCoverClick = false;
 const COVER_LINES = [
-  "身體語言先講。你一句都未出，人已經信咗一邊。",
-  "左邊個身縮埋，右邊個身企直。兩個人都講：我知道。",
-  "聽嘅人望住企直嗰個。同一句說話，個身講嘅可以重過把口。",
-  "撳開始。我教你個身點講。"
+  "身體語言好重要。你嘅表情同姿勢，係人第一眼見到你嘅印象。",
+  "睇場合，開放同友善，對方先肯聽你講、同你互動。否則，人對你冇興趣。"
 ];
 function primeSpeech(e) {
   try { ac(); } catch (err) {}
