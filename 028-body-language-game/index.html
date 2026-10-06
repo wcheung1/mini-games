@@ -169,6 +169,8 @@
   .corner > .btn, .corner > .side { width: 100%; height: auto; flex: 1 1 auto; }
   .corner > .btn { padding-right: 40px; }
   .hub-stat { position: relative; z-index: 1; margin: 12px 0 10px; }
+  .book-entry { margin: 4px 0 12px; }
+  .book-entry > .corner > .side { min-height: 72px; }
   .corner-horn {
     position: absolute; top: 6px; right: 6px; z-index: 2;
     width: 28px; height: 28px; flex: 0 0 28px; border-radius: 50%;
@@ -731,6 +733,87 @@ const NOTES = [
     "大事先望，小事可以遲一步。人先覺得你識得分寸。"
   ] }
 ];
+
+const BOOK = [
+  { id: "why", title: "身體語言", paras: [
+    "身體語言好重要。你嘅表情同姿勢，係人第一眼見到你嘅印象。",
+    "你一句都未出，人已經睇到你企得直唔直、望唔望住佢、手係打開定縮埋。",
+    "所以要睇場合，開放同友善，人先肯聽你講，先肯同你互動。",
+    "如果你低頭、縮埋，人可能對你冇興趣。你後尾講幾好，都遲咗。"
+  ] },
+  { id: "same", title: "同一句說話", paras: [
+    "同一句「我知道」，可以有兩個身。",
+    "一個低頭縮埋，好似想走，人覺得你唔想理。",
+    "一個企直望住，人覺得你真係知道，亦肯做。",
+    "句字冇變。變嘅係個身。所以人望住企直嗰個。"
+  ] },
+  { id: "spine", title: "背脊", paras: [
+    "講嘢之前，背脊要直。人未聽到你把聲，已經覺得你知道自己要講咩。",
+    "背一彎，就好似你自己都唔肯定，人就唔使認真聽。",
+    "拉直條金線，係為咗畀人一個穩嘅第一眼，唔係為咗企到好硬。"
+  ] },
+  { id: "walk", title: "行路", paras: [
+    "行路要提起腳，再踏落地。鞋底一擦地，沙沙聲就搶走你想講嗰句。",
+    "人未聽到你講咩，先聽到你對鞋。",
+    "提起再踏，走廊先靜，你句話先有位。"
+  ] },
+  { id: "stance", title: "企穩", paras: [
+    "企要穩。兩腳大概同肩咁闊。",
+    "太窄，好似想縮埋，人覺得你唔敢講。太闊，好似想打交，人會退後。",
+    "同肩差唔多，人走近你都唔使驚。"
+  ] },
+  { id: "eyes", title: "對眼", paras: [
+    "講嘢要望住對方對眼一帶。人先覺得你喺度聽，亦喺度同佢講。",
+    "望一望就得，唔好盯到人唔自在。",
+    "人高過你，提起眼就得，唔好成個人仰到背脊彎。"
+  ] },
+  { id: "hands", title: "雙手", paras: [
+    "手打開，係請人入嚟。兩隻手攤開，放喺腰下面，人覺得你冇嘢瞞住。",
+    "指住人，句嘢就變尖，人唔想再聽。",
+    "聽人講嘅時候手要停。手一直郁，人睇住你隻手，句話就散。"
+  ] },
+  { id: "voice", title: "把聲", paras: [
+    "講嘢嘅時候，把聲要送到對方正前方。",
+    "由胸口送，剛剛到到佢，講完停一停。",
+    "太細，人要估你講咩。太大，人只聽到你急，聽唔到內容。"
+  ] },
+  { id: "sit", title: "坐直", paras: [
+    "做功課要坐直。pat pat 坐實張凳，兩隻腳落地。",
+    "背一屈，眼離書太近，字就糊，功課會慢。",
+    "人見到你攤喺枱，亦覺得你心散。坐直，人先覺得你認真。"
+  ] },
+  { id: "tired", title: "攰唔係嬲", paras: [
+    "攰唔係嬲。你只係冇電。但個身一縮、頭一耷，人以為你唔想理佢。",
+    "所以要企直，轉左肩、轉右肩，背脊一直直，再吸一口氣。",
+    "有返少少電，先話「我聽緊」。人先分到你係攰，唔係嬲。"
+  ] },
+  { id: "coins", title: "三粒注意力", paras: [
+    "你只有三粒注意力。用咗喺小事，就冇位望大事。",
+    "鞋帶散、地下有灰塵，可以遲一步。有人叫你，或者有人喊，先要望。",
+    "大事先望，小事放手，人先覺得你識得分寸。"
+  ] },
+  { id: "want", title: "先決定用意", paras: [
+    "開口之前，先決定你想得到咩。",
+    "你想人聽完先、想人幫手、想人放心，個身都唔同。",
+    "個身跟住個用意，唔係扮成另一個人。用意清楚，人先肯應你。"
+  ] },
+  { id: "who", title: "對住唔同人", paras: [
+    "同一個身，對住唔同人，要唔同。",
+    "妹妹要蹲低，對齊佢對眼。校長要企遠少少，把聲清楚。好朋友可以行近，手打開。",
+    "唔好對住個個都用同一個姿勢。調到佢肯望住你，先算你識得分寸。"
+  ] },
+  { id: "read", title: "睇個身", paras: [
+    "唔好淨係聽句字。個身先話你知，佢肯唔肯聽。",
+    "唔好一開始就覺得人針對你。先講你見到嘅：佢望住你，定係望去第二度。",
+    "然後企直，問一句短嘅，睇佢肯唔肯應你。"
+  ] },
+  { id: "reset", title: "三秒先開口", paras: [
+    "未諗到句嘢都得。三秒之內，腳踏實、背拉高、眼望住、吸一口氣。",
+    "做完呢四樣，先開口。",
+    "人先肯聽。你自己亦會靜一靜。"
+  ] }
+];
+function bookHeard(id) { return !!(state.heard && state.heard["book:" + id]); }
 
 const TEACH = {
   spine: "spine", walk: "feet", stance: "feet", eyes: "eyes", hands: "hands",
@@ -2152,6 +2235,7 @@ let picks = [];
 let pending = null;
 let choiceWhy = null;
 let noteId = "spine";
+let bookId = "why";
 let voiceSource = "chest";
 let voiceMiss = 0;
 let sortItems = [];
@@ -2355,6 +2439,43 @@ function distJudge(pose, pref, who) {
   if (want === "far") return { ok: false, text: "錯，扣分。太近。對住" + name + "要遠少少。撳「遠少少」。" };
   return { ok: false, text: "錯，扣分。距離未啱。" };
 }
+function freeStepOk(step, pose, pref) {
+  if (step === "spine") return Math.abs(pose.spine - (pref.spine ?? 0.85)) <= 0.14;
+  if (step === "eyes") return gazeErr(pose) <= 0.4;
+  if (step === "open") return pref.arm === "open" && pose.arm === "open";
+  if (step === "still") return pref.arm !== "open" && (pose.arm === "still" || pose.arm === "down");
+  if (step === "squat") return !!pref.squat && (pose.squat || 0) > 0.45;
+  if (step === "near" || step === "far") return distBand(pose.dist || pref.dist || 1.2) === distBand(pref.dist || 1.2);
+  if (step === "voice") return Math.abs((pose.voice || 0) - (pref.voice ?? 0.5)) <= 0.18;
+  return false;
+}
+function freeNext(pose, pref) {
+  const bits = [];
+  if (pose.arm === "point" || pose.arm === "self") bits.push("手停");
+  else if (pref.arm === "open" && pose.arm !== "open") bits.push("打開手");
+  else if (pref.arm !== "open" && pose.arm !== "still" && pose.arm !== "down") bits.push("手停");
+  if (Math.abs(pose.spine - (pref.spine ?? 0.85)) > 0.14) bits.push(pose.spine < (pref.spine ?? 0.85) ? "企直" : "放鬆少少");
+  if (gazeErr(pose) > 0.4) bits.push("望住");
+  if (pref.squat && (pose.squat || 0) <= 0.45) bits.push("蹲低");
+  else if (!pref.squat && (pose.squat || 0) > 0.45) bits.push("企返起身");
+  const want = distBand(pref.dist || 1.2);
+  if (distBand(pose.dist || pref.dist || 1.2) !== want) bits.push(want === "near" ? "近少少" : want === "far" ? "遠少少" : "距離還原");
+  const wantV = pref.voice ?? 0.5;
+  if (Math.abs((pose.voice || 0) - wantV) > 0.18) bits.push((pose.voice || 0) < wantV ? "送聲" : "聲收細");
+  return bits;
+}
+function freeLine(pose, pref, who) {
+  const next = freeNext(pose, pref);
+  if (!next.length) return { ok: true, good: true, text: "啱，加分。" + who + "望住你。保持一陣。" };
+  const step = lastFree;
+  const name = { spine: "企直", eyes: "望住", open: "打開手", still: "手停", squat: "蹲低", near: "近少少", far: "遠少少", point: "指住", voice: "送聲" }[step] || "";
+  const rest = next.filter((x) => x !== name).slice(0, 3);
+  const left = rest.length ? "仲差：" + rest.join("、") + "。" : "";
+  if (step && freeStepOk(step, pose, pref)) return { ok: false, good: true, text: "啱。" + name + "得。" + left };
+  if (step === "voice" && (pose.voice || 0) > 0.04 && (pose.voice || 0) < (pref.voice ?? 0.5)) return { ok: false, good: true, text: "送緊，再撳住一陣。" + left };
+  if (step) return { ok: false, good: false, text: "呢下未啱。" + left };
+  return { ok: false, good: false, text: "而家差：" + next.slice(0, 3).join("、") + "。" };
+}
 function poseGap(pose, pref, name, adult) {
   const who = name || "佢";
   if (pose.arm === "point" || pose.arm === "self") return { ok: false, text: "錯，扣分。你指住" + who + "。撳「手停」，成隻手放下。" };
@@ -2406,9 +2527,11 @@ function phraseFor(pose, pref) {
 let coachSet = "";
 let entering = false;
 let judged = false;
+let lastFree = "";
 function go(next) {
   entering = true;
   judged = false;
+  lastFree = "";
   stopSpeak();
   mode = next;
   const showKnees = next === "walk";
@@ -2643,6 +2766,18 @@ function onEnter(next) {
     otherPose.gazeMode = "away"; otherPose.smile = 0.05; otherPose.spine = 0.6;
     framePair();
     sayCoach(POINT.loop);
+  } else if (next === "book" || next === "story") {
+    showOnly({ hero: true, line: true });
+    hero.position.set(0.15, 0, 0.25); hero.rotation.y = -0.15;
+    heroPose.spine = 0.9; heroPose.gazeMode = "cam"; heroPose.arm = "still"; heroPose.smile = 0.3;
+    shot([0.5, 1.4, 3.4], [0.05, 1.05, 0]);
+    if (next === "story") {
+      const s = BOOK.find((x) => x.id === bookId) || BOOK[0];
+      bookId = s.id;
+      state.heard["book:" + s.id] = true;
+      save();
+      setCoach(s.paras[0], false);
+    } else setCoach("聽書。你鍾意先聽。每一課講一個道理。", false);
   }
 }
 
@@ -2829,6 +2964,13 @@ function renderPanel() {
     html += '<div class="two">' +
       cornerBtn(esc(autoLabel), 'data-act="auto-voice"', "btn " + (state.autoRead ? "on" : "soft"), autoLabel + "。") +
       cornerBtn("再聽一次", 'data-act="read-page"', "btn soft", "再聽一次。") + "</div>";
+    const bookN = BOOK.filter((s) => bookHeard(s.id)).length;
+    html += '<div class="book-entry">' + cornerBtn(
+      "<em>聽書</em><b>點解要咁做</b><span>遊戲入面剪走嘅道理，喺呢度講完。聽過 " + bookN + " / " + BOOK.length + "</span>",
+      'data-act="go" data-go="book"',
+      "side listen",
+      "聽書。呢度專門講點解。你鍾意先撳入去聽。聽過 " + bookN + " 課，一共 " + BOOK.length + " 課。"
+    ) + "</div>";
     CHAPTERS.forEach((c) => {
       const bits = ["第" + c.n + "章：" + c.title + "。" + c.teach];
       c.pairs.forEach((pair) => {
@@ -2973,6 +3115,27 @@ function renderPanel() {
       panel.innerHTML = '<div class="card">' + lineHTML(round.q) + round.opts.map((o, i) =>
         choiceRow(esc(o.t), 'data-act="opt" data-i="' + i + '"', o.t)).join("") + "</div>";
     }
+  } else if (mode === "book") {
+    let html = '<div class="card">' + lineHTML("聽書。你鍾意先聽。每一課講一個道理。遊戲入面只留短句。");
+    BOOK.forEach((s, i) => {
+      const heard = bookHeard(s.id);
+      html += cornerBtn(
+        "<em>第" + (i + 1) + "課</em><b>" + esc(s.title) + "</b>" + flagHTML(heard, "聽過", "未聽"),
+        'data-act="story" data-id="' + s.id + '"',
+        "side listen" + (heard ? " done" : ""),
+        s.title + "。" + s.paras[0] + (heard ? "聽過。" : "未聽。")
+      );
+    });
+    html += actRow("返目錄", 'data-act="go" data-go="hub"') + "</div>";
+    panel.innerHTML = html;
+  } else if (mode === "story") {
+    const s = BOOK.find((x) => x.id === bookId) || BOOK[0];
+    const i = Math.max(0, BOOK.findIndex((x) => x.id === s.id));
+    const last = i >= BOOK.length - 1;
+    panel.innerHTML = '<div class="card">' + lineHTML(s.title) + s.paras.map(lineHTML).join("") +
+      actRow("再讀一次", 'data-act="reread"') +
+      actRow(last ? "聽完，返聽書" : "下一課", 'data-act="story-next"') +
+      actRow("返聽書", 'data-act="go" data-go="book"') + "</div>";
   } else if (mode === "notes") {
     panel.innerHTML = '<div class="card">' + lineHTML("學。揀一課，我先讀嗰課。") + NOTES.map((n) =>
       choiceRow("<b>" + esc(n.title) + "</b>", 'data-act="learn" data-id="' + n.id + '"', n.title + "。" + n.paras[0])).join("") + "</div>";
@@ -3025,6 +3188,11 @@ function pageLines() {
     return n.paras.slice(0, 2);
   }
   if (mode === "notes") return ["想再記住點解，先聽重點。"];
+  if (mode === "book") return ["聽書。你鍾意先聽。每一課講一個道理。"];
+  if (mode === "story") {
+    const s = BOOK.find((x) => x.id === bookId) || BOOK[0];
+    return s.paras.slice();
+  }
   if (mode === "people") return [POINT.people];
   if (mode === "person") {
     const p = PEOPLE.find((x) => x.id === personId) || PEOPLE[0];
@@ -3095,6 +3263,7 @@ function rememberPose() {
 }
 function setPoseBtn(which) {
   judged = true;
+  if (mode === "free") lastFree = which;
   const armKeys = ["open", "still", "point", "circle"];
   const backKeys = ["spine", "slouch"];
   if (backKeys.indexOf(which) >= 0) {
@@ -3158,7 +3327,7 @@ function setPoseBtn(which) {
       ? (PEOPLE.find((x) => x.id === freeId) || PEOPLE[0]).pref
       : (WANTS.find((x) => x.id === personaId) || null);
     const who = mode === "free" ? (PEOPLE.find((x) => x.id === freeId) || PEOPLE[0]).name : "";
-    if (pref) {
+    if (pref && mode !== "free") {
       const j = distJudge(heroPose, pref, who);
       pop(j.ok ? "啱，加分" : "錯，扣分", j.ok);
       sayCoach(j.text);
@@ -3316,6 +3485,8 @@ canvas.addEventListener("pointermove", (e) => {
   lastOrbit = { x: pt.x, y: pt.y };
   if (!dragKind || dragKind === "none") return;
   if ((mode === "free" || mode === "persona") && dragMoved > 18 && (dragKind === "spine" || dragKind === "stance" || dragKind === "eyes")) judged = true;
+  if (mode === "free" && dragMoved > 18 && dragKind === "spine") lastFree = "spine";
+  if (mode === "free" && dragMoved > 18 && dragKind === "eyes") lastFree = "eyes";
   if (dragKind === "spine") {
     const h = hitZ(hero.position.z + 0.35);
     if (h) heroPose.spine = clamp((h.y - 0.45) / 0.95, 0.05, 1);
@@ -3865,7 +4036,8 @@ function update(dt) {
       const lp = $("#livephrase");
       if (lp && lp.dataset.ph !== ph) { lp.dataset.ph = ph; lp.textContent = p.name + " · " + ph; }
       const already = !!(state.freeTried && state.freeTried[p.id]);
-      showGap(g.ok, already && g.ok ? "啱。你對住" + p.name + "調過，佢肯聽。揀下一個未試嘅。" : g.text);
+      const talk = freeLine(heroPose, p.pref, p.name);
+      showGap(g.ok || talk.good, already && g.ok ? "啱。你對住" + p.name + "調過，佢肯聽。揀下一個未試嘅。" : talk.text);
       otherPose.smile = sc; otherPose.spine = 0.55 + sc * 0.35;
       otherPose.gazeMode = g.ok || sc > 0.58 ? "hero" : "away";
       const mid = 0.05;
@@ -4165,12 +4337,29 @@ document.body.addEventListener("click", (e) => {
     go(g);
   } else if (act === "drill") {
     launchDrill(b.dataset.id);
+  } else if (act === "story") {
+    bookId = b.dataset.id || "why";
+    spokenKey = "";
+    go("story");
+  } else if (act === "story-next") {
+    const i = BOOK.findIndex((x) => x.id === bookId);
+    const n = BOOK[i + 1];
+    if (!n) { go("book"); return; }
+    bookId = n.id;
+    spokenKey = "";
+    go("story");
   } else if (act === "learn") {
     noteId = b.dataset.id;
     const n = NOTES.find((x) => x.id === noteId) || NOTES[0];
     lessonNext = noteDrill(n);
     go("note");
   } else if (act === "reread") {
+    if (mode === "story") {
+      const s = BOOK.find((x) => x.id === bookId) || BOOK[0];
+      spokenKey = "";
+      speakSeq(s.paras, true);
+      return;
+    }
     const n = NOTES.find((x) => x.id === noteId) || NOTES[0];
     spokenKey = "";
     speakSeq([n.title].concat(n.paras), true);
@@ -4329,6 +4518,7 @@ document.body.addEventListener("pointerdown", (e) => {
   }
   holding = h.dataset.hold;
   if ((mode === "free" || mode === "persona") && holding === "voice") judged = true;
+  if (mode === "free" && holding === "voice") lastFree = "voice";
   h.classList.add("on");
 });
 window.addEventListener("pointerup", () => {
@@ -4484,6 +4674,8 @@ function hintFor() {
   if (mode === "tired" && tiredStep === 2) return "按住空白鍵吸氣。個身繼續直。";
   if (mode === "person" && !choiceWhy) return "1  2  3 揀。每個選擇會讀出嚟。";
   if (mode === "person") return "聽完點解。Enter 先去下一句。";
+  if (mode === "book") return "揀一課。入到去會由頭讀到尾。";
+  if (mode === "story") return "聽緊課。聽完可以去下一課。";
   if (mode === "note") return "每句有喇叭。聽完先撳「開始練」。Enter 唔會跳。";
   if (mode === "persona" && !personaPicked) return "1 至 5 揀。每個選擇會讀出嚟。";
   if (mode === "persona" || mode === "free") return "↑↓ 背脊　　←→ 腳步闊度　　空白鍵送聲";
