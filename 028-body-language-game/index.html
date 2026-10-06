@@ -4574,13 +4574,9 @@ document.addEventListener("contextmenu", (e) => e.preventDefault());
 document.addEventListener("selectstart", (e) => e.preventDefault());
 document.addEventListener("dragstart", (e) => e.preventDefault());
 document.addEventListener("gesturestart", (e) => e.preventDefault());
-document.addEventListener("touchstart", (e) => {
-  if (e.target.closest && e.target.closest("[data-hold]")) e.preventDefault();
-}, { passive: false });
 document.body.addEventListener("pointerdown", (e) => {
   const h = e.target.closest("[data-hold]");
   if (!h) return;
-  e.preventDefault();
   try { ac(); } catch (err) {}
   if (h.dataset.hold === "voice" && (mode === "free" || mode === "persona") && heroPose.voice > 0.12) {
     heroPose.voice = 0;
