@@ -2232,6 +2232,7 @@ let dayIndex = 0;
 let tryPhase = 0;
 let tryHelp = false;
 let tryHelped = false;
+let tryDemo = null;
 let hold = 0;
 let soonFoot = "";
 let dragKind = null;
@@ -2633,7 +2634,7 @@ function onEnter(next) {
     shot([0.05, 1.35, 4.6], [0.05, 0.9, 0]);
     sayCoach(POINT.boot);
   } else if (next === "try") {
-    tryPhase = 0; tryHelp = false; tryHelped = false; hold = 0;
+    tryPhase = 0; tryHelp = false; tryHelped = false; tryDemo = null; hold = 0;
     showOnly({ hero: true, other: true, line: true });
     dress({ shirt: 0x31445c, h: 1.14 });
     placePair(1.25);
@@ -2959,10 +2960,10 @@ function renderPanel() {
   }
   if (mode === "boot") {
     panel.innerHTML = '<div class="card">' +
-      lineHTML("左邊個同學講「我知道」，但係低頭、縮埋，好似想走。") +
-      lineHTML("右邊個同學都講「我知道」，但係企直、望住人。") +
-      lineHTML("中間嗰個係聽嘅人。句說話一樣，所以佢望住企直嗰個。") +
-      lineHTML("你想自己都企到咁？") +
+      lineHTML("左邊低頭縮埋，好似想走。") +
+      lineHTML("右邊企直，望住人。") +
+      lineHTML("聽嘅人望住右邊。") +
+      lineHTML("你都試下企直。") +
       whoHTML() +
       actRow("我想試下", 'data-act="go" data-go="try"', "") + "</div>";
   } else if (mode === "try") {
@@ -3192,7 +3193,7 @@ function renderPanel() {
 }
 const POINT = {
   hub: "身體語言好重要。表情同姿勢，係人第一眼對你嘅印象。",
-  boot: "同一句說話，個身企直，人先肯聽你。",
+  boot: "同一句說話，人只聽企直嗰個。",
   try: "個身一直，人先肯望住你。",
   spine: "講嘢之前，背脊要直。人未聽到你把聲，已經覺得你知道自己要講咩。",
   walk: "行路要提起腳再踏。鞋底擦地，聲會搶走你句話。",
@@ -3211,7 +3212,7 @@ const POINT = {
 };
 function pageLines() {
   if (mode === "hub") return [POINT.hub, "左邊聽，右邊練。"];
-  if (mode === "boot") return [POINT.boot, "兩個人都講「我知道」。一個縮埋，一個企直。聽嘅人望住企直嗰個。"];
+  if (mode === "boot") return [POINT.boot, "左邊縮埋，右邊企直。聽嘅人望住右邊。"];
   if (mode === "note") {
     const n = NOTES.find((x) => x.id === noteId) || NOTES[0];
     return n.paras.slice(0, 2);
@@ -3780,14 +3781,14 @@ function update(dt) {
       bead.visible = tryPhase === 0;
       cursor.visible = tryPhase === 1;
       goldLine.visible = true;
-      if (tryPhase === 0 && holding === "spineup") {
+      if (tryPhase === 0 && holding === "spineup" && !tryDemo) {
         heroPose.spine = Math.min(1, heroPose.spine + dt * 2.4);
         dragKind = "spine";
       }
-      if (tryPhase === 0 && heroPose.spine > 0.7) { hold += dt; meter(hold / 0.55); }
-      else if (tryPhase === 0) { hold = Math.max(0, hold - dt * 0.22); meter(hold / 0.55); }
-      if (tryPhase === 0 && hold > 0.55) {
-        tryPhase = 1; hold = 0; tryHelp = false; pop("亮", true); tick();
+      if (tryPhase === 0 && !tryDemo && heroPose.spine > 0.7) { hold += dt; meter(hold / 0.55); }
+      else if (tryPhase === 0 && !tryDemo) { hold = Math.max(0, hold - dt * 0.22); meter(hold / 0.55); }
+      if (tryPhase === 0 && !tryDemo && hold > 0.55) {
+        tryPhase = 1; hold = 0; tryHelp = false; tryDemo = null; pop("亮", true); tick();
         other.userData.head.add(eyeRing);
         eyeRing.position.set(0, 0.03, 0.34);
         eyeRing.visible = true;
@@ -3815,7 +3816,27 @@ function update(dt) {
         other.position.x = damp(other.position.x, hero.position.x + 0.85, dt, 2);
         otherPose.smile = 0.75; otherPose.gazeMode = "hero"; otherPose.spine = 0.88;
       }
-      if (!tryHelp && modeT > 7 && tryPhase < 3) { tryHelp = true; renderPanel(); }
+      if (tryDemo) {
+        tryDemo.t += dt;
+        const k = Math.min(1, tryDemo.t / 0.9);
+        if (tryDemo.kind === "spine") heroPose.spine = 0.28 + (0.95 - 0.28) * k;
+        else if (tryDemo.kind === "eyes") {
+          eyeRing.getWorldPosition(v1);
+          if (heroPose.gazeMode !== "free") {
+            heroPose.gaze.set(hero.position.x, 0.45, 0.9);
+            heroPose.gazeMode = "free";
+          }
+          heroPose.gaze.lerp(v1, 1 - Math.exp(-8 * dt));
+        } else heroPose.voice = 0.55 * k;
+        if (k >= 1) {
+          const kind = tryDemo.kind;
+          tryDemo = null;
+          if (kind === "spine") heroPose.spine = 0.95;
+          if (kind === "eyes") { eyeRing.getWorldPosition(heroPose.gaze); heroPose.gazeMode = "free"; }
+          if (kind === "voice") { heroPose.voice = 0.55; releaseVoice(); }
+        }
+      }
+      if (!tryHelp && !tryHelped && !tryDemo && modeT > 7 && tryPhase < 3) { tryHelp = true; renderPanel(); }
     } else if (mode === "spine") {
       bead.visible = true;
       if (holding === "spineup") {
@@ -4410,13 +4431,16 @@ document.body.addEventListener("click", (e) => {
     spokenKey = "";
     readCurrentPage(true);
   } else if (act === "try-help") {
-    tryHelped = true; tryHelp = false;
-    if (tryPhase === 0) heroPose.spine = 0.95;
-    else if (tryPhase === 1) {
-      eyeRing.getWorldPosition(heroPose.gaze);
-      heroPose.gazeMode = "free";
-    } else if (tryPhase === 2) { heroPose.voice = 0.55; releaseVoice(); }
-    pop("睇下", true);
+    if (mode !== "try" || result || tryDemo) return;
+    tryHelped = true;
+    tryHelp = false;
+    const kind = tryPhase === 0 ? "spine" : tryPhase === 1 ? "eyes" : "voice";
+    tryDemo = { kind, t: 0 };
+    const line = kind === "spine" ? "我拉俾你睇。金珠向上，人就企直。" : kind === "eyes" ? "我拖俾你睇。光去到佢對眼。" : "我送俾你睇。把聲去到金圈。";
+    coachSet = line;
+    setCoach(line, false);
+    speak(line);
+    renderPanel();
   } else if (act === "src") {
     if (btnOn.src === b.dataset.src) {
       voiceSource = poseMem.src || "chest";
