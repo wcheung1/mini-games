@@ -16,6 +16,7 @@
   --blue:#2f7de1; --blue-soft:#dcebff; --orange:#ff8a1f; --sky:#9fd8ff;
   --shadow:0 6px 18px rgba(29,43,79,.18);
   --font:"Huninn","Yuanti TC","PingFang HK","Noto Sans HK","Microsoft JhengHei UI","Microsoft JhengHei","Heiti TC",system-ui,sans-serif;
+  --pb:clamp(58px,12.5vmin,96px); --lw:clamp(54px,9.5vmin,82px); --lh:clamp(42px,7.2vmin,62px);
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px); --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -69,7 +70,7 @@ button{cursor:pointer}
 }
 
 /* ---------- 回饋 toast ---------- */
-#toasts{position:absolute;z-index:5;left:50%;bottom:calc(150px + var(--safe-b));transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:92vw}
+#toasts{position:absolute;z-index:5;left:50%;bottom:calc(var(--pb) * 2 + 40px + var(--safe-b));transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;width:max-content;max-width:92vw}
 .toast{font-size:clamp(17px,3.6vw,23px);font-weight:700;padding:8px 18px;border-radius:999px;color:#fff;box-shadow:var(--shadow);animation:toast 2.2s forwards;text-align:center}
 .toast.good{background:var(--green)}
 .toast.bad{background:var(--red)}
@@ -80,12 +81,16 @@ button{cursor:pointer}
 .ctrl{position:absolute;bottom:calc(12px + var(--safe-b));display:grid;gap:8px}
 .ctrl>button{border:0;border-radius:16px;background:rgba(255,255,255,.95);box-shadow:0 4px 0 rgba(29,43,79,.25);font-weight:700;color:var(--ink);position:relative}
 .ctrl>button:active,.ctrl>button.held{transform:translateY(3px);box-shadow:0 1px 0 rgba(29,43,79,.25);background:#e8f0ff}
-#pad{left:calc(12px + var(--safe-l));grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,58px)}
-#pad>button{font-size:26px;width:58px;height:58px}
+#pad{left:calc(12px + var(--safe-l));grid-template-columns:repeat(3,var(--pb));grid-template-rows:repeat(2,var(--pb))}
+#pad>button{font-size:calc(var(--pb) * .44);width:var(--pb);height:var(--pb)}
+#pad .run{grid-column:3;grid-row:1;font-size:calc(var(--pb) * .3);background:#fff1dc;color:#8a4a00}
+#pad .run.on{background:var(--orange);color:#fff;box-shadow:0 4px 0 #b85a00}
+#pad .run{padding-top:12px}
 #pad .u{grid-column:2;grid-row:1}#pad .l{grid-column:1;grid-row:2}#pad .d{grid-column:2;grid-row:2}#pad .r{grid-column:3;grid-row:2}
-#looks{right:calc(12px + var(--safe-r));grid-template-columns:repeat(2,74px)}
-#looks>button{height:58px;font-size:16px;line-height:1.1;padding:12px 4px 4px}
-#looks>button .spk{top:3px;right:3px;width:20px;height:20px}#looks>button .spk svg{width:12px;height:12px}
+#looks{right:calc(12px + var(--safe-r));grid-template-columns:repeat(2,var(--lw))}
+#looks>button{height:var(--lh);font-size:calc(var(--lh) * .26 + 3px);line-height:1.1;padding:15px 4px 1px}
+#looks.nopeek #lkF{grid-column:1 / 3}
+#looks>button .spk,#pad .run .spk{top:2px;right:2px;width:16px;height:16px}#looks>button .spk svg,#pad .run .spk svg{width:10px;height:10px}
 #looks>button.on{background:var(--blue);color:#fff;box-shadow:0 4px 0 #1d5bb0}
 #looks>button.hint{outline:4px solid var(--yellow);outline-offset:2px;animation:pulse 1s infinite}
 #looks .key,#pad .key{position:absolute;bottom:3px;right:6px;font-size:10px;opacity:.55;font-weight:700}
@@ -195,6 +200,7 @@ body.modal #veil{opacity:1;pointer-events:auto}
     <div><b>↑↓←→</b>或者 <b>WASD</b>行路</div>
     <div><b>E</b>望右　<b>Q</b>望左</div>
     <div><b>R</b>返正面　<b>F</b>伸頭</div>
+    <div><b>Shift</b>按住跑（跑得快會停唔切）</div>
     <div><b>Esc</b>暫停／目錄</div>
     <div>用滑鼠或者手指拖畫面，都可以轉頭望。</div>
   </div>
@@ -204,6 +210,7 @@ body.modal #veil{opacity:1;pointer-events:auto}
     <button class="l" data-dir="left" aria-label="向左行">←<span class="key">A</span></button>
     <button class="d" data-dir="down" aria-label="向後行">↓<span class="key">S</span></button>
     <button class="r" data-dir="right" aria-label="向右行">→<span class="key">D</span></button>
+    <button class="run" id="btnRun" aria-pressed="false" aria-label="跑">跑<span class="key">Shift</span></button>
   </div>
   <div class="ctrl" id="looks">
     <button id="lkL" data-look="left">望左<span class="key">Q</span></button>
@@ -594,8 +601,8 @@ function buildKid(gender) {
 function poseKid(kid, dt, s) {
   const u = kid.userData;
   u.walk = lerp(u.walk, s.walking ? 1 : 0, 1 - Math.exp(-dt * 10));
-  if (s.walking) u.phase += dt * 9;
-  const sw = Math.sin(u.phase) * 0.6 * u.walk;
+  if (s.walking) u.phase += dt * (s.run ? 15 : 9);
+  const sw = Math.sin(u.phase) * (s.run ? 0.95 : 0.6) * u.walk;
   u.legs[0].rotation.x = sw; u.legs[1].rotation.x = -sw;
   u.arms[0].rotation.x = -sw * 0.9; u.arms[1].rotation.x = sw * 0.9;
   u.hips.position.y = 0.52 + Math.abs(Math.cos(u.phase)) * 0.025 * u.walk;
@@ -622,6 +629,8 @@ const VTYPES = {
   bus: { len: 12.0, wid: 2.5, wb: 6.4, fo: 2.6 },
   truck: { len: 11.0, wid: 2.5, wb: 6.6, fo: 1.4 },
   van: { len: 5.0, wid: 1.9, wb: 3.0, fo: 0.95 },
+  ambulance: { len: 5.9, wid: 2.05, wb: 3.5, fo: 1.0 },
+  moto: { len: 2.0, wid: 0.8, wb: 1.35, fo: 0.35 },
 };
 const CAR_COLORS = ['#3d7bd9', '#f2f2f2', '#2b2b2b', '#c8ccd2', '#3aa776', '#e6b422', '#8a5cc7'];
 function wheels(b, len, wid, axles, r = 0.34) {
@@ -682,6 +691,26 @@ function buildVehicle(type, opt = {}) {
     const lab = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.34), labelMat('往 學堂街', '#111111', '#ffb000', 320, 72, 44));
     lab.position.set(hl + 0.06, 3.7, 0); lab.rotation.y = Math.PI / 2; grp.add(lab);
     d.h = 3.95;
+  } else if (type === 'ambulance') {
+    const white = M('#f6f6f4'), red = M('#d8262a'), yel = M('#f2d21a');
+    b.add(boxG(len, 0.9, wid, 0, 0.75, 0), white);
+    b.add(boxG(len * 0.7, 1.2, wid, -len * 0.15, 1.75, 0), white);
+    b.add(boxG(len * 0.28, 0.75, wid * 0.94, len * 0.33, 1.55, 0), glass);
+    b.add(boxG(len, 0.22, wid + 0.02, 0, 1.1, 0), red, { cast: false });
+    b.add(boxG(len * 0.7, 0.12, wid + 0.02, -len * 0.15, 1.5, 0), yel, { cast: false });
+    b.add(boxG(0.06, 0.18, 0.4, hl, 0.8, wid / 2 - 0.32), light); b.add(boxG(0.06, 0.18, 0.4, hl, 0.8, -wid / 2 + 0.32), light);
+    b.add(boxG(0.06, 0.18, 0.36, -hl, 0.85, wid / 2 - 0.3), tail); b.add(boxG(0.06, 0.18, 0.36, -hl, 0.85, -wid / 2 + 0.3), tail);
+    wheels(b, len, wid, [frontAx, rearAx], 0.36);
+    d.h = 2.4;
+  } else if (type === 'moto') {
+    const body = M(opt.color || pick(['#e23b3b', '#2f6fbf', '#222831', '#f2b21b'])), tyre = M('#202226'), helmet = M('#ffffff'), jacket = M('#3c4a5e');
+    for (const ax of [frontAx, rearAx]) b.add(place(new THREE.CylinderGeometry(0.3, 0.3, 0.12, 14), ax, 0.3, 0, 0, Math.PI / 2), tyre);
+    b.add(boxG(1.3, 0.35, 0.35, -0.05, 0.62, 0), body);
+    b.add(boxG(0.25, 0.5, 0.3, frontAx - 0.15, 0.85, 0), body);
+    b.add(boxG(0.5, 0.65, 0.42, -0.2, 1.15, 0), jacket);
+    b.add(place(new THREE.SphereGeometry(0.17, 12, 10), -0.1, 1.62, 0), helmet);
+    b.add(boxG(0.06, 0.12, 0.2, hl, 0.9, 0), light);
+    d.h = 1.8;
   } else if (type === 'truck') {
     const cab = M('#2f6fbf'), box = M('#d9dde3'), dark = M('#3a3f47');
     b.add(boxG(2.3, 2.3, wid, hl - 1.15, 1.55, 0), cab);
@@ -702,6 +731,11 @@ function buildVehicle(type, opt = {}) {
   for (const x of [hl + 0.02, -hl - 0.02]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 0.28), indMat); m.position.set(x, 1.0, -wid / 2 + 0.16); m.visible = false; grp.add(m); ind.push(m); }
   const side = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.14, 0.06), indMat); side.position.set(hl - 1.5, 1.2, -wid / 2 - 0.03); side.visible = false; grp.add(side); ind.push(side);
   grp.userData.indicators = ind;
+  if (type === 'ambulance') {
+    const r = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.18, 0.5), new THREE.MeshBasicMaterial({ color: '#ff2020' })); r.position.set(len * 0.15, 2.45, 0.35);
+    const bl = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.18, 0.5), new THREE.MeshBasicMaterial({ color: '#2a5bff' })); bl.position.set(len * 0.15, 2.45, -0.35);
+    grp.add(r, bl); grp.userData.beacon = [r, bl];
+  }
   return { group: grp, dims: Object.assign({}, d, { ro: len - d.wb - d.fo }) };
 }
 
@@ -858,6 +892,7 @@ class Vehicle {
     this.v = o.v0 ?? this.vmax;
     this.s = o.s ?? 0;
     this.rogue = !!o.rogue; this.noYield = !!o.noYield; this.parked = !!o.parked; this.indicate = o.indicate || null;
+    this.ghost = !!o.ghost;   // 電單車：喺車旁邊鑽過去，唔會因為旁邊有車而停
     this.tag = o.tag || null;
     const f = path.at(this.s), r = path.at(this.s - this.d.wb);
     this.front = new THREE.Vector2(f.x, f.z); this.rear = new THREE.Vector2(r.x, r.z);
@@ -889,23 +924,27 @@ class Vehicle {
     if (P.stopS != null && this.s < P.stopS + 0.5) {
       const dist = P.stopS - this.s;
       let mustStop = false;
-      if (W.cross.type === 'signal' && !this.rogue) {
-        const L = W.vehLight;
+      const C = P.cross;
+      if (C.type === 'signal' && !this.rogue) {
+        const L = C.vehLight;
         if (L === 'red' || L === 'redamber') mustStop = true;
         if (L === 'amber') mustStop = dist > (this.v * this.v) / (2 * 4) + 1;
       }
-      if (W.cross.type === 'zebra' && !this.noYield && W.pedWantsZebra && W.visibleTo(this)) {
+      if (C.type === 'zebra' && !this.noYield && !this.rogue && W.pedWantsZebra && W.visibleTo(this)) {
         // 一決定讓人就停定，唔好「碌」過去；太近煞唔切就唔讓
         if (this.yielding || dist > (this.v * this.v) / (2 * 6) - 0.5) { this.yielding = true; mustStop = true; }
       } else this.yielding = false;
-      if (mustStop) target = Math.min(target, Math.sqrt(2 * 3.2 * Math.max(0, dist - 0.3)));
+      if (mustStop) target = Math.min(target, Math.sqrt(2 * 3.2 * W.brakeK * Math.max(0, dist - 0.3)));
     }
     // 2. 前面有冇車或者人
     let obst = Infinity, ped = Infinity;
     const pl = W.player;
+    const seeRange = 34 * W.seeK;
     for (let k = 0.5; k <= 34; k += 0.75) {
       const q = P.at(this.s + k);
-      if (obst === Infinity) for (const u of W.vehicles) { if (u !== this && u.contains(q.x, q.z, 0.9)) { obst = k; break; } }
+      if (obst === Infinity && !this.ghost) for (const u of W.vehicles) { if (u !== this && !u.ghost && u.contains(q.x, q.z, 0.9)) { obst = k; break; } }
+      if (k > seeRange && obst !== Infinity) break;
+      if (k > seeRange) continue;
       if (ped === Infinity && pl && pl.inRoad && Math.hypot(q.x - pl.x, q.z - pl.z) < d.wid / 2 + 0.45 && W.visibleTo(this)) ped = k;
       if (obst !== Infinity && ped !== Infinity) break;
     }
@@ -914,14 +953,14 @@ class Vehicle {
     if (ped < Infinity) {
       const react = this.rogue ? ped < 7 : true;
       if (react) {
-        const want = Math.sqrt(2 * 7 * Math.max(0, ped - 1.0));
+        const want = Math.sqrt(2 * 7 * W.brakeK * Math.max(0, ped - 1.0));
         if (want < this.v - 1.5) { this.brakeHard = true; if (!this.honked) { this.honked = 1; Sfx.horn(); if (this.v > 4) Sfx.screech(); W.onScare(this); } }
         target = Math.min(target, want);
       }
     }
     // 3. 加速／煞車
     if (this.v < target) this.v = Math.min(target, this.v + 2.6 * dt);
-    else this.v = Math.max(target, this.v - (this.brakeHard ? 7.5 : 5) * dt);
+    else this.v = Math.max(target, this.v - (this.brakeHard ? 7.5 : 5) * W.brakeK * dt);
     if (this.v < 0.05 && target < 0.05) this.v = 0;
     // 4. 行：前軸跟路線，後軸追前軸（所以轉彎時後轆會切入彎內 = 內輪差）
     this.s += this.v * dt;
@@ -932,6 +971,7 @@ class Vehicle {
     this._place();
     // 方向燈
     if (this.indicate) { const on = Math.floor(now() * 3) % 2 === 0; this.mesh.userData.indicators.forEach((m) => (m.visible = on)); }
+    if (this.mesh.userData.beacon) { const on = Math.floor(now() * 5) % 2 === 0; const [a, b] = this.mesh.userData.beacon; a.visible = on; b.visible = !on; }
   }
   get done() { return !this.parked && this.s > this.path.total + this.d.len + 2; }
   dispose() { this.world.scene.remove(this.mesh); this.mesh.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); }
@@ -945,22 +985,33 @@ class World {
     this.scene = scene; this.L = L; this.map = L.map;
     this.root = new THREE.Group(); scene.add(this.root);
     this.vehicles = []; this.paths = []; this.player = null;
-    this.cross = Object.assign({ type: 'none', x: 0, w: 4 }, L.map.cross || {});
-    this.vehLight = 'green'; this.pedLight = 'red'; this.phaseI = 0; this.phaseT = 0; this.pedGreenAt = -1;
+    const H = L.map.H;
+    // 過路處可以有多個（例如兩段燈），每個有自己嘅燈號循環
+    this.crossings = (L.map.crossings || [L.map.cross || { type: 'none' }]).map((c) => Object.assign({ type: 'none', x: 0, w: 4, z0: -H, z1: H, vehLight: 'green', pedLight: 'red', phaseI: 0, phaseT: 0, pedGreenAt: -1, flash: 0, tickT: 0, pedSignals: [], carSignals: [], beacons: [] }, c));
+    this.cross = this.crossings[0];
     this.pedWantsZebra = false;
-    this.tickT = 0; this.flash = 0;
-    this.pedSignals = []; this.carSignals = []; this.beacons = [];
+    this.brakeK = 1; this.seeK = 1;             // 落雨：煞車距離長；夜晚／落雨：司機遲啲見到人
     this.onScare = () => {}; this.visibleTo = () => true;
     this.build();
-    for (const pd of L.paths) {
-      const p = new Path(pd); this.paths.push(p);
-      if (this.cross.type === 'signal' || this.cross.type === 'zebra') {
-        const H = this.map.H, cx = this.cross.x, w = this.cross.w;
-        const s = p.firstEnter({ x0: cx - w / 2 - 1.2, x1: cx + w / 2 + 1.2, z0: -H, z1: H });
-        if (s != null) p.stopS = s;
-      }
+    for (const pd of L.paths) this.addPath(pd);
+    for (const c of this.crossings) if (c.type === 'signal') { this._setPhase(c, c.phaseStart || L.map.phaseStart || 0); if (c.phaseOffset) this._advance(c, c.phaseOffset); }
+  }
+  get vehLight() { return this.cross.vehLight; }
+  get pedLight() { return this.cross.pedLight; }
+  get phaseI() { return this.cross.phaseI; }
+  get phaseT() { return this.cross.phaseT; }
+  get pedGreenAt() { return this.cross.pedGreenAt; }
+  addPath(pd) {
+    const p = new Path(pd); this.paths.push(p);
+    p.cross = { type: 'none' };
+    let best = null;
+    for (const c of this.crossings) {
+      if (c.type !== 'signal' && c.type !== 'zebra') continue;
+      const s = p.firstEnter({ x0: c.x - c.w / 2 - 1.2, x1: c.x + c.w / 2 + 1.2, z0: c.z0, z1: c.z1 });
+      if (s != null && (best == null || s < best)) { best = s; p.cross = c; }
     }
-    if (this.cross.type === 'signal') this._setPhase(L.map.phaseStart || 0);
+    p.stopS = best;
+    return p;
   }
   /* ---------- 建模 ---------- */
   build() {
@@ -1003,19 +1054,18 @@ class World {
     for (const [x0, x1, z] of m.railsX || []) addRailX(b, x0, x1, z);
     for (const [z0, z1, x] of m.railsZ || []) addRailZ(b, z0, z1, x);
     // 燈號／斑馬燈
-    const c = this.cross;
-    if (c.type === 'signal') {
-      // 行人燈：近邊嗰支要俾近邊（+z）嘅人睇 → 燈面向 +z
-      const p1 = buildPedSignal(c.x + c.w / 2 + 0.4, -H - 0.45, 1); root.add(p1); this.pedSignals.push(p1);   // 對面嗰支，面向我哋
-      const p2 = buildPedSignal(c.x - c.w / 2 - 0.4, H + 0.45, -1); root.add(p2); this.pedSignals.push(p2);  // 近邊嗰支，面向對面
-      const p3 = buildPedSignal(c.x - c.w / 2 - 0.4, -H - 0.45, 1); root.add(p3); this.pedSignals.push(p3);
-      // 車燈：近線車由 +x 嚟（面向 +x）；遠線車由 -x 嚟
-      const s1 = buildCarSignal(c.x + c.w / 2 + 5.5, H + 0.5, 1); root.add(s1); this.carSignals.push(s1);
-      const s2 = buildCarSignal(c.x - c.w / 2 - 5.5, -H - 0.5, -1); root.add(s2); this.carSignals.push(s2);
-    }
-    if (c.type === 'zebra') {
-      for (const [x, z] of [[c.x - c.w / 2 - 0.4, H + 0.35], [c.x + c.w / 2 + 0.4, H + 0.35], [c.x - c.w / 2 - 0.4, -H - 0.35], [c.x + c.w / 2 + 0.4, -H - 0.35]]) {
-        const bc = buildBeacon(x, z); root.add(bc); this.beacons.push(bc);
+    for (const c of this.crossings) {
+      if (c.type === 'signal') {
+        // 行人燈：對面嗰支面向我哋（+z），近邊嗰支面向對面
+        for (const [x, z, f] of [[c.x + c.w / 2 + 0.4, c.z0 - 0.45, 1], [c.x - c.w / 2 - 0.4, c.z1 + 0.45, -1], [c.x - c.w / 2 - 0.4, c.z0 - 0.45, 1]]) { const ps = buildPedSignal(x, z, f); root.add(ps); c.pedSignals.push(ps); }
+        // 車燈：近半邊車由 +x 嚟；遠半邊車由 -x 嚟
+        if (c.z1 > 0) { const s1 = buildCarSignal(c.x + c.w / 2 + 5.5, c.z1 + 0.5, 1); root.add(s1); c.carSignals.push(s1); }
+        if (c.z0 < 0) { const s2 = buildCarSignal(c.x - c.w / 2 - 5.5, c.z0 - 0.5, -1); root.add(s2); c.carSignals.push(s2); }
+      }
+      if (c.type === 'zebra') {
+        for (const [x, z] of [[c.x - c.w / 2 - 0.4, c.z1 + 0.35], [c.x + c.w / 2 + 0.4, c.z1 + 0.35], [c.x - c.w / 2 - 0.4, c.z0 - 0.35], [c.x + c.w / 2 + 0.4, c.z0 - 0.35]]) {
+          const bc = buildBeacon(x, z); root.add(bc); c.beacons.push(bc);
+        }
       }
     }
     // 巴士站
@@ -1032,26 +1082,27 @@ class World {
     b.build(root);
   }
   _markings(b) {
-    const m = this.map, H = m.H, c = this.cross;
+    const m = this.map, H = m.H, CS = this.crossings;
     const white = M('#f4f4f0', { emissive: '#3a3a3a' }), yellow = M('#f2c200', { emissive: '#3a3000' });
     const Y = 0.012, mk = (w, d, x, z, mat) => b.add(boxG(w, 0.02, d, x, Y, z), mat, { cast: false });
     const xMin = -70, xMax = m.kind === 'tjunction' ? m.J0 : 70;
-    const gap = (x) => (c.type !== 'none' && Math.abs(x - c.x) < c.w / 2 + 0.8);
+    const gap = (x, z = 0) => CS.some((c) => c.type !== 'none' && Math.abs(x - c.x) < c.w / 2 + 0.8 && z >= c.z0 - 0.5 && z <= c.z1 + 0.5);
     // 中線
-    if (!m.island) for (let x = xMin; x < xMax; x += 4) { if (!gap(x) && !(m.noCenter && Math.abs(x - c.x) < 14)) mk(2.2, 0.14, x + 1.1, 0, white); }
-    for (const z of m.laneLines || []) for (let x = xMin; x < xMax; x += 4) if (!gap(x)) mk(2.2, 0.12, x + 1.1, z, white);
+    if (!m.island) for (let x = xMin; x < xMax; x += 4) { if (!gap(x, 0) && !gap(x + 2.2, 0)) mk(2.2, 0.14, x + 1.1, 0, white); }
+    for (const z of m.laneLines || []) for (let x = xMin; x < xMax; x += 4) if (!gap(x, z) && !gap(x + 2.2, z)) mk(2.2, 0.12, x + 1.1, z, white);
     // 路邊雙黃線（香港「不准停車」）
     for (const sz of [1, -1]) for (const off of [0.25, 0.42]) {
       const z = sz * (H - off);
-      const segs = [[xMin, c.type === 'none' ? xMax : c.x - c.w / 2 - 0.6], [c.type === 'none' ? xMax : c.x + c.w / 2 + 0.6, xMax]];
+      const gx = CS.filter((c) => c.type !== 'none' && (sz > 0 ? c.z1 >= H - 0.1 : c.z0 <= -H + 0.1)).map((c) => [c.x - c.w / 2 - 0.6, c.x + c.w / 2 + 0.6]).sort((a, b) => a[0] - b[0]);
+      const segs = []; let a0 = xMin; for (const [g0, g1] of gx) { segs.push([a0, g0]); a0 = g1; } segs.push([a0, xMax]);
       for (const [a, bb] of segs) { if (bb - a < 0.5) continue; if (m.busStop != null && sz > 0) { const bs0 = m.busStop - 7, bs1 = m.busStop + 9; if (a < bs0) mk(Math.min(bb, bs0) - a, 0.1, (a + Math.min(bb, bs0)) / 2, z, yellow); if (bb > bs1) mk(bb - Math.max(a, bs1), 0.1, (Math.max(a, bs1) + bb) / 2, z, yellow); } else mk(bb - a, 0.1, (a + bb) / 2, z, yellow); }
     }
     if (m.busStop != null) { const x0 = m.busStop - 7, x1 = m.busStop + 9; mk(x1 - x0, 0.12, (x0 + x1) / 2, H - 0.3, yellow); mk(x1 - x0, 0.12, (x0 + x1) / 2, 0.15, yellow); }
     if (m.island) { const I = m.island; for (const sz of [1, -1]) mk((m.islandX1 ?? 30) - (m.islandX0 ?? -30) + 10, 0.14, 0, sz * (I + 0.3), white); }
     // 過路處
+    for (const c of CS) {
     if (c.type === 'zebra') {
-      const z0 = m.island ? m.island : 0;
-      for (let z = -H + 0.5; z < H - 0.3; z += 1.0) { if (m.island && Math.abs(z) < m.island + 0.2) continue; mk(c.w, 0.5, c.x, z + 0.25, white); }
+      for (let z = c.z0 + 0.5; z < c.z1 - 0.3; z += 1.0) { if (m.island && Math.abs(z) < m.island + 0.2) continue; mk(c.w, 0.5, c.x, z + 0.25, white); }
       // 鋸齒線
       for (const sz of [1, -1]) for (const dir of [1, -1]) {
         const x0 = c.x + dir * (c.w / 2 + 1.2);
@@ -1060,12 +1111,14 @@ class World {
           b.add(place(new THREE.BoxGeometry(1.5, 0.02, 0.12), xa + dir * 0.7, Y, z, (i % 2 ? 1 : -1) * 0.34), white, { cast: false });
         }
       }
-      for (const sz of [1, -1]) mk(0.35, H * 0.9, c.x + sz * (c.w / 2 + 0.6), 0, white);
+      if (c.z1 > 0) mk(0.35, (c.z1 - Math.max(0, c.z0)) * 0.9, c.x + c.w / 2 + 0.6, (c.z1 + Math.max(0, c.z0)) / 2, white);
+      if (c.z0 < 0) mk(0.35, (Math.min(0, c.z1) - c.z0) * 0.9, c.x - c.w / 2 - 0.6, (c.z0 + Math.min(0, c.z1)) / 2, white);
     }
     if (c.type === 'signal') {
-      for (const dx of [-c.w / 2, c.w / 2]) for (let z = -H + 0.3; z < H; z += 0.8) mk(0.18, 0.45, c.x + dx, z, white);
-      mk(0.3, H - 0.2, c.x + c.w / 2 + 1.1, H / 2, white);   // 近線停車線
-      mk(0.3, H - 0.2, c.x - c.w / 2 - 1.1, -H / 2, white);  // 遠線停車線
+      for (const dx of [-c.w / 2, c.w / 2]) for (let z = c.z0 + 0.3; z < c.z1; z += 0.8) mk(0.18, 0.45, c.x + dx, z, white);
+      if (c.z1 > 0) { const a = Math.max(0, c.z0), bb = c.z1; mk(0.3, bb - a - 0.2, c.x + c.w / 2 + 1.1, (a + bb) / 2, white); }   // 近半邊停車線
+      if (c.z0 < 0) { const a = c.z0, bb = Math.min(0, c.z1); mk(0.3, bb - a - 0.2, c.x - c.w / 2 - 1.1, (a + bb) / 2, white); }  // 遠半邊停車線
+    }
     }
     // 腳印（等候位）同目標圈
     const foot = new THREE.MeshBasicMaterial({ map: canvasTex(128, 128, (g) => { g.fillStyle = '#ffd400'; for (const [x, y, r] of [[40, 70, 0.2], [86, 54, -0.2]]) { g.save(); g.translate(x, y); g.rotate(r); g.beginPath(); g.ellipse(0, 6, 13, 24, 0, 0, 7); g.fill(); for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(-11 + i * 5.5, -24 - (i === 0 || i === 4 ? -3 : 0), 4, 0, 7); g.fill(); } g.restore(); } }), transparent: true, depthWrite: false });
@@ -1096,7 +1149,7 @@ class World {
       for (let lx = -46; lx < 46; lx += 16) {
         const zz = sz * (H + 0.7);
         if (m.kind === 'tjunction' && sz > 0 && lx > m.J0 - 8) continue;
-        if (Math.abs(lx - this.cross.x) < 4) continue;
+        if (this.crossings.some((c) => Math.abs(lx - c.x) < 4)) continue;
         addLamp(b, lx, zz, sz);
       }
       for (let tx = -38; tx < 40; tx += 9.5) { if (m.kind === 'tjunction' && sz > 0 && tx > m.J0 - 8) continue; addTree(b, tx, sz * (H + W + 1.4)); }
@@ -1112,33 +1165,35 @@ class World {
       for (let z = SB + 2; z < 60; z += 14) { addBuilding(b, this.root, m.J0 - W - 6, z + 6, 12, 12, rand(18, 38), 1); }
     }
   }
-  /* ---------- 交通燈循環 ---------- */
-  _setPhase(i) {
-    const PH = this.L.map.phases || DEFAULT_PHASES;
-    this.phaseI = i % PH.length; const p = PH[this.phaseI];
-    this.phaseT = p.t; this.vehLight = p.veh;
-    const prevPed = this.pedLight; this.pedLight = p.ped;
-    if (p.ped === 'green' && prevPed !== 'green') { this.pedGreenAt = now(); this.onPedGreen && this.onPedGreen(); }
-    this._paintSignals();
+  /* ---------- 交通燈循環（每個過路處獨立） ---------- */
+  _setPhase(c, i) {
+    const PH = c.phases || this.L.map.phases || DEFAULT_PHASES;
+    c.phaseI = i % PH.length; const p = PH[c.phaseI];
+    c.phaseT = p.t; c.vehLight = p.veh;
+    const prevPed = c.pedLight; c.pedLight = p.ped;
+    if (p.ped === 'green' && prevPed !== 'green') c.pedGreenAt = now();
+    this._paintSignals(c);
   }
-  _paintSignals() {
-    const pedTex = this.pedLight === 'green' ? TEX.pedGreen : this.pedLight === 'flash' ? (this.flash ? TEX.pedGreen : TEX.pedOff) : TEX.pedRed;
-    for (const s of this.pedSignals) { if (s.userData.faceMat.map !== pedTex) { s.userData.faceMat.map = pedTex; s.userData.faceMat.needsUpdate = true; } }
-    const vl = this.vehLight === 'redamber' ? 'red' : this.vehLight;
-    for (const s of this.carSignals) { setCarSignal(s, vl); if (this.vehLight === 'redamber') s.userData.lamps.amber.m.material.color.set(s.userData.lamps.amber.c); }
+  _advance(c, sec) { while (sec > 0) { if (sec >= c.phaseT) { sec -= c.phaseT; this._setPhase(c, c.phaseI + 1); } else { c.phaseT -= sec; sec = 0; } } }
+  _paintSignals(c) {
+    const pedTex = c.pedLight === 'green' ? TEX.pedGreen : c.pedLight === 'flash' ? (c.flash ? TEX.pedGreen : TEX.pedOff) : TEX.pedRed;
+    for (const sg of c.pedSignals) { if (sg.userData.faceMat.map !== pedTex) { sg.userData.faceMat.map = pedTex; sg.userData.faceMat.needsUpdate = true; } }
+    const vl = c.vehLight === 'redamber' ? 'red' : c.vehLight;
+    for (const sg of c.carSignals) { setCarSignal(sg, vl); if (c.vehLight === 'redamber') sg.userData.lamps.amber.m.material.color.set(sg.userData.lamps.amber.c); }
   }
   update(dt, ctx) {
-    const c = this.cross;
     // 燈號
-    if (c.type === 'signal' && !this.L.map.freezeSignal) {
-      this.phaseT -= dt; if (this.phaseT <= 0) this._setPhase(this.phaseI + 1);
-      const fl = Math.floor(now() * 2.5) % 2; if (fl !== this.flash) { this.flash = fl; if (this.pedLight === 'flash') this._paintSignals(); }
-      // 過路燈聲：紅燈慢、綠燈快
-      this.tickT -= dt;
-      const near = this.player && Math.hypot(this.player.x - c.x, this.player.z) < 14;
-      if (this.tickT <= 0 && near && ctx.playing) { const fast = this.pedLight !== 'red'; Sfx.tick(fast); this.tickT = fast ? (this.pedLight === 'flash' ? 0.1 : 0.16) : 1.1; }
+    let nearest = null, nd = 1e9;
+    for (const c of this.crossings) {
+      if (c.type === 'signal') {
+        c.phaseT -= dt; if (c.phaseT <= 0) this._setPhase(c, c.phaseI + 1);
+        const fl = Math.floor(now() * 2.5) % 2; if (fl !== c.flash) { c.flash = fl; if (c.pedLight === 'flash') this._paintSignals(c); }
+        if (this.player) { const d = Math.hypot(this.player.x - c.x, this.player.z - (c.z0 + c.z1) / 2); if (d < nd) { nd = d; nearest = c; } }
+      }
+      if (c.type === 'zebra') { const on = Math.floor(now() * 1.6) % 2 === 0; for (const bc of c.beacons) bc.userData.globe.emissiveIntensity = on ? 1.1 : 0.05; }
     }
-    if (c.type === 'zebra') { const on = Math.floor(now() * 1.6) % 2 === 0; for (const bc of this.beacons) bc.userData.globe.emissiveIntensity = on ? 1.1 : 0.05; }
+    // 過路燈嘀嘀聲（最近嗰個過路處）
+    if (nearest && nd < 12 && ctx.playing) { nearest.tickT -= dt; if (nearest.tickT <= 0) { const fast = nearest.pedLight !== 'red'; Sfx.tick(fast); nearest.tickT = fast ? (nearest.pedLight === 'flash' ? 0.1 : 0.16) : 1.1; } }
     if (this.goalRing) { this.goalRing.material.opacity = 0.55 + Math.sin(now() * 4) * 0.3; }
     // 出車
     if (ctx.traffic) for (const p of this.paths) {
@@ -1146,7 +1201,7 @@ class World {
       p.timer -= dt;
       if (p.timer <= 0) {
         const clear = !this.vehicles.some((v) => v.path === p && v.s < 16);
-        if (clear) { this.spawn(p.id, pick(sp.types), { v: rand(...sp.v) }); p.timer = rand(...sp.gap); } else p.timer = 0.6;
+        if (clear) { this.spawn(p.id, pick(sp.types), { v: rand(...sp.v) }); p.timer = rand(...sp.gap) * (this.L.density || 1); } else p.timer = 0.6;
       }
     }
     for (const v of this.vehicles) v.update(dt, this);
@@ -1163,7 +1218,7 @@ class World {
       let s = rand(4, 10);
       while (s < p.total - 10) {
         const q = p.at(s);
-        const nearCrossing = Math.abs(q.x - this.cross.x) < 16 && Math.abs(q.z) < this.map.H + 2;
+        const nearCrossing = this.crossings.some((c) => Math.abs(q.x - c.x) < 16) && Math.abs(q.z) < this.map.H + 2;
         if (!nearCrossing) this.spawn(p.id, pick(sp.types), { s, v: rand(...sp.v) });
         s += rand(18, 32);
       }
@@ -1201,6 +1256,7 @@ const SRC = {
   islandRd: { t: '星島日報：深水灣車Cam直擊 女子從巴士盲點步出被的士撞倒（2026 年 10 月 1 日）', u: 'https://www.singtaousa.com/2026/10/01/news/china/dashcam-pedestrian-bus-blindspot-taxi-collision/' },
   tuenmun: { t: '星島頭條：屯門私家車衝燈險撞嬰兒車 50歲司機涉危駕被捕（2024 年 10 月 31 日）', u: 'https://www.stheadline.com/breaking-news/3397136' },
   wanchai: { t: '星島頭條：灣仔男童衝出馬路捱撞（2026 年 6 月 11 日）', u: 'https://www.stheadline.com/breaking-news/3581934' },
+  yautong: { t: '香港01：油塘男童衝紅燈闖馬路撞貨車（2026 年 9 月 18 日）', u: 'https://www.hk01.com/article/60391430' },
   refuge: { t: '香港01：女童忽快跑衝出安全島 司機及時煞車避撞（2026 年 6 月 27 日）', u: 'https://www.hk01.com/%E7%86%B1%E7%88%86%E8%A9%B1%E9%A1%8C/60363637/' },
 };
 
@@ -1394,8 +1450,107 @@ const LEVELS = [
     },
     case: { kind: 'real', title: '香港真係發生過', text: '2026 年 6 月，有司機喺網上分享一段片：一對母女喺安全島停低，個女突然自己快跑衝出馬路。好彩司機及時煞車，冇撞到人。新聞冇講係邊一區。', src: [SRC.refuge, SRC.zebra] },
   },
+  /* ---------------- 第七關：兩段燈 ---------------- */
+  {
+    id: 7, name: '第七關：兩盞燈分開睇', learn: '每盞燈都要睇', practice: '唔好跑、安全島等第二盞燈',
+    key: '有兩盞行人燈嘅馬路，每一盞都要分開睇：第一盞綠，唔代表第二盞都綠；過到安全島要停低，等第二盞綠人先行。',
+    tips: [
+      ['🏃', '唔好跑過馬路：跑得快會睇唔切燈號，亦停唔切。'],
+      ['🚦', '過完第一盞燈，喺安全島停低，望清楚第二盞燈係咩色。'],
+      ['🟢', '第二盞係綠色人像，再望清楚車，先行第二段。'],
+    ],
+    how: '呢關有「跑」掣，但係跑得快會停唔切。先等第一盞綠人過到安全島，沿住安全島行去第二個過路處，等第二盞綠人先過。',
+    timer: 45,
+    map: { kind: 'straight', H: 7.9, island: 1.5, islandX0: -22, islandX1: 22,
+      crossings: [{ type: 'signal', x: -4, w: 4, z0: 1.5, z1: 7.9 }, { type: 'signal', x: 4, w: 4, z0: -7.9, z1: -1.5, phaseOffset: 17.7 }],
+      railsX: [[-40, -6.3, 8.2], [-1.7, 40, 8.2], [-40, 1.7, -8.2], [6.3, 40, -8.2], [-21.5, -6.3, 1.2], [-1.7, 21.5, 1.2], [-21.5, 1.7, -1.2], [6.3, 21.5, -1.2]], laneLines: [4.7, -4.7] },
+    paths: [
+      { id: 'n1', pts: [[75, 3.1], [-75, 3.1]], spawn: { gap: [4, 8], types: ['car', 'taxi', 'van', 'minibus'], v: [8, 10] } },
+      { id: 'n2', pts: [[75, 6.3], [-75, 6.3]], spawn: { gap: [5, 10], types: ['car', 'bus', 'taxi', 'truck'], v: [7, 9] } },
+      { id: 'f1', pts: [[-75, -3.1], [75, -3.1]], spawn: { gap: [4, 8], types: ['car', 'taxi', 'van', 'minibus'], v: [8, 10] } },
+      { id: 'f2', pts: [[-75, -6.3], [75, -6.3]], spawn: { gap: [5, 10], types: ['car', 'bus', 'taxi', 'truck'], v: [7, 9] } },
+    ],
+    start: [-9, 9.6], goal: { x: 4, z: -9.6 }, footprints: [[-4, 8.6], [4, -0.6]],
+    area: (x, z) => {
+      const H = 7.9, I = 1.5, inA = Math.abs(x + 4) <= 2, inB = Math.abs(x - 4) <= 2;
+      if (Math.abs(x) > 24) return null;
+      if (z >= H) return (inA || z >= H + 0.55) && z <= H + 5 - 0.7 ? 'near' : null;
+      if (z <= -H) return (inB || z <= -H - 0.55) && z >= -H - 5 + 0.7 ? 'far' : null;
+      if (Math.abs(z) <= I) { if (Math.abs(x) > 21) return null; if (Math.abs(z) <= I - 0.5) return 'island'; return (z > 0 ? inA : inB) ? 'island' : null; }
+      if (z > I && inA) return 'road';
+      if (z < -I && inB) return 'road';
+      return null;
+    },
+    checks: [
+      { id: 'k1', wait: { x0: -6.2, x1: -1.8, z0: 7.9, z1: 9.5 }, line: 7.85, req: ['signal'], bonus: 'look' },
+      { id: 'k2', wait: { x0: 1.8, x1: 6.2, z0: -1.5, z1: 0.3 }, line: -1.55, req: ['signal'], cross: 1, greenEvent: 'green2', bonus: 'look',
+        fails: { red: '第二盞燈仲係紅色！第一盞綠，唔代表第二盞都綠。每一盞燈都要分開睇，喺安全島停低等第二盞綠人。', flash: '第二盞燈閃緊，唔可以開始過。喺安全島等下一次綠人。' } },
+    ],
+    steps: [['green', '等第一盞綠人'], ['island', '到安全島'], ['green2', '等第二盞綠人'], ['goal', '行到對面']],
+    fails: { red: '第一盞燈仲係紅色人像，唔可以落馬路。', flash: '綠色人像閃緊，唔可以開始過。' },
+    hitWhy: '第二盞燈仲係紅色，嗰邊嘅車係綠燈，佢哋唔會停。每一盞燈都要分開睇，過到安全島要停低。',
+    case: { kind: 'real', title: '香港真係發生過', text: '2026 年 9 月 17 日下晝四點幾，油塘鯉魚門道，一個大約 9 歲嘅男仔喺行人紅燈嗰陣衝出馬路。佢過到安全島冇停低，繼續跑，結果撞到一架貨車，隻手受傷流血，送咗去醫院。警方話嗰陣貨車嗰邊係綠燈。', src: [SRC.yautong, SRC.lights] },
+  },
 ];
-LEVELS.forEach((L) => { L.map.walkW = 5; });
+LEVELS.forEach((L) => { L.map.walkW = 5; L.kind = 'core'; });
+
+/* =====================================================================
+   挑戰任務（攞咗證書之後）：險象環生嘅真實生活場景
+   ===================================================================== */
+const EVENT_STEP = { siren: ['siren', '讓救護車先'], moto: ['moto', '等電單車過咗'], friend: ['friend', '唔理朋友催促'], rogue: ['rogue', '等衝燈車過咗'], rusher: ['look', '望清楚'] };
+const WEATHER_NAME = { day: '晴天', dusk: '黃昏', night: '夜晚', rain: '落雨', rainnight: '落雨夜晚' };
+const EVENT_NAME = { siren: '🚑 可能有救護車', moto: '🏍️ 可能有電單車鑽出嚟', friend: '👋 朋友喺對面叫你', rogue: '⚠️ 可能有車衝紅燈', rusher: '🚗 可能有車唔讓人' };
+const EVENT_TIP = {
+  siren: ['🚑', '聽到救護車、消防車嘅警號，就算綠人都要留喺行人路，等佢過咗先行。'],
+  moto: ['🏍️', '一架車停低讓你，唔代表旁邊冇車；要望清楚每一條線先行。'],
+  friend: ['👋', '朋友喺對面叫你都唔好衝，佢可以等你。'],
+  rogue: ['⚠️', '綠人亮咗都要望清楚，見到車停定先行。'],
+  rusher: ['🚗', '唔係每架車都會讓人，望到有車就等。'],
+};
+const WEATHER_TIP = { rain: ['🌧️', '落雨地濕，車要長啲距離先煞得停，要等多陣。'], rainnight: ['🌧️', '落雨夜晚，司機睇唔清楚你，煞車又要長啲，一定要等車停定。'], night: ['🌙', '夜晚司機唔易見到你，要等車停定先過，最好著光色衫。'], dusk: ['🌇', '黃昏天色暗，司機未必見到你，要望清楚先行。'] };
+function withExtras(base, o) {
+  const L = Object.assign({}, base, o);
+  L.events = o.events || [];
+  L.steps = [...base.steps.filter(([id]) => id !== 'goal'), ...L.events.filter((e) => e !== 'rusher' && !base.steps.some(([id]) => id === EVENT_STEP[e][0])).map((e) => EVENT_STEP[e]), ['goal', '行到對面']];
+  if (!o.tips) L.tips = [...(WEATHER_TIP[L.weather] ? [WEATHER_TIP[L.weather]] : []), ...L.events.map((e) => EVENT_TIP[e]), ...base.tips].slice(0, 4);
+  return L;
+}
+const MISSION_DEFS = [
+  { id: 'm1', pill: '落雨夜晚，等車完全停定先過。', base: 1, name: '挑戰一：落雨夜晚過斑馬線', learn: '天氣差，車停唔切', practice: '等車完全停定', weather: 'rainnight', events: ['rusher'], timer: 50,
+    key: '落雨夜晚，司機睇唔清楚你，煞車又要長啲，所以要等車完全停定先過。', how: '而家落緊雨，又係夜晚。喺斑馬線望清楚，等所有車停定或者過晒先行。' },
+  { id: 'm2', pill: '聽到警號，留喺行人路等。', base: 0, name: '挑戰二：救護車嚟緊', learn: '讓緊急車輛', practice: '聽到警號就等', events: ['siren'], timer: 50,
+    key: '聽到救護車、消防車嘅警號，就算綠人都要留喺行人路，等佢過咗先行。', how: '等綠人。聽到警號，或者見到閃燈，就唔好出馬路，等救護車過咗先行。' },
+  { id: 'm3', pill: '車停咗，都要望清楚旁邊。', base: 1, name: '挑戰三：電單車鑽出嚟', learn: '停咗嘅車旁邊', practice: '望清楚每條線', events: ['moto'], script: null, timer: 50,
+    key: '一架車停低讓你，唔代表旁邊冇車；電單車可能喺佢旁邊鑽出嚟，要望清楚每一條線先行。', how: '喺斑馬線等。有車停低讓你之後，再望右多次，睇清楚旁邊有冇電單車。' },
+  { id: 'm4', pill: '朋友催都唔好衝！', base: 4, name: '挑戰四：朋友喺對面叫你', learn: '唔好俾人催', practice: '等綠人、望清楚', events: ['friend'], timer: 50,
+    key: '朋友喺對面叫你都唔好衝，等綠人、望清楚先過；佢可以等你，你嘅安全最緊要。', how: '你嘅朋友會喺對面叫你快啲。唔好理，照樣等綠人、望清楚、見到車停定先行。' },
+  { id: 'm5', pill: '幾趕都好，每盞燈分開睇。', base: 6, name: '挑戰五：遲到大衝刺', learn: '趕都唔好跑', practice: '兩盞燈分開等', weather: 'dusk', events: [], timer: 32,
+    key: '幾趕都好，每一盞燈都要分開睇；遲到可以補救，生命唔可以。', how: '時間好緊，好想跑。但係每一盞燈都要等綠人，喺安全島要停低。' },
+  { id: 'm6', pill: '落雨地滑，大車轉彎企後啲！', base: 2, name: '挑戰六：落雨天大車轉彎', learn: '地滑大車', practice: '企後、等佢轉完', weather: 'rain', events: [], timer: 55,
+    key: '落雨天地滑，大車轉彎更加危險；要企後啲，等佢轉完、行遠咗，望清楚先過。', how: '同第三關一樣要避開紅色範圍，不過落緊雨，車要長啲距離先停到。' },
+];
+const MISSIONS = MISSION_DEFS.map((m, i) => {
+  const base = LEVELS[m.base];
+  const L = withExtras(base, Object.assign({}, m, { kind: 'mission', no: i + 1 }));
+  if ('script' in m) L.script = m.script;
+  L.case = null;
+  return L;
+});
+
+/* 自由玩：每次隨機揀街道、天氣同突發事件 */
+function makeFree() {
+  const base = pick(LEVELS);
+  const weather = pick(['day', 'day', 'dusk', 'night', 'rain', 'rainnight']);
+  const t = base.map.crossings ? 'signal' : (base.map.cross && base.map.cross.type) || 'plain';
+  let pool = { signal: ['siren', 'friend', 'rogue'], zebra: ['siren', 'moto', 'friend', 'rusher'], plain: ['siren', 'friend'] }[t] || ['friend'];
+  if (base.map.H !== H2 || base.map.kind !== 'straight' || base.script === 'busBlind') pool = pool.filter((e) => e !== 'moto' && e !== 'rusher');
+  if (base.script === 'busBlind' || base.script === 'turningTruck') pool = pool.filter((e) => e === 'friend');
+  if (base.map.crossings) pool = pool.filter((e) => e !== 'rogue');
+  if (base.script === 'redRunner') pool = pool.filter((e) => e !== 'rogue');
+  if (base.script === 'zebraRusher') pool = pool.filter((e) => e !== 'rusher' && e !== 'moto');
+  const events = pool.filter(() => Math.random() < 0.45).slice(0, 2);
+  return withExtras(base, { id: 'free', kind: 'free', baseId: base.id, name: '自由玩：' + base.name.split('：')[1], weather, events, density: rand(0.75, 1.25), timer: Math.round(base.timer * rand(0.85, 1.1)), case: null });
+}
 
 /* 延伸閱讀（聽書） */
 const READING = [
@@ -1439,7 +1594,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color('#a9dcff');
 scene.fog = new THREE.Fog('#cfe9ff', 70, 160);
 const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 400);
-scene.add(new THREE.HemisphereLight('#e8f5ff', '#9a9184', 1.25));
+const hemi = new THREE.HemisphereLight('#e8f5ff', '#9a9184', 1.25); scene.add(hemi);
 const sun = new THREE.DirectionalLight('#fff3dd', 1.7);
 sun.position.set(25, 45, 18); sun.castShadow = true;
 const SH = isTouch ? 1024 : 2048;
@@ -1461,7 +1616,7 @@ const G = {
   mode: 'boot', L: null, world: null, kid: null,
   P: { x: 0, z: 0, prevZ: 0, area: 'near', inRoad: false, moving: false, speed: 0, face: 0, still: 0 },
   look: { phi: 0, target: 0, mode: 'front', lean: false, side: null, sideT: 0, logged: false, dragging: false },
-  input: { up: false, down: false, left: false, right: false },
+  input: { up: false, down: false, left: false, right: false, shift: false }, runMode: false,
   timeLeft: 0, timeUp: false, score: 0, nearMiss: false, events: new Set(), recs: {}, scriptState: {},
   slow: 1, crashT: 0, lookInRoad: false, idleT: 0, hinted: {}, danger: null,
 };
@@ -1483,7 +1638,10 @@ function loadLevel(L, { forTitle = false } = {}) {
   G.world.onScare = onScare;
   G.world.visibleTo = (v) => visibleTo(v);
   G.world.prefill();
-  Object.assign(G.P, { x: L.start[0], z: L.start[1], prevZ: L.start[1], area: 'near', inRoad: false, moving: false, speed: 0, face: 0, still: 0 });
+  Object.assign(G.P, { x: L.start[0], z: L.start[1], prevZ: L.start[1], area: 'near', inRoad: false, moving: false, speed: 0, face: 0, still: 0, vx: 0, vz: 0, running: false });
+  G.ranInRoad = false; G.sirenActive = false; G.failCheck = null; if (typeof setRun === 'function') setRun(false);
+  if (G.friend) { scene.remove(G.friend); G.friend.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); G.friend = null; }
+  setWeather(forTitle ? 'day' : (L.weather || 'day'));
   Object.assign(G.look, { phi: 0, target: 0, mode: 'front', lean: false, side: null, sideT: 0, logged: false });
   G.timeLeft = L.timer; G.timeUp = false; G.score = 0; G.nearMiss = false; G.events = new Set(); G.lookInRoad = false; G.idleT = 0; G.hinted = {};
   G.recs = {}; for (const c of L.checks) G.recs[c.id] = { inside: false, looks: [], peek: false, still: 0, passed: false, leftT: -99, bonusOK: false };
@@ -1493,7 +1651,7 @@ function loadLevel(L, { forTitle = false } = {}) {
   if (!forTitle) setupScript(L);
   updateLookButtons();
   $('#lkP').style.display = L.script === 'busBlind' ? '' : 'none';
-  $('#looks').style.gridTemplateColumns = L.script === 'busBlind' ? 'repeat(2,74px)' : 'repeat(3,74px)';
+  $('#looks').classList.toggle('nopeek', L.script !== 'busBlind');
 }
 
 /* ---------- 每關特別劇本 ---------- */
@@ -1506,23 +1664,58 @@ function setupScript(L) {
 }
 function updateScript(dt) {
   const L = G.L, W = G.world, S = G.scriptState, P = G.P;
-  if (L.script === 'zebraRusher') {
-    if (!S.sent && G.recs.k1.inside) { S.sent = true; W.spawn('n', 'car', { s: 40, v: 10, noYield: true, color: '#e8e8ea' }); }
+  const EV = L.events || [], has = (e) => EV.includes(e);
+  const np = nearPath();
+  if (L.script === 'zebraRusher' || has('rusher')) {
+    if (!S.sent && G.recs.k1.inside) { S.sent = true; W.spawn(np.id, 'car', { s: Math.max(5, np.pts[0].x - (W.cross.x + 35)), v: 10, noYield: true, color: '#e8e8ea' }); }
+  }
+  // 救護車：響住警號，唔停燈、唔讓人
+  if (has('siren')) {
+    if (!S.sirenAt && G.recs.k1 && G.recs.k1.inside) S.sirenAt = now() + rand(1.2, 3.5);
+    if (S.sirenAt && !S.amb && now() > S.sirenAt) {
+      const cands = W.paths.filter((p) => p.cross && p.cross.type !== 'none' && p.def.spawn);
+      const p = pick(cands.length ? cands : [np]);
+      S.amb = W.spawn(p.id, 'ambulance', { s: 12, v: 12.5, rogue: true });
+      S.ambX = p.cross && p.cross.x != null ? p.cross.x : W.cross.x; S.ambDir = Math.sign(p.pts[p.pts.length - 1][0] - p.pts[0][0]);
+      G.sirenActive = true; Sfx.siren(8);
+      toast('🚑 救護車嚟緊！留喺行人路', 'bad'); setTimeout(() => cue('聽到救護車警號，留喺行人路，等佢過咗先行。'), 300);
+    }
+    if (S.amb && G.sirenActive) {
+      const gone = !W.vehicles.includes(S.amb) || (S.ambDir < 0 ? S.amb.center.x < S.ambX - 7 : S.amb.center.x > S.ambX + 7);
+      if (gone) { G.sirenActive = false; event('siren', '✓ 讓咗救護車先'); }
+    }
+  }
+  // 電單車：喺停低讓人嘅車旁邊鑽出嚟
+  if (has('moto')) {
+    if (!S.motoPath) S.motoPath = W.addPath({ id: 'moto', pts: [[75, 0.45], [-75, 0.45]] });
+    if (G.recs.k1.inside && !S.kerbAt) S.kerbAt = now();
+    const yielded = W.vehicles.some((v) => v.path === np && v.yielding && v.v < 0.6);
+    if (!S.moto && S.kerbAt && (yielded || now() - S.kerbAt > 7)) {
+      if (!S.motoT) S.motoT = now() + (yielded ? 0.5 : 0);
+      if (now() > S.motoT) { S.moto = W.spawn('moto', 'moto', { s: 75 - (W.cross.x + 24), v: 10.5, noYield: true, ghost: true }); Sfx.noise(1.8, { vol: 0.3, freq: 450, q: 1.2, to: 1500 }); }
+    }
+    if (S.moto && !G.events.has('moto') && S.moto.center.x < W.cross.x - 4) event('moto', '✓ 電單車過咗');
+  }
+  // 朋友喺對面叫你
+  if (has('friend')) {
+    if (!G.friend) { G.friend = buildKid(save.gender === 'girl' ? 'boy' : 'girl'); G.friend.position.set(L.goal.x + 2.2, 0.15, L.goal.z - 0.2); G.friend.rotation.y = Math.PI; scene.add(G.friend); S.fT = 2.5; }
+    S.fT -= dt;
+    if (S.fT <= 0 && !P.inRoad && P.area === 'near') { S.fT = 7; toast('朋友：「快啲過嚟呀！」', 'info'); }
   }
   if (L.script === 'busBlind') {
     if (!S.sent && G.recs.k2.inside) { S.sent = true; W.spawn('f', 'taxi', { s: 20, v: 10.5, noYield: true }); }
   }
-  if (L.script === 'redRunner') {
+  if (L.script === 'redRunner' || has('rogue')) {
     if (G.recs.k1.inside) S.armed = true;
-    const pn = W.paths.find((p) => p.id === 'n');
+    const pn = np;
     // 清空近線：等衝燈車唔會塞喺等紅燈嘅車後面
     if (S.armed && !S.sent && ((W.phaseI === 0 && W.phaseT < 7) || W.phaseI === 1 || W.phaseI === 2)) pn.timer = 99;
     if (S.sent && !S.resumed && S.rogue && S.rogue.front.x < -3) { S.resumed = true; pn.timer = 1.5; }
-    if (S.armed && !S.sent && W.vehLight === 'red' && W.pedLight === 'red' && W.phaseI === 2 && !W.vehicles.some((v) => v.path === pn && v.front.x > 1 && v.front.x < 40)) {
-      S.sent = true; S.rogue = W.spawn('n', 'taxi', { s: 38, v: 13, rogue: true });
+    if (S.armed && !S.sent && W.vehLight === 'red' && W.pedLight === 'red' && W.phaseI === 2 && !W.vehicles.some((v) => v.path === pn && v.front.x > W.cross.x + 1 && v.front.x < W.cross.x + 40)) {
+      S.sent = true; S.rogue = W.spawn(pn.id, 'taxi', { s: pn.pts[0].x - (W.cross.x + 37), v: 13, rogue: true });
       Sfx.noise(2.4, { vol: 0.22, freq: 300, q: 0.8, type: 'lowpass', to: 900 });
     }
-    if (S.rogue && !G.events.has('rogue') && S.rogue.front.x < -3) event('rogue', '✓ 衝燈車過咗，你冇事');
+    if (S.rogue && !G.events.has('rogue') && S.rogue.front.x < W.cross.x - 3) event('rogue', '✓ 衝燈車過咗，你冇事');
   }
   if (L.script === 'turningTruck') {
     if (!S.truck && S.t0 != null && now() - S.t0 > 1.2) {
@@ -1537,6 +1730,44 @@ function updateScript(dt) {
       if (G.events.has('truck')) { S.nextCar = (S.nextCar ?? 6) - dt; if (S.nextCar <= 0) { if (!W.vehicles.some((v) => v.path.id === 'turn' && v.s < 30)) W.spawn('turn', pick(['car', 'taxi', 'van']), { s: 10, v: 8 }); S.nextCar = rand(9, 14); } }
     }
   }
+}
+/* 最近行人路嗰條、車由右邊嚟嘅行車線 */
+function nearPath() {
+  let best = null;
+  for (const p of G.world.paths) { const a = p.def.pts[0], b = p.def.pts[p.def.pts.length - 1]; if (b[0] < a[0] && a[1] > 0 && Math.abs(a[1] - b[1]) < 0.01 && (!best || a[1] > best.def.pts[0][1])) best = p; }
+  return best || G.world.paths[0];
+}
+/* 天氣：晴天、黃昏、夜晚、落雨 */
+const WEATHER = {
+  day: { bg: '#a9dcff', fog: '#cfe9ff', n: 70, f: 160, hemi: 1.25, sun: 1.7, sc: '#fff3dd', brake: 1, see: 1 },
+  dusk: { bg: '#f0b48e', fog: '#e8b89e', n: 45, f: 130, hemi: 0.95, sun: 1.1, sc: '#ffb27a', brake: 1, see: 0.8 },
+  night: { bg: '#16213d', fog: '#1d2a4a', n: 25, f: 95, hemi: 0.6, sun: 0.35, sc: '#9db4ff', brake: 1, see: 0.6 },
+  rain: { bg: '#7f8c99', fog: '#8a96a3', n: 22, f: 90, hemi: 0.9, sun: 0.55, sc: '#e6eef7', brake: 0.6, see: 0.7, rain: true },
+  rainnight: { bg: '#1a2233', fog: '#26303f', n: 18, f: 80, hemi: 0.55, sun: 0.3, sc: '#9db4ff', brake: 0.6, see: 0.5, rain: true },
+};
+let rainObj = null;
+function setWeather(w) {
+  const c = WEATHER[w] || WEATHER.day;
+  scene.background.set(c.bg); scene.fog.color.set(c.fog); scene.fog.near = c.n; scene.fog.far = c.f;
+  hemi.intensity = c.hemi; sun.intensity = c.sun; sun.color.set(c.sc);
+  if (G.world) { G.world.brakeK = c.brake; G.world.seeK = c.see; }
+  M('#4b5059').color.set(c.rain ? '#383c43' : '#4b5059');
+  M('#fff2c4', { emissive: '#ffe9a0', emissiveIntensity: 0.4 }).emissiveIntensity = (w === 'night' || w === 'rainnight' || w === 'dusk') ? 2.2 : 0.4;
+  if (c.rain && !rainObj) {
+    const N = 900, pos = new Float32Array(N * 6);
+    for (let i = 0; i < N; i++) { const x = rand(-22, 22), y = rand(0, 16), z = rand(-22, 22); pos.set([x, y, z, x + 0.05, y - 0.7, z], i * 6); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    rainObj = new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: '#d4e4ff', transparent: true, opacity: 0.45 }));
+    rainObj.frustumCulled = false; scene.add(rainObj);
+  }
+  if (rainObj) rainObj.visible = !!c.rain;
+  G.weather = w;
+}
+function updateRain(dt) {
+  if (!rainObj || !rainObj.visible) return;
+  const a = rainObj.geometry.attributes.position, arr = a.array;
+  for (let i = 0; i < arr.length; i += 6) { arr[i + 1] -= 22 * dt; arr[i + 4] -= 22 * dt; if (arr[i + 4] < 0) { arr[i + 1] += 16; arr[i + 4] += 16; } }
+  a.needsUpdate = true; rainObj.position.set(camera.position.x, 0, camera.position.z);
 }
 /* 第三關：模擬大車轉彎，計出車身掃過嘅行人路範圍（紅色斜線） */
 function buildDangerZone(L) {
@@ -1594,34 +1825,42 @@ function visibleTo(v) {
 /* =====================================================================
    玩家移動
    ===================================================================== */
-const SPEED = 2.1;
+const SPEED = 2.1, RUN = 4.4;
 function updatePlayer(dt) {
   const P = G.P, I = G.input, L = G.L;
   let mx = (I.right ? 1 : 0) - (I.left ? 1 : 0), mz = (I.down ? 1 : 0) - (I.up ? 1 : 0);
   const len = Math.hypot(mx, mz);
   P.prevZ = P.z;
-  P.moving = len > 0;
+  const wantRun = (G.runMode || I.shift) && len > 0;
+  if (len > 0) { mx /= len; mz /= len; }
+  const tv = len > 0 ? (wantRun ? RUN : SPEED) : 0;
+  let sp = Math.hypot(P.vx, P.vz);
+  if (sp <= SPEED + 0.05 && !wantRun) { P.vx = mx * tv; P.vz = mz * tv; }          // 行路：即停即行
+  else if (len > 0) { const k = Math.min(1, dt * (wantRun ? 4 : 6)); P.vx += (mx * tv - P.vx) * k; P.vz += (mz * tv - P.vz) * k; }
+  else { const ns = Math.max(0, sp - 5.5 * dt); P.vx *= sp ? ns / sp : 0; P.vz *= sp ? ns / sp : 0; }   // 跑緊停唔切，會滑多幾步
+  sp = Math.hypot(P.vx, P.vz);
+  P.moving = sp > 0.05;
   if (P.moving) {
-    mx /= len; mz /= len;
     if (G.look.lean) { G.look.lean = false; updateLookButtons(); }
-    const step = SPEED * dt;
     const tryMove = (nx, nz) => {
       if (!L.area(nx, nz)) return false;
       for (const v of G.world.vehicles) if (v.v < 0.6 && v.contains(nx, nz, 0.28)) return false;
       return true;
     };
-    let nx = P.x + mx * step, nz = P.z + mz * step;
-    if (tryMove(nx, nz)) { P.x = nx; P.z = nz; }
-    else if (mx && tryMove(P.x + mx * step, P.z)) P.x += mx * step;
-    else if (mz && tryMove(P.x, P.z + mz * step)) P.z += mz * step;
-    else bumpHint();
-    P.face = Math.atan2(-mx, -mz);
+    const dx = P.vx * dt, dz = P.vz * dt;
+    if (tryMove(P.x + dx, P.z + dz)) { P.x += dx; P.z += dz; }
+    else if (dx && tryMove(P.x + dx, P.z)) { P.x += dx; P.vz = 0; }
+    else if (dz && tryMove(P.x, P.z + dz)) { P.z += dz; P.vx = 0; }
+    else { P.vx = P.vz = 0; bumpHint(); }
+    P.face = Math.atan2(-P.vx, -P.vz);
     P.still = 0;
     G.idleT = 0;
   } else { P.still += dt; P.face = lerpAngle(P.face, 0, 1 - Math.exp(-dt * 3)); G.idleT += dt; }
+  const wasRoad = P.inRoad;
   P.area = L.area(P.x, P.z) || P.area;
   P.inRoad = P.area === 'road';
-  P.speed = P.moving ? SPEED : 0;
+  P.speed = sp; P.running = sp > 2.7;
+  if (P.inRoad && !wasRoad && P.running) { G.ranInRoad = true; addScore(-10); toast('唔好跑過馬路！跑得快睇唔切、停唔切', 'bad'); }
   if (P.inRoad && Math.abs(G.look.phi) > 0.85) G.lookInRoad = true;
 }
 function lerpAngle(a, b, t) { let d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI; if (d < -Math.PI) d += Math.PI * 2; return a + d * t; }
@@ -1666,6 +1905,7 @@ function updateLook(dt) {
   if (side === 'R' && lk.lean && lk.sideT > 0.45 && !lk.leanLogged) { lk.leanLogged = true; registerPeek(); }
 }
 function registerLook(side) {
+  if (G.P.running) { if (!G.hinted.runlook) { G.hinted.runlook = true; toast('跑緊望唔清楚，停低先望！', 'bad'); } return; }
   for (const c of G.L.checks) {
     const r = G.recs[c.id];
     if (!r.inside) continue;
@@ -1690,8 +1930,8 @@ function registerPeek() {
 const hasSeq = (looks, seq) => { let i = 0; for (const l of looks) if (l.side === seq[i]) { i++; if (i === seq.length) return true; } return false; };
 const REQ = {
   look: (r) => (r.looks.some((l) => l.side === 'R') && r.looks.some((l) => l.side === 'L')) ? null : 'look',
-  signal: () => (G.world.pedLight === 'green' ? null : G.world.pedLight === 'flash' ? 'flash' : 'red'),
-  lookAfterGreen: (r) => { const t = G.world.pedGreenAt; if (t < 0) return 'lookAfterGreen'; const a = r.looks.filter((l) => l.t >= t - 0.2); return a.some((l) => l.side === 'R') && a.some((l) => l.side === 'L') ? null : 'lookAfterGreen'; },
+  signal: (r, c) => { const C = G.world.crossings[(c && c.cross) || 0]; return C.pedLight === 'green' ? null : C.pedLight === 'flash' ? 'flash' : 'red'; },
+  lookAfterGreen: (r, c) => { const t = G.world.crossings[(c && c.cross) || 0].pedGreenAt; if (t < 0) return 'lookAfterGreen'; const a = r.looks.filter((l) => l.t >= t - 0.2); return a.some((l) => l.side === 'R') && a.some((l) => l.side === 'L') ? null : 'lookAfterGreen'; },
   peek: (r) => (r.peek ? null : 'peek'),
   stop: (r) => (r.still >= 0.8 ? null : 'stop'),
 };
@@ -1707,7 +1947,7 @@ function updateChecks(dt) {
     if (inside && !r.inside) {
       if (now() - r.leftT > 2) { r.looks = []; r.peek = false; r.still = 0; }
       if (c.id === 'k1') event('kerb', null);
-      if (c.id === 'k2') { event(G.L.script === 'busBlind' ? 'edge' : 'island', G.L.script === 'busBlind' ? '✓ 停喺巴士邊' : '✓ 到咗安全島'); if (G.L.script === 'busBlind') cue('伸頭望右，睇清楚第二條線。'); else cue('喺安全島停低，再望左望右。'); }
+      if (c.id === 'k2') { event(G.L.script === 'busBlind' ? 'edge' : 'island', G.L.script === 'busBlind' ? '✓ 停喺巴士邊' : '✓ 到咗安全島'); if (G.L.script === 'busBlind') cue('伸頭望右，睇清楚第二條線。'); else if (c.cross) cue('停低！望清楚第二盞燈係咩色。'); else cue('喺安全島停低，再望左望右。'); }
     }
     if (!inside && r.inside) r.leftT = now();
     r.inside = inside;
@@ -1716,13 +1956,13 @@ function updateChecks(dt) {
     if (inside && c.id === 'k1') {
       const okLook = c.req.includes('lookAfterGreen') ? !REQ.lookAfterGreen(r) : !REQ.look(r);
       if (okLook) event('look', '✓ 兩邊都望清楚');
-      if (G.world.pedLight === 'green') event('green', '✓ 綠人喇');
     }
+    if (inside && c.req.includes('signal') && G.world.crossings[c.cross || 0].pedLight === 'green') event(c.greenEvent || 'green', c.cross ? '✓ 第二盞都綠人喇' : '✓ 綠人喇');
     // 跨過界線 = 落馬路／離開等候位：檢查守則
     if (P.prevZ >= c.line && P.z < c.line && !r.passed) {
       r.passed = true;
-      let fail = null;
-      for (const q of c.req) { fail = REQ[q](r); if (fail) break; }
+      let fail = G.sirenActive ? 'siren' : null;
+      if (!fail) for (const q of c.req) { fail = REQ[q](r, c); if (fail) break; }
       if (fail) { unsafe(fail, c); return; }
       r.bonusOK = c.bonus ? BONUS[c.bonus](r) : true;
       addScore(10);
@@ -1734,7 +1974,7 @@ function updateChecks(dt) {
     const r = G.recs[c.id];
     if (r.inside && G.idleT > 5 && !G.hinted[c.id]) {
       G.hinted[c.id] = true;
-      if (c.req.includes('signal') && G.world.pedLight !== 'green') { cue('等綠人先過。'); continue; }
+      if (c.req.includes('signal') && G.world.crossings[c.cross || 0].pedLight !== 'green') { cue(c.cross ? '第二盞燈仲係紅色，等綠人先過。' : '等綠人先過。'); continue; }
       if (c.req.includes('peek') && !r.peek) { $('#lkP').classList.add('hint'); cue('撳伸頭，望右邊第二條線。'); continue; }
       if (REQ.look(r)) { $('#lkR').classList.add('hint'); $('#lkL').classList.add('hint'); cue('撳望右同望左，睇清楚有冇車。'); }
     }
@@ -1761,7 +2001,9 @@ function checkHits() {
     if (v.v > 0.5 && v.contains(G.P.x, G.P.z, 0.26)) { hit(v); return; }
   }
 }
+function resetStreak() { if (G.L && G.L.kind === 'free') { save.freeStreak = 0; persist(); } }
 function hit(v) {
+  resetStreak();
   G.mode = 'crash'; G.crashT = 0; G.slow = 0.25; G.crashVehicle = v;
   Voice.stop(); Sfx.screech(); setTimeout(() => Sfx.thud(), 150);
   v.v = 0; v.vmax = 0;
@@ -1771,7 +2013,7 @@ function hit(v) {
   setTimeout(() => { Sfx.siren(4.5); showConsequence(v); }, 1700);
 }
 function unsafe(type, check = null) {
-  G.failCheck = check;
+  G.failCheck = check; resetStreak();
   G.mode = 'stopped';
   G.input.up = G.input.down = G.input.left = G.input.right = false;
   Voice.stop(); Sfx.bad();
@@ -1785,10 +2027,14 @@ function checkGoal() {
 function win() {
   G.mode = 'win'; event('goal', null);
   Voice.stop(); Sfx.win();
-  const bonusOK = G.L.checks.some((c) => c.bonus) ? G.L.checks.filter((c) => c.bonus).every((c) => G.recs[c.id].bonusOK) : G.lookInRoad;
+  if ((G.L.events || []).includes('friend')) event('friend', null);
+  const bonusOK = (G.L.checks.some((c) => c.bonus) ? G.L.checks.filter((c) => c.bonus).every((c) => G.recs[c.id].bonusOK) : G.lookInRoad) && !G.ranInRoad;
   const stars = 1 + (bonusOK ? 1 : 0) + (!G.timeUp && !G.nearMiss ? 1 : 0);
-  const prev = save.stars[G.L.id] || 0;
-  save.stars[G.L.id] = Math.max(prev, stars); persist();
+  const L = G.L;
+  if (L.kind === 'mission') { save.mstars = save.mstars || {}; save.mstars[L.id] = Math.max(save.mstars[L.id] || 0, stars); }
+  else if (L.kind === 'free') { save.freeStreak = (save.freeStreak || 0) + 1; save.freeBest = Math.max(save.freeBest || 0, save.freeStreak); save.freeWins = (save.freeWins || 0) + 1; }
+  else save.stars[L.id] = Math.max(save.stars[L.id] || 0, stars);
+  persist();
   G.lastStars = stars; G.lastBonus = bonusOK;
   setTimeout(() => showResult(stars, bonusOK), 1100);
 }
@@ -1826,7 +2072,9 @@ function updateCamera(dt) {
       pos = head.clone().add(new THREE.Vector3(dx * 0.3, 0, dz * 0.3));
       tgt = head.clone().add(new THREE.Vector3(dx * 30, -0.5, dz * 30));
     } else {
-      const dist = lerp(5.4, 3.0, t), h = lerp(3.1, 1.75, t), ahead = lerp(4, 24, t);
+      // 企喺安全島或者馬路時，鏡頭升高，唔好俾經過嘅車（包括巴士）穿過
+      const overRoad = P.area === 'island' || P.area === 'road';
+      const dist = lerp(5.4, 3.0, t), h = lerp(overRoad ? 5.6 : 3.1, overRoad && t < 0.9 ? 4.8 : 1.75, t), ahead = lerp(4, 24, t);
       pos = new THREE.Vector3(hx - dx * dist, h, hz - dz * dist);
       tgt = new THREE.Vector3(hx + dx * ahead, lerp(0.4, 0.9, t), hz + dz * ahead);
       if (G.mode === 'crash') { pos = new THREE.Vector3(hx + 2.5, 4.5, hz + 4.2); tgt = new THREE.Vector3(hx, 0.4, hz); }
@@ -1868,10 +2116,12 @@ function loop() {
     const targetRot = presenting ? Math.PI / 2 : P.face;
     k.rotation.y = lerpAngle(k.rotation.y, targetRot, 1 - Math.exp(-dt * 8));
     const yawHead = presenting ? 0 : clamp(-G.look.phi + (P.moving ? 0 : P.face), -1.3, 1.3);
-    poseKid(k, sdt, { walking: P.moving && G.mode === 'play', yaw: presenting ? 0 : clamp(-G.look.phi, -1.3, 1.3), lean: G.look.lean && G.mode === 'play', fall: G.mode === 'crash', wave: presenting || G.mode === 'win' });
+    poseKid(k, sdt, { run: P.running, walking: P.moving && G.mode === 'play', yaw: presenting ? 0 : clamp(-G.look.phi, -1.3, 1.3), lean: G.look.lean && G.mode === 'play', fall: G.mode === 'crash', wave: presenting || G.mode === 'win' });
   }
   if (G.kid) G.kid.visible = !(G.look.lean && G.mode === 'play' && camPos.distanceTo(new THREE.Vector3(G.P.x, 1.3, headZ())) < 1.2);
   if (G.safeLabel) G.safeLabel.lookAt(camera.position);
+  if (G.friend) poseKid(G.friend, dt, { wave: true });
+  updateRain(dt);
   updateCamera(dt);
   // 車聲：最近嗰架車越近越大聲
   if (Sfx.ctx && G.world) {
@@ -1885,13 +2135,15 @@ function loop() {
 /* =====================================================================
    介面
    ===================================================================== */
+const NCN = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'][LEVELS.length];
 const PILL = {
+  7: '每盞燈分開睇，唔好跑！',
   1: '綠人定定亮，先好開始過。', 2: '等車真係停定，先好過。', 3: '大車轉彎，企後啲！',
   4: '巴士擋住，要伸頭望清楚。', 5: '綠燈都要望，等車停定先行。', 6: '分兩段過，安全島停低再望。',
 };
 const EVENT_TEXT = {
   kerb: '行到過路處企定', green: '等到綠人先行', look: '兩邊都望清楚', lookR: '望右', lookL: '望左', away: '見到大車轉彎即刻企後',
-  truck: '等大車轉完先過', edge: '停喺巴士邊', peek: '伸頭望清楚第二條線', rogue: '見到衝燈車冇行出去', island: '過到安全島', stop: '喺安全島停低', goal: '安全行到對面',
+  truck: '等大車轉完先過', green2: '喺安全島等第二盞綠人', siren: '讓救護車先', moto: '等電單車過咗先行', friend: '朋友催都冇衝出去', edge: '停喺巴士邊', peek: '伸頭望清楚第二條線', rogue: '見到衝燈車冇行出去', island: '過到安全島', stop: '喺安全島停低', goal: '安全行到對面',
 };
 const el = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag);
@@ -1921,7 +2173,7 @@ function cue(text) { if (Voice.on && Voice.unlocked) Voice.speak(text); }
 function renderPill() {
   const L = G.L;
   $('#pillTitle').textContent = L.name;
-  $('#pillKey').textContent = PILL[L.id];
+  $('#pillKey').textContent = L.pill || PILL[L.kind === 'free' ? L.baseId : L.id] || L.key;
   const sp = $('#pillSpk'); sp.innerHTML = SPK_SVG;
   sp.onclick = (e) => { e.stopPropagation(); Voice.unlock(); Voice.speak(L.key + L.how, sp); };
   renderChips();
@@ -1955,7 +2207,7 @@ function showSheet(nodes, foot, { dark = false } = {}) {
 function hideSheet() { $('#sheet').classList.remove('show'); document.body.classList.remove('modal'); }
 
 /* ---------- 標題 ---------- */
-const HOOK = '一秒衝出馬路，可能改變一世。過馬路，大人都會中伏！學堂街有六個香港街頭陷阱，你過唔過到？過晒六關，就可以攞「馬路安全大使」證書。';
+const HOOK = `一秒衝出馬路，可能改變一世。過馬路，大人都會中伏！學堂街有${NCN}個香港街頭陷阱，你過唔過到？過晒${NCN}關，就可以攞「馬路安全大使」證書；之後仲有挑戰任務同自由玩。`;
 function showTitle() {
   G.mode = 'title'; document.body.classList.add('nogame');
   if (!G.world || G.L !== LEVELS[0]) loadLevel(LEVELS[0], { forTitle: true });
@@ -1972,10 +2224,10 @@ function showTitle() {
     el('span', { class: 'badge' }, '香港小朋友過馬路訓練'),
     el('h1', {}, '馬路安全大使'),
     sayBlock('p', HOOK, 'hook', '一秒衝出馬路，<br>可能改變一世。'),
-    el('p', { class: 'muted' }, '學堂街有六個香港街頭陷阱，大人都會中伏。過晒六關，就可以攞「馬路安全大使」證書！'),
+    el('p', { class: 'muted' }, `學堂街有${NCN}個香港街頭陷阱，大人都會中伏。過晒${NCN}關，就可以攞「馬路安全大使」證書，之後仲有險象環生挑戰同自由玩！`),
   );
   showSheet([hero, el('p', { class: 'muted', style: 'margin-top:14px;font-weight:700' }, '揀你嘅角色：'), pickRow,
-    done ? el('p', { class: 'muted' }, `你已經過咗 ${done}／6 關。`) : null].filter(Boolean),
+    done ? el('p', { class: 'muted' }, `你已經過咗 ${done}／${LEVELS.length} 關。`) : null].filter(Boolean),
   [mkBtn('延伸閱讀／聽書', 'soft', showRead, '延伸閱讀同聽書。想知多啲過馬路嘅道理同真實個案，就撳入去。'), el('span', { class: 'grow' }),
     mkBtn(done ? '繼續挑戰' : '開始挑戰', 'go big attn', () => showMenu(), '開始挑戰。')]);
   Voice.auto(HOOK);
@@ -2000,10 +2252,29 @@ function showMenu({ paused = false } = {}) {
     list.append(row);
   });
   const all = LEVELS.every((L) => save.stars[L.id] > 0);
-  const cert = el('button', { class: 'lvl' + (all ? ' done next' : ' locked'), type: 'button' }, el('span', { class: 'no' }, '🏅'), el('span', {}, el('div', { class: 'nm' }, '馬路安全大使證書'), el('div', { class: 'ds' }, all ? '撳入去寫名，下載你嘅證書！' : `過晒六關先攞到（而家 ${LEVELS.filter((L) => save.stars[L.id] > 0).length}／6）`)));
-  cert.append(spkBtn(all ? '馬路安全大使證書。撳入去寫名，下載你嘅證書。' : '馬路安全大使證書。過晒六關先攞到。'));
-  cert.addEventListener('click', (e) => { if (e.target.closest('.spk')) return; if (!all) { toast('過晒六關先攞到證書', 'info'); return; } showCert(); });
+  const cert = el('button', { class: 'lvl' + (all ? ' done' : ' locked'), type: 'button' }, el('span', { class: 'no' }, '🏅'), el('span', {}, el('div', { class: 'nm' }, '馬路安全大使證書'), el('div', { class: 'ds' }, all ? '撳入去寫名，下載你嘅證書！' : `過晒${NCN}關先攞到（而家 ${LEVELS.filter((L) => save.stars[L.id] > 0).length}／${LEVELS.length}）`)));
+  cert.append(spkBtn(all ? '馬路安全大使證書。撳入去寫名，下載你嘅證書。' : `馬路安全大使證書。過晒${NCN}關先攞到。`));
+  cert.addEventListener('click', (e) => { if (e.target.closest('.spk')) return; if (!all) { toast(`過晒${NCN}關先攞到證書`, 'info'); return; } showCert(); });
   list.append(cert);
+  // 挑戰任務 + 自由玩（攞咗證書先開）
+  list.append(sayBlock('h3', '挑戰任務：險象環生。攞咗證書先開。', '', '🏅 挑戰任務（險象環生）'));
+  const ms = save.mstars || {};
+  MISSIONS.forEach((L, i) => {
+    const st = ms[L.id] || 0;
+    const row = el('button', { class: 'lvl' + (st ? ' done' : '') + (all ? '' : ' locked'), type: 'button' },
+      el('span', { class: 'no', style: st ? '' : 'background:#ffd8a8' }, st ? '✓' : String(i + 1)),
+      el('span', {}, el('div', { class: 'nm' }, L.name), el('div', { class: 'ds' }, `學：${L.learn}　練：${L.practice}`),
+        el('div', { class: 'st', style: `color:${st ? 'var(--green-d)' : '#888'}` }, st ? `已完成 ${'★'.repeat(st)}${'☆'.repeat(3 - st)}` : all ? '未完成' : '🔒 攞咗證書先開')));
+    row.append(spkBtn(`${L.name}。${L.key}`));
+    row.addEventListener('click', (e) => { if (e.target.closest('.spk')) return; Voice.unlock(); if (!all) { toast('攞咗馬路安全大使證書先開', 'info'); Sfx.bad(); return; } Sfx.click(); startMission(i); });
+    list.append(row);
+  });
+  const fr = el('button', { class: 'lvl' + (all ? ' next' : ' locked'), type: 'button' }, el('span', { class: 'no', style: 'background:#cfe3ff' }, '🎲'),
+    el('span', {}, el('div', { class: 'nm' }, '自由玩：每次都唔同'), el('div', { class: 'ds' }, '隨機街道、天氣同突發事件，睇吓你可以連續安全過幾多次。'),
+      el('div', { class: 'st', style: 'color:var(--ink2)' }, all ? `連續：${save.freeStreak || 0} 次　最佳：${save.freeBest || 0} 次` : '🔒 攞咗證書先開')));
+  fr.append(spkBtn('自由玩。每次都係隨機嘅街道、天氣同突發事件，睇吓你可以連續安全過幾多次馬路。'));
+  fr.addEventListener('click', (e) => { if (e.target.closest('.spk')) return; Voice.unlock(); if (!all) { toast('攞咗馬路安全大使證書先開', 'info'); Sfx.bad(); return; } Sfx.click(); startFree(); });
+  list.append(fr);
   const head = sayBlock('h2', '揀一關。每一關都係先學、後練。', '', '關卡（先學、後練）');
   const foot = [mkBtn('延伸閱讀', 'soft', showRead), mkBtn('返主頁', 'soft', () => { showTitle(); })];
   if (paused) foot.push(el('span', { class: 'grow' }), mkBtn('繼續玩', 'go', resume));
@@ -2014,22 +2285,30 @@ function showMenu({ paused = false } = {}) {
 function resume() { hideSheet(); G.mode = 'play'; document.body.classList.remove('nogame'); lastT = now(); }
 
 /* ---------- 每關：學 ---------- */
-function startLevel(i) {
-  loadLevel(LEVELS[i]);
-  showIntro();
+function startLevel(i) { loadLevel(LEVELS[i]); showIntro(); }
+function startMission(i) { loadLevel(MISSIONS[i]); showIntro(); }
+function startFree() { loadLevel(makeFree()); showIntro(); }
+function kickerText(L, suffix) { return L.kind === 'mission' ? `挑戰 ${L.no} · ${suffix}` : L.kind === 'free' ? `自由玩 · ${suffix}` : `第 ${L.id} 關 · ${suffix}`; }
+function conditionsBox(L) {
+  if (L.kind === 'core') return null;
+  const items = [WEATHER_NAME[L.weather || 'day'], ...(L.events || []).map((e) => EVENT_NAME[e])];
+  const box = el('div', { class: 'good', style: 'background:#eef4ff' }, el('b', {}, '今次條件：'), el('div', { style: 'font-size:17px;margin-top:4px' }, items.join('　·　')));
+  box.append(spkBtn('今次條件：' + items.join('，')));
+  return box;
 }
 function showIntro() {
   const L = G.L; G.mode = 'intro'; document.body.classList.add('nogame');
   const tips = el('ul', { class: 'tips' });
   L.tips.forEach(([ico, t]) => { const li = el('li', {}, el('span', { class: 'ico' }, ico), el('span', {}, t)); li.append(spkBtn(t)); tips.append(li); });
   showSheet([
-    el('span', { class: 'kicker' }, `第 ${L.id} 關 · 學`),
+    el('span', { class: 'kicker', style: L.kind === 'core' ? '' : 'background:var(--orange)' }, kickerText(L, L.kind === 'free' ? '準備' : '學')),
     el('h2', {}, L.name.split('：')[1]),
+    conditionsBox(L),
     sayBlock('p', L.key, 'lead'),
     tips,
     el('h3', {}, '點樣玩'),
     sayBlock('p', L.how, 'muted'),
-  ], [mkBtn('目錄', 'soft', () => showMenu()), el('span', { class: 'grow' }), mkBtn('開始練習 ▶', 'go big attn', startPlay, '開始練習。')]);
+  ].filter(Boolean), [mkBtn('目錄', 'soft', () => showMenu()), el('span', { class: 'grow' }), mkBtn('開始練習 ▶', 'go big attn', startPlay, '開始練習。')]);
   Voice.auto(L.key + L.tips.map((t) => t[1]).join(''));
 }
 function startPlay() {
@@ -2037,6 +2316,7 @@ function startPlay() {
   G.mode = 'play'; document.body.classList.remove('nogame');
   renderPill(); lastT = now();
   if (G.L.script === 'turningTruck') G.scriptState.t0 = now();
+  if (G.L.id === 7 || G.L.baseId === 7) setTimeout(() => { if (G.mode === 'play') toast('方向掣旁邊有「跑」掣，但係跑得快會停唔切！', 'info'); }, 1500);
 }
 function retry() { loadLevel(G.L); startPlay(); }
 
@@ -2060,39 +2340,59 @@ function showResult(stars, bonusOK) {
   if (!bonusOK) tips.push(L.checks.some((c) => c.bonus === 'rlr') ? '喺路邊試吓「望右、望左、再望右」' : L.checks.some((c) => c.bonus === 'lrl') ? '喺安全島試吓「望左、望右、再望左」' : L.checks.some((c) => c.bonus === 'look') ? '綠人亮咗之後，都望吓右、望吓左' : '過馬路嗰陣都繼續望吓');
   if (G.nearMiss) tips.push('有車要為你急煞，下次等車停定或者過咗先行');
   if (G.timeUp) tips.push('熟練之後，可以喺返學時間之前到');
+  if (G.ranInRoad) tips.unshift('過馬路唔好跑：跑得快睇唔切燈號，亦停唔切');
   const nodes = [
-    el('span', { class: 'kicker', style: 'background:var(--green)' }, `第 ${L.id} 關 · 過關！`),
+    el('span', { class: 'kicker', style: 'background:var(--green)' }, kickerText(L, '過關！')),
     el('h2', {}, '做得好！你安全過咗馬路'),
+    L.kind === 'free' ? sayBlock('p', `連續安全過馬路：${save.freeStreak || 0} 次，最佳紀錄：${save.freeBest || 0} 次。`, 'lead', `🔥 連續安全過馬路：<b>${save.freeStreak || 0}</b> 次（最佳 ${save.freeBest || 0} 次）`) : null,
     el('div', { class: 'stars', 'aria-label': `${stars} 粒星` , html: '★'.repeat(stars) + `<span class="off">${'★'.repeat(3 - stars)}</span>` }),
     good,
-  ];
+  ].filter(Boolean);
   if (tips.length) { const w = el('div', { class: 'why' }, el('b', {}, '想攞滿三粒星：')); const u2 = el('ul'); tips.forEach((t) => u2.append(el('li', {}, t))); w.append(u2); nodes.push(w); }
-  nodes.push(sayBlock('p', '記住：' + L.key, 'lead'), caseCard(L.case));
-  const i = LEVELS.indexOf(L), last = i === LEVELS.length - 1;
+  nodes.push(sayBlock('p', '記住：' + L.key, 'lead'));
+  if (L.case) nodes.push(caseCard(L.case));
   const all = LEVELS.every((x) => save.stars[x.id] > 0);
-  const foot = [mkBtn('目錄', 'soft', () => showMenu()), mkBtn('再玩一次', 'soft', retry), el('span', { class: 'grow' })];
-  if (all && (last || !LEVELS.slice(i + 1).some((x) => !save.stars[x.id]))) foot.push(mkBtn('攞證書 🏅', 'warm big attn', showCert, '攞證書。'));
-  if (!last) foot.push(mkBtn('下一關 ▶', 'go big' + (all ? '' : ' attn'), () => startLevel(i + 1), '下一關。'));
+  const foot = [mkBtn('目錄', 'soft', () => showMenu()), el('span', { class: 'grow' })];
+  if (L.kind === 'free') {
+    foot.splice(1, 0, mkBtn('再玩呢局', 'soft', retry));
+    foot.push(mkBtn('再嚟一局 🎲', 'go big attn', startFree, '再嚟一局。'));
+  } else if (L.kind === 'mission') {
+    foot.splice(1, 0, mkBtn('再玩一次', 'soft', retry));
+    const j = MISSIONS.indexOf(L);
+    if (j < MISSIONS.length - 1) foot.push(mkBtn('下一個挑戰 ▶', 'go big attn', () => startMission(j + 1), '下一個挑戰。'));
+    else foot.push(mkBtn('去自由玩 🎲', 'go big attn', startFree, '去自由玩。'));
+  } else {
+    foot.splice(1, 0, mkBtn('再玩一次', 'soft', retry));
+    const i = LEVELS.indexOf(L), last = i === LEVELS.length - 1;
+    if (all && (last || !LEVELS.slice(i + 1).some((x) => !save.stars[x.id]))) foot.push(mkBtn('攞證書 🏅', 'warm big attn', showCert, '攞證書。'));
+    if (!last) foot.push(mkBtn('下一關 ▶', 'go big' + (all ? '' : ' attn'), () => startLevel(i + 1), '下一關。'));
+  }
   showSheet(nodes, foot);
-  Voice.auto(`做得好！你攞到 ${stars} 粒星。記住：${L.key}`);
+  Voice.auto(L.kind === 'free' ? `做得好！你已經連續安全過咗 ${save.freeStreak || 0} 次馬路。` : `做得好！你攞到 ${stars} 粒星。記住：${L.key}`);
 }
 
 /* ---------- 唔安全（冇撞到但唔合格） ---------- */
 function showUnsafe(type) {
   const L = G.L; G.mode = 'failsheet';
-  const why = (G.failCheck && G.failCheck.fails && G.failCheck.fails[type]) || L.fails[type] || '你未守過馬路守則就落咗馬路。';
+  const why = (G.failCheck && G.failCheck.fails && G.failCheck.fails[type]) || L.fails[type] || FAIL_DEFAULT[type] || '你未守過馬路守則就落咗馬路。';
   const tips = el('ul', { class: 'tips' });
   L.tips.forEach(([ico, t]) => { const li = el('li', {}, el('span', { class: 'ico' }, ico), el('span', {}, t)); li.append(spkBtn(t)); tips.append(li); });
   showSheet([
     el('span', { class: 'kicker', style: 'background:var(--red)' }, '好險！'),
     el('h2', {}, '呢次唔算過關'),
+    L.kind === 'free' ? el('p', { class: 'muted' }, '連續紀錄由零開始，再嚟過！') : null,
     sayBlock('p', '就算冇俾車撞到，咁樣過馬路都唔安全。', 'lead'),
     el('div', { class: 'why' }, sayBlock('p', why)),
     el('h3', {}, '正確做法'), tips,
-  ], [mkBtn('目錄', 'soft', () => showMenu()), el('span', { class: 'grow' }), mkBtn('再試一次', 'go big attn', retry, '再試一次。')]);
+  ].filter(Boolean), [mkBtn('目錄', 'soft', () => showMenu()), el('span', { class: 'grow' }), mkBtn('再試一次', 'go big attn', retry, '再試一次。')]);
   Voice.auto('呢次唔算過關。' + why);
 }
 
+const FAIL_DEFAULT = {
+  siren: '聽到救護車警號，就算綠人都要留喺行人路，等佢過咗先行。救護車趕住救人，未必停得低。',
+  look: '你未望清楚兩邊就落咗馬路。',
+  red: '紅色人像亮住，唔可以落馬路。', flash: '綠色人像閃緊，唔可以開始過。',
+};
 /* ---------- 撞到：後果環節 ---------- */
 const CONSEQ = '如果呢度係真嘅馬路……遊戲輸咗可以重新嚟過。但喺真嘅馬路，一下撞到，可能會受好重嘅傷，甚至冇咗命。爸爸媽媽、屋企人、最愛你嘅人，會好傷心。生命冇得 take two。';
 const CONSEQ_SVG = `<svg viewBox="0 0 360 150" width="360" height="150" aria-hidden="true">
@@ -2103,7 +2403,15 @@ const CONSEQ_SVG = `<svg viewBox="0 0 360 150" width="360" height="150" aria-hid
 <path d="M58 -18c-6-10-20-2-10 8l10 9 10-9c10-10-4-18-10-8z" fill="#ff6b81"/></g>
 <text x="300" y="138" fill="#c9cbd4" font-size="12" text-anchor="middle">😢</text></svg>`;
 function hitWhy(v) {
+  const w = hitWhy0(v);
+  return G.ranInRoad ? w + '而且你係跑過去，跑得快會睇唔切、停唔切。' : w;
+}
+function hitWhy0(v) {
   const L = G.L;
+  if (v.type === 'ambulance') return '救護車響住警號趕住救人，唔會停低。聽到警號，就算綠人都要留喺行人路，等佢過咗先行。';
+  if (v.type === 'moto') return '架電單車喺停低讓你嘅車旁邊鑽出嚟。一架車停低，唔代表旁邊冇車，要望清楚每一條線先行。';
+  if (L.hitWhy && G.P.z < 0) return L.hitWhy;
+  if (G.weather === 'rain' || G.weather === 'rainnight') { const g = '落雨地濕，架車要長啲距離先煞得停。'; if (!(L.script === 'turningTruck' && v.type === 'truck') && !v.rogue) return g + '見到有車嚟，要等佢完全停定或者過咗先行。'; }
   if (L.script === 'turningTruck' && v.type === 'truck') return '你企喺轉角路邊，大車轉彎嗰陣，車尾嘅車轆行入彎內，掃埋嚟撞到你。見到大車打燈轉彎，要即刻企後，離開紅色範圍。';
   if (v.rogue) return '嗰架的士衝紅燈。綠人亮咗都要望清楚，見到車仲好快咁衝埋嚟，就留喺行人路等佢過咗先行。';
   if (L.script === 'busBlind' && v.path.id === 'f') return '巴士擋住，你睇唔到第二條線嘅車，司機都睇唔到你。要停喺巴士邊，伸頭望清楚，冇車先行。';
@@ -2161,11 +2469,11 @@ function drawCert(cv, name) {
   g.font = `bold 86px ${FONT_CANVAS}`; g.fillText(name || '＿＿＿＿＿＿', W / 2, 470);
   g.fillRect(W / 2 - 300, 492, 600, 4);
   g.font = `36px ${FONT_CANVAS}`;
-  g.fillText('完成「學堂街」六關過馬路訓練：', W / 2, 570);
-  g.fillText('識得等綠人、望清楚、避開大車轉彎同死角、喺安全島停低再望。', W / 2, 625);
+  g.fillText(`完成「學堂街」${NCN}關過馬路訓練：`, W / 2, 570);
+  g.fillText('識得等綠人、望清楚、避開大車轉彎同死角、每盞燈分開睇。', W / 2, 625);
   g.font = `bold 40px ${FONT_CANVAS}`; g.fillStyle = '#21a366'; g.fillText('幾趕都好，安全行先。生命冇得 take two。', W / 2, 705);
   const total = LEVELS.reduce((a, L) => a + (save.stars[L.id] || 0), 0);
-  g.fillStyle = '#e0a400'; g.font = `bold 46px ${FONT_CANVAS}`; g.fillText(`★ ${total} ／ 18`, W / 2, 780);
+  g.fillStyle = '#e0a400'; g.font = `bold 46px ${FONT_CANVAS}`; g.fillText(`★ ${total} ／ ${LEVELS.length * 3}`, W / 2, 780);
   const d = new Date(), ds = `${d.getFullYear()} 年 ${d.getMonth() + 1} 月 ${d.getDate()} 日`;
   g.fillStyle = '#44527a'; g.font = `32px ${FONT_CANVAS}`; g.textAlign = 'left'; g.fillText('日期：' + ds, 130, 880);
   g.textAlign = 'right'; g.fillText('「馬路安全大使」訓練遊戲', W - 130, 880);
@@ -2200,6 +2508,7 @@ window.addEventListener('keydown', (e) => {
   Voice.unlock();
   if (e.target.tagName === 'INPUT') return;
   if (KEYMAP[e.code]) { if (G.mode === 'play') { G.input[KEYMAP[e.code]] = true; e.preventDefault(); } return; }
+  if (e.key === 'Shift') { G.input.shift = true; return; }
   if (G.mode === 'play') {
     if (e.code === 'KeyQ') setLook('left');
     if (e.code === 'KeyE') setLook('right');
@@ -2209,9 +2518,13 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape') { if (G.mode === 'play') showMenu({ paused: true }); else if (G.mode === 'paused') resume(); }
   if (e.code === 'Enter' && $('#sheet').classList.contains('show')) { const b = $('#sheetFoot .btn.go:not([disabled]), #sheetFoot .btn.warm:not([disabled])'); if (b) b.click(); }
 });
-window.addEventListener('keyup', (e) => { if (KEYMAP[e.code]) G.input[KEYMAP[e.code]] = false; });
-window.addEventListener('blur', () => { G.input.up = G.input.down = G.input.left = G.input.right = false; });
-document.querySelectorAll('#pad button').forEach((b) => {
+window.addEventListener('keyup', (e) => { if (KEYMAP[e.code]) G.input[KEYMAP[e.code]] = false; if (e.key === 'Shift') G.input.shift = false; });
+// 「跑」掣：撳一下開，再撳一下返行路
+function setRun(v) { G.runMode = v; const b = $('#btnRun'); b.classList.toggle('on', v); b.setAttribute('aria-pressed', String(v)); b.firstChild.textContent = v ? '跑緊' : '跑'; }
+$('#btnRun').append(spkBtn('跑：撳一下就跑，再撳一下返行路。跑得快會睇唔切燈號，亦停唔切，過馬路唔好跑。'));
+$('#btnRun').addEventListener('click', (e) => { if (e.target.closest('.spk')) return; Voice.unlock(); if (G.mode === 'play') { setRun(!G.runMode); Sfx.click(); } });
+window.addEventListener('blur', () => { G.input.up = G.input.down = G.input.left = G.input.right = G.input.shift = false; });
+document.querySelectorAll('#pad > button[data-dir]').forEach((b) => {
   const d = b.dataset.dir;
   const on = (e) => { e.preventDefault(); Voice.unlock(); if (G.mode !== 'play') return; G.input[d] = true; b.classList.add('held'); try { b.setPointerCapture(e.pointerId); } catch (_) {} };
   const off = () => { G.input[d] = false; b.classList.remove('held'); };
@@ -2255,7 +2568,7 @@ function boot() {
   $('#loading').remove();
   showTitle();
   loop();
-  window.__game = { G, LEVELS, startLevel, startPlay, setLook, showMenu, save };
+  window.__game = { G, LEVELS, MISSIONS, startLevel, startMission, startFree, startPlay, setLook, showMenu, save, setRun };
   window.__perf = () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures, veh: G.world.vehicles.length });
 }
 try { boot(); } catch (err) {
