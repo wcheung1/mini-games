@@ -102,7 +102,7 @@ button{cursor:pointer}
 .sheet .detail{background:#fff6cf;border-radius:12px;padding:8px 12px;margin:8px 0}
 #looks>button .spk,#pad .run .spk{top:2px;right:2px;width:16px;height:16px}#looks>button .spk svg,#pad .run .spk svg{width:10px;height:10px}
 #looks>button.on{background:var(--blue);color:#fff;box-shadow:0 4px 0 #1d5bb0}
-#looks>button.hint{outline:4px solid var(--yellow);outline-offset:2px;animation:pulse 1s infinite}
+#looks>button.hint,#pad>button.hint{outline:4px solid var(--yellow);outline-offset:2px;animation:pulse 1s infinite}
 #looks .key,#pad .key{position:absolute;bottom:3px;right:6px;font-size:10px;opacity:.55;font-weight:700}
 @media (hover:none){#looks .key,#pad .key{display:none}}
 body.modal .ctrl, body.modal #toasts{display:none}
@@ -187,6 +187,37 @@ body.modal #veil{opacity:1;pointer-events:auto}
 @media print{body *{visibility:hidden}#printCert,#printCert *{visibility:visible}#printCert{position:fixed;inset:0;display:block!important}#printCert img{width:100%}}
 #printCert{display:none}
 
+/* 教學提示 */
+.pill .coach{display:none;margin-top:8px;background:var(--yellow);color:var(--ink);font-weight:700;font-size:16px;line-height:1.35;border-radius:12px;padding:7px 10px}
+.pill .coach.show{display:block}
+.pill .coach.pop{animation:coachpop .5s ease-out}
+@keyframes coachpop{0%{transform:scale(.94)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+/* 望緊兩邊時：橫向畫面嘅提示移去下面，唔好遮住嚟緊嘅車 */
+@media (min-aspect-ratio: 6/5){body.looking #toasts{bottom:calc(14px + var(--safe-b))}body.looking .toast{font-size:15px;padding:6px 12px;opacity:.92}}
+#eyes .e.slow{background:rgba(255,255,255,.22);opacity:1}
+/* 設定 */
+.setrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:520px){.setrow{grid-template-columns:1fr}}
+.tog{position:relative;text-align:left;border:2px solid #e6dcc8;border-radius:14px;background:#fff;padding:9px 40px 9px 12px;display:flex;flex-direction:column;gap:2px;color:var(--ink)}
+.tog b{font-size:16px}.tog small{font-size:13px;color:var(--ink2);line-height:1.35}
+.tog::after{content:"關";position:absolute;right:10px;top:10px;font-size:12px;font-weight:700;background:#e6dcc8;border-radius:999px;padding:1px 7px}
+.tog.on{border-color:var(--green);background:var(--green-soft)}
+.tog.on::after{content:"開";background:var(--green);color:#fff}
+.tog .spk{top:auto;bottom:6px}
+/* 家長報告 */
+.rep-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}
+@media (max-width:520px){.rep-sum{grid-template-columns:repeat(2,1fr)}}
+.rep-sum>div{background:#fff;border-radius:14px;padding:10px;text-align:center;box-shadow:0 2px 0 rgba(29,43,79,.1)}
+.rep-sum b{display:block;font-size:26px}.rep-sum small{font-size:13px;color:var(--ink2)}
+.rep-mist{list-style:none;padding:0;margin:6px 0;display:grid;gap:8px}
+.rep-mist li{background:#fff6cf;border-radius:12px;padding:8px 12px;line-height:1.45}
+.rep-wrap{overflow-x:auto}
+.rep-tb{border-collapse:collapse;width:100%;font-size:14px;background:#fff;border-radius:12px;overflow:hidden}
+.rep-tb th,.rep-tb td{padding:6px 8px;border-bottom:1px solid #eee3cf;text-align:left;vertical-align:top}
+.rep-tb th{background:#efe3cc;white-space:nowrap}
+.rep-rec{padding-left:18px;line-height:1.6;font-size:14.5px}
+body.tut .pill .k, body.tut .pill .row{display:none}
+
 </style>
 </head>
 <body>
@@ -198,6 +229,7 @@ body.modal #veil{opacity:1;pointer-events:auto}
       <div class="t" id="pillTitle">馬路安全大使</div>
       <div class="k" id="pillKey">幾趕都好，安全行先。</div>
       <div class="row" id="pillRow"></div>
+      <div class="coach" id="pillCoach" aria-live="polite"></div>
       <button class="spk" id="pillSpk" aria-label="讀出重點"></button>
     </div>
     <div class="tbtns">
@@ -899,8 +931,9 @@ class Vehicle {
     this.id = ++VID; this.world = world; this.type = type; this.path = path;
     const { group, dims } = buildVehicle(type, o);
     this.mesh = group; this.d = dims;
-    this.vmax = o.v ?? rand(7, 9.5);
-    this.v = o.v0 ?? this.vmax;
+    const ek = save.easy ? 0.8 : 1;            // 簡單模式：車慢兩成
+    this.vmax = (o.v ?? rand(7, 9.5)) * ek;
+    this.v = o.v0 != null ? o.v0 * ek : this.vmax;
     this.s = o.s ?? 0;
     this.rogue = !!o.rogue; this.noYield = !!o.noYield; this.parked = !!o.parked; this.indicate = o.indicate || null;
     this.ghost = !!o.ghost;   // 電單車：喺車旁邊鑽過去，唔會因為旁邊有車而停
@@ -994,7 +1027,7 @@ class Vehicle {
 class World {
   constructor(scene, L) {
     this.scene = scene; this.L = L; this.map = L.map;
-    this.root = new THREE.Group(); scene.add(this.root);
+    this.root = new THREE.Group(); scene.add(this.root); this.poles = [];
     this.vehicles = []; this.paths = []; this.player = null;
     const H = L.map.H;
     // 過路處可以有多個（例如兩段燈），每個有自己嘅燈號循環
@@ -1079,6 +1112,9 @@ class World {
         }
       }
     }
+    // 鏡頭避柱：記低所有柱嘅位置
+    this.poles = this.poles || [];
+    for (const c of this.crossings) for (const o of [...c.pedSignals, ...c.carSignals, ...c.beacons]) this.poles.push([o.position.x, o.position.z]);
     // 巴士站
     if (m.busStop != null) {
       const x = m.busStop, z = H + 1.4;
@@ -1161,7 +1197,7 @@ class World {
         const zz = sz * (H + 0.7);
         if (m.kind === 'tjunction' && sz > 0 && lx > m.J0 - 8) continue;
         if (this.crossings.some((c) => Math.abs(lx - c.x) < 4)) continue;
-        addLamp(b, lx, zz, sz);
+        addLamp(b, lx, zz, sz); this.poles.push([lx, zz]);
       }
       for (let tx = -38; tx < 40; tx += 9.5) { if (Math.abs(tx) < 26) continue; /* 過路處附近唔種樹，唔遮視線 */ if (m.kind === 'tjunction' && sz > 0 && tx > m.J0 - 8) continue; addTree(b, tx, sz * (H + W + 1.4)); }
       // 花槽：行人路嘅自然邊界
@@ -1212,7 +1248,7 @@ class World {
       p.timer -= dt;
       if (p.timer <= 0) {
         const clear = !this.vehicles.some((v) => v.path === p && v.s < 16);
-        if (clear) { this.spawn(p.id, pick(sp.types), { v: rand(...sp.v) }); p.timer = rand(...sp.gap) * (this.L.density || 1); } else p.timer = 0.6;
+        if (clear) { this.spawn(p.id, pick(sp.types), { v: rand(...sp.v) }); p.timer = rand(...sp.gap) * (this.L.density || 1) * (save.easy ? 1.3 : 1); } else p.timer = 0.6;
       }
     }
     for (const v of this.vehicles) v.update(dt, this);
@@ -1245,7 +1281,7 @@ function _isShared(m) { for (const v of _mats.values()) if (v === m) return true
 const DEFAULT_PHASES = [
   { veh: 'green', ped: 'red', t: 9 },
   { veh: 'amber', ped: 'red', t: 2.5 },
-  { veh: 'red', ped: 'red', t: 1.5 },
+  { veh: 'red', ped: 'red', t: 2.0 },    // 全紅 2 秒：等長車（巴士）都清晒先綠人
   { veh: 'red', ped: 'green', t: 12 },   // 綠人 12 秒：細路望完左右仲夠時間過
   { veh: 'red', ped: 'flash', t: 5 },
   { veh: 'red', ped: 'red', t: 1.5 },
@@ -1473,7 +1509,7 @@ const LEVELS = [
     how: '呢關有「跑」掣，但係跑得快會停唔切。先等第一盞綠人過到安全島，沿住安全島行去第二個過路處，等第二盞綠人先過。',
     timer: 60,
     map: { kind: 'straight', H: 7.9, island: 1.5, islandX0: -22, islandX1: 22,
-      crossings: [{ type: 'signal', x: -4, w: 4, z0: 1.5, z1: 7.9 }, { type: 'signal', x: 4, w: 4, z0: -7.9, z1: -1.5, phaseOffset: 22.7 }],
+      crossings: [{ type: 'signal', x: -4, w: 4, z0: 1.5, z1: 7.9 }, { type: 'signal', x: 4, w: 4, z0: -7.9, z1: -1.5, phaseOffset: 23.2 }],
       railsX: [[-40, -6.3, 8.2], [-1.7, 40, 8.2], [-40, 1.7, -8.2], [6.3, 40, -8.2], [-21.5, -6.3, 1.2], [-1.7, 21.5, 1.2], [-21.5, 1.7, -1.2], [6.3, 21.5, -1.2]], laneLines: [4.7, -4.7] },
     paths: [
       { id: 'n1', pts: [[75, 3.1], [-75, 3.1]], spawn: { gap: [4, 8], types: ['car', 'taxi', 'van', 'minibus'], v: [8, 10] } },
@@ -1590,6 +1626,37 @@ const OFFTRACK_SVG = `<svg viewBox="0 0 320 210" width="100%" style="max-width:4
 </svg>`;
 
 /* =====================================================================
+   新手教學：一步一步學行、學望（冇時間限制、唔會撞車）
+   ===================================================================== */
+const TUTORIAL = {
+  id: 'tut', kind: 'tutorial', name: '教學：學識行同望', learn: '點樣行、點樣望', practice: '跟住提示一步一步做',
+  key: '過馬路之前：企定、望右、望左、再望右，冇車先直線行過去。',
+  tips: [
+    ['🕹️', '用左下角嘅方向掣行路。手指拖畫面，都可以轉頭望。'],
+    ['👀', '右下角有「望右」「望左」，仲有「望兩邊」一次過望晒。'],
+    ['🦶', '黃色腳印就係企定望車嘅位置。'],
+  ],
+  how: '跟住畫面頂嘅提示，一步一步做。唔使趕，冇時間限制。',
+  timer: 999, noTimer: true, weather: 'day', events: [],
+  map: { kind: 'straight', H: H2, cross: { type: 'plain', x: 0, w: 4 }, railsX: rails(H2, 0, 4), walkW: 5 },
+  paths: [laneNear({ spawn: null }), laneFar({ spawn: null })],
+  start: [-5, 5.6], goal: { x: 0, z: -5.0 }, footprints: [[0, 3.8]],
+  area: straightArea(H2, 0, 4),
+  checks: [{ id: 'k1', wait: { x0: -2.2, x1: 2.2, z0: H2, z1: H2 + 1.6 }, line: H2 - 0.05, req: ['look'], bonus: 'rlr' }],
+  steps: [['kerb', '行到腳印'], ['lookR', '望右'], ['carGone', '等車過'], ['lookL', '望左'], ['sweep', '望兩邊'], ['goal', '行到對面']],
+  fails: { look: '過馬路之前要望右、望左。' },
+  script: 'tutorial', case: null,
+};
+const TUT_STEPS = [
+  { id: 'kerb', say: '用方向掣行去黃色腳印度，企定。', show: '👣 用方向掣，行去黃色腳印度企定', hint: ['#pad .u', '#pad .r'] },
+  { id: 'lookR', say: '撳「望右」。香港車靠左行，近你嗰條線嘅車由右邊嚟。', show: '👉 撳「望右」：近你嗰條線嘅車由右邊嚟', hint: ['#lkR'] },
+  { id: 'carGone', say: '有車嚟緊！企定，等佢過咗先。', show: '🚗 有車嚟緊！企定，等佢過咗先', hint: [] },
+  { id: 'lookL', say: '架車過咗。而家撳「望左」，睇吓對面線有冇車。', show: '👈 撳「望左」：睇吓對面線有冇車', hint: ['#lkL'] },
+  { id: 'sweep', say: '最後撳「望兩邊」，會自動望右、望左、再望右，一次過望晒。', show: '👀 撳「望兩邊」：右、左、再右，一次過望晒', hint: ['#lkF'] },
+  { id: 'goal', say: '兩邊都冇車。直線行過去對面，行嘅時候都繼續留意。', show: '✅ 冇車喇！直線行過對面', hint: ['#pad .u'] },
+];
+
+/* =====================================================================
    Three.js 基本設定
    ===================================================================== */
 const canvas = $('#c');
@@ -1654,13 +1721,16 @@ function loadLevel(L, { forTitle = false } = {}) {
   if (G.friend) { scene.remove(G.friend); G.friend.traverse((o) => { if (o.geometry) o.geometry.dispose(); }); G.friend = null; }
   setWeather(forTitle ? 'day' : (L.weather || 'day'));
   Object.assign(G.look, { phi: 0, target: 0, mode: 'front', lean: false, side: null, sideT: 0, logged: false, sweep: null });
-  G.timeLeft = L.timer; G.timeUp = false; G.score = 0; G.nearMiss = false; G.events = new Set(); G.evEver = new Set(); G.lookInRoad = false; G.idleT = 0; G.hinted = {};
+  G.timeLeft = L.noTimer ? 999 : Math.round(L.timer * (save.easy ? 1.3 : 1)); G.timeUp = false; G.lookSlowK = 1; G.sweepDoneAt = 0; G.score = 0; G.nearMiss = false; G.events = new Set(); G.evEver = new Set(); G.lookInRoad = false; G.idleT = 0; G.hinted = {};
   G.recs = {}; for (const c of L.checks) G.recs[c.id] = { inside: false, inZone: false, looks: [], peek: false, still: 0, passed: false, leftT: -99, bonusOK: false, done: false, toastN: 0, lastPed: null };
-  G.scriptState = {}; G.slow = 1; G.crashT = 0; G.snapCam = true;
+  G.scriptState = {}; G.tut = null; G.slow = 1; G.crashT = 0; G.snapCam = true;
   canvas.classList.remove('gray');
   setKid(save.gender);
   if (!forTitle) setupScript(L);
   updateLookButtons();
+  document.querySelectorAll('.ctrl > button.hint').forEach((b) => b.classList.remove('hint'));
+  $('#pillCoach').classList.remove('show');
+  document.body.classList.toggle('tut', L.kind === 'tutorial');
   $('#lkP').style.display = L.script === 'busBlind' ? '' : 'none';
   $('#looks').classList.toggle('nopeek', L.script !== 'busBlind');
 }
@@ -1672,11 +1742,13 @@ function setupScript(L) {
     S.bus = W.spawn('n', 'bus', { s: 70.4, parked: true, v: 0, v0: 0 });
   }
   if (L.script === 'turningTruck') buildDangerZone(L);
+  if (L.script === 'tutorial') G.tut = { i: -1, t: 0, stepAt: 0 };
 }
 function updateScript(dt) {
   const L = G.L, W = G.world, S = G.scriptState, P = G.P;
   const EV = L.events || [], has = (e) => EV.includes(e);
   const np = nearPath();
+  if (L.script === 'tutorial') { updateTutorial(dt); return; }
   if (L.script === 'zebraRusher' || has('rusher')) {
     if (!S.sent && G.recs.k1.inside) { S.sent = true; W.spawn(np.id, 'car', { s: Math.max(5, np.pts[0].x - (W.cross.x + 35)), v: 10, noYield: true, color: '#e8e8ea' }); }
   }
@@ -1720,10 +1792,10 @@ function updateScript(dt) {
     if (G.recs.k1.inside) S.armed = true;
     const pn = np;
     // 清空近線：等衝燈車唔會塞喺等紅燈嘅車後面
-    if (S.armed && !S.sent && ((W.phaseI === 0 && W.phaseT < 7) || W.phaseI === 1 || W.phaseI === 2)) pn.timer = 99;
+    if (S.armed && !S.sent && ((W.phaseI === 0 && W.phaseT < 7) || W.phaseI === 1 || W.phaseI === 2 || W.phaseI === 3)) pn.timer = 99;
     if (S.sent && !S.resumed && S.rogue && S.rogue.front.x < -3) { S.resumed = true; pn.timer = 1.5; }
-    if (S.armed && !S.sent && W.vehLight === 'red' && W.pedLight === 'red' && W.phaseI === 2 && !W.vehicles.some((v) => v.path === pn && v.front.x > W.cross.x + 1 && v.front.x < W.cross.x + 40)) {
-      S.sent = true; S.rogue = W.spawn(pn.id, 'taxi', { s: pn.pts[0].x - (W.cross.x + 37), v: 13, rogue: true });
+    if (S.armed && !S.sent && W.vehLight === 'red' && W.pedLight === 'green' && W.phaseI === 3 && !W.vehicles.some((v) => v.path === pn && v.front.x > W.cross.x + 1 && v.front.x < W.cross.x + 40)) {
+      S.sent = true; S.rogue = W.spawn(pn.id, 'taxi', { s: pn.pts[0].x - (W.cross.x + 30), v: 13, rogue: true });
       Sfx.noise(2.4, { vol: 0.22, freq: 300, q: 0.8, type: 'lowpass', to: 900 });
     }
     if (S.rogue && !G.events.has('rogue') && S.rogue.front.x < W.cross.x - 3) event('rogue', '✓ 衝燈車過咗，你冇事');
@@ -1834,6 +1906,66 @@ function visibleTo(v) {
 }
 
 /* =====================================================================
+   新手教學：一步一步帶
+   ===================================================================== */
+function tutSet(i) {
+  const T = G.tut; T.i = i; T.t = 0; T.stepAt = now();
+  const st = TUT_STEPS[i];
+  const c = $('#pillCoach');
+  c.textContent = `${i + 1}／${TUT_STEPS.length}　${st.show}`;
+  c.classList.add('show'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+  if (i > 0) Sfx.good();
+  Voice.stop(); cue(st.say);
+  tutHints();
+}
+function tutHints() {
+  const st = G.tut && G.tut.i >= 0 && TUT_STEPS[G.tut.i];
+  document.querySelectorAll('.ctrl > button.hint').forEach((b) => b.classList.remove('hint'));
+  if (st) st.hint.forEach((q) => { const b = $(q); if (b) b.classList.add('hint'); });
+}
+function tutBlocked() {
+  const T = G.tut;
+  if (now() - (T.blockT || -9) > 3) { T.blockT = now(); toast('等等！跟住上面嘅提示做先', 'info'); }
+}
+function updateTutorial(dt) {
+  const T = G.tut, W = G.world; if (!T) return;
+  if (T.i < 0) { tutSet(0); return; }
+  T.t += dt;
+  const looked = (side) => G.recs.k1.looks.some((l) => l.side === side && l.t > T.stepAt);
+  const id = TUT_STEPS[T.i].id;
+  if (id === 'kerb' && G.recs.k1.inside) tutSet(1);
+  else if (id === 'lookR' && looked('R')) { T.car = W.spawn('n', 'car', { s: 32, v: 6, noYield: true, color: '#e2342d' }); tutSet(2); }
+  else if (id === 'carGone' && (!T.car || !W.vehicles.includes(T.car) || T.car.center.x < -7)) { event('carGone', '✓ 等咗架車過'); tutSet(3); }
+  else if (id === 'lookL' && looked('L')) tutSet(4);
+  else if (id === 'sweep' && G.sweepDoneAt > T.stepAt) tutSet(5);
+  if (T.t > 10) { T.t = 0; cue(TUT_STEPS[T.i].say); }
+  if (TUT_STEPS[T.i].hint.length && !document.querySelector('.ctrl > button.hint')) tutHints();
+}
+
+/* =====================================================================
+   家長報告：記低每一次結果
+   ===================================================================== */
+function crashCause(v) {
+  const L = G.L, EV = L.events || [];
+  if (v.type === 'ambulance') return 'siren';
+  if (v.rogue) return 'rogue';
+  if (v.ghost) return 'moto';
+  if (L.script === 'turningTruck' && ['truck', 'bus'].includes(v.type)) return 'truck';
+  if (G.ranInRoad || G.P.running) return 'run';
+  if (L.script === 'busBlind') return 'bus';
+  if (v.noYield && (L.script === 'zebraRusher' || EV.includes('rusher'))) return 'rusher';
+  return 'hit';
+}
+function logAttempt(r, f = '', stars = 0) {
+  const L = G.L; if (!L || L.kind === 'tutorial') return;
+  save.log = save.log || [];
+  const x = [G.ranInRoad ? 'run' : '', G.nearMiss ? 'near' : '', G.timeUp ? 'late' : ''].filter(Boolean).join(',');
+  save.log.push({ k: L.kind, id: L.kind === 'free' ? L.baseId : L.id, n: L.name, r, f, s: stars, e: save.easy ? 1 : 0, d: Date.now(), x });
+  if (save.log.length > 300) save.log.splice(0, save.log.length - 300);
+  persist();
+}
+
+/* =====================================================================
    玩家移動
    ===================================================================== */
 const SPEED = 2.1, RUN = 4.4;
@@ -1855,6 +1987,7 @@ function updatePlayer(dt) {
     if (G.look.lean) { G.look.lean = false; updateLookButtons(); }
     const tryMove = (nx, nz) => {
       if (!L.area(nx, nz)) return false;
+      if (L.kind === 'tutorial' && G.tut && G.tut.i < TUT_STEPS.length - 1 && nz < L.map.H && P.z >= L.map.H) { tutBlocked(); return false; }
       for (const v of G.world.vehicles) if (v.v < 0.6 && v.contains(nx, nz, 0.28)) return false;
       return true;
     };
@@ -1919,7 +2052,7 @@ function startSweep() {
 function sweepStep() {
   const lk = G.look, sw = lk.sweep;
   if (!sw) return;
-  if (sw.i >= sw.seq.length) { lk.sweep = null; lk.mode = 'front'; lk.target = 0; updateLookButtons(); return; }
+  if (sw.i >= sw.seq.length) { lk.sweep = null; lk.mode = 'front'; lk.target = 0; updateLookButtons(); G.sweepDoneAt = now(); if (G.mode === 'play' && activeCheck()) event('sweep', null); return; }
   const side = sw.seq[sw.i];
   lk.mode = side === 'R' ? 'right' : 'left'; lk.target = side === 'R' ? LOOK_ANGLE : -LOOK_ANGLE;
   updateLookButtons();
@@ -2015,13 +2148,15 @@ function updateEyes() {
   let extra = '';
   if (needsGreenLook(c) && G.world.crossings[c.cross || 0].pedLight !== 'green') extra = '等綠人';
   if (c.req.includes('peek') && !r.peek) extra = '要伸頭';
-  const key = [R, Lf, extra].join('|');
+  const slow = !!G.slowShown;
+  const key = [R, Lf, extra, slow].join('|');
   if (box.dataset.s === key) return;
   box.dataset.s = key; box.classList.add('show');
   box.innerHTML = '';
   const mk = (lbl, ok, sd) => el('span', { class: 'e' + (ok ? ' ok' : ''), 'data-side': sd }, (ok ? '✓' : '○') + lbl);
   box.append(el('span', { class: 'ttl' }, '👀'), mk('右', R, 'R'), mk('左', Lf, 'L'));
   if (extra) box.append(el('span', { class: 'e warn' }, extra));
+  if (slow) box.append(el('span', { class: 'e slow' }, '🔍慢鏡'));
 }
 
 /* =====================================================================
@@ -2083,11 +2218,11 @@ function updateChecks(dt) {
     if (c.req.includes('signal') && !r.done) {
       const C = G.world.crossings[c.cross || 0];
       if (r.lastPed !== C.pedLight) {
-        if (inZone && C.pedLight === 'green' && r.lastPed) { toast('🟢 綠人喇！望右、望左，冇車就行', 'good'); cueSoft('綠人喇！望右、望左。'); }
+        if (inZone && C.pedLight === 'green' && r.lastPed && G.evEver.has(c.greenEvent || 'green')) { toast('🟢 綠人喇！望右、望左', 'good'); }
         if (inZone && C.pedLight === 'flash' && !P.inRoad) toast('綠人閃緊，唔好開始過，等下一次', 'info');
         r.lastPed = C.pedLight;
       }
-      if (inside && C.pedLight === 'green') event(c.greenEvent || 'green', c.cross ? '✓ 第二盞都綠人喇' : '✓ 綠人喇');
+      if (inside && C.pedLight === 'green') event(c.greenEvent || 'green', c.cross ? '✓ 第二盞都綠人喇！望右、望左' : '✓ 綠人喇！望右、望左');
     }
     // 跨過界線 = 落馬路／離開等候位：檢查守則
     if (P.prevZ >= c.line && P.z < c.line && !r.passed) {
@@ -2105,7 +2240,7 @@ function updateChecks(dt) {
   // 提示：企喺等候位太耐都未望
   for (const c of G.L.checks) {
     const r = G.recs[c.id];
-    if (r.inZone && !r.done && G.idleT > 5 && !G.hinted[c.id]) {
+    if (G.L.kind !== 'tutorial' && r.inZone && !r.done && G.idleT > 5 && !G.hinted[c.id]) {
       G.hinted[c.id] = true;
       if (c.req.includes('signal') && G.world.crossings[c.cross || 0].pedLight !== 'green') { cue(c.cross ? '第二盞燈仲係紅色，等綠人先過。' : '等綠人先過。'); continue; }
       if (c.req.includes('peek') && !r.peek) { $('#lkP').classList.add('hint'); cue('撳伸頭，望右邊第二條線。'); continue; }
@@ -2136,7 +2271,7 @@ function checkHits() {
 }
 function resetStreak() { if (G.L && G.L.kind === 'free') { save.freeStreak = 0; persist(); } }
 function hit(v) {
-  resetStreak();
+  resetStreak(); logAttempt('crash', crashCause(v));
   G.mode = 'crash'; G.crashT = 0; G.slow = 0.25; G.crashVehicle = v;
   Voice.stop(); Sfx.screech(); setTimeout(() => Sfx.thud(), 150);
   v.v = 0; v.vmax = 0;
@@ -2146,7 +2281,7 @@ function hit(v) {
   setTimeout(() => { Sfx.siren(4.5); showConsequence(v); }, 1700);
 }
 function unsafe(type, check = null) {
-  G.failCheck = check; resetStreak();
+  G.failCheck = check; resetStreak(); logAttempt('unsafe', type + (check && check.id === 'k2' ? '2' : ''));
   G.mode = 'stopped';
   G.input.up = G.input.down = G.input.left = G.input.right = false;
   Voice.stop(); Sfx.bad();
@@ -2166,8 +2301,9 @@ function win() {
   const L = G.L;
   if (L.kind === 'mission') { save.mstars = save.mstars || {}; save.mstars[L.id] = Math.max(save.mstars[L.id] || 0, stars); }
   else if (L.kind === 'free') { save.freeStreak = (save.freeStreak || 0) + 1; save.freeBest = Math.max(save.freeBest || 0, save.freeStreak); save.freeWins = (save.freeWins || 0) + 1; }
+  else if (L.kind === 'tutorial') save.tutDone = true;
   else save.stars[L.id] = Math.max(save.stars[L.id] || 0, stars);
-  persist();
+  persist(); logAttempt('win', '', stars);
   G.lastStars = stars; G.lastBonus = bonusOK;
   setTimeout(() => showResult(stars, bonusOK), 1100);
 }
@@ -2176,7 +2312,7 @@ function win() {
    計時
    ===================================================================== */
 function updateTimer(dt) {
-  if (G.timeUp) return;
+  if (G.timeUp || G.L.noTimer) return;
   G.timeLeft -= dt;
   if (G.timeLeft <= 10 && G.timeLeft + dt > 10) toast('仲有 10 秒！但係趕都要安全行先', 'info');
   if (G.timeLeft <= 0) { G.timeLeft = 0; G.timeUp = true; toast('遲咗都唔緊要，安全行先！', 'info'); cue('遲咗都唔緊要，安全行先。'); }
@@ -2215,6 +2351,20 @@ function updateCamera(dt) {
       if (G.mode === 'crash') { pos = new THREE.Vector3(hx + 2.5, 4.5, hz + 4.2); tgt = new THREE.Vector3(hx, 0.4, hz); }
     }
   }
+  // 鏡頭避柱：小朋友個頭同鏡頭之間有柱（燈柱、斑馬燈、行人燈），就將鏡頭拉近
+  if (G.world && G.world.poles && (G.mode === 'play' || G.mode === 'stopped')) {
+    const ax = hx, az = hz, bx = pos.x - ax, bz = pos.z - az, L2 = bx * bx + bz * bz;
+    if (L2 > 0.01) {
+      const Ld = Math.sqrt(L2); let tMin = 1;
+      for (const [px, pz] of G.world.poles) {
+        const t = ((px - ax) * bx + (pz - az) * bz) / L2;
+        if (t <= 0.02 || t > 1.25) continue;
+        const cx = ax + bx * t - px, cz = az + bz * t - pz;
+        if (cx * cx + cz * cz < 0.55 * 0.55) tMin = Math.min(tMin, Math.max(0.2, t - 0.5 / Ld));
+      }
+      if (tMin < 1) { pos.x = ax + bx * tMin; pos.z = az + bz * tMin; }
+    }
+  }
   // 鏡頭唔可以入咗大廈
   const SBz = G.L.map.H + (G.L.map.setback || 9) - 0.7;
   if (Math.abs(pos.z) > SBz) { pos.y += (Math.abs(pos.z) - SBz) * 0.8; pos.z = Math.sign(pos.z) * SBz; }
@@ -2233,14 +2383,21 @@ function loop() {
   const t = now(); let dt = Math.min(0.05, t - lastT) * TS; lastT = t;
   if (G.mode === 'paused') { renderer.render(scene, camera); return; }
   const sdt = dt * G.slow;
+  // 望嘅時候慢鏡：企定望左望右，車同燈都慢少少，等小朋友睇清楚
+  const lkSide = Math.abs(G.look.phi) > 0.6 || G.look.lean;
+  const wantSlow = G.mode === 'play' && save.slowLook !== false && lkSide && !G.P.moving && !G.P.inRoad && G.L && G.L.kind !== 'tutorial' && !!activeCheck();
+  G.lookSlowK = lerp(G.lookSlowK || 1, wantSlow ? (save.easy ? 0.5 : 0.65) : 1, 1 - Math.exp(-dt * 5));
+  const wdt = sdt * G.lookSlowK;
+  const slowOn = G.lookSlowK < 0.9; if (slowOn !== G.slowShown) { G.slowShown = slowOn; updateEyes(); }
+  document.body.classList.toggle('looking', G.mode === 'play' && Math.abs(G.look.phi) > 0.6);
   if (G.mode === 'crash') { G.crashT += dt; if (G.crashT > 1.2) G.slow = lerp(G.slow, 1, 0.05); }
   if (G.world) {
     G.world.pedWantsZebra = G.mode === 'play' && (G.recs.k1?.inside || G.recs.k2?.inside || G.P.inRoad);
-    G.world.update(sdt, { traffic: true, playing: G.mode === 'play' });
+    G.world.update(wdt, { traffic: true, playing: G.mode === 'play' });
   }
   if (G.mode === 'play') {
     updatePlayer(sdt); updateLook(sdt); updateChecks(sdt);
-    if (G.mode === 'play') { updateScript(sdt); updateTimer(sdt); checkHits(); }
+    if (G.mode === 'play') { updateScript(wdt); updateTimer(wdt); checkHits(); }
     if (G.mode === 'play') checkGoal();
   }
   // 角色姿勢
@@ -2278,7 +2435,7 @@ const PILL = {
 };
 const EVENT_TEXT = {
   kerb: '行到過路處企定', green: '等到綠人先行', look: '兩邊都望清楚', lookR: '望右', lookL: '望左', away: '見到大車轉彎即刻企後',
-  truck: '等大車轉完先過', green2: '喺安全島等第二盞綠人', siren: '讓救護車先', moto: '等電單車過咗先行', friend: '朋友催都冇衝出去', edge: '停喺巴士邊', peek: '伸頭望清楚第二條線', rogue: '見到衝燈車冇行出去', island: '過到安全島', stop: '喺安全島停低', goal: '安全行到對面',
+  truck: '等大車轉完先過', green2: '喺安全島等第二盞綠人', siren: '讓救護車先', moto: '等電單車過咗先行', friend: '朋友催都冇衝出去', edge: '停喺巴士邊', peek: '伸頭望清楚第二條線', rogue: '見到衝燈車冇行出去', island: '過到安全島', stop: '喺安全島停低', goal: '安全行到對面', carGone: '有車嚟就等佢過咗', sweep: '用「望兩邊」望晒',
 };
 const el = (tag, attrs = {}, ...kids) => {
   const e = document.createElement(tag);
@@ -2323,6 +2480,7 @@ function renderChips() {
 function renderClock() {
   const c = $('#clock'); if (!c) return;
   const s = Math.ceil(G.timeLeft);
+  if (G.L && G.L.noTimer) { c.textContent = '⏰ 唔使趕'; c.classList.remove('low'); return; }
   c.textContent = G.timeUp ? '⏰ 遲咗都唔緊要' : `⏰ 返學 ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   c.classList.toggle('low', !G.timeUp && s <= 10);
 }
@@ -2364,7 +2522,8 @@ function showTitle() {
   showSheet([hero, el('p', { class: 'muted', style: 'margin-top:14px;font-weight:700' }, '揀你嘅角色：'), pickRow,
     done ? el('p', { class: 'muted' }, `你已經過咗 ${done}／${LEVELS.length} 關。`) : null].filter(Boolean),
   [mkBtn('延伸閱讀／聽書', 'soft', showRead, '延伸閱讀同聽書。想知多啲過馬路嘅道理同真實個案，就撳入去。'), el('span', { class: 'grow' }),
-    mkBtn(done ? '繼續挑戰' : '開始挑戰', 'go big attn', () => showMenu(), '開始挑戰。')]);
+    ...(save.tutDone || done ? [] : [mkBtn('先玩教學', 'soft', startTutorial, '先玩教學。一分鐘學識點樣行、點樣望。')]),
+    mkBtn(done ? '繼續挑戰' : save.tutDone ? '開始挑戰' : '開始 ▶', 'go big attn', () => (save.tutDone || done ? showMenu() : startTutorial()), '開始。')]);
   Voice.auto(HOOK);
 }
 
@@ -2375,6 +2534,13 @@ function showMenu({ paused = false } = {}) {
   else { G.mode = 'menu'; document.body.classList.add('nogame'); if (!G.world) loadLevel(LEVELS[0], { forTitle: true }); }
   const list = el('div', { class: 'list' });
   let nextMarked = false;
+  const tut = el('button', { class: 'lvl' + (save.tutDone ? ' done' : ' next'), type: 'button' }, el('span', { class: 'no', style: save.tutDone ? '' : 'background:#cfe3ff' }, save.tutDone ? '✓' : '🎓'),
+    el('span', {}, el('div', { class: 'nm' }, '教學：學識行同望'), el('div', { class: 'ds' }, '一分鐘學識點樣行、點樣望、點樣等車。冇時間限制。'),
+      el('div', { class: 'st', style: `color:${save.tutDone ? 'var(--green-d)' : 'var(--ink2)'}` }, save.tutDone ? '已完成（想溫習可以再玩）' : '▶ 建議先玩')));
+  tut.append(spkBtn('教學：學識行同望。一分鐘學識點樣行、點樣望、點樣等車。'));
+  tut.addEventListener('click', (e) => { if (e.target.closest('.spk')) return; Voice.unlock(); Sfx.click(); startTutorial(); });
+  list.append(tut);
+  if (!save.tutDone) nextMarked = true;
   LEVELS.forEach((L, i) => {
     const st = save.stars[L.id] || 0, open = unlocked(i);
     const isNext = open && !st && !nextMarked; if (isNext) nextMarked = true;
@@ -2411,10 +2577,10 @@ function showMenu({ paused = false } = {}) {
   fr.addEventListener('click', (e) => { if (e.target.closest('.spk')) return; Voice.unlock(); if (!all) { toast('攞咗馬路安全大使證書先開', 'info'); Sfx.bad(); return; } Sfx.click(); startFree(); });
   list.append(fr);
   const head = sayBlock('h2', '揀一關。每一關都係先學、後練。', '', '關卡（先學、後練）');
-  const foot = [mkBtn('延伸閱讀', 'soft', showRead), mkBtn('返主頁', 'soft', () => { showTitle(); })];
+  const foot = [mkBtn('延伸閱讀', 'soft', showRead), mkBtn('📋 家長報告', 'soft', () => showReport({ paused })), mkBtn('返主頁', 'soft', () => { showTitle(); })];
   if (paused) foot.push(el('span', { class: 'grow' }), mkBtn('繼續玩', 'go', resume));
   else foot.push(el('span', { class: 'grow' }), mkBtn('重設進度', 'soft', () => { if (confirm('清除晒所有關卡進度同星星？')) { save.stars = {}; save.certDate = ''; persist(); showMenu(); } }));
-  showSheet([head, el('p', { class: 'muted' }, '每關先睇一張教學卡，再落街練。過咗一關先開下一關。'), list], foot);
+  showSheet([head, el('p', { class: 'muted' }, '每關先睇一張教學卡，再落街練。過咗一關先開下一關。'), list, el('h3', {}, '⚙️ 設定（家長用）'), settingsRow(paused)], foot);
   if (!paused) Voice.auto('揀一關。每一關都係先學、後練。');
 }
 function resume() { hideSheet(); G.mode = 'play'; document.body.classList.remove('nogame'); lastT = now(); }
@@ -2423,9 +2589,10 @@ function resume() { hideSheet(); G.mode = 'play'; document.body.classList.remove
 function startLevel(i) { loadLevel(LEVELS[i]); showIntro(); }
 function startMission(i) { loadLevel(MISSIONS[i]); showIntro(); }
 function startFree() { loadLevel(makeFree()); showIntro(); }
-function kickerText(L, suffix) { return L.kind === 'mission' ? `挑戰 ${L.no} · ${suffix}` : L.kind === 'free' ? `自由玩 · ${suffix}` : `第 ${L.id} 關 · ${suffix}`; }
+function startTutorial() { loadLevel(TUTORIAL); showIntro(); }
+function kickerText(L, suffix) { return L.kind === 'tutorial' ? `教學 · ${suffix}` : L.kind === 'mission' ? `挑戰 ${L.no} · ${suffix}` : L.kind === 'free' ? `自由玩 · ${suffix}` : `第 ${L.id} 關 · ${suffix}`; }
 function conditionsBox(L) {
-  if (L.kind === 'core') return null;
+  if (L.kind === 'core' || L.kind === 'tutorial') return null;
   const items = [WEATHER_NAME[L.weather || 'day'], ...(L.events || []).map((e) => EVENT_NAME[e])];
   const box = el('div', { class: 'good', style: 'background:#eef4ff' }, el('b', {}, '今次條件：'), el('div', { style: 'font-size:17px;margin-top:4px' }, items.join('　·　')));
   box.append(spkBtn('今次條件：' + items.join('，')));
@@ -2451,6 +2618,7 @@ function startPlay() {
   G.mode = 'play'; document.body.classList.remove('nogame');
   renderPill(); lastT = now();
   if (G.L.script === 'turningTruck') G.scriptState.t0 = now();
+  if (save.easy) setTimeout(() => { if (G.mode === 'play' && G.L.kind !== 'tutorial') toast('🐢 簡單模式：車慢啲、時間長啲', 'info'); }, 900);
   if (G.L.id === 7 || G.L.baseId === 7) setTimeout(() => { if (G.mode === 'play') toast('方向掣旁邊有「跑」掣，但係跑得快會停唔切！', 'info'); }, 1500);
 }
 function retry() { loadLevel(G.L); startPlay(); }
@@ -2488,7 +2656,10 @@ function showResult(stars, bonusOK) {
   if (L.case) nodes.push(caseCard(L.case));
   const all = LEVELS.every((x) => save.stars[x.id] > 0);
   const foot = [mkBtn('目錄', 'soft', () => showMenu()), el('span', { class: 'grow' })];
-  if (L.kind === 'free') {
+  if (L.kind === 'tutorial') {
+    foot.splice(1, 0, mkBtn('再玩一次', 'soft', retry));
+    foot.push(mkBtn('開始第一關 ▶', 'go big attn', () => startLevel(0), '開始第一關。'));
+  } else if (L.kind === 'free') {
     foot.splice(1, 0, mkBtn('再玩呢局', 'soft', retry));
     foot.push(mkBtn('再嚟一局 🎲', 'go big attn', startFree, '再嚟一局。'));
   } else if (L.kind === 'mission') {
@@ -2503,6 +2674,7 @@ function showResult(stars, bonusOK) {
     if (!last) foot.push(mkBtn('下一關 ▶', 'go big' + (all ? '' : ' attn'), () => startLevel(i + 1), '下一關。'));
   }
   showSheet(nodes, foot);
+  if (L.kind === 'tutorial') { Voice.auto('教學完成！你識得行、識得望，仲識得等車過咗先行。可以開始第一關喇。'); return; }
   Voice.auto(L.kind === 'free' ? `做得好！你已經連續安全過咗 ${save.freeStreak || 0} 次馬路。` : `做得好！你攞到 ${stars} 粒星。記住：${L.key}`);
 }
 
@@ -2568,6 +2740,106 @@ function showConsequence(v) {
     el('p', { class: 'muted' }, '靜一靜，諗一諗，再試一次。'),
   ], [mkBtn('目錄', 'soft', () => { clearInterval(iv); showMenu(); }), el('span', { class: 'grow' }), retryBtn], { dark: true });
   Voice.auto(CONSEQ + '頭先發生咩事？' + why);
+}
+
+/* ---------- 設定：簡單模式、慢鏡 ---------- */
+function settingsRow(paused) {
+  const row = el('div', { class: 'setrow' });
+  const mk = (key, label, sub, def) => {
+    const on = () => (def ? save[key] !== false : !!save[key]);
+    const b = el('button', { class: 'tog' + (on() ? ' on' : ''), type: 'button', 'aria-pressed': String(on()) }, el('b', {}, label), el('small', {}, sub));
+    b.addEventListener('click', (e) => {
+      if (e.target.closest('.spk')) return;
+      Voice.unlock(); Sfx.click();
+      save[key] = !on(); persist();
+      b.classList.toggle('on', on()); b.setAttribute('aria-pressed', String(on()));
+      toast(label + (on() ? '：開' : '：關') + (paused && key === 'easy' ? '（下一局開始生效）' : ''), 'info');
+    });
+    b.append(spkBtn(label + '。' + sub));
+    return b;
+  };
+  row.append(
+    mk('easy', '🐢 簡單模式', '車慢兩成、車少啲、時間長啲。啱細啲嘅小朋友先熟手。', false),
+    mk('slowLook', '🔍 望嘅時候慢鏡', '企定望左望右嗰陣，車同燈都會慢少少，睇得清楚啲。', true),
+  );
+  return row;
+}
+
+/* ---------- 家長報告 ---------- */
+const MIST = {
+  look: ['未望清楚兩邊就落馬路', '同小朋友過馬路時，叫佢大聲講「望右、望左、再望右」，講完先行。'],
+  look2: ['喺安全島冇再望就行第二段', '分兩段過馬路，提佢喺安全島停低；第二段嘅車由左邊嚟。'],
+  lookAfterGreen: ['綠人亮咗冇再望就行', '綠人亮咗都要望：同佢一齊數「一、望右；二、望左」先行。'],
+  red: ['紅人都行出馬路', '喺真馬路等燈時，問佢「而家係咩燈？可唔可以行？」等佢自己答。'],
+  red2: ['第一盞綠，就當第二盞都綠', '遇到兩段式過路燈，提佢「每一盞燈分開睇」，喺安全島等第二盞綠人。'],
+  flash: ['綠人閃緊先開始過', '解釋：綠人閃＝就快轉紅，唔好開始過，等下一次。'],
+  peek: ['巴士擋住冇伸頭望就行', '大車擋住要喺車邊停低，慢慢伸頭望清楚；最好唔好喺大車前後過馬路。'],
+  stop: ['喺安全島冇停低', '到咗安全島要停一停，望清楚先行第二段。'],
+  siren: ['有救護車都行出去', '聽到警號就留喺行人路，等佢過咗先行，就算綠人都一樣。'],
+  crash_rogue: ['俾衝紅燈嘅車撞到', '綠人都要望清楚，見到車減慢、停定先行。'],
+  crash_truck: ['俾轉彎大車掃到', '見到大車打燈轉彎，要企後，遠離轉角路邊。'],
+  crash_moto: ['俾停定車旁邊鑽出嚟嘅電單車撞到', '一架車停低讓你，都要望清楚旁邊每一條線。'],
+  crash_bus: ['巴士擋住冇睇清楚，俾車撞到', '大車擋住時，司機都睇唔到你，要伸頭望清楚先行。'],
+  crash_run: ['跑過馬路，停唔切', '過馬路一定行、唔好跑，尤其趕返學嗰陣。'],
+  crash_rusher: ['俾唔讓人嘅車撞到', '斑馬線都要等車真係停定先行，唔好估司機會停。'],
+  crash_siren: ['俾救護車撞到', '聽到警號就留喺行人路，等佢過咗先行。'],
+  crash_hit: ['冇等車過就行出去', '見到有車近，就等佢過咗先；唔好同車搶路。'],
+  x_run: ['過馬路嗰陣跑', '過馬路要行，跑得快會睇唔切燈號，亦停唔切。'],
+  x_near: ['令車要急煞', '等車停定或者過咗先行，唔好同車搶路。'],
+};
+function mistKey(e) { if (e.r === 'crash') return 'crash_' + e.f; const f = e.f || ''; return MIST[f] ? f : f.replace(/2$/, ''); }
+function levelLabel(k, id) {
+  if (k === 'mission') { const m = MISSIONS.find((x) => x.id === id); return m ? m.name : String(id); }
+  if (k === 'free') return '自由玩';
+  const L = LEVELS.find((x) => x.id === id); return L ? L.name : String(id);
+}
+function fmtDate(d) { const t = new Date(d); return `${t.getMonth() + 1}/${t.getDate()} ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`; }
+function showReport({ paused = false } = {}) {
+  const log = save.log || [];
+  const nodes = [el('span', { class: 'kicker' }, '家長報告'), el('h2', {}, '小朋友玩得點？')];
+  if (!log.length) {
+    nodes.push(el('p', {}, '暫時未有紀錄。小朋友玩完每一關，呢度就會記低佢做啱乜、錯喺邊，等你知道要教邊樣。'));
+  } else {
+    const wins = log.filter((e) => e.r === 'win').length, crashes = log.filter((e) => e.r === 'crash').length;
+    const days = new Set(log.map((e) => new Date(e.d).toDateString())).size;
+    nodes.push(el('div', { class: 'rep-sum' },
+      el('div', {}, el('b', {}, String(log.length)), el('small', {}, '總共玩咗')),
+      el('div', {}, el('b', {}, Math.round(wins / log.length * 100) + '%'), el('small', {}, `安全過關（${wins} 次）`)),
+      el('div', {}, el('b', {}, String(crashes)), el('small', {}, '俾車撞到')),
+      el('div', {}, el('b', {}, String(days)), el('small', {}, '玩過幾多日'))));
+    // 最常見嘅錯
+    const cnt = {};
+    for (const e of log) {
+      if (e.r !== 'win') { const k = mistKey(e); cnt[k] = (cnt[k] || 0) + 1; }
+      for (const x of (e.x || '').split(',').filter(Boolean)) if (x !== 'late') cnt['x_' + x] = (cnt['x_' + x] || 0) + 1;
+    }
+    const top = Object.entries(cnt).filter(([k]) => MIST[k]).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    nodes.push(el('h3', {}, '最常見嘅錯，同埋點樣教'));
+    if (!top.length) nodes.push(el('p', { class: 'muted' }, '暫時冇明顯嘅錯，做得好！'));
+    else {
+      const ul = el('ul', { class: 'rep-mist' });
+      top.forEach(([k, n]) => ul.append(el('li', {}, el('b', {}, `${MIST[k][0]}（${n} 次）`), el('div', {}, '👉 ' + MIST[k][1]))));
+      nodes.push(ul);
+    }
+    // 每關
+    const groups = new Map();
+    for (const e of log) { const key = e.k + ':' + (e.k === 'free' ? 'free' : e.id); if (!groups.has(key)) groups.set(key, { k: e.k, id: e.id, n: 0, w: 0, best: 0, mist: {} }); const g = groups.get(key); g.n++; if (e.r === 'win') { g.w++; g.best = Math.max(g.best, e.s); } else { const m = mistKey(e); g.mist[m] = (g.mist[m] || 0) + 1; } }
+    const tb = el('table', { class: 'rep-tb' }, el('tr', {}, el('th', {}, '關卡'), el('th', {}, '玩'), el('th', {}, '過'), el('th', {}, '最好'), el('th', {}, '最常錯')));
+    for (const g of groups.values()) {
+      const m = Object.entries(g.mist).sort((a, b) => b[1] - a[1])[0];
+      tb.append(el('tr', {}, el('td', {}, levelLabel(g.k, g.id)), el('td', {}, String(g.n)), el('td', {}, String(g.w)), el('td', {}, g.best ? '★'.repeat(g.best) : '—'), el('td', {}, m && MIST[m[0]] ? MIST[m[0]][0] : '—')));
+    }
+    nodes.push(el('h3', {}, '每一關'), el('div', { class: 'rep-wrap' }, tb));
+    // 最近
+    const rec = el('ul', { class: 'rep-rec' });
+    log.slice(-10).reverse().forEach((e) => rec.append(el('li', {}, el('span', { class: 'muted' }, fmtDate(e.d) + '　'), levelLabel(e.k, e.id) + '　',
+      e.r === 'win' ? el('b', { style: 'color:var(--green-d)' }, '過關 ' + '★'.repeat(e.s)) : el('b', { style: 'color:var(--red)' }, (e.r === 'crash' ? '撞到：' : '唔合格：') + ((MIST[mistKey(e)] || ['未守規則'])[0])),
+      e.e ? el('span', { class: 'muted' }, '（簡單）') : null)));
+    nodes.push(el('h3', {}, '最近 10 次'), rec);
+  }
+  nodes.push(el('p', { class: 'muted' }, '紀錄只係儲喺呢部機嘅瀏覽器入面，唔會上載去任何地方。'));
+  showSheet(nodes, [mkBtn('清除紀錄', 'soft', () => { if (confirm('清除晒家長報告嘅紀錄？（唔會影響關卡進度）')) { save.log = []; persist(); showReport({ paused }); } }), el('span', { class: 'grow' }), mkBtn('返目錄', 'go', () => showMenu({ paused }))]);
+  Voice.stop();
 }
 
 /* ---------- 延伸閱讀／聽書 ---------- */
@@ -2705,7 +2977,7 @@ function boot() {
   $('#loading').remove();
   showTitle();
   loop();
-  window.__game = { G, LEVELS, MISSIONS, startLevel, startMission, startFree, startPlay, setLook, startSweep, showMenu, save, setRun };
+  window.__game = { G, LEVELS, MISSIONS, TUTORIAL, startTutorial, showReport, startLevel, startMission, startFree, startPlay, setLook, startSweep, showMenu, save, setRun };
   window.__perf = () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures, veh: G.world.vehicles.length });
 }
 try { boot(); } catch (err) {
