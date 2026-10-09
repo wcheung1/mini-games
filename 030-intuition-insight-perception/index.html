@@ -2295,7 +2295,7 @@ LEVELS['4b'] = () => {
     mom: { name: '媽媽', q: '捧住好多碟嘅媽媽係咩感受？', opts: [['好開心', 0, '佢冇笑容，眼瞇瞇，唔似好開心。'], ['好攰', 1, '啱！佢眼瞇瞇、冇笑容、眉尾垂低，捧住咁多碟，好攰。大家玩得開心嗰陣，最易睇漏佢。'], ['好嬲', 0, '佢眉毛冇向下皺埋、冇叉腰，唔係嬲，係攰。']] },
     gma: { name: '嫲嫲', q: '嫲嫲隻手放喺耳仔邊，係咩感受？', opts: [['好開心', 0, '佢冇笑，一邊眉毛揚起，好似唔明。'], ['聽唔清楚，有啲唔明、有啲失落', 1, '好細心！佢一邊眉毛揚起、手放喺耳仔邊，四周太嘈，佢聽唔清楚大家講乜，可能覺得自己被冷落。'], ['好驚', 0, '驚嘅人眼會睜到好大、身體縮埋。嫲嫲係想聽清楚。']] },
     cousin: { name: '表妹', q: '梳化後面嘅表妹係咩感受？', opts: [['傷心', 1, '啱！佢縮埋一舊、流緊眼淚。睇吓天花：佢個氣球飛咗上去，攞唔返。'], ['好開心', 0, '佢喊緊，唔係開心。'], ['好嬲', 0, '嬲嘅人會皺眉、身體好緊。表妹係縮埋喊。']] },
-    dog: { name: '狗仔', q: '枱底嘅狗仔係咩感受？', opts: [['好開心', 0, '開心嘅狗會擺尾、跳嚟跳去。佢係縮埋。'], ['驚', 1, '啱！佢耳仔垂低、條尾收埋、縮喺枱底。地下有個爆咗嘅氣球，佢可能俾爆嘅聲嚇親。'], ['肚餓', 0, '肚餓嘅狗會走去搵嘢食。佢係匿埋喺枱底。']] }
+    dog: { name: '狗仔', q: '枱底嘅狗仔係咩感受？', opts: [['好開心', 0, '開心嘅狗會擺尾、跳嚟跳去。佢係縮埋。'], ['驚', 1, '啱！佢耳仔垂低、頭壓低、身體震緊，縮喺枱底。地下有個爆咗嘅氣球，佢可能俾爆嘅聲嚇親。'], ['肚餓', 0, '肚餓嘅狗會走去搵嘢食。佢係匿埋喺枱底。']] }
   };
   const help = () => {
     st.api.choices({ q: '大家都好開心，但係有人需要你幫手。你會做邊啲？（揀兩個或者以上）', opts: [
@@ -2306,17 +2306,24 @@ LEVELS['4b'] = () => {
       { t: '唔理佢哋，繼續食蛋糕', why: '大家都開心嗰陣，最易睇漏需要幫手嘅人。' }],
       onPick: o => { if (o.good) { st.helped++; if (st.helped >= 2 && !st.api.isDone('q')) setTimeout(() => st.api.done('q', '好有心！你留意到唔止一個人需要幫手。唔使一次過幫晒，揀你做得到嘅就得。'), 900); } } });
   };
+  /* 掀起／放低枱布（有動畫，鏡頭跟住放低睇入枱底） */
+  const toggleCloth = api => {
+    st.clothUp = !st.clothUp; const up = st.clothUp, p = st.clothPivot, sp = st.sidePivot, r0 = p.rotation.x, r1 = up ? -1.35 : 0, s0 = sp ? sp.rotation.z : 0, s1 = up ? 1.35 : 0;
+    Sfx.whoosh(); E.anim(600, k => { const q = ease(k); p.rotation.x = r0 + (r1 - r0) * q; if (sp) sp.rotation.z = s0 + (s1 - s0) * q; });
+    if (up) { E.flyTo({ t: [-3.2, 0.45, 0.4], r: 2.6, th: 0.15, ph: 1.4 }); const dg = st.dog, z0 = dg.rotation.z; setTimeout(() => E.anim(1600, k => { dg.rotation.z = z0 + Math.sin(k * 60) * 0.04 * (1 - k); }, () => (dg.rotation.z = z0)), 600); api.info(api.isDone('dog') ? '你掀起咗枱布，狗仔仲縮喺枱底。' : '你掀起咗枱布！枱底原來有隻狗仔縮埋喺度。撳狗仔，睇吓佢嘅感受。'); }
+    else api.info('你放低咗枱布。想再睇枱底，再撳一下枱布就得。');
+  };
   return {
     title: '生日會',
     mission: '目標：喺熱鬧嘅生日會入面，睇懂五個角色嘅感受，搵出邊個需要幫手。人人都開心嗰陣，最易睇漏唔開心嘅人。',
-    story: '今日係阿明生日，屋企好熱鬧：有蛋糕、有氣球。媽媽捧住好多碟，嫲嫲坐喺一邊，表妹同狗仔唔知去咗邊。撳每個角色，睇佢嘅眉毛、眼、嘴同身體。有啲角色收埋咗，要轉角度、放低視角先見到。',
+    story: '今日係阿明生日，屋企好熱鬧：有蛋糕、有氣球。媽媽捧住好多碟，嫲嫲坐喺一邊，表妹同狗仔唔知去咗邊。撳每個角色，睇佢嘅眉毛、眼、嘴同身體。有啲角色收埋咗，要轉角度、掀起枱布先見到。',
     cam: { t: [0, 1.3, -2.6], r: 6.8, th: 0, ph: 1.12 },
     tasks: [
       { id: 'star', label: '睇懂壽星阿明', hint: '撳中間嘅壽星阿明。', at: () => headTop(st.star) },
       { id: 'mom', label: '睇懂媽媽', hint: '撳捧住碟嘅媽媽，睇吓佢對眼。', at: () => headTop(st.mom) },
       { id: 'gma', label: '睇懂嫲嫲', hint: '撳嫲嫲，睇吓佢隻手放喺邊、眉毛點樣。', at: () => headTop(st.gma) },
       { id: 'cousin', label: '搵到收埋咗嘅表妹', hint: '表妹收埋喺梳化後面。轉去右手邊，望入梳化同牆中間。', at: () => headTop(st.cousin) },
-      { id: 'dog', label: '搵到收埋咗嘅狗仔', hint: '狗仔匿喺左前面張枱底。用手指向上拖，將視角放低，或者撳兩下張枱飛過去睇。', at: () => V3(-3.2, 0.6, 0.4) },
+      { id: 'dog', label: '搵到收埋咗嘅狗仔', hint: '狗仔匿喺左前面張枱底。撳一下張枱布，就可以掀起佢睇吓。', at: () => V3(-3.2, 0.6, 0.4) },
       { id: 'q', label: '答：你會點幫手？', final: true }
     ],
     build(S) {
@@ -2325,6 +2332,10 @@ LEVELS['4b'] = () => {
       table(S, 0, -3.4, 2.2, 1.2, 1.0, 0x8d6e63);
       const cake = grp(S, 0, 1.05, -3.4); cyl(cake, 0.45, 0.45, 0.4, 0xf8bbd0, 0, 0.2, 0); cyl(cake, 0.46, 0.46, 0.05, 0xffffff, 0, 0.42, 0); for (let i = 0; i < 5; i++) { const a = i * 1.25; cyl(cake, 0.025, 0.025, 0.16, 0x42a5f5, Math.sin(a) * 0.25, 0.53, Math.cos(a) * 0.25); sph(cake, 0.035, 0xffb300, Math.sin(a) * 0.25, 0.64, Math.cos(a) * 0.25); }
       const dt = table(S, -3.2, 0.4, 1.8, 1.2, 1.1, 0x8d6e63, 0xfff9c4); dt.userData.tap = 'dtable';
+      /* 枱布前面嗰幅可以掀起：撳枱布 → 向外翻起，見到枱底；再撳一下就放返低 */
+      const front = dt.children[1]; st.clothPivot = grp(dt, 0, 1.1, 0.6); dt.remove(front); front.position.set(0, -0.33, 0.01); st.clothPivot.add(front);
+      const side = dt.children.find(c => c !== st.clothPivot && Math.abs(c.position.x - 0.9) < 0.01 && c.scale.y > 0.5);
+      if (side) { st.sidePivot = grp(dt, 0.9, 1.1, 0); dt.remove(side); side.position.set(0.01, -0.33, 0); st.sidePivot.add(side); }
       [[-4.5, 2.8, -6, 0xef5350], [4.6, 3.0, -5.5, 0x42a5f5], [2.8, 3.2, -7.2, 0xffee58], [-1.8, 2.9, -7.4, 0x66bb6a]].forEach(([x, y, z, c]) => balloon(S, x, y, z, c));
       balloon(S, 1.6, 5.5, -7.3, 0xab47bc);
       for (let i = 0; i < 4; i++) sph(S, 0.08, 0xef5350, -3.5 + i * 0.12, 0.03, 0.9 + (i % 2) * 0.1, 1, 0.25, 1);
@@ -2343,7 +2354,7 @@ LEVELS['4b'] = () => {
     start(api) { st.api = api; },
     tap(hit, api) {
       const id = hit.id;
-      if (id === 'dtable') { api.info('枱布遮住咗枱底。將視角放低（手指向上拖），或者撳兩下張枱飛過去睇。'); return; }
+      if (id === 'dtable') { toggleCloth(api); return; }
       if (!K[id]) return;
       if (api.isDone(id)) { api.info(`你已經睇懂${K[id].name}嘅感受喇。`); return; }
       const P = id === 'dog' ? null : st[id];
