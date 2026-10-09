@@ -38,9 +38,11 @@ h1,h2,h3{margin:0;line-height:1.3}
   padding:6px calc(8px + env(safe-area-inset-right)) 6px calc(8px + env(safe-area-inset-left));padding-top:calc(6px + env(safe-area-inset-top))}
 #topbar .brand{position:relative;flex:1 1 auto;min-width:0;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:28px}
 #topbar .brand .spk{top:50%;transform:translateY(-50%)}
-@media (max-width:520px){#topbar .brand .bt{display:none}#topbar .brand{padding-right:0}#topbar .brand .spk{display:none}}
-.btn.hbtn{border:2px solid rgba(255,255,255,.9);background:rgba(255,255,255,.14);color:#fff;border-radius:14px;min-height:44px;padding:4px 30px 4px 10px;font-size:15px;white-space:nowrap;flex:0 0 auto}
+@media (max-width:520px){#topbar .brand{display:none}}
+.btn.hbtn{border:2px solid rgba(255,255,255,.9);background:rgba(255,255,255,.14);color:#fff;border-radius:14px;min-height:44px;padding:4px 29px 4px 8px;font-size:15px;white-space:nowrap;flex:0 0 auto}
 .btn.hbtn.on{background:#fff;color:var(--pur)}
+.btn.hbtn.idle{opacity:.6}
+@media (max-width:420px){.btn.hbtn{font-size:14px;padding:4px 27px 4px 6px;flex:1 1 0;min-width:0}.btn.hbtn .em{display:none}#topbar{gap:4px}}
 
 #notice{flex:0 0 auto}
 .notice{display:flex;align-items:center;gap:6px;background:#fff3c4;border-bottom:2px solid #f0c000;padding:5px 8px;font-size:14px;line-height:1.35}
@@ -54,9 +56,12 @@ h1,h2,h3{margin:0;line-height:1.3}
 #cv{position:relative;flex:1 1 auto;min-height:0;touch-action:none;overflow:hidden}
 #cv canvas{display:block;width:100%;height:100%;touch-action:none;outline:none}
 #cv.flash canvas{animation:flash .35s}
+#minimap{position:absolute;top:6px;left:6px;width:112px!important;height:112px!important;pointer-events:none;opacity:0;transition:opacity .3s;z-index:3}
+#minimap.show{opacity:1}
 @keyframes flash{0%{filter:brightness(1.8)}100%{filter:none}}
 #stageBar{flex:0 0 auto;display:flex;flex-direction:column;gap:4px;padding:5px 6px calc(5px + env(safe-area-inset-bottom));background:#2f2560}
 .barrow{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.walkgrp{display:contents}
 #panel{position:relative;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:12px 12px calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;min-width:0;min-height:0}
 @media (orientation:landscape){#view{flex-direction:row}#stage{flex:0 0 58%}#panel{flex:1 1 42%}}
 @media (orientation:portrait){#view{flex-direction:column}#stage{flex:0 0 58%}}
@@ -212,7 +217,7 @@ a{color:var(--blu);word-break:break-all}
   <div id="notice"></div>
   <main id="view" class="nostage">
     <section id="stage" aria-label="3D 畫面">
-      <div id="cv"></div>
+      <div id="cv"><canvas id="minimap" width="150" height="150" aria-hidden="true"></canvas></div>
       <div id="stageBar"></div>
     </section>
     <section id="panel" aria-live="polite"></section>
@@ -271,37 +276,68 @@ const Voice = {
       .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{2190}-\u{21FF}\u{25A0}-\u{25FF}]/gu, '')
       .replace(/[＋]/g, '加').replace(/\s+/g, ' ').trim();
   },
-  /* 讀出一段字；queue=true 時排隊，唔打斷而家讀緊嘅 */
-  say(text, el, opt = {}) {
-    if (!this.ok) return;
-    const t = this.clean(text); if (!t) return;
-    const parts = t.match(/[^。！？!?；]+[。！？!?；]*/g) || [t];
-    const go = () => {
-      this.mark(el);
-      parts.forEach((p, i) => {
-        const u = new SpeechSynthesisUtterance(p);
-        u.lang = this.voice ? this.voice.lang : 'zh-HK';
-        if (this.voice) u.voice = this.voice;
-        u.rate = save.rate || 1; u.pitch = 1.05; u.volume = 1;
-        if (i === parts.length - 1) u.onend = u.onerror = () => { if (this.playingEl === el) this.mark(null); };
-        speechSynthesis.speak(u);
-      });
-    };
-    if (opt.queue && (speechSynthesis.speaking || speechSynthesis.pending)) { go(); return; }
-    const busy = speechSynthesis.speaking || speechSynthesis.pending;
-    this.stop();
-    clearTimeout(this.timer);
-    if (busy || opt.delay) this.timer = setTimeout(go, Math.max(70, opt.delay || 0)); else go();
+  /* =====================================================
+     語音排隊系統（喺背景讀，唔會因為轉視角、放大、行、撳 3D 而停）
+     - say(text, el)：用戶刻意要聽（撳細喇叭）→ 由頭讀呢段
+     - auto(text)：入新一頁／新一關 → 讀呢頁重點
+     - fb(text)：撳完之後嘅回饋 → 讀完而家呢句，即刻插隊讀，之後繼續讀返背景嗰段
+     - ask(text)：問題同選項 → 排喺回饋後面
+     - 只有撳「⏸ 暫停」先會暫停；再撳「▶ 繼續」就由停低嗰句讀落去
+     ===================================================== */
+  q: [], cur: null, paused: false, gid: 0, watch: 0,
+  chunks(text) { const t = this.clean(text); if (!t) return []; return (t.match(/[^。！？!?；]+[。！？!?；]*/g) || [t]).map(x => x.trim()).filter(Boolean); },
+  push(text, opt = {}) {
+    const parts = this.chunks(text); if (!parts.length) return;
+    const g = ++this.gid, prio = opt.prio || 0, kind = opt.kind || 'narr';
+    if (opt.replace) this.q = this.q.filter(c => !opt.replace.includes(c.kind));
+    const items = parts.map((t, i) => ({ t, g, prio, kind, el: opt.el || null, last: i === parts.length - 1 }));
+    let at = this.q.findIndex(c => c.prio < prio); if (at < 0) at = this.q.length;
+    this.q.splice(at, 0, ...items);
   },
-  stop() {
-    if (!this.ok) return;
-    clearTimeout(this.timer);
-    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
-    this.mark(null);
+  next() {
+    if (!this.ok || this.paused || this.cur) { this.ui(); return; }
+    const it = this.q.shift(); if (!it) { this.mark(null); this.ui(); return; }
+    this.cur = it; if (it.el) this.mark(it.el); else if (this.playingEl && !this.q.some(c => c.el === this.playingEl)) this.mark(null);
+    const u = new SpeechSynthesisUtterance(it.t);
+    u.lang = this.voice ? this.voice.lang : 'zh-HK'; if (this.voice) u.voice = this.voice;
+    u.rate = save.rate || 1; u.pitch = 1.05; u.volume = 1;
+    const done = () => { if (this.cur !== it) return; this.cur = null; clearInterval(this.watch); if (it.last && it.el && this.playingEl === it.el) this.mark(null); this.next(); };
+    u.onend = done; u.onerror = done;
+    const t0 = performance.now(); clearInterval(this.watch);
+    this.watch = setInterval(() => { if (this.cur !== it) { clearInterval(this.watch); return; } if (performance.now() - t0 > 900 && !speechSynthesis.speaking && !speechSynthesis.pending) done(); }, 500); // 有啲瀏覽器唔發 onend 嘅後備
+    speechSynthesis.speak(u); this.ui();
   },
+  hardCancel() { this.cur = null; clearInterval(this.watch); if (speechSynthesis.speaking || speechSynthesis.pending) { speechSynthesis.cancel(); return true; } return false; },
+  start(delay) { clearTimeout(this.timer); if (delay) this.timer = setTimeout(() => this.next(), delay); else this.next(); },
+  /* 用戶刻意要聽：由頭讀呢段（取代背景嗰段） */
+  say(text, el) {
+    if (!this.ok) return;
+    this.q = []; this.paused = false; const busy = this.hardCancel(); this.mark(null);
+    this.push(text, { el, kind: 'manual' }); this.start(busy ? 80 : 0);
+  },
+  /* 新一頁嘅重點 */
+  auto(text) { this.pendingAuto = text; if (save.autoVoice && this.unlocked) this.say(text); },
+  /* 回饋：唔打斷而家讀緊嗰句，讀完即刻插隊 */
+  fb(text, delay = 0) {
+    if (!this.ok || !save.autoVoice || !this.unlocked) return;
+    this.push(text, { prio: 2, kind: 'fb', replace: ['fb'] });
+    if (!this.cur && !this.paused) this.start(delay);
+  },
+  /* 問題同選項：排喺回饋後面 */
+  ask(text) {
+    if (!this.ok || !save.autoVoice || !this.unlocked) return;
+    this.push(text, { prio: 1, kind: 'q', replace: ['q'] });
+    if (!this.cur && !this.paused) this.start(0);
+  },
+  dropKind(k) { this.q = this.q.filter(c => c.kind !== k); },
+  busy() { return !!this.cur || this.q.length > 0; },
+  /* ⏸ 暫停／▶ 繼續 */
+  pause() { if (!this.busy()) return; this.paused = true; clearTimeout(this.timer); if (this.cur) { this.q.unshift(this.cur); } this.hardCancel(); this.ui(); },
+  resume() { if (!this.paused) return; this.paused = false; this.start(80); },
+  toggle() { if (this.paused) this.resume(); else this.pause(); },
+  stop() { if (!this.ok) return; clearTimeout(this.timer); this.q = []; this.paused = false; this.hardCancel(); this.mark(null); this.ui(); },
+  ui() { if (typeof refreshPauseBtn === 'function') refreshPauseBtn(); },
   mark(el) { if (this.playingEl) this.playingEl.classList.remove('playing'); this.playingEl = el || null; if (el) el.classList.add('playing'); },
-  /* 自動朗讀：設定開咗先讀；未解鎖就記低，第一下撳畫面先讀 */
-  auto(text, opt) { this.pendingAuto = text; if (save.autoVoice && this.unlocked) this.say(text, null, opt); },
   unlock() {
     if (this.unlocked) return;
     this.unlocked = true; Sfx.init();
@@ -446,54 +482,67 @@ const E = {
     this.camera.updateProjectionMatrix(); this.req();
   },
   /* 觸控同滑鼠：一隻手指拖＝轉視角；兩隻手指＝放大縮細；輕撳＝撳物件；按住可拖嘅物件＝拖 */
-  /* 觸控同滑鼠：
-     一隻手指拖＝轉視角；兩隻手指拖＝前後左右行；兩隻手指撐開／收埋＝放大縮細（向住手指嗰點）；
-     滑鼠右掣（或者 Shift）拖＝行；滾輪＝向住滑鼠嗰點放大；撳一下＝撳物件；撳兩下＝飛去嗰個位睇近啲 */
+  /* 觸控同滑鼠（語音喺背景照讀，郁畫面唔會停）：
+     一隻手指拖＝轉視角
+     兩隻手指：一開始先判斷係「撐開／收埋」定係「一齊拖」，之後成個手勢只做嗰一樣，唔會撈亂
+       撐開／收埋＝對住畫面中間放大縮細；一齊拖＝好似拖地圖咁移動（手指下面嗰點地下會跟住手指）
+     滑鼠右掣（或者 Shift）拖＝拖地圖咁移動；滾輪＝對住畫面中間放大縮細
+     撳一下＝撳物件；撳兩下＝飛去嗰個位睇近啲
+     郁緊嘅時候，地下有個橙色圈話你知「而家望緊呢度」，左上角有個小地圖話你知自己喺邊 */
   bindPointer(el) {
-    this.ptrs = new Map(); this.moved = false; this.pinchD = 0; this.dragging = null; this.lastTap = null; this.panMode = false;
+    this.ptrs = new Map(); this.moved = false; this.dragging = null; this.lastTap = null; this.panMode = false; this.g2 = null;
     el.addEventListener('contextmenu', e => e.preventDefault());
     el.addEventListener('pointerdown', e => {
-      Voice.stop();
       try { el.setPointerCapture(e.pointerId); } catch (er) { /* 舊瀏覽器 */ }
       this.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, t: performance.now() });
       this.anims = this.anims.filter(a => a.kind !== 'cam');
       if (this.ptrs.size === 1) {
-        this.moved = false; this.panMode = e.button === 2 || e.shiftKey;
+        this.moved = false; this.panMode = e.button === 2 || e.shiftKey; this.grab = null;
         const hit = this.pick(e.clientX, e.clientY);
         if (hit && hit.drag && this.onDrop && !this.panMode) this.startDrag(hit);
-      } else { this.cancelDrag(); this.moved = true; const [a, b] = [...this.ptrs.values()]; this.pinchD = Math.hypot(a.x - b.x, a.y - b.y); this.mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }; }
+      } else if (this.ptrs.size === 2) {
+        this.cancelDrag(); this.moved = true; const [a, b] = [...this.ptrs.values()];
+        this.g2 = { mode: null, d0: Math.hypot(a.x - b.x, a.y - b.y), m0: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, d: Math.hypot(a.x - b.x, a.y - b.y) }; this.grab = null;
+      }
     });
     el.addEventListener('pointermove', e => {
       const p = this.ptrs.get(e.pointerId); if (!p) return;
       const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
       if (Math.hypot(e.clientX - p.sx, e.clientY - p.sy) > 9) this.moved = true;
       if (this.dragging) { if (this.moved) this.dragMove(e.clientX, e.clientY); return; }
-      if (this.ptrs.size === 1) {
-        if (this.panMode) this.panScreen(dx, dy);
+      if (this.ptrs.size === 1 && !this.g2) {
+        if (!this.moved) return;
+        if (this.panMode) this.grabMove(e.clientX, e.clientY);
         else { this.orbit.th -= dx * 0.009; this.orbit.ph -= dy * 0.007; this.applyOrbit(); }
-      } else if (this.ptrs.size === 2) {
-        const [a, b] = [...this.ptrs.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
-        if (this.mid) this.panScreen(m.x - this.mid.x, m.y - this.mid.y);
-        if (this.pinchD > 0 && Math.abs(d - this.pinchD) > 0.5) this.zoomAt(m.x, m.y, this.pinchD / d, true);
-        this.pinchD = d; this.mid = m;
+      } else if (this.ptrs.size === 2 && this.g2) {
+        const [a, b] = [...this.ptrs.values()], g = this.g2;
+        const d = Math.hypot(a.x - b.x, a.y - b.y), m = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        if (!g.mode) { // 判斷手勢：距離變得多＝放大縮細；中間點郁得多＝移動
+          const dd = Math.abs(d - g.d0), mm = Math.hypot(m.x - g.m0.x, m.y - g.m0.y);
+          if (Math.max(dd, mm) < 14) return;
+          g.mode = dd > mm ? 'zoom' : 'pan'; g.d = d; this.grab = g.mode === 'pan' ? this.floorPoint(g.m0.x, g.m0.y) : null;
+        }
+        if (g.mode === 'zoom') { if (g.d > 0) { this.orbit.r *= g.d / d; this.applyOrbit(); } g.d = d; }
+        else this.grabMove(m.x, m.y);
       }
     });
     const up = e => {
       const p = this.ptrs.get(e.pointerId); this.ptrs.delete(e.pointerId);
-      if (this.ptrs.size < 2) { this.pinchD = 0; this.mid = null; }
+      if (this.ptrs.size === 0) { this.g2 = null; this.grab = null; }
+      if (this.ptrs.size === 1 && this.g2) this.moved = true; // 兩指手勢完咗，剩低嗰隻手指唔當撳
       if (this.dragging) { if (this.moved) { this.endDrag(); return; } this.cancelDrag(true); }
       if (e.type === 'pointerup' && p && !this.moved && this.ptrs.size === 0 && performance.now() - p.t < 800) {
         const now = performance.now(), lt = this.lastTap;
         if (lt && now - lt.t < 380 && Math.hypot(e.clientX - lt.x, e.clientY - lt.y) < 32) { this.lastTap = null; this.focusAt(e.clientX, e.clientY); return; }
         this.lastTap = { t: now, x: e.clientX, y: e.clientY };
         const hit = this.pick(e.clientX, e.clientY);
-        if (hit && hit.say) { Sfx.tap(); Voice.say(hit.say); return; } // 對白泡泡、名牌：撳就讀出嚟
-        if (hit && !hit.id && hit.msay) { Sfx.tap(); Voice.say(hit.msay); return; } // 3D 入面嘅招牌、黑板字
+        if (hit && hit.say) { Sfx.tap(); Voice.fb(hit.say); if (!save.autoVoice) Voice.say(hit.say); return; } // 對白泡泡、名牌：撳就讀出嚟
+        if (hit && !hit.id && hit.msay) { Sfx.tap(); Voice.fb(hit.msay); if (!save.autoVoice) Voice.say(hit.msay); return; } // 3D 入面嘅招牌、黑板字
         if (this.onTap) this.onTap(hit || { id: null });
       }
     };
     el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
-    el.addEventListener('wheel', e => { e.preventDefault(); this.zoomAt(e.clientX, e.clientY, e.deltaY > 0 ? 1.1 : 0.9, true); }, { passive: false });
+    el.addEventListener('wheel', e => { e.preventDefault(); this.orbit.r *= e.deltaY > 0 ? 1.1 : 0.9; this.applyOrbit(); }, { passive: false });
     window.addEventListener('keydown', e => {
       if ($('#view').classList.contains('nostage') || !$('#overlay').hidden || !this.scene) return;
       if (/INPUT|TEXTAREA|SELECT/.test((e.target.tagName || ''))) return;
@@ -506,6 +555,18 @@ const E = {
       else if (k === 'r' || k === 'R') this.resetView(); else used = false;
       if (used) e.preventDefault();
     });
+  },
+  /* 拖地圖：手指下面嗰點地下，一直跟住手指 */
+  floorPoint(cx, cy) {
+    this.ray.setFromCamera(this.ndc(cx, cy), this.camera);
+    const p = V3(); if (!this.ray.ray.intersectPlane(new THREE.Plane(V3(0, 1, 0), -this.orbit.t.y), p)) return null;
+    return p.distanceTo(this.camera.position) > 30 ? null : p;
+  },
+  grabMove(cx, cy) {
+    const p = this.floorPoint(cx, cy); if (!p) return;
+    if (!this.grab) { this.grab = p; return; }
+    const d = this.grab.clone().sub(p); d.y = 0; if (d.length() > 1.2) d.setLength(1.2);
+    this.orbit.t.add(d); this.clampT(); this.applyOrbit();
   },
   /* 移動中心點（即係「行」）：前後左右跟住而家望緊嘅方向 */
   dirs() { const th = this.orbit.th; return { f: V3(-Math.sin(th), 0, -Math.cos(th)), r: V3(Math.cos(th), 0, -Math.sin(th)) }; },
@@ -563,11 +624,32 @@ const E = {
     const s = Math.sin(o.ph);
     const p = V3(o.t.x + o.r * s * Math.sin(o.th), o.t.y + o.r * Math.cos(o.ph), o.t.z + o.r * s * Math.cos(o.th));
     p.x = clamp(p.x, -o.bx, o.bx); p.z = clamp(p.z, o.bz0 ?? -o.bz, o.bz);  p.y = clamp(p.y, o.y0, o.y1);
-    this.camera.position.copy(p); this.camera.lookAt(o.t); this.req();
+    this.camera.position.copy(p); this.camera.lookAt(o.t); this.req(); this.navShow();
+  },
+  /* 方向提示：地下橙色圈（望緊邊度）＋左上角小地圖（自己喺邊、望緊邊個方向），停低一陣就自動收埋 */
+  navShow() {
+    if (!this.scene || this.quietNav) return;
+    if (this.ring) { this.ring.visible = true; this.ring.position.set(this.orbit.t.x, 0.03, this.orbit.t.z); }
+    this.drawMap(); const mm = $('#minimap'); if (mm) mm.classList.add('show');
+    clearTimeout(this.navT); this.navT = setTimeout(() => { if (this.ring) this.ring.visible = false; const m = $('#minimap'); if (m) m.classList.remove('show'); this.req(); }, 1800);
+  },
+  drawMap() {
+    const c = $('#minimap'); if (!c) return; const x = c.getContext('2d'), W = c.width, H = c.height, o = this.orbit;
+    const zmin = o.bz0 ?? -o.bz, sx = (W - 16) / (2 * o.bx), sz = (H - 16) / (o.bz - zmin), S = Math.min(sx, sz);
+    const X = v => W / 2 + v * S, Z = v => 8 + (v - zmin) * S;
+    x.clearRect(0, 0, W, H);
+    x.fillStyle = 'rgba(255,255,255,.88)'; x.strokeStyle = '#5b3cc4'; x.lineWidth = 3; rrect(x, X(-o.bx), Z(zmin), 2 * o.bx * S, (o.bz - zmin) * S, 10); x.fill(); x.stroke();
+    if (!this.mapItems) { this.mapItems = []; this.scene.traverse(n => { if (n.userData.tap && (n.isGroup || n.userData.drag)) { const w = this.worldPos(n); if (Math.abs(w.x) < 9 && Math.abs(w.z) < 9) this.mapItems.push(w); } }); this.mapItems = this.mapItems.slice(0, 60); }
+    x.fillStyle = '#9e9e9e'; this.mapItems.forEach(w => { x.beginPath(); x.arc(X(w.x), Z(w.z), 3.2, 0, 7); x.fill(); });
+    const cp = this.camera.position, t = o.t, ang = Math.atan2(t.z - cp.z, t.x - cp.x), hf = Math.atan(Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * this.camera.aspect);
+    x.fillStyle = 'rgba(91,60,196,.22)'; x.beginPath(); x.moveTo(X(cp.x), Z(cp.z)); const L = 60;
+    x.lineTo(X(cp.x) + Math.cos(ang - hf) * L, Z(cp.z) + Math.sin(ang - hf) * L); x.lineTo(X(cp.x) + Math.cos(ang + hf) * L, Z(cp.z) + Math.sin(ang + hf) * L); x.closePath(); x.fill();
+    x.fillStyle = '#f57c00'; x.beginPath(); x.arc(X(t.x), Z(t.z), 6, 0, 7); x.fill(); x.strokeStyle = '#fff'; x.lineWidth = 2; x.stroke();
+    x.save(); x.translate(X(cp.x), Z(cp.z)); x.rotate(ang); x.fillStyle = '#5b3cc4'; x.beginPath(); x.moveTo(10, 0); x.lineTo(-7, -7); x.lineTo(-3, 0); x.lineTo(-7, 7); x.closePath(); x.fill(); x.restore();
   },
   setView(c, keepHome) {
     if (!keepHome) this.home = JSON.parse(JSON.stringify(c));
-    const o = this.orbit; o.t.set(...c.t); o.r = c.r; o.th = c.th || 0; o.ph = c.ph || 1.15; this.applyOrbit();
+    const o = this.orbit; o.t.set(...c.t); o.r = c.r; o.th = c.th || 0; o.ph = c.ph || 1.15; this.quietNav = true; this.applyOrbit(); this.quietNav = false;
   },
   flyTo(c, dur = 700, clampIt) {
     const o = this.orbit, s = { t: o.t.clone(), r: o.r, th: o.th, ph: o.ph };
@@ -601,6 +683,8 @@ const E = {
     S.add(new THREE.AmbientLight(0xffffff, 1.0));
     const d = new THREE.DirectionalLight(0xffffff, 1.5); d.position.set(4, 10, 7); S.add(d);
     const d2 = new THREE.DirectionalLight(0xfff6e8, 0.75); d2.position.set(-6, 8, -7); S.add(d2);
+    this.ring = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.05, 6, 32), new THREE.MeshBasicMaterial({ color: 0xf57c00, transparent: true, opacity: 0.9, depthTest: false }));
+    this.ring.rotation.x = Math.PI / 2; this.ring.renderOrder = 15; this.ring.userData.noHit = true; this.ring.visible = false; S.add(this.ring); this.mapItems = null;
     this.scene = S; this.anims = []; this.onTap = null; this.onDrop = null; this.onDragMove = null; this.dragging = null;
     this.orbit.bx = 7.5; this.orbit.bz = 7.5; this.orbit.bz0 = null; this.orbit.y0 = 0.3; this.orbit.y1 = 5.8; this.orbit.minR = 0.8; this.orbit.maxR = 7.2;
     this.req(); return S;
@@ -2575,16 +2659,15 @@ function setBar(tools) {
     TBtn('－', '縮細', '縮細：睇遠啲', () => E.zoom(1.33)),
     TBtn('🎯', '返正面', '返正面：返返開頭嘅位置同角度', () => E.resetView())));
   walkBtn = TBtn('🚶', '行路', '行路掣：顯示或者收埋「前行、後退、左移、右移」', () => { UIW.walk = !UIW.walk; walkRow.hidden = !UIW.walk; walkBtn.classList.toggle('on', UIW.walk); requestAnimationFrame(() => E.resize()); });
-  /* 前後左右行：移動中心點，行去想睇嘅地方 */
-  const walkRow = h('div', { class: 'barrow' },
+  /* 前後左右行：移動中心點，行去想睇嘅地方；同「行路」掣同關卡工具擺喺同一行，慳位 */
+  const walkRow = h('span', { class: 'walkgrp' },
     TBtn('⬆', '前行', '前行：向住而家望緊嘅方向行前', () => E.walk(0, 1)),
     TBtn('⬇', '後退', '後退：向後行', () => E.walk(0, -1)),
     TBtn('⬅', '左移', '左移：向左邊行', () => E.walk(-1, 0)),
     TBtn('➡', '右移', '右移：向右邊行', () => E.walk(1, 0)));
   walkRow.hidden = !UIW.walk; walkBtn.classList.toggle('on', UIW.walk);
-  bar.append(walkRow);
   (tools || []).forEach(b => b.classList.add('tool'));
-  bar.append(h('div', { class: 'barrow' }, walkBtn, ...(tools || [])));
+  bar.append(h('div', { class: 'barrow' }, walkBtn, walkRow, ...(tools || [])));
 }
 function syncLevelTools() {
   const def = RUN ? RUN.def : LESSON ? LESSON.demo : null; if (!def || !def.toolOn) return;
@@ -2599,11 +2682,19 @@ function buildTopbar() {
     if (save.autoVoice) Voice.say('自動讀出開咗。'); else { Voice.stop(); Voice.say('自動讀出關咗。'); }
   }, 'hbtn');
   const vs = ui.voice.querySelector('.spk'); vs.replaceWith(spk(() => save.autoVoice ? '自動讀出：而家開咗。撳一下就會關。' : '自動讀出：而家關咗。撳一下就會開。'));
-  ui.set = Btn('⚙️ 設定', '設定：語音同進度', () => showSettings(), 'hbtn');
-  tb.append(ui.nav, brand, ui.voice, ui.set); refreshVoiceBtn();
+  /* 暫停／繼續語音：只有呢個掣先會停低背景語音 */
+  ui.pause = Btn('⏸ 暫停', () => Voice.paused ? '繼續：由停低嗰句繼續讀' : '暫停：暫停而家讀緊嘅語音', () => Voice.toggle(), 'hbtn');
+  ui.pause.querySelector('.spk').replaceWith(spk(() => Voice.paused ? '繼續：由停低嗰句繼續讀' : '暫停：暫停而家讀緊嘅語音'));
+  ui.set = Btn('<span class="em">⚙️ </span>設定', '設定：語音同進度', () => showSettings(), 'hbtn');
+  tb.append(ui.nav, brand, ui.voice, ui.pause, ui.set); refreshVoiceBtn(); refreshPauseBtn();
 }
-function refreshVoiceBtn() { ui.voice.querySelector('.lbl').textContent = save.autoVoice ? '🔊 自動讀：開' : '🔇 自動讀：關'; ui.voice.classList.toggle('on', save.autoVoice); }
-function navMode(home) { ui.nav.querySelector('.lbl').textContent = home ? '📚 目錄' : '🏠 目錄'; }
+function refreshPauseBtn() {
+  if (!ui.pause) return; const p = Voice.paused, b = Voice.busy();
+  ui.pause.querySelector('.lbl').innerHTML = p ? '<span class="em">▶ </span>繼續' : '<span class="em">⏸ </span>暫停';
+  ui.pause.classList.toggle('on', p); ui.pause.classList.toggle('idle', !p && !b);
+}
+function refreshVoiceBtn() { ui.voice.querySelector('.lbl').innerHTML = save.autoVoice ? '<span class="em">🔊 </span>自動讀' : '<span class="em">🔇 </span>自動讀'; ui.voice.classList.toggle('on', save.autoVoice); }
+function navMode(home) { ui.nav.querySelector('.lbl').innerHTML = (home ? '<span class="em">📚 </span>' : '<span class="em">🏠 </span>') + '目錄'; }
 
 /* 進度 */
 const lessonDone = n => !!save.lessons[n];
@@ -2629,7 +2720,7 @@ function showHome() {
   plant(S, -3.2, -2, 1); table(S, 2.6, -2.5, 1.6, 1, 1, 0xa1887f);
   let b = sayBubble(S, m, '一齊做小神探！');
   E.setView({ t: [0, 1.5, 0], r: 5, th: 0, ph: 1.25 });
-  E.onTap = hit => { if (hit.id === 'm') { setPose(m, 'wave'); setTimeout(() => setPose(m, 'magnify'), 900); b = sayBubble(S, m, '我係小神探！', b); if (save.autoVoice) Voice.say('你好！我係小神探，一齊練成神探眼啦！'); } };
+  E.onTap = hit => { if (hit.id === 'm') { setPose(m, 'wave'); setTimeout(() => setPose(m, 'magnify'), 900); b = sayBubble(S, m, '我係小神探！', b); Voice.fb('你好！我係小神探，一齊練成神探眼啦！'); } };
   setBar([]);
   const P = panel(); const nx = nextCh(), started = doneCount() > 0 || Object.keys(save.lessons).length > 0;
   const hero = Card(`<div class="hero"><h1>🕵️ 小神探洞察力訓練營</h1><div class="lead">練成神探眼：睇到人哋睇漏嘅細節！</div></div>`, '小神探洞察力訓練營。練成神探眼：睇到人哋睇漏嘅細節！', 'head');
@@ -2678,7 +2769,7 @@ function showMap() {
   const nx = nextCh();
   Voice.auto(`章節目錄。一共九章，每章學一招，有課堂同練習關。你已經完成 ${dc} 章。` + (nx ? `下一步係${chTitle(nx)}，撳嗰張卡就可以開始。` : '你已經完成晒全部章節，可以睇畢業總結！'));
 }
-function lockedSay(t) { Sfx.bad(); if (save.autoVoice) Voice.say(t); const n = h('div', { class: 'fb info pop' }, h('div', { class: 'fbi' }, '🔒'), h('div', { class: 'fbt' }, t)); n.append(spk(t)); const P = $('#panel'); const old = P.querySelector('.lockmsg'); if (old) old.remove(); n.classList.add('lockmsg'); P.insertBefore(n, P.children[1] || null); n.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+function lockedSay(t) { Sfx.bad(); Voice.fb(t); const n = h('div', { class: 'fb info pop' }, h('div', { class: 'fbi' }, '🔒'), h('div', { class: 'fbt' }, t)); n.append(spk(t)); const P = $('#panel'); const old = P.querySelector('.lockmsg'); if (old) old.remove(); n.classList.add('lockmsg'); P.insertBefore(n, P.children[1] || null); n.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
 function openChapter(n) { if (!lessonDone(n)) openLesson(n, 0); else if (!levelDone(n)) startLevel(n); else if (hasB(n) && !levelDone(n + 'b')) startLevel(n + 'b'); else openLesson(n, 0); }
 
 /* 課堂：四頁，每頁第一句講重點 */
@@ -2691,7 +2782,7 @@ function openLesson(n, page = 0) {
       d.revealed = true; LESSON.revealText = text || CH[n - 1].reveal;
       if (LESSON.page !== 1) { LESSON.page = 1; renderLesson(); } else renderLesson(true);
     };
-    d.info = t => { const box = $('#lessonInfo'); if (box) { box.className = 'fb info pop'; box.querySelector('.fbt').textContent = t; box.hidden = false; box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } if (save.autoVoice) Voice.say(t); };
+    d.info = t => { const box = $('#lessonInfo'); if (box) { box.className = 'fb info pop'; box.querySelector('.fbt').textContent = t; box.hidden = false; box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } Voice.fb(t); };
     d.syncTools = () => syncLevelTools();
     const demo = DEMOS[n](d); d.demo = demo; Object.assign(d, demo);
     LESSON = { n, d, demo, page };
@@ -2753,7 +2844,7 @@ function startLevel(id) {
   if (def.start) def.start(api);
   Voice.auto(def.mission + ' ' + def.story);
 }
-const HOW = '👆 撳：撳 3D 畫面入面嘅人或者物件。<br>✋ 轉：一隻手指（或者滑鼠左掣）拖動畫面，就可以轉視角。<br>🚶 行：兩隻手指一齊拖（或者滑鼠右掣拖），又或者撳下面「前行、後退、左移、右移」，就可以行去想睇嘅地方。<br>👆👆 撳兩下：飛去你撳嗰個位，睇近啲。<br>🤏 放大：兩隻手指撐開、滾輪，或者撳「放大」；會向住你手指嗰點放大。<br>💬 撳 3D 入面嘅對白泡泡，就會讀出佢講乜。<br>🎯 撳「返正面」就返返開頭嘅位置。';
+const HOW = '👆 撳：撳 3D 畫面入面嘅人或者物件。<br>✋ 轉：一隻手指（或者滑鼠左掣）拖動畫面，就可以轉視角。<br>🤏 放大縮細：兩隻手指撐開／收埋（或者滾輪），會對住畫面中間放大縮細。<br>🗺️ 移動：兩隻手指一齊拖（或者滑鼠右掣拖），好似拖地圖咁，手指下面嘅地下會跟住手指走。又或者撳「🚶 行路」用「前行、後退、左移、右移」。<br>👆👆 撳兩下：飛去你撳嗰個位，睇近啲。<br>🧭 郁緊嘅時候：地下有個橙色圈，話你知而家望緊邊度；左上角小地圖嘅紫色箭咀係你，橙色點係你望緊嘅位置。<br>💬 撳 3D 入面嘅對白泡泡，就會讀出佢講乜。<br>🔊 語音會喺背景一直讀，郁畫面都唔會停；想停就撳上面「⏸ 暫停」。<br>🎯 撳「返正面」就返返開頭嘅位置。';
 const HOWKEY = '<br>⌨️ 鍵盤：← → ↑ ↓ 轉視角，W A S D 前後左右行，＋ － 放大縮細，R 返正面。';
 function weight(t) { return t.need || 1; }
 function progressOf(R) { const ts = R.def.tasks; const tot = ts.reduce((a, t) => a + weight(t), 0); const got = ts.reduce((a, t) => a + (R.done[t.id] ? weight(t) : Math.min(R.cnt[t.id] || 0, weight(t))), 0); return { tot, got }; }
@@ -2792,7 +2883,7 @@ function setFb(R, kind, msg, pts, opt = {}) {
   const t = fb.querySelector('.fbt'); t.textContent = msg;
   if (pts) t.append(h('span', { class: 'pts' }, (pts > 0 ? '+' : '') + pts + ' 分'));
   fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  if (save.autoVoice && Voice.unlocked) Voice.say(msg, null, { delay: kind === 'info' && !opt.queue ? 0 : 260, queue: !!opt.queue });
+  Voice.fb(msg, kind === 'info' ? 0 : 260);
 }
 function makeApi(R) {
   const api = {
@@ -2851,7 +2942,7 @@ function offerExtra(R, left) {
     Btn('🔍 繼續搵額外發現', '繼續搵額外發現', () => { setFb(R, 'hint', '加油！' + (R.def.bonusHint || '再逐個角落睇一次。')); box.querySelector('.row').firstChild.remove(); }),
     Btn('✅ 答最後一題', '答最後一題', () => callAfter(R), 'primary')));
   box.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  if (save.autoVoice && Voice.unlocked) Voice.say(t, null, { queue: true });
+  Voice.ask(t);
 }
 const askSay = cfg => cfg.q + ' ' + cfg.opts.map((o, i) => `第${cn(i + 1)}個：${o.t}。`).join(' ');
 function renderAsk(R, cfg) {
@@ -2861,7 +2952,7 @@ function renderAsk(R, cfg) {
     const b = h('button', { class: 'opt', type: 'button' }, h('span', { class: 'num' }, String(i + 1)), h('span', { class: 'ot' }, o.t), h('span', { class: 'res' }, ''));
     b.append(spk(`第${cn(i + 1)}個：${o.t}`));
     b.addEventListener('click', () => {
-      Voice.unlock(); if (cfg.closed || b.classList.contains('wrong')) return;
+      Voice.unlock(); if (cfg.closed || b.classList.contains('wrong')) return; Voice.dropKind('q');
       if (o.ok) {
         cfg.closed = true; b.classList.add('right'); b.querySelector('.res').textContent = '✔';
         box.querySelectorAll('.opt').forEach(x => { if (x !== b) x.classList.add('dim'); });
@@ -2872,7 +2963,7 @@ function renderAsk(R, cfg) {
     box.append(b);
   });
   box.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  if (save.autoVoice && Voice.unlocked) Voice.say(askSay(cfg), null, { queue: true });
+  Voice.ask(askSay(cfg));
 }
 function renderChoices(R, cfg) {
   const box = R.ui.opts; box.innerHTML = '';
@@ -2883,7 +2974,7 @@ function renderChoices(R, cfg) {
     b.append(spk(`第${cn(i + 1)}個：${o.t}`));
     if ((o.task && R.done[o.task]) || (o.bonus && R.bonus[o.bonus])) { b.classList.add('right'); b.querySelector('.res').textContent = '✔'; }
     b.addEventListener('click', () => {
-      Voice.unlock(); if (b.classList.contains('right') || b.classList.contains('wrong')) return;
+      Voice.unlock(); if (b.classList.contains('right') || b.classList.contains('wrong')) return; Voice.dropKind('q');
       if (o.need && !R.done[o.need]) { R.api.info('先問清楚佢唔見咗乜，再問呢條會更清楚。'); return; }
       if (o.good) { b.classList.add('right'); b.querySelector('.res').textContent = '✔'; if (o.task) R.api.done(o.task, o.why); else if (o.bonus) R.api.bonus(o.bonus, o.why); else R.api.good(o.why, 5); }
       else { b.classList.add('wrong'); b.querySelector('.res').textContent = '✘'; R.api.bad(o.why); }
@@ -2892,7 +2983,7 @@ function renderChoices(R, cfg) {
     box.append(b);
   });
   box.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  if (save.autoVoice && Voice.unlocked) Voice.say(say(), null, { queue: true });
+  Voice.ask(say());
 }
 function giveHint(R) {
   R.ui.hint.classList.remove('hint-blink'); const def = R.def;
@@ -2935,7 +3026,7 @@ function showSummary() {
     const tex = canvasTex(128, 128, x => { x.fillStyle = '#108a45'; x.beginPath(); x.arc(64, 64, 60, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = `bold 70px ${FONT}`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(b[0], 64, 68); });
     texPlane(g, 0.7, 0.7, tex, 0, 0, 0.07); texPlane(g, 0.7, 0.7, tex, 0, 0, -0.07, Math.PI); g.lookAt(0, g.position.y, 0); g.rotateY(Math.PI); g.userData.tap = 'b' + i; });
   E.setView({ t: [0, 1.8, 0], r: 5.6, th: 0, ph: 1.25 });
-  E.onTap = hit => { if (hit.id && hit.id[0] === 'b') { const b = BADGES[+hit.id.slice(1)]; const g = hit.obj; const r0 = g.rotation.y; E.anim(700, k => { g.rotation.y = r0 + k * Math.PI * 2; }); Voice.say(b[1] + '：' + b[2]); } };
+  E.onTap = hit => { if (hit.id && hit.id[0] === 'b') { const b = BADGES[+hit.id.slice(1)]; const g = hit.obj; const r0 = g.rotation.y; E.anim(700, k => { g.rotation.y = r0 + k * Math.PI * 2; }); Voice.fb(b[1] + '：' + b[2]); } };
   setBar([]);
   const all = doneCount() === 9, P = panel();
   P.append(Card(`<h2>🎓 ${all ? '恭喜你成為小神探！' : '畢業總結'}</h2>`, all ? '恭喜你成為小神探！' : '畢業總結', 'head'));
