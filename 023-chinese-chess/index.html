@@ -1847,28 +1847,49 @@ var Think = {
       out.score = mine ? mine.score : null;
       var alts = [];
       for (var i = 0; i < cands.length && alts.length < 3; i++) if (cands[i].m !== m) alts.push(cands[i]);
-      out.alts = alts.map(function (c) { return self.whyNot(pos, c, mine ? mine.score : cands[0].score); });
+      out.alts = alts.map(function (c) { return self.whyNot(pos, c, mine ? mine.score : cands[0].score, mine ? mine.pv : cands[0].pv, note); });
     }
     return out;
   },
-  whyNot: function (pos, c, chosen) {
-    var b = pos.b, note = XQ.notation(b, c.m), d = chosen - c.score, tx;
-    var capTx = '';
+  /* 跟住一條預判行落去，計我方淨賺/淨蝕幾多分棋子 */
+  netGain: function (pos, pv, n) {
+    var q = pos.clone(), me = q.turn, net = 0, k = 0, cap = null;
+    for (var i = 0; i < Math.min(n || 4, (pv || []).length); i++) {
+      var m = pv[i]; if (!XQ.isLegal(q, m)) break;
+      var v = q.b[m >> 7];
+      if (v) { var val = this.val(v, m >> 7); net += (q.turn === me ? val : -val); if (q.turn !== me && !cap) cap = { ply: i, name: this.pName(v), note: XQ.notation(q.b, m) }; }
+      q.make(m); k++;
+    }
+    return { net: net, firstLoss: cap };
+  },
+  /* 點解唔揀呢一步（同揀咗嗰步比較） */
+  whyNot: function (pos, c, chosen, chosenPv, chosenNote) {
+    var b = pos.b, note = XQ.notation(b, c.m), d = chosen - c.score, tx, self = this;
+    var gap = (Math.abs(d) / 100).toFixed(1);
+    var rep = null;
     if (c.pv && c.pv.length > 1) {
       pos.make(c.pv[0]);
-      var rep = c.pv[1], vic = pos.b[rep >> 7];
-      if (vic) capTx = '對手會' + XQ.notation(pos.b, rep) + '，食咗我哋嘅' + this.pName(vic);
-      else if ((function () { pos.make(rep); var k = XQ.inCheck(pos); pos.unmake(); return k; })()) capTx = '對手會' + XQ.notation(pos.b, rep) + '反將軍';
+      if (XQ.isLegal(pos, c.pv[1])) rep = { note: XQ.notation(pos.b, c.pv[1]) };
       pos.unmake();
     }
+    var alt = this.netGain(pos, c.pv || [c.m], 4), mine = this.netGain(pos, chosenPv || [], 4);
+    var cmp = chosenNote ? '比' + chosenNote : '比揀咗嗰步';
     if (c.score < -XQ.MATE + 200) tx = '行咗會俾對方將死！';
-    else if (c.score > XQ.MATE - 200 && chosen > XQ.MATE - 200) tx = '都可以將死對方，不過要多幾步。';
-    else if (d < -30) tx = this.mode === 'human' ? '呢步比你揀嗰步好' + (-d / 100).toFixed(1) + '分！下次可以考慮。' :
-      this.mode === 'master' ? '電腦淺淺計覺得呢步分數高' + (-d / 100).toFixed(1) + '分；不過棋手可能有更長遠嘅計劃，值得諗吓點解佢唔咁行。' :
+    else if (c.score > XQ.MATE - 200 && chosen > XQ.MATE - 200) tx = '都可以將死對方，不過要多幾步先殺到。';
+    else if (chosen < -XQ.MATE + 200 && c.score < -XQ.MATE + 200) tx = '兩步都避唔到俾人將死。';
+    else if (chosen > XQ.MATE - 200) tx = '呢步殺唔到對方，但係' + (chosenNote || '揀咗嗰步') + '可以' + (chosen > XQ.MATE - 3 ? '即刻將死！' : '一路將死對方！');
+    else if (d > 1500) tx = '差好遠，' + (alt.firstLoss ? '對手可以' + alt.firstLoss.note + '食咗我哋嘅' + alt.firstLoss.name + '。' : '形勢會變得好差。');
+    else if (d < -20) tx = this.mode === 'human' ? '呢步比你揀嗰步好' + gap + '分！下次可以考慮。' :
+      this.mode === 'master' ? '電腦淺淺計覺得呢步分數高' + gap + '分；不過棋手可能有更長遠嘅計劃，值得諗吓點解佢唔咁行。' :
       this.mode === 'deep' ? '淺淺計呢步分數高少少，但電腦再諗深幾層之後，覺得揀咗嗰步更好（睇得越深越準）。' : '呢步其實仲好啲！（呢個等級嘅電腦有時會睇漏眼）';
-    else if (d <= 20) tx = '同揀咗嗰步差唔多咁好（相差唔夠0.3分），兩步都可以行。';
-    else if (capTx) tx = capTx + '，所以冇咁好（差' + (d / 100).toFixed(1) + '分）。';
-    else tx = '睇深幾步之後，形勢會差咗' + (d / 100).toFixed(1) + '分。';
+    else if (d <= 20) tx = '同' + (chosenNote || '揀咗嗰步') + '差唔多咁好（相差唔過0.2分），兩步都可以行。';
+    else if (alt.net < mine.net - 0.5) {
+      var lose = (mine.net - alt.net);
+      tx = alt.firstLoss ? '因為行完之後，對手可以' + alt.firstLoss.note + '食咗我哋嘅' + alt.firstLoss.name + '，計埋之後嘅交換，' + cmp + '少咗' + (lose % 1 ? lose.toFixed(1) : lose) + '分棋子。'
+        : '因為呢條路計落去，' + cmp + '少賺' + (lose % 1 ? lose.toFixed(1) : lose) + '分棋子。';
+    } else if (alt.net > mine.net + 0.5) tx = '呢步雖然可以多食啲棋子，但係之後局面' + cmp + '差（差' + gap + '分），即係「貪食」唔抵。';
+    else if (d <= 80) tx = '都唔錯，' + cmp + '差少少（' + gap + '分）。' + (rep ? '對手可以用' + rep.note + '應付，' : '') + '棋子位置冇咁好。';
+    else tx = '棋子冇蝕，但係睇深幾步之後，形勢' + cmp + '差' + gap + '分' + (rep ? '（對手會' + rep.note + '）' : '') + '，位置同主動權冇咁好。';
     return { m: c.m, note: note, score: c.score, delta: d, tx: tx };
   },
   pvList: function (pos, pv, n) {
@@ -1965,13 +1986,16 @@ var Think = {
     var ex2 = this.explain(pos, m, cands);
     var all = (cands || []).slice();
     if (!all.some(function (c) { return c.m === m; })) all.unshift({ m: m, score: ex2.score || 0, pv: [m] });
-    var chosenScore = all.filter(function (c) { return c.m === m; })[0].score;
+    /* 電腦諗深咗先揀嘅棋，或者同第一名打和，就排第一（淺層分數只係參考） */
+    var top0 = all[0], mc0 = all.filter(function (c) { return c.m === m; })[0];
+    if (mc0 !== top0 && (this.mode === 'deep' || top0.score - mc0.score <= 20)) { all.splice(all.indexOf(mc0), 1); all.unshift(mc0); }
+    var chosenC = all.filter(function (c) { return c.m === m; })[0], chosenScore = chosenC.score;
     var PAL = ['b', 'c', 'p', 'g', 'o', 'r'];
     var rows = all.map(function (c, i) {
       var chosen = c.m === m;
       return { m: c.m, note: XQ.notation(b, c.m), score: c.score, rank: i + 1, chosen: chosen,
         col: chosen ? 'y' : PAL[i % PAL.length], what: self.quick(pos, c.m),
-        why: chosen ? ex2.reasons.map(function (r) { return r.tx; }).join('') : self.whyNot(pos, c, chosenScore).tx,
+        why: chosen ? ex2.reasons.map(function (r) { return r.tx; }).join('') : self.whyNot(pos, c, chosenScore, chosenC.pv, ex2.note).tx,
         pv: self.pvList(pos, c.pv || [c.m], 5) };
     });
     var vals = rows.slice(0, 12).map(function (r) { return Math.max(-1500, Math.min(1500, r.score)); });
@@ -1984,7 +2008,7 @@ var Think = {
     var SHOW = 8;
     var html4 = '<div style="margin-bottom:6px">呢個局面一共有 <b>' + rows.length + '</b> 步棋可以行。我<b>每一步都試咗</b>，諗埋對手點應，再排好次序（分數越高越好，1分 ≈ 1隻兵）。<br><span style="font-size:14px;color:var(--ink2)">👆 撳任何一步，棋盤會顯示嗰步同埋之後嘅發展。</span></div>';
     rows.slice(0, SHOW).forEach(function (r, i) { html4 += rowHtml(r, i); });
-    var chosenIdx = rows.findIndex ? rows.findIndex(function (r) { return r.chosen; }) : 0;
+    var chosenIdx = rows.findIndex ? rows.findIndex(function (r) { return r.chosen; }) : 0; if (chosenIdx < 0) chosenIdx = 0;
     if (rows.length > SHOW) {
       html4 += '<details class="more"><summary>顯示其餘 ' + (rows.length - SHOW) + ' 步' + (chosenIdx >= SHOW ? '（包括揀咗嗰步）' : '') + '</summary>';
       rows.slice(SHOW).forEach(function (r, i) { html4 += rowHtml(r, i + SHOW); });
@@ -1994,8 +2018,21 @@ var Think = {
     var o4 = { arrows: [] };
     rows.slice(0, 5).forEach(function (r) { o4.arrows.push([r.m & 127, r.m >> 7, r.col, String(r.rank)]); });
     if (chosenIdx >= 5) { var cr = rows[chosenIdx]; o4.arrows.push([cr.m & 127, cr.m >> 7, 'y', String(cr.rank)]); }
-    var altSay = rows.filter(function (r) { return !r.chosen && chosenScore - r.score > 20; }).slice(0, 2).map(function (r) { return '點解唔行' + r.note + '？' + r.why; }).join('');
-    var say4 = me + '一共有' + rows.length + '步可以行，最後揀咗' + ex2.note + '。' + ex2.reasons.map(function (r) { return r.tx; }).join('') + altSay;
+    var cr0 = rows[chosenIdx] || rows[0], ORD = ['', '第一', '第二', '第三', '第四', '第五'];
+    var others = rows.filter(function (r) { return !r.chosen; });
+    var say4 = me + '一共有' + rows.length + '步可以行，最後揀咗' + ex2.note + (rows.length > 1 ? '，排第' + cr0.rank : '') + '。' + ex2.reasons.map(function (r) { return r.tx; }).join('');
+    if (cr0.rank > 1) say4 += '其實排第一嘅係' + rows[0].note + '：' + rows[0].why;
+    /* 由最好開始順住講：只講接住落嚟嗰兩步，極差嘅棋唔使解釋 */
+    var near = others.filter(function (r) { return r.rank > 1 || cr0.rank === 1; }).filter(function (r) { return chosenScore - r.score <= 300 || r.score > chosenScore; }).slice(0, 2);
+    if (cr0.rank === 1) near = others.slice(0, 2).filter(function (r) { return chosenScore - r.score <= 300; });
+    var mainWhy = ex2.reasons.length ? ex2.reasons[0].tx : '', contrasted = false;
+    near.forEach(function (r) {
+      var gapR = chosenScore - r.score, wt = r.what.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '').trim();
+      say4 += '排' + (ORD[r.rank] || '第' + r.rank) + '嘅係' + r.note + (wt ? '（' + wt + '）' : '') + '：' + r.why;
+      if (!contrasted && gapR > 20 && cr0.rank === 1 && mainWhy && chosenScore < XQ.MATE - 200) { say4 += '相比之下，' + ex2.note + '嘅好處係：' + mainWhy; contrasted = true; }
+    });
+    if (others.length && !near.length && cr0.rank === 1) say4 += '其他選擇全部都差好遠，所以呢步係唯一嘅好棋！';
+    else if (near.length === 1 && others.length > 1 && cr0.rank === 1) say4 += '再落去嘅選擇就差好遠喇。';
     steps.push({ k: 4, ic: '🎯', name: '揀：邊步最好？', sum: rows.length + '步候選 → 揀咗 ' + ex2.note, html: html4, say: say4, ov: o4, rows: rows });
     /* 5 預判：每個候選都諗對手點應 */
     var lines = rows.slice(0, 6);
