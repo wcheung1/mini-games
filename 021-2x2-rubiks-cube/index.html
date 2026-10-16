@@ -251,6 +251,12 @@ details.parents ul{margin:4px 0;padding-left:20px}
 .grp{align-items:flex-start;flex-wrap:wrap}
 .grp .pchip{background:rgba(255,255,255,.85)}
 @media (max-width:600px){ #realBtn,#autoVoiceBtn{padding:7px 10px;font-size:14px} .lbl-long{display:none} .brand small{display:none} }
+.nowstep{display:flex;gap:12px;align-items:center;background:#fff;border:3px solid #ffc2d8;border-radius:18px;padding:10px 12px;margin:10px 0 8px}
+.nowstep.done{border-color:#9fe0bb}
+.ns-move{font-size:36px;font-weight:900;color:var(--pink);min-width:70px;text-align:center;font-family:ui-rounded,"Arial Rounded MT Bold",system-ui}
+.ns-txt{flex:1;font-size:17px;line-height:1.45}
+.stepbtns{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin:6px 0 8px}
+.stepbtns .btn{font-size:20px;padding:15px 10px}
 /* responsive */
 @media (max-width:500px){ .viewpad{grid-template-columns:repeat(3,32px)!important;grid-template-rows:repeat(3,32px)!important;gap:2px;bottom:24px!important} .viewpad button{width:32px!important;height:32px!important;font-size:15px!important;border-radius:10px} }
 @media (max-width:1000px){ .work-body{grid-template-columns:minmax(0,1fr) 340px} .mvb{width:56px;height:54px} }
@@ -1314,9 +1320,9 @@ function doMove(tok, src = 'user') {
   if (src === 'user' && App.locked) return Promise.resolve();
   const post = C.apply(App.state, [tok]); App.state = post;
   if (src === 'undo') App.history.pop();
-  else if (src === 'user' || src === 'demo') App.history.push(tok);
+  else if (src === 'user' || src === 'demo' || src === 'step') App.history.push(tok);
   if (!C.parse(tok).isRot && src !== 'fast' && src !== 'fix') App.moves++;
-  const dur = src === 'fast' ? 75 : src === 'demo' ? 420 : App.speed;
+  const dur = src === 'fast' ? 75 : src === 'step' ? 700 : src === 'undo' ? 600 : src === 'demo' ? 420 : App.speed;
   const p = view.enqueue(tok, post, dur);
   hud();
   if (App.mode && App.mode.onMove && src !== 'fast' && src !== 'fix') App.mode.onMove(tok, src);
@@ -1402,6 +1408,31 @@ function celebrate({ title, text, stars, buttons }) {
   $('#celebrate').classList.add('show'); confetti(); Voice.maybe(say);
 }
 
+/* ---------- 逐步控制：一次只轉一步，等手上嘅真骰跟得切 ---------- */
+async function undoN(n) {
+  if (App.locked) return; App.locked = true;
+  try { for (let i = 0; i < n && App.history.length; i++) await doMove(C.inv(App.history[App.history.length - 1]), 'undo'); } finally { App.locked = false; }
+}
+async function doSteps(toksToDo) {
+  if (App.locked) return; App.locked = true;
+  try { for (const t of toksToDo) await doMove(t, 'step'); } finally { App.locked = false; }
+}
+// tok：今步要做嘅轉法（轉兩下會顯示 X2）；half：轉兩下已經做咗第一下
+function nowStepCard(tok, i, n, half) {
+  if (!tok) return `<div class="nowstep done"><div class="ns-move">✅</div><div class="ns-txt"><b>全部做完！</b></div></div>`;
+  return `<div class="nowstep"><div class="ns-move">${tok}</div><div class="ns-txt"><b>第 ${i} / ${n} 步</b><br>${MOVE_SAY[tok] || tok}${half ? '<br><span class="small-note">（已經轉咗一下，再轉多一下）</span>' : ''}</div>${spk(MOVE_SAY[tok] || tok, true)}</div>`;
+}
+// 由「拆開咗嘅四分一轉」計返「原本嘅步」
+function stepInfo(toks, ptr) {
+  const e = toks[ptr];
+  if (!e) return { tok: null, i: 0, todo: [] };
+  const isDbl = e.dbl !== undefined;
+  return { tok: isDbl ? e.t[0] + '2' : e.t, i: e.si + 1, half: isDbl && e.dbl === 1, todo: isDbl && e.dbl === 0 ? [e.t, e.t] : [e.t] };
+}
+function backCount(toks, ptr) { if (ptr <= 0) return 0; const e = toks[ptr], p = toks[ptr - 1]; if (e && e.dbl === 1) return 1; return p.dbl === 1 ? 2 : 1; }
+const STEP_BTNS = `<div class="stepbtns"><button class="btn ghost" data-act="sprev">◀ 上一步</button><button class="btn pink" data-act="snext">下一步 ▶</button></div>
+  <div class="small-note" style="text-align:center;margin:-2px 0 8px">撳一下只會轉<b>一步</b>：手上嘅骰跟住轉，對一對，再撳下一步。</div>`;
+
 /* ---------- 思考流程 ---------- */
 const STAGE_INFO = {
   A: { name: '第一大步：整好白色一層', flow: ['白色向下', '搵：邊粒角仔要返「前右下」？', '擺：轉頂層，擺喺屋企正上面', '跳：小舞步，跳到佢返屋企', '轉成個骰，搵下一間空屋'], done: '白色一層整好喇！' },
@@ -1427,16 +1458,17 @@ class Guide {
     const st = this.P.stageOf(App.state);
     if (st === 'done' || !this.stages.includes(st)) { this.finish(); return; }
     const p = this.P.plan(App.state);
-    this.stage = p.stage; this.chunks = p.chunks; this.toks = [];
+    this.stage = p.stage; this.chunks = p.chunks; this.toks = []; let si = 0;
     p.chunks.forEach((ch, ci) => {
       ch.start = this.toks.length;
       ch.seq.forEach(t => {
-        if (t.endsWith('2') && !'xyz'.includes(t[0])) { this.toks.push({ t: t[0], ci, dbl: 0 }); this.toks.push({ t: t[0], ci, dbl: 1 }); }
-        else this.toks.push({ t, ci });
+        if (t.endsWith('2') && !'xyz'.includes(t[0])) { this.toks.push({ t: t[0], ci, dbl: 0, si }); this.toks.push({ t: t[0], ci, dbl: 1, si }); }
+        else this.toks.push({ t, ci, si });
+        si++;
       });
       ch.end = this.toks.length;
     });
-    this.ptr = 0; this.dev = []; this.ci = -1; this.msg = null;
+    this.ptr = 0; this.dev = []; this.ci = -1; this.msg = null; this.nSteps = si;
     if (!this.toks.length) { this.stageDone(); return; }
     this.enterChunk(`${STAGE_INFO[this.stage].name}！`);
   }
@@ -1463,8 +1495,8 @@ class Guide {
       if (tok !== e.t) { e.t = tok; this.toks[this.ptr + 1].t = tok; }
       this.ptr++; this.advance(); return;
     }
-    if (this.ptr > 0 && tok === C.inv(this.toks[this.ptr - 1].t) && this.toks[this.ptr - 1].ci === this.ci) {
-      this.ptr--; this.msg = null; this.render(); return;
+    if (this.ptr > 0 && tok === C.inv(this.toks[this.ptr - 1].t)) {
+      this.ptr--; this.msg = null; this.ci = this.toks[this.ptr].ci; this.render(); return;
     }
     this.dev.push(tok); this.devTotal++; this.msg = null; this.render();
     Voice.maybe('咦，呢步唔喺計劃入面。唔緊要，撳返轉頭就得！');
@@ -1530,6 +1562,11 @@ class Guide {
     if (this.msg && !this.dev.length) h += `<div class="msg ${this.msg.type}">${fmt(this.msg.text)}</div>`;
     if (this.dev.length) h += `<div class="msg dev">咦～呢步唔喺計劃入面（多咗 ${this.dev.length} 步）。<br>唔緊要！撳 <b>↩ 返轉頭</b>${this.dev.length === 1 ? `（或者撳 {${C.inv(this.dev[0])}}）` : ''} 就返到正軌。`.replace(/\{([^}]+)\}/g, (m, x) => `<span class="mv">${x}</span>`) + '</div>';
     h += '</div>';
+    if (showHints || this.dev.length) {
+      if (this.dev.length) h += `<div class="nowstep"><div class="ns-move">${exp}</div><div class="ns-txt"><b>先轉返轉頭</b><br>${MOVE_SAY[exp]}</div></div>`;
+      else { const si = stepInfo(this.toks, this.ptr); h += nowStepCard(si.tok, si.i, this.nSteps, si.half); }
+    }
+    h += STEP_BTNS;
     // 腦中地圖
     h += `<div class="mini-wrap"><div id="miniNet"></div><div class="legend">🗺️ 腦入面嘅地圖<br>✨ 閃緊：主角<br>${ring.size ? '⬚ 虛線：佢嘅屋企<br>' : ''}<span style="opacity:.8">（頂／前／右…同 3D 骰一樣）</span></div></div>`;
     // 計劃
@@ -1565,8 +1602,6 @@ class Guide {
       h += '</div>';
     }
     h += '<div class="actions">';
-    if (ch.kind !== 'rot') h += '<button class="btn sm pink" data-act="demo">🎬 示範呢步</button>';
-    h += '<button class="btn sm ghost" data-act="undo">↩ 返轉頭</button>';
     if (this.dev.length >= 2) h += '<button class="btn sm ghost" data-act="replan">🧠 重新諗過</button>';
     if (this.canHide) h += `<button class="btn sm ghost" data-act="hide">${this.hidden ? '👀 顯示提示' : '🙈 收埋提示'}</button>`;
     if (this.hidden && this.reveal !== this.ci) h += '<button class="btn sm" data-act="reveal">💡 提示</button>';
@@ -1578,24 +1613,21 @@ class Guide {
       const b = e.target.closest('[data-act]'); if (!b) return;
       const a = b.dataset.act;
       if (a === 'rot') { if (!App.locked) doMove(this.expected(), 'user'); }
-      else if (a === 'demo') this.demo();
-      else if (a === 'undo') undo();
+      else if (a === 'snext') this.stepOnce();
+      else if (a === 'sprev') { if (this.dev.length) undoN(1); else undoN(backCount(this.toks, this.ptr)); }
       else if (a === 'replan') { this.dev = []; this.start(); }
       else if (a === 'hide') { this.hidden = !this.hidden; this.render(); }
       else if (a === 'reveal') { this.reveal = this.ci; this.render(); Voice.maybe(this.chunk().say); }
       else if (a === 'exit') { this.destroy(); this.onExit(); }
     };
   }
-  async demo() {
+  // 「下一步 ▶」：幫手轉一步（只係一步），慢慢轉
+  async stepOnce() {
     if (App.locked || this.done) return;
-    this.demoUsed++; App.locked = true;
-    try {
-      while (this.dev.length && !this.done) await doMove(C.inv(this.dev[this.dev.length - 1]), 'demo');
-      const ci = this.ci;
-      while (!this.done && this.ci === ci && this.ptr < this.toks.length && this.toks[this.ptr].ci === ci) {
-        await doMove(this.toks[this.ptr].t, 'demo'); await sleep(90);
-      }
-    } finally { App.locked = false; }
+    const exp = this.expected(); if (!exp) return;
+    if (!this.helped) this.helped = new Set();
+    if (!this.helped.has(this.ci)) { this.helped.add(this.ci); this.demoUsed++; }
+    await doSteps(this.dev.length ? [exp] : stepInfo(this.toks, this.ptr).todo);
   }
 }
 
@@ -2085,7 +2117,7 @@ function showStory(p) {
     <div class="dots" style="margin-bottom:10px">${L.pages.map((_, k) => `<i class="${k <= p ? 'on' : ''}"></i>`).join('')}</div>
     <div class="txt">${fmt(pg.text)}</div>
     ${pg.visualFn ? `<div class="visual">${pg.visualFn()}</div>` : pg.visual ? `<div class="visual">${pg.visual}</div>` : ''}
-    ${pg.alg ? `<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn pink" data-act="cdemo">🎬 3D 慢動作</button><button class="btn" data-act="ctry">✋ 自己試</button><button class="btn ghost sm" data-act="creset">↩ 重設</button></div>${App.realCube ? '<div style="text-align:center;margin-top:8px"><button class="btn sm ghost" data-act="csetup">📦 喺手上嘅骰擺出呢個情況</button></div>' : ''}` : ''}
+    ${pg.alg ? `<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn pink" data-act="cdemo">🎬 一步一步睇</button><button class="btn" data-act="ctry">✋ 自己試</button><button class="btn ghost sm" data-act="creset">↩ 重設</button></div>${App.realCube ? '<div style="text-align:center;margin-top:8px"><button class="btn sm ghost" data-act="csetup">📦 喺手上嘅骰擺出呢個情況</button></div>' : ''}` : ''}
     ${pg.demo ? `<div style="text-align:center;margin-top:12px"><button class="btn pink" data-act="demo">▶ 睇示範：${pg.demo.map(t => `<span class="mv" style="background:#fff">${t}</span>`).join(' ')}</button></div>` : ''}
     <div class="navrow"><button class="btn ghost" data-act="prev" ${p === 0 ? 'disabled' : ''}>◀ 上一頁</button>
     ${last ? '<button class="btn green" data-act="go">開始練習 ▶</button>' : '<button class="btn" data-act="next">下一頁 ▶</button>'}</div>
@@ -2094,12 +2126,18 @@ function showStory(p) {
   side().onclick = async e => {
     const b = e.target.closest('[data-act]'); if (!b) return;
     const a = b.dataset.act;
-    if (a === 'cdemo') { playCaseDemo(pg); return; }
+    if (a === 'cdemo') {
+      if (App.locked) return;
+      algTrainer({ state: pg.caseFn(), seq: pg.alg, groups: pg.groups, title: `🎬 一步一步睇：${pg.t}`,
+        intro: '撳「下一步 ▶」，iPad 會<b>慢慢轉一步</b>。手上有骰就跟住一齊轉，對一對先再撳下一步；撳「◀ 上一步」可以退返。',
+        onDone: r => trainerDone(r, () => showStory(p), null, '睇完喇！而家試下撳「✋ 自己試」自己做一次！'), onBack: () => showStory(p) });
+      return;
+    }
     if (a === 'creset') { if (!App.locked) setState(pg.caseFn()); return; }
     if (a === 'csetup') { if (!App.locked) realCubeSetup(pg.caseFn(), { what: `「${pg.t}」呢個情況` }).then(() => showStory(p)); return; }
     if (a === 'ctry') {
       if (App.locked) return;
-      algTrainer({ state: pg.caseFn(), seq: pg.alg, groups: pg.groups, title: `✋ 自己試：${pg.t}`, intro: '跟住粉紅色箭咀同閃緊嘅按鈕做。做錯會自動幫你轉返轉頭！',
+      algTrainer({ state: pg.caseFn(), seq: pg.alg, groups: pg.groups, title: `✋ 自己試：${pg.t}`, intro: '自己試下！跟住粉紅色箭咀同閃緊嘅按鈕做，做錯會自動幫你轉返轉頭。唔記得就撳「下一步 ▶」，粒粒幫你轉一步。',
         onDone: r => trainerDone(r, () => showStory(p), () => side().querySelector('[data-act="again"]')), onBack: () => showStory(p) });
       return;
     }
@@ -2107,34 +2145,19 @@ function showStory(p) {
     else if (a === 'next') showStory(p + 1);
     else if (a === 'go') startActivity();
     else if (a === 'demo') {
-      if (App.locked) return; App.locked = true; view.setSpin(false);
-      Voice.maybe(pg.demo.map(t => MOVE_SAY[t]).join('，'));
-      for (const t of pg.demo) { view.showArrow(t); await doMove(t, 'demo'); await sleep(250); }
-      view.showArrow(null); await sleep(600);
-      if (pg.demo !== C.DANCE) for (const t of C.invSeq(pg.demo)) await doMove(t, 'fix');
-      else { toast('再跳 5 次就會變返原狀！'); }
-      App.locked = false; App.history = []; App.moves = 0; hud();
+      if (App.locked) return; view.setSpin(false);
+      const back = () => { setState(LS); showStory(p); };
+      algTrainer({ state: LS, seq: pg.demo, title: '🎬 一步一步睇', intro: `撳「下一步 ▶」一步一步睇${HOLD_LS_NOTE_SHORT}`,
+        onDone: r => trainerDone(r, back, null, pg.demo === C.DANCE ? '跳完一次小舞步！再跳 5 次就會變返原狀。' : '睇完喇！'), onBack: back });
     }
   };
   Voice.maybe(say);
 }
 $('#reviewBtn').onclick = () => { if (App.lesson && $('#reviewBtn').dataset.ctx !== 'free') { leaveMode(); showStory(0); } };
 
-async function playCaseDemo(pg) {
-  if (App.locked) return; App.locked = true;
-  setState(pg.caseFn()); await sleep(300);
-  const groups = pg.groups || [pg.alg];
-  for (let gi = 0; gi < groups.length; gi++) {
-    Voice.maybe(`第${gi + 1}段：` + groups[gi].map(t => MOVE_SAY[t]).join('，'));
-    for (const t of groups[gi]) { view.showArrow(t); await doMove(t, 'demo'); await sleep(380); }
-    await sleep(500);
-  }
-  view.showArrow(null); App.locked = false; App.history = []; App.moves = 0; hud();
-  toast('🎉 做完喇！睇下個骰變成點？'); Voice.maybe('做完喇！睇下個骰變成點？想再睇就撳重設。');
-}
-function trainerDone(r, back, again) {
+function trainerDone(r, back, again, custom) {
   const good = r.wrong === 0 && !r.demo;
-  const t = good ? '一次過做啱晒！好勁！' : '做完喇！多練幾次就會越嚟越順。';
+  const t = custom || (good ? '一次過做啱晒！好勁！' : '做完喇！多練幾次就會越嚟越順。');
   side().insertAdjacentHTML('beforeend', `<div class="okbox" style="margin-top:10px">🎉 ${t}</div><div class="actions" style="margin-top:10px"><button class="btn green" data-act="back2">📖 返去課本</button></div>`);
   side().querySelector('[data-act="back2"]').onclick = e => { e.stopPropagation(); back(); };
   confetti(); Voice.maybe(t);
@@ -2142,6 +2165,7 @@ function trainerDone(r, back, again) {
 /* 📦 準備：由整齊嘅扭計骰，用最少步數扭成關卡嘅樣（等小朋友手上嘅真骰同 iPad 一樣） */
 const swc = c => `<span class="sw" style="width:16px;height:16px;background:${COLORS[c]}"></span>`;
 const holdText = T => `${swc(T[0])}<b>${C.CNAME[T[0]]}色向上</b>、${swc(T[8])}<b>${C.CNAME[T[8]]}色向前</b>（${C.CNAME[T[4]]}色喺右邊）`;
+const HOLD_LS_NOTE_SHORT = '。手上有骰？拎住<b>整齊</b>嘅骰（黃色向上、綠色向前），iPad 轉一步，你就跟住轉一步。';
 const HOLD_LS_NOTE = `<div class="small-note" style="margin-top:6px">🧊 手上有扭計骰？拎住<b>整齊</b>嘅骰：${holdText(LS)}，同 iPad 一齊扭！</div>`;
 function realCubeSetup(S, o = {}) {
   return new Promise(resolve => {
@@ -2160,7 +2184,7 @@ function realCubeSetup(S, o = {}) {
     const what = o.what || '呢個關卡嘅樣';
     const start = () => {
       App.locked = false; setState(R.T); view.resetView(); renderPad(['U', 'R', 'F', 'D', 'L', 'B']);
-      const intro = `① 拎起一粒<b>整齊</b>嘅扭計骰：${holdText(R.T)}，同 iPad 入面一樣。<br>② 跟住粉紅色箭咀，<b>手上嘅骰轉一下，就撳 iPad 同一個掣一下</b>。最少 <b>${R.moves.length} 步</b>就擺到${what}！`;
+      const intro = `① 拎起一粒<b>整齊</b>嘅扭計骰：${holdText(R.T)}，同 iPad 入面一樣。<br>② 撳「<b>下一步 ▶</b>」，iPad 會慢慢轉<b>一步</b>；你手上嘅骰跟住轉同一步，對一對，再撳下一步。轉錯可以撳「◀ 上一步」退返。最少 <b>${R.moves.length} 步</b>就擺到${what}！`;
       Voice.maybe(`準備！拎起一粒整齊嘅扭計骰，${C.CNAME[R.T[0]]}色向上，${C.CNAME[R.T[8]]}色向前。跟住箭咀，手上嘅骰同 iPad 一齊轉，${R.moves.length}步就擺到${what}。`);
       algTrainer({
         seq: R.moves, title: `📦 準備：擺出${what}`, intro,
@@ -2191,8 +2215,8 @@ function algTrainer(o) {
   if (o.state) setState(o.state);
   App.history = [];
   const toks = [];
-  o.seq.forEach(t => { if (t.endsWith('2') && !'xyz'.includes(t[0])) { toks.push({ t: t[0], dbl: 0 }); toks.push({ t: t[0], dbl: 1 }); } else toks.push({ t }); });
-  let ptr = 0, msg = null, wrong = 0, demo = 0, done = false;
+  o.seq.forEach((t, si) => { if (t.endsWith('2') && !'xyz'.includes(t[0])) { toks.push({ t: t[0], dbl: 0, si }); toks.push({ t: t[0], dbl: 1, si }); } else toks.push({ t, si }); });
+  let ptr = 0, msg = null, wrong = 0, demo = 0, done = false, spoken = -1;
   const mode = {
     destroy() { done = true; view.showArrow(null); padHint(null); view.setHL(null); },
     render() {
@@ -2212,19 +2236,23 @@ function algTrainer(o) {
       });
       side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>${o.title}</h3>${spk(cleanSay(o.intro || ''))}</div>
         ${o.intro ? `<div class="thought" style="font-size:16px">${fmt(o.intro)}${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}</div>` : ''}
-        <div class="plan"><div class="lbl">步驟（${Math.min(ptr, toks.length)} / ${toks.length}）${ptr < toks.length && toks[ptr].dbl === 1 ? '　轉兩下嘅第二下' : ''}</div><div class="chips" style="gap:4px">${chips}</div></div>
-        <div class="actions"><button class="btn sm pink" data-act="tdemo">🎬 示範</button><button class="btn sm ghost" data-act="undo">↩ 返轉頭</button>${o.onBack ? '<button class="btn sm ghost" data-act="tback">📖 返去</button>' : ''}${(o.extra || []).map(x => `<button class="btn sm ghost" data-act="x_${x.act}">${x.label}</button>`).join('')}</div>`;
+        ${(() => { const si = stepInfo(toks, ptr); return nowStepCard(si.tok, si.i, o.seq.length, si.half); })()}
+        ${ptr < toks.length ? STEP_BTNS : ''}
+        <div class="plan"><div class="lbl">成串步驟（${ptr >= toks.length ? o.seq.length : toks[ptr].si} / ${o.seq.length}）</div><div class="chips" style="gap:4px">${chips}</div></div>
+        <div class="actions">${o.onBack ? '<button class="btn sm ghost" data-act="tback">📖 返去</button>' : ''}${(o.extra || []).map(x => `<button class="btn sm ghost" data-act="x_${x.act}">${x.label}</button>`).join('')}</div>`;
       side().onclick = async e => {
         const b = e.target.closest('[data-act]'); if (!b) return;
         const a = b.dataset.act;
-        if (a === 'undo') undo();
+        if (a === 'sprev') undoN(backCount(toks, ptr));
+        else if (a === 'snext') {
+          if (App.locked || done || ptr >= toks.length) return;
+          demo++; await doSteps(stepInfo(toks, ptr).todo);
+        }
         else if (a === 'tback') { done = true; o.onBack(); }
         else if (a.startsWith('x_')) { const x = (o.extra || []).find(y => 'x_' + y.act === a); if (x && !App.locked) { done = true; view.showArrow(null); padHint(null); x.fn(); } }
-        else if (a === 'tdemo') {
-          if (App.locked) return; demo++; App.locked = true;
-          try { while (!done && ptr < toks.length) { await doMove(toks[ptr].t, 'demo'); await sleep(120); } } finally { App.locked = false; }
-        }
       };
+      const cur = stepInfo(toks, ptr);
+      if (cur.tok && !cur.half && spoken !== cur.i) { spoken = cur.i; Voice.maybe(`第${cur.i}步：${MOVE_SAY[cur.tok]}`); }
     },
     onMove(tok, src) {
       if (done) return;
@@ -2243,6 +2271,7 @@ function algTrainer(o) {
     }
   };
   App.mode = mode; mode.render();
+  if (!toks.length) { done = true; view.showArrow(null); padHint(null); setTimeout(() => o.onDone && o.onDone({ wrong: 0, demo: 0 }), 300); }
   return mode;
 }
 
@@ -2270,19 +2299,22 @@ function runObserve(A) {
       const maxN = Math.max(...counts.map(x => x.n));
       const rows = counts.slice().sort((a, b) => a.n - b.n).map(x => `<div class="rb" style="grid-template-columns:62px 1fr 58px;${x.c === k ? 'background:#fff3c4' : ''}"><span class="rl" style="color:var(--ink)"><span class="sw" style="width:14px;height:14px;background:${COLORS[x.c]}"></span> ${C.CNAME[x.c]}</span><span class="rt" style="height:16px"><i style="width:${x.n / maxN * 100}%;${x.n === min ? 'background:#19b36b' : ''}"></i></span><span class="rn">${x.n > 6 ? '6+' : x.n} 步${x.n === min ? ' ⭐' : ''}</span></div>`).join('');
       const t = ok ? `好眼光！${C.CNAME[k]}色只要 ${mine.n} 步，係最快之一！` : `差少少！${C.CNAME[k]}色要 ${mine.n > 6 ? '6 步以上' : mine.n + ' 步'}；最快係${best.map(x => C.CNAME[x.c]).join('、')}色，只要 ${min} 步。`;
+      const showResult = () => {
+      App.mode = { destroy() {} }; view.showArrow(null); padHint(null);
       side().innerHTML = `<div class="brain-head">${mascot(40, ok ? 'wow' : 'happy')}<h3>👀 觀察結果</h3>${spk(t)}</div>
         <div class="${ok ? 'okbox' : 'errbox'}">${ok ? '✅' : '🤔'} ${t}</div>
         <div class="plan" style="margin-top:10px"><div class="lbl">每種顏色最少要幾多步整好一面（⭐＝最快）</div><div class="ripple">${rows}</div></div>
-        <div class="actions"><button class="btn pink" data-act="show">🎬 睇粒粒點整${C.CNAME[best[0].c]}色</button><button class="btn green" data-act="nxt">${r + 1 < A.rounds ? '下一輪 ▶' : '完成 ✔'}</button></div>`;
-      Voice.maybe(t);
+        <div class="actions">${best[0].p.length ? `<button class="btn pink" data-act="show">🎬 一步一步睇粒粒點整${C.CNAME[best[0].c]}色</button>` : `<div class="okbox">${C.CNAME[best[0].c]}色已經有一面整好咗！</div>`}<button class="btn green" data-act="nxt">${r + 1 < A.rounds ? '下一輪 ▶' : '完成 ✔'}</button></div>`;
       side().onclick = async e2 => {
         const b2 = e2.target.closest('[data-act]'); if (!b2 || App.locked) return;
         if (b2.dataset.act === 'show') {
-          App.locked = true; setState(st); await sleep(300);
-          for (const m of best[0].p) { view.showArrow(m); await doMove(m, 'demo'); await sleep(350); }
-          view.showArrow(null); App.locked = false; toast(`🎉 ${C.CNAME[best[0].c]}色一面整好喇！`);
+          algTrainer({ state: st, seq: best[0].p, title: `🎬 一步一步睇：整${C.CNAME[best[0].c]}色一面`,
+            intro: '撳「下一步 ▶」，iPad 會慢慢轉一步；手上有骰就一齊轉。留意同色格仔點樣慢慢砌埋一齊！',
+            onDone: () => { toast(`🎉 ${C.CNAME[best[0].c]}色一面整好喇！`); Voice.maybe(`${C.CNAME[best[0].c]}色一面整好喇！`); setTimeout(showResult, 900); }, onBack: showResult });
         } else { r++; if (r < A.rounds) round(); else lessonDone(right >= A.rounds - 1 ? 3 : right >= 2 ? 2 : 1); }
       };
+      };
+      showResult(); Voice.maybe(t);
     };
   };
   round();
