@@ -248,8 +248,9 @@ details.parents ul{margin:4px 0;padding-left:20px}
 .ollc{background:#fff;border-radius:14px;padding:6px;text-align:center;box-shadow:0 2px 0 #e6e1f5;display:flex;flex-direction:column;align-items:center}
 .ollc b{font-size:13.5px;margin-top:2px}
 .ollc span{font-size:11px;color:var(--ink2);font-family:ui-rounded,system-ui;line-height:1.3}
-.grp{align-items:flex-start}
+.grp{align-items:flex-start;flex-wrap:wrap}
 .grp .pchip{background:rgba(255,255,255,.85)}
+@media (max-width:600px){ #realBtn,#autoVoiceBtn{padding:7px 10px;font-size:14px} .lbl-long{display:none} .brand small{display:none} }
 /* responsive */
 @media (max-width:500px){ .viewpad{grid-template-columns:repeat(3,32px)!important;grid-template-rows:repeat(3,32px)!important;gap:2px;bottom:24px!important} .viewpad button{width:32px!important;height:32px!important;font-size:15px!important;border-radius:10px} }
 @media (max-width:1000px){ .work-body{grid-template-columns:minmax(0,1fr) 340px} .mvb{width:56px;height:54px} }
@@ -272,7 +273,8 @@ details.parents ul{margin:4px 0;padding-left:20px}
   <button class="pill" id="homeBtn" aria-label="返主頁">🏠</button>
   <div class="brand"><span id="brandMascot"></span>粒粒扭計骰學堂 <small>2×2</small></div>
   <div class="sp"></div>
-  <button class="pill on" id="autoVoiceBtn">🔊 自動讀：開</button>
+  <button class="pill on" id="realBtn">🧊 實物骰：開</button>
+  <button class="pill on" id="autoVoiceBtn">🔊 <span class="lbl-long">自動讀：</span>開</button>
 </header>
 
 <main>
@@ -939,6 +941,38 @@ details.parents ul{margin:4px 0;padding-left:20px}
   }
   function pieceAt(T, slotName) { return pieceName(SLOT[slotName].st.map(i => T[i])); }
 
+
+  // ---------- 由整齊樣「最快打亂」去指定樣（俾小朋友喺手上真骰擺出同一個樣） ----------
+  let ROTS = null, CONJ = null;
+  const FACE18 = ['U', 'R', 'F', 'D', 'L', 'B'].flatMap(f => [f, f + "'", f + '2']);
+  function initRots() {
+    if (ROTS) return;
+    const id = Array.from({ length: 24 }, (_, i) => i);
+    ROTS = [{ seq: [], k: id.join() }]; const seen = new Set([id.join()]);
+    for (let h = 0; h < ROTS.length; h++) for (const r of ['x', 'y', 'z']) {
+      const seq = ROTS[h].seq.concat([r]), k = apply(id, seq).join();
+      if (!seen.has(k)) { seen.add(k); ROTS.push({ seq, k }); }
+    }
+    const fk = {}; FACE18.forEach(m => { fk[apply(id, [m]).join()] = m; });
+    CONJ = ROTS.map(R => { const map = {}; SM.forEach(m => { map[m] = fk[apply(id, R.seq.concat([m], invSeq(R.seq))).join()]; }); return map; });
+  }
+  const LS_KEY = apply(STD, 'z2').join();
+  // 回傳 { T: 開始時要拎住嘅整齊樣, moves: 由 T 扭去 S 嘅最少步驟 }
+  function scrambleRecipe(S) {
+    initRots();
+    let best = null;
+    ROTS.forEach((R, ri) => {
+      const r = solve(apply(S, R.seq)); if (!r.ok) return;
+      const Q = r.moves.map(m => CONJ[ri][m]);
+      const T = apply(S, Q); if (!isSolved(T)) return;
+      const frame = T.join() === LS_KEY ? 0 : T[0] === Y ? 0.2 : 0.5;
+      const dlb = Q.filter(m => 'DLB'.includes(m[0])).length;
+      const score = Q.length + frame + dlb * 0.01;
+      if (!best || score < best.score) best = { score, T, moves: invSeq(Q) };
+    });
+    return best;
+  }
+
   // ---------- 隨機 ----------
   const rnd = n => Math.floor(Math.random() * n);
   function scramble(n = 20) {
@@ -957,7 +991,7 @@ details.parents ul{margin:4px 0;padding-left:20px}
     parse, perm, apply, toks, inv, invSeq, STD, REFS, LESSON_SOLVED, isSolved, layerDone, whiteLayerFace, stageOf,
     faceUniform, analyse, solve, buildTables, planA, planB, planC, planStage, DANCE, HEADLIGHT_ALG, scramble, rnd,
     stickerOn, slotOfSticker, findPiece, pieceName, SM, distOf, neighbours, distHistogram, homeInfo, pieceAt,
-    OLL_ALGS, PBL_ALGS, stageOfOrtega, ortegaPlan, faceSearch, layerBars, solveCount, countMoves, faceList, faceSearchColor, barKind, KIND_ZH
+    OLL_ALGS, PBL_ALGS, stageOfOrtega, ortegaPlan, faceSearch, layerBars, solveCount, countMoves, faceList, faceSearchColor, barKind, KIND_ZH, scrambleRecipe
   };
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -1260,7 +1294,7 @@ function renderNet(el, state, o = {}) {
 }
 
 /* ---------- App 狀態 ---------- */
-const App = { state: LS.slice(), history: [], mode: null, speed: 260, locked: false, moves: 0, lesson: null, timerStart: 0, timerOn: false };
+const App = { realCube: (() => { try { return localStorage.getItem('lili-real') !== '0'; } catch (e) { return true; } })(), state: LS.slice(), history: [], mode: null, speed: 260, locked: false, moves: 0, lesson: null, timerStart: 0, timerOn: false };
 let view;
 const side = () => $('#side');
 
@@ -1305,7 +1339,7 @@ const PAD_INFO = {
 };
 const ROT_INFO = { y: '⟲ 成個骰左轉', "y'": '⟳ 成個骰右轉', x: '⤴ 成個骰上翻', "x'": '⤵ 成個骰落翻', z2: '🔄 上下調轉' };
 function renderPad(faces, opt = {}) {
-  const pad = $('#pad');
+  const pad = $('#pad'); App.padFaces = faces; App.padOpt = opt;
   if (!faces) { pad.classList.add('hide'); return; }
   pad.classList.remove('hide');
   const order = ['U', 'R', 'F', 'D', 'L', 'B'].filter(f => faces.includes(f));
@@ -1982,6 +2016,7 @@ function renderHome() {
     <h4>用咩方法教？</h4>
     <p>採用最正統嘅<b>層先法（Layer-by-Layer）</b>：① 白色一層 ② 黃色面 ③ 頂層角位排好。成個方法只需要記<b>兩條公式</b>：「小舞步」R U R' U'（第一、二步都用佢），同埋 Rubik's 官方教學都用嘅「車頭燈公式」R' F R' B2 R F' R' B2 R2。第二步用「翻轉大法」重用小舞步，令小朋友少記一條公式；第 6 關亦有介紹更快嘅「魚仔公式」（Sune）作延伸。</p>
     <h4>🏎️ 高手之路（第 9–18 關，教科書版）</h4><p>學識三大步之後，可以學世界紀錄選手方法嘅第一級：<b>Ortega</b>（一面 → OLL 7 條 → PBL 5 條，共 12 條公式）。每個技巧都係「📖 課本關 → 🎯 實戰關」：課本關逐個情況講「點認、點拎、點做」，有圖、分段公式、3D 慢動作示範同「✋ 自己試」，最後有認圖案測驗；實戰關先用粒粒個腦陪練，再可以收埋提示。另有「15 秒觀察」同「插角三招」練習，教小朋友自己整一面，而唔係只跟電腦。喺你部機量度，平均大約 22 步，三大步就要 80 幾步。頂尖選手再進一步用 CLL（42 條）同 EG（三組各 42 條），仲會利用 15 秒觀察時間諗好成個解法。紀錄資料（截至 2026 年 8 月）：單次 0.39 秒（葉梓渝，2025 年 10 月）；平均 0.86 秒（Sujan Feist，2025 年 12 月）。</p>
+    <h4>🧊 實物骰模式（右上角，預設開）</h4><p>凡係由「亂咗嘅扭計骰」開始嘅練習（課程實戰、觀察、插角練習、課本情況頁、認圖案測驗、自由玩打亂），粒粒都會先教小朋友：拎住一粒<b>整齊</b>嘅扭計骰（講明邊色向上、邊色向前），再用<b>最少步數</b>（最多 11 步，用同填色解骰器一樣嘅最佳搜尋計出）一步步扭成同 iPad 一樣嘅樣，對一對之後先開始還原。冇實物骰可以撳「⏩ 跳過」或者關咗呢個模式。</p>
     <h4>第一性原理</h4><ul>
     <li>扭計骰只有 8 粒角仔；「解」＝ 每粒返屋企＋企正。</li>
     <li>每一下都可以還原；還原要<b>倒轉次序</b>（第 2 關親手發現）。</li>
@@ -2048,7 +2083,7 @@ function showStory(p) {
     <div class="dots" style="margin-bottom:10px">${L.pages.map((_, k) => `<i class="${k <= p ? 'on' : ''}"></i>`).join('')}</div>
     <div class="txt">${fmt(pg.text)}</div>
     ${pg.visualFn ? `<div class="visual">${pg.visualFn()}</div>` : pg.visual ? `<div class="visual">${pg.visual}</div>` : ''}
-    ${pg.alg ? `<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn pink" data-act="cdemo">🎬 3D 慢動作</button><button class="btn" data-act="ctry">✋ 自己試</button><button class="btn ghost sm" data-act="creset">↩ 重設</button></div>` : ''}
+    ${pg.alg ? `<div class="actions" style="justify-content:center;margin-top:12px"><button class="btn pink" data-act="cdemo">🎬 3D 慢動作</button><button class="btn" data-act="ctry">✋ 自己試</button><button class="btn ghost sm" data-act="creset">↩ 重設</button></div>${App.realCube ? '<div style="text-align:center;margin-top:8px"><button class="btn sm ghost" data-act="csetup">📦 喺手上嘅骰擺出呢個情況</button></div>' : ''}` : ''}
     ${pg.demo ? `<div style="text-align:center;margin-top:12px"><button class="btn pink" data-act="demo">▶ 睇示範：${pg.demo.map(t => `<span class="mv" style="background:#fff">${t}</span>`).join(' ')}</button></div>` : ''}
     <div class="navrow"><button class="btn ghost" data-act="prev" ${p === 0 ? 'disabled' : ''}>◀ 上一頁</button>
     ${last ? '<button class="btn green" data-act="go">開始練習 ▶</button>' : '<button class="btn" data-act="next">下一頁 ▶</button>'}</div>
@@ -2059,6 +2094,7 @@ function showStory(p) {
     const a = b.dataset.act;
     if (a === 'cdemo') { playCaseDemo(pg); return; }
     if (a === 'creset') { if (!App.locked) setState(pg.caseFn()); return; }
+    if (a === 'csetup') { if (!App.locked) realCubeSetup(pg.caseFn(), { what: `「${pg.t}」呢個情況` }).then(() => showStory(p)); return; }
     if (a === 'ctry') {
       if (App.locked) return;
       algTrainer({ state: pg.caseFn(), seq: pg.alg, groups: pg.groups, title: `✋ 自己試：${pg.t}`, intro: '跟住粉紅色箭咀同閃緊嘅按鈕做。做錯會自動幫你轉返轉頭！',
@@ -2101,6 +2137,53 @@ function trainerDone(r, back, again) {
   side().querySelector('[data-act="back2"]').onclick = e => { e.stopPropagation(); back(); };
   confetti(); Voice.maybe(t);
 }
+/* 📦 準備：由整齊嘅扭計骰，用最少步數扭成關卡嘅樣（等小朋友手上嘅真骰同 iPad 一樣） */
+const swc = c => `<span class="sw" style="width:16px;height:16px;background:${COLORS[c]}"></span>`;
+const holdText = T => `${swc(T[0])}<b>${C.CNAME[T[0]]}色向上</b>、${swc(T[8])}<b>${C.CNAME[T[8]]}色向前</b>（${C.CNAME[T[4]]}色喺右邊）`;
+const HOLD_LS_NOTE = `<div class="small-note" style="margin-top:6px">🧊 手上有扭計骰？拎住<b>整齊</b>嘅骰：${holdText(LS)}，同 iPad 一齊扭！</div>`;
+function realCubeSetup(S, o = {}) {
+  return new Promise(resolve => {
+    const prevPad = App.padFaces, prevOpt = App.padOpt;
+    const finish = () => {
+      renderPad(prevPad, prevOpt);
+      App.state = S.slice(); view.setState(App.state); App.history = []; App.moves = 0; hud();
+      view.showArrow(null); view.setHL(null); padHint(null); resolve();
+    };
+    if (C.isSolved(S)) { finish(); return; }
+    if (!App.realCube) {
+      if (o.animFrom) setupFrom(o.animFrom[0], o.animFrom[1]).then(finish); else finish();
+      return;
+    }
+    const R = C.scrambleRecipe(S);
+    const what = o.what || '呢個關卡嘅樣';
+    const start = () => {
+      App.locked = false; setState(R.T); view.resetView(); renderPad(['U', 'R', 'F', 'D', 'L', 'B']);
+      const intro = `① 拎起一粒<b>整齊</b>嘅扭計骰：${holdText(R.T)}，同 iPad 入面一樣。<br>② 跟住粉紅色箭咀，<b>手上嘅骰轉一下，就撳 iPad 同一個掣一下</b>。最少 <b>${R.moves.length} 步</b>就擺到${what}！`;
+      Voice.maybe(`準備！拎起一粒整齊嘅扭計骰，${C.CNAME[R.T[0]]}色向上，${C.CNAME[R.T[8]]}色向前。跟住箭咀，手上嘅骰同 iPad 一齊轉，${R.moves.length}步就擺到${what}。`);
+      algTrainer({
+        seq: R.moves, title: `📦 準備：擺出${what}`, intro,
+        extra: [{ act: 'skip', label: '⏩ 跳過（冇實物骰）', fn: finish }],
+        onDone: confirm
+      });
+    };
+    const confirm = () => {
+      App.mode = { destroy() {} }; view.showArrow(null); padHint(null);
+      const t = '擺好喇！對一對：你手上嘅骰同 iPad 一樣嗎？可以用箭咀掣轉嚟睇其他面。';
+      side().innerHTML = `<div class="brain-head">${mascot(40, 'wow')}<h3>📦 擺好喇！</h3>${spk(t)}</div>
+        <div class="okbox">✅ ${t}</div>
+        <div class="actions" style="margin-top:10px"><button class="btn green" data-act="sok">✅ 一樣，開始！</button><button class="btn ghost" data-act="sback">🔙 唔一樣：倒轉做返去整齊</button></div>
+        <p class="small-note" style="margin-top:10px">💡 如果手上嘅骰扭亂咗、返唔到整齊：可以用「🎨 填色解骰器」將手上嘅顏色填落去，粒粒會幫你計最快還原方法。</p>`;
+      Voice.maybe(t);
+      side().onclick = e => {
+        const b = e.target.closest('[data-act]'); if (!b) return;
+        if (b.dataset.act === 'sok') { Voice.maybe('好！開始！'); finish(); }
+        else algTrainer({ seq: C.invSeq(R.moves), title: '🔙 倒轉做返去整齊', intro: '跟住箭咀，手上嘅骰同 iPad 一齊<b>倒轉做</b>，變返整齊之後再嚟過。（記得：最後做嘅，最先還原！）', onDone: start });
+      };
+    };
+    start();
+  });
+}
+
 /* 公式練習器：跟住一串步驟做，做錯自動還原 */
 function algTrainer(o) {
   if (o.state) setState(o.state);
@@ -2128,12 +2211,13 @@ function algTrainer(o) {
       side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>${o.title}</h3>${spk(cleanSay(o.intro || ''))}</div>
         ${o.intro ? `<div class="thought" style="font-size:16px">${fmt(o.intro)}${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}</div>` : ''}
         <div class="plan"><div class="lbl">步驟（${Math.min(ptr, toks.length)} / ${toks.length}）${ptr < toks.length && toks[ptr].dbl === 1 ? '　轉兩下嘅第二下' : ''}</div><div class="chips" style="gap:4px">${chips}</div></div>
-        <div class="actions"><button class="btn sm pink" data-act="tdemo">🎬 示範</button><button class="btn sm ghost" data-act="undo">↩ 返轉頭</button>${o.onBack ? '<button class="btn sm ghost" data-act="tback">📖 返去</button>' : ''}</div>`;
+        <div class="actions"><button class="btn sm pink" data-act="tdemo">🎬 示範</button><button class="btn sm ghost" data-act="undo">↩ 返轉頭</button>${o.onBack ? '<button class="btn sm ghost" data-act="tback">📖 返去</button>' : ''}${(o.extra || []).map(x => `<button class="btn sm ghost" data-act="x_${x.act}">${x.label}</button>`).join('')}</div>`;
       side().onclick = async e => {
         const b = e.target.closest('[data-act]'); if (!b) return;
         const a = b.dataset.act;
         if (a === 'undo') undo();
         else if (a === 'tback') { done = true; o.onBack(); }
+        else if (a.startsWith('x_')) { const x = (o.extra || []).find(y => 'x_' + y.act === a); if (x && !App.locked) { done = true; view.showArrow(null); padHint(null); x.fn(); } }
         else if (a === 'tdemo') {
           if (App.locked) return; demo++; App.locked = true;
           try { while (!done && ptr < toks.length) { await doMove(toks[ptr].t, 'demo'); await sleep(120); } } finally { App.locked = false; }
@@ -2166,7 +2250,8 @@ function runObserve(A) {
   const round = async () => {
     App.mode = { destroy() {} };
     side().innerHTML = `<div class="card-title">${mascot(42)} 粒粒打亂緊個骰…</div>`;
-    await setupFrom(LS, C.scramble(20));
+    const sc = C.scramble(20);
+    await realCubeSetup(C.apply(LS, sc), { animFrom: [LS, sc], what: '今輪要觀察嘅樣' });
     const st = App.state.slice();
     const counts = [0, 1, 2, 3, 4, 5].map(c => { const p = C.faceSearchColor(st, c); return { c, p, n: p ? p.length : 7 }; });
     const min = Math.min(...counts.map(x => x.n));
@@ -2226,9 +2311,10 @@ function runDrill(A) {
         } else { mistakes++; b.classList.add('wrong'); b.disabled = true; $('#qfb').innerHTML = '<div class="errbox">🤔 再睇清楚白色向邊？向右、向前（向住你）定向上？</div>'; Voice.maybe('再睇清楚白色向邊？'); }
       };
     };
-    setState(st);
-    if (u) algTrainer({ seq: [C.inv(u)], title: `🧩 第 ${r + 1} / ${A.rounds} 題：先擺位`, intro: '第一步：<b>轉頂層</b>，將閃緊嘅白色角仔擺去<b>前右上</b>（空位正上面）。', hl, onDone: res => { mistakes += res.wrong; ask(); } });
-    else ask();
+    realCubeSetup(st, { what: `第 ${r + 1} 題嘅樣` }).then(() => {
+      if (u) algTrainer({ seq: [C.inv(u)], title: `🧩 第 ${r + 1} / ${A.rounds} 題：先擺位`, intro: '第一步：<b>轉頂層</b>，將閃緊嘅白色角仔擺去<b>前右上</b>（空位正上面）。', hl, onDone: res => { mistakes += res.wrong; ask(); } });
+      else ask();
+    });
   };
   round();
 }
@@ -2271,10 +2357,11 @@ function runQuiz(A0) {
     const Q = A.questions[qi];
     if (Q.state) { setState(Q.state); view.resetView(); }
     side().innerHTML = `<div class="quiz"><div class="card-title">${mascot(42)} 小測驗 ${qi + 1} / ${A.questions.length}<span style="flex:1"></span>${spk(Q.q + '。' + Q.opts.join('，定係'))}</div>
-      <div class="q">${Q.q}</div>${Q.visual ? `<div class="visual" style="display:flex;justify-content:center;margin-bottom:10px">${Q.visual}</div>` : ''}<div class="opts">${Q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><div id="qfb"></div></div>`;
+      <div class="q">${Q.q}</div>${Q.visual ? `<div class="visual" style="display:flex;justify-content:center;margin-bottom:10px">${Q.visual}</div>` : ''}${Q.state && App.realCube ? '<div style="text-align:center;margin-bottom:10px"><button class="btn sm ghost" data-act="qsetup">📦 喺手上嘅骰擺出嚟睇</button></div>' : ''}<div class="opts">${Q.opts.map((o, k) => `<button class="opt" data-k="${k}">${o}</button>`).join('')}</div><div id="qfb"></div></div>`;
     Voice.maybe(Q.q + '。' + Q.opts.join('，定係') + '？');
     tried = false;
     side().onclick = e => {
+      if (e.target.closest('[data-act="qsetup"]')) { realCubeSetup(Q.state, { what: '呢題嘅樣' }).then(show); return; }
       const b = e.target.closest('.opt'); if (!b || b.disabled) return;
       const k = +b.dataset.k;
       if (k === Q.a) {
@@ -2302,7 +2389,7 @@ function runTasks(A) {
       const T = A.tasks[ti]; const showArrow = !T.challenge || shownHint;
       view.showArrow(showArrow ? T.t : null); padHint(showArrow ? T.t : null);
       side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>✋ 手勢任務 ${ti + 1} / ${A.tasks.length}</h3>${spk(T.text)}</div>
-        <div class="thought">${fmt(T.text)}${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}</div>
+        <div class="thought">${fmt(T.text)}${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}${ti === 0 && App.realCube ? HOLD_LS_NOTE : ''}</div>
         <div class="plan"><div class="lbl">任務清單</div><div class="chips">${A.tasks.map((x, k) => `<div class="pchip ${k < ti ? 'done' : k === ti ? 'cur' : ''}">${k < ti || !x.challenge ? x.t : '?'}</div>`).join('')}</div></div>
         ${T.challenge && !shownHint ? '<button class="btn sm" data-act="hint">💡 提示</button>' : ''}
         <p class="small-note">🧠 小知識：想還原，就要將做過嘅步驟<b>倒轉次序</b>、<b>反方向</b>再做一次。好似著襪著鞋：著嘅時候先襪後鞋，除嘅時候就先鞋後襪！</p>`;
@@ -2339,7 +2426,7 @@ function runDance6() {
       const k = Math.floor(n / 4), j = n % 4, t = C.DANCE[j];
       view.showArrow(k < 6 ? t : null); padHint(k < 6 ? t : null);
       side().innerHTML = `<div class="brain-head">${mascot(40)}<h3>💃 跳 6 次小舞步</h3>${spk('跳六次小舞步：上、左、落、右。睇下個骰會點！')}</div>
-        <div class="thought">口訣：<b>上、左、落、右！</b> 跟住粉紅色箭咀撳。${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}</div>
+        <div class="thought">口訣：<b>上、左、落、右！</b> 跟住粉紅色箭咀撳。${msg ? `<div class="msg ${msg.type}">${fmt(msg.text)}</div>` : ''}${n === 0 && App.realCube ? HOLD_LS_NOTE : ''}</div>
         <div class="plan"><div class="lbl">第 ${Math.min(k + 1, 6)} 次</div><div class="chips" style="justify-content:center">${C.DANCE.map((x, i) => `<div class="dcard ${i === j ? 'cur' : i < j ? 'done' : ''}"><b>${x}</b><span>${MOVE_SHORT[x]}</span></div>`).join('')}</div>
         <div class="dots" style="margin-top:10px">${[0, 1, 2, 3, 4, 5].map(i => `<i class="${i < k ? 'on' : ''}"></i>`).join('')}</div></div>
         <p class="small-note">🔬 做個小實驗：留意個骰由整齊 → 越嚟越亂 → 再變返整齊。</p>`;
@@ -2372,7 +2459,7 @@ async function runGuidedRound() {
   App.mode = { destroy() {} };
   const seq = A.gen(r);
   await sleep(300);
-  await setupFrom(LS, seq);
+  await realCubeSetup(C.apply(LS, seq), { animFrom: [LS, seq], what: A.rounds > 1 ? `第 ${r + 1} 輪嘅樣` : '今次嘅樣' });
   App.act.startState = App.state.slice();
   if (L.timer) timer(true);
   const g = new Guide({
@@ -2428,7 +2515,11 @@ function freePanel(msg) {
   side().onclick = async e => {
     const b = e.target.closest('[data-act]'); if (!b || App.locked) return;
     const a = b.dataset.act;
-    if (a === 'scr') { const s = C.scramble(20); await setupFrom(App.state, s); App.freeScrambled = true; timer(true); renderNet($('#freeNet'), App.state, { cell: 18, labels: true }); Voice.maybe('打亂咗！開始計時，加油！'); }
+    if (a === 'scr') {
+      const s = C.scramble(20), base = C.isSolved(App.state) ? App.state.slice() : LS;
+      await realCubeSetup(C.apply(base, s), { animFrom: [base, s], what: '打亂咗嘅樣' });
+      freePanel(); App.freeScrambled = true; timer(true); Voice.maybe('打亂咗！開始計時，加油！');
+    }
     else if (a === 'reset') { setState(LS); timer(false); App.freeScrambled = false; renderNet($('#freeNet'), App.state, { cell: 18, labels: true }); }
     else if (a === 'hint') {
       b.disabled = true; b.textContent = '諗緊…'; await sleep(30);
@@ -2453,7 +2544,7 @@ function startAccompany(method = 'lbl') {
   const g = new Guide({
     stages: method === 'ortega' ? ['OF', 'OO', 'OP'] : ['A', 'B', 'C'], canHide: true, method,
     onExit: () => freePanel(),
-    onFinish: () => { freePanel('<div class="okbox">🎉 同粒粒一齊解開咗！</div>'); celebrate({ title: '解開咗！', text: `你用咗 ${App.moves} 步，跟住${method === 'ortega' ? ' Ortega 高手' : '三大步'}方法解開咗扭計骰！`, stars: 0, buttons: [{ label: '🔀 再嚟一次', cls: 'green', fn: async () => { await setupFrom(App.state, C.scramble(20)); App.freeScrambled = true; startAccompany(method); } }, { label: '🎮 繼續自由玩', cls: 'ghost', fn: () => freePanel() }, { label: '🗺️ 返學習地圖', cls: 'ghost', fn: goHome }] }); }
+    onFinish: () => { freePanel('<div class="okbox">🎉 同粒粒一齊解開咗！</div>'); celebrate({ title: '解開咗！', text: `你用咗 ${App.moves} 步，跟住${method === 'ortega' ? ' Ortega 高手' : '三大步'}方法解開咗扭計骰！`, stars: 0, buttons: [{ label: '🔀 再嚟一次', cls: 'green', fn: async () => { const s = C.scramble(20); await realCubeSetup(C.apply(LS, s), { animFrom: [LS, s], what: '打亂咗嘅樣' }); App.freeScrambled = true; startAccompany(method); } }, { label: '🎮 繼續自由玩', cls: 'ghost', fn: () => freePanel() }, { label: '🗺️ 返學習地圖', cls: 'ghost', fn: goHome }] }); }
   });
   App.mode = g;
 }
@@ -2845,9 +2936,18 @@ function boot() {
     const d = b.dataset.view;
     if (d === 'reset') view.resetView(); else view.nudge(d);
   }));
+  const rb = $('#realBtn');
+  const paintReal = () => { rb.innerHTML = `🧊 <span class="lbl-long">實物骰：</span>${App.realCube ? '開' : '關'}`; rb.classList.toggle('on', App.realCube); };
+  paintReal();
+  rb.onclick = () => {
+    App.realCube = !App.realCube; paintReal();
+    try { localStorage.setItem('lili-real', App.realCube ? '1' : '0'); } catch (e) {}
+    const t = App.realCube ? '實物骰模式開咗：每次開始前，粒粒會教你用最少步數，喺手上嘅骰擺出同一個樣。' : '實物骰模式關咗：只用 iPad 入面嘅 3D 骰。';
+    toast(t); Voice.speak(t);
+  };
   $('#autoVoiceBtn').onclick = () => {
     Voice.auto = !Voice.auto; const b = $('#autoVoiceBtn');
-    b.textContent = Voice.auto ? '🔊 自動讀：開' : '🔇 自動讀：關'; b.classList.toggle('on', Voice.auto);
+    b.innerHTML = Voice.auto ? '🔊 <span class="lbl-long">自動讀：</span>開' : '🔇 <span class="lbl-long">自動讀：</span>關'; b.classList.toggle('on', Voice.auto);
     if (!Voice.auto) Voice.stop(); else Voice.speak('自動讀出已經打開');
   };
   renderHome();
