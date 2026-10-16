@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>物理虛擬實驗室 · Physics Virtual Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<style>
+  :root { --top: 70px; --bubbleH: 220px; --ink: #0f172a; --ink2: #334155; --muted: #64748b; --line: #e2e8f0; --brand: #4f46e5; --brand-soft: #eef2ff; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #dbeafe; color: var(--ink);
+    font-family: -apple-system, "PingFang HK", "Noto Sans HK", "Microsoft JhengHei", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+  .is-hidden { display: none !important; }
+  #stage { position: fixed; inset: 0; }
+  #stage canvas { display: block; touch-action: none; }
+  #fw { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 80; }
+
+  .panel { background: rgba(255,255,255,.93); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-radius: 20px; box-shadow: 0 8px 28px rgba(15,23,42,.16); touch-action: manipulation; }
+  .btn { min-height: 44px; padding: 0 14px; border-radius: 14px; font-weight: 700; font-size: 15px; background: #fff; color: #1e293b;
+    box-shadow: 0 2px 8px rgba(15,23,42,.1); border: 2px solid var(--line); transition: transform .1s, background .2s; white-space: nowrap; touch-action: manipulation; }
+  .btn:active { transform: scale(.95); }
+  .btn.active, .btn-primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+  .btn-amber { background: #fef3c7; border-color: #fcd34d; color: #92400e; }
+  .btn-red { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+  .btn-blue { background: #dbeafe; border-color: #93c5fd; color: #1e3a8a; }
+  .btn-sm { min-height: 40px; font-size: 14px; padding: 0 12px; }
+  .btn:disabled { opacity: .35; }
+  .glow { animation: glow 1.4s infinite; }
+  @keyframes glow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.65); } 50% { box-shadow: 0 0 0 9px rgba(245,158,11,0); } }
+  .spk { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-soft); font-size: 19px; flex-shrink: 0; touch-action: manipulation; display: inline-flex; align-items: center; justify-content: center; }
+  .spk:active { transform: scale(.92); }
+  .spk.big { width: 52px; height: 52px; font-size: 25px; }
+  .spk.playing { background: var(--brand); animation: pulse 1s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(79,70,229,.5); } 100% { box-shadow: 0 0 0 14px rgba(79,70,229,0); } }
+  .seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: #f1f5f9; }
+  .seg button { min-height: 38px; padding: 0 12px; border-radius: 10px; font-weight: 800; font-size: 14px; color: var(--ink2); }
+  .seg button.active { background: var(--brand); color: #fff; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; background: #f1f5f9; color: var(--ink2); }
+  .pill { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+  body.pointread [data-tts], body.pointread .panel p, body.pointread .chip, body.pointread .item, body.pointread h2 { cursor: help; }
+  body.pointread #topbar { box-shadow: inset 0 -3px 0 #f59e0b; }
+  .flash { animation: flash .7s; }
+  @keyframes flash { 0%,100% { box-shadow: none; } 30% { box-shadow: 0 0 0 4px #f59e0b; } }
+
+  /* ---------- 3D 標籤 ---------- */
+  .cart-tag, .name-tag, .force-tag { padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 2px 6px rgba(0,0,0,.15); text-align: center; line-height: 1.35; }
+  .cart-tag { background: #fff; color: var(--ink); border-radius: 12px; }
+  .cart-tag .sub { font-size: 11px; color: var(--brand); font-weight: 800; }
+  .name-tag { background: var(--brand); color: #fff; }
+  .force-tag { background: #f97316; color: #fff; font-size: 15px; }
+
+  /* ---------- 頂部列 ---------- */
+  #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 40; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px; pointer-events: none; }
+  #topbar > * { pointer-events: auto; }
+  #brand { display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
+  #brand .t1 { font-weight: 900; font-size: 15px; line-height: 1.1; }
+  #brand .t2 { font-size: 12px; font-weight: 700; color: var(--brand); }
+  #sayPill { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; height: 40px; border-radius: 999px; font-size: 13px; font-weight: 800; background: #fff; color: var(--ink2); box-shadow: 0 2px 8px rgba(15,23,42,.1); }
+  #sayPill .dot { width: 9px; height: 9px; border-radius: 50%; background: #cbd5e1; }
+  #sayPill.on .dot { background: #22c55e; animation: pulseDot 1s infinite; }
+  #sayPill.paused .dot { background: #f59e0b; }
+  @keyframes pulseDot { 50% { opacity: .3; } }
+
+  /* ---------- 主頁 ---------- */
+  #hub { position: fixed; inset: 0; z-index: 10; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+    background: radial-gradient(circle at 15% 10%, #e0e7ff 0, transparent 40%), radial-gradient(circle at 90% 20%, #cffafe 0, transparent 35%), linear-gradient(#f8fafc, #eef2ff);
+    padding: calc(var(--top) + 8px) 16px 40px; }
+  #hub .wrap { max-width: 1180px; margin: 0 auto; }
+  #hubHero { display: grid; grid-template-columns: 1.25fr 1fr; gap: 14px; }
+  @media (max-width: 860px) { #hubHero { grid-template-columns: 1fr; } }
+  .hero-bubble { padding: 18px; display: flex; gap: 14px; align-items: flex-start; }
+  .avatar { width: 56px; height: 56px; border-radius: 50%; background: #e0e7ff; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+  #featured { padding: 18px; border: 3px solid #22c55e; }
+  .spot { animation: spot 1.6s ease-in-out infinite; outline: 4px solid #f59e0b; outline-offset: 4px; }
+  @keyframes spot { 50% { outline-color: rgba(245,158,11,.25); } }
+  #legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 10px; align-items: center; }
+  #topics { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  @media (max-width: 860px) { #topics { grid-template-columns: 1fr; } }
+  .topic { padding: 16px; border-top: 6px solid var(--tc); }
+  .topic-h { display: flex; gap: 12px; align-items: flex-start; }
+  .topic-h .ticon { font-size: 34px; }
+  .topic-h h2 { font-size: 21px; font-weight: 900; }
+  .tnum { font-size: 12px; font-weight: 800; color: var(--tc); }
+  .tdesc { font-size: 14px; color: var(--ink2); margin-top: 2px; }
+  .sub { margin-top: 12px; }
+  .sub-h { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 15px; margin-bottom: 6px; }
+  .phase { background: #eef2ff; color: #3730a3; }
+  .phase.p1 { background: #dcfce7; color: #166534; }
+  .bench { background: #f1f5f9; color: var(--ink2); }
+  .item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 12px; font-size: 14px; margin-bottom: 4px; background: #f8fafc; color: #94a3b8; }
+  .item .num { min-width: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .item .nm { flex: 1; }
+  .item.open { background: #dcfce7; color: #14532d; font-weight: 700; cursor: pointer; }
+  .item.partial { background: #fef9c3; color: #713f12; font-weight: 700; cursor: pointer; }
+  .item.open:active, .item.partial:active { transform: scale(.98); }
+
+  /* ---------- 實驗室介面 ---------- */
+  #labUI > * { position: fixed; z-index: 20; }
+  #stageCard { left: 12px; top: var(--top); width: min(340px, calc(100vw - 96px)); padding: 12px 14px; }
+  body.quiz-open #stageCard { display: none; }
+  .dots { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; background: #e2e8f0; }
+  .dots i.past { background: #a5b4fc; } .dots i.now { background: var(--brand); transform: scale(1.3); }
+  .card-row { margin-top: 8px; font-size: 14px; }
+  .card-row .lbl { font-size: 12px; font-weight: 800; color: var(--muted); margin-bottom: 3px; }
+  .task { font-weight: 800; color: #92400e; background: #fffbeb; border-radius: 12px; padding: 6px 10px; }
+  .task.done { color: #166534; background: #dcfce7; }
+  .conds { display: flex; flex-wrap: wrap; gap: 5px; }
+  .conds .chip { background: #ecfeff; color: #155e75; }
+
+  #bubble { left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: min(580px, calc(100vw - 430px)); padding: 14px; }
+  #bText { font-size: 17px; line-height: 1.6; color: var(--ink); }
+  #bAdv { font-size: 15px; line-height: 1.55; color: #6d28d9; font-weight: 700; margin-top: 4px; }
+  .chain { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 8px; padding: 8px; border-radius: 14px; background: #f5f3ff; }
+  .chain .chip { background: #fff; color: #4c1d95; border: 2px solid #ddd6fe; }
+  .chain .arr { color: #7c3aed; font-weight: 900; }
+  .chain .lbl { width: 100%; font-size: 12px; font-weight: 800; color: #6d28d9; display: flex; align-items: center; justify-content: space-between; }
+
+  #graphPanel { right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 390px; padding: 10px; }
+  #chart { width: 100%; height: 210px; display: block; touch-action: none; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; flex: 1; }
+  .tabs button { min-height: 34px; padding: 0 9px; border-radius: 10px; font-size: 13px; font-weight: 800; background: #f1f5f9; color: var(--ink2); }
+  .tabs button.active { background: var(--brand); color: #fff; }
+  #chartLegend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--ink2); padding: 4px 2px 0; }
+  #chartLegend .sw { display: inline-block; width: 16px; height: 4px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+
+  #fabs { right: 12px; top: var(--top); display: flex; flex-direction: column; gap: 8px; }
+  #fabs .btn { width: 56px; height: 56px; padding: 0; font-size: 24px; border-radius: 18px; }
+  #fabs .btn small { display: block; font-size: 10px; line-height: 1; margin-top: -2px; }
+  #tools { right: 78px; top: var(--top); width: 310px; max-height: calc(100vh - var(--top) - 24px); overflow: auto; padding: 12px; z-index: 25 !important; }
+  .prow { padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+  .prow .ph { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--ink2); }
+  .prow .val { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--brand); }
+  .prow .hint { font-size: 12px; color: var(--muted); margin: 2px 0 4px; }
+  .prow.locked { opacity: .55; }
+  .prow .lock { font-size: 11px; background: #f1f5f9; color: var(--muted); border-radius: 999px; padding: 1px 7px; }
+  input[type=range] { width: 100%; height: 34px; -webkit-appearance: none; appearance: none; background: transparent; }
+  input[type=range]::-webkit-slider-runnable-track { height: 10px; border-radius: 6px; background: #e0e7ff; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; margin-top: -10px; border-radius: 50%; background: var(--brand); border: 4px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+  input[type=range]:disabled::-webkit-slider-thumb { background: #94a3b8; }
+  .toggle { width: 56px; height: 32px; border-radius: 999px; background: #cbd5e1; position: relative; flex-shrink: 0; }
+  .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; transition: left .2s; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+  .toggle.on { background: #22c55e; } .toggle.on::after { left: 27px; }
+
+  #quiz { left: 50%; top: var(--top); transform: translateX(-50%); width: min(600px, calc(100vw - 24px)); padding: 16px; z-index: 30 !important; }
+  #quiz.mini { width: auto; padding: 8px 16px; border-radius: 999px; }
+  .qhead { display: flex; align-items: center; gap: 8px; font-weight: 900; color: var(--brand); font-size: 16px; }
+  #qText { font-size: 19px; font-weight: 800; line-height: 1.5; margin: 6px 0 10px; }
+  .opt { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 10px 10px 12px; margin-bottom: 8px; border-radius: 16px;
+    background: #f8fafc; border: 3px solid #e2e8f0; font-size: 17px; font-weight: 700; min-height: 58px; color: var(--ink); }
+  .opt .k { width: 32px; height: 32px; border-radius: 50%; background: var(--brand); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; flex-shrink: 0; }
+  .opt .tx { flex: 1; }
+  .opt:active { transform: scale(.98); }
+  .opt.right { background: #dcfce7; border-color: #22c55e; }
+  .opt.wrongpick { background: #fee2e2; border-color: #f87171; }
+  .opt.picked { border-color: var(--brand); }
+  #qBar { height: 8px; border-radius: 4px; background: #e0e7ff; overflow: hidden; margin-top: 4px; }
+  #qBar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #f59e0b, #4f46e5); }
+  #qResult { font-size: 22px; font-weight: 900; text-align: center; margin: 4px 0 8px; }
+
+  #info { left: 50%; top: var(--top); transform: translateX(-50%); width: min(400px, calc(100vw - 24px)); padding: 12px 14px; z-index: 28 !important; }
+  body.quiz-open #info { top: auto; bottom: calc(var(--bubbleH) + 24px); }
+  #infoStatus { font-size: 12px; font-weight: 800; color: #b45309; }
+  #toast { left: 50%; top: calc(var(--top) + 6px); transform: translate(-50%, -12px); opacity: 0; transition: all .25s; z-index: 45 !important; pointer-events: none;
+    background: #0f172a; color: #fff; font-weight: 800; font-size: 17px; padding: 9px 18px; border-radius: 999px; white-space: nowrap; }
+  #toast.show { opacity: .93; transform: translate(-50%, 0); }
+  #ghost { font-size: 54px; z-index: 46 !important; pointer-events: none; transform: translate(-30%, -10%); filter: drop-shadow(0 4px 6px rgba(0,0,0,.3)); }
+  #ghost.tap { animation: tap .55s ease-in-out; }
+  @keyframes tap { 0% { transform: translate(-30%, -60%) scale(1.15); opacity: 0; } 40% { opacity: 1; } 70% { transform: translate(-30%, -10%) scale(.9); } 100% { transform: translate(-30%, -10%) scale(1); } }
+  #demoBadge { left: 50%; bottom: calc(var(--bubbleH) + 26px); transform: translateX(-50%); background: #7c3aed; color: #fff; font-weight: 800; padding: 6px 14px; border-radius: 999px; font-size: 14px; }
+  #cheer { position: fixed; left: 50%; top: 38%; transform: translate(-50%, -50%) scale(.3); opacity: 0; z-index: 81; pointer-events: none;
+    font-size: clamp(40px, 8vw, 84px); font-weight: 900; color: #fff; text-shadow: 0 4px 0 #4f46e5, 0 8px 24px rgba(0,0,0,.35); white-space: nowrap; }
+  #cheer.go { animation: cheer 1.8s ease-out forwards; }
+  @keyframes cheer { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.3); } 18% { opacity: 1; transform: translate(-50%,-50%) scale(1.15); } 30% { transform: translate(-50%,-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-70%) scale(1); } }
+
+  .modal { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(30,27,75,.35); }
+  .modal .panel { width: min(480px, 100%); max-height: 90vh; overflow: auto; padding: 20px; }
+  .srow { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 800; font-size: 15px; }
+  .srow .grow { flex: 1; }
+  #start { cursor: pointer; }
+  #start .tapme { animation: bob 1.4s ease-in-out infinite; font-size: 64px; }
+  @keyframes bob { 50% { transform: translateY(-10px); } }
+  #voiceTip { left: 50%; transform: translateX(-50%); top: calc(var(--top) + 4px); width: min(560px, calc(100vw - 24px)); z-index: 50; position: fixed; }
+  body.view-hub #topbar { background: rgba(248,250,252,.82); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 2px 12px rgba(15,23,42,.08); }
+
+  /* 直向 iPad / 窄螢幕 */
+  @media (max-aspect-ratio: 1/1) {
+    #bubble { width: calc(100vw - 24px); }
+    #graphPanel { bottom: calc(var(--bubbleH) + 24px); width: min(420px, calc(100vw - 24px)); }
+    #demoBadge { bottom: calc(var(--bubbleH) + 290px); }
+  }
+  @media (max-width: 640px) { #chart { height: 170px; } #bText { font-size: 16px; } #brand .t2 { display: none; } }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<canvas id="fw"></canvas>
+<div id="cheer"></div>
+
+<!-- ===== 頂部列 ===== -->
+<header id="topbar">
+  <button id="btnHome" class="btn" data-noread></button>
+  <div id="brand" class="panel"><span class="text-2xl">🧪</span><div><div class="t1" data-i18n="appTitle"></div><div class="t2" id="brandSub"></div></div></div>
+  <div id="sayPill"><span class="dot"></span><span id="sayText"></span></div>
+  <div class="flex-1"></div>
+  <button id="btnAuto" class="btn" data-noread></button>
+  <button id="btnPause" class="btn" data-noread></button>
+  <button id="btnRead" class="btn" data-noread data-i18n="pointRead"></button>
+  <button id="btnAdv" class="btn" data-i18n="adv"></button>
+  <button id="btnSettings" class="btn" data-i18n="settings"></button>
+  <div class="seg panel" data-noread><button data-lang="zh">中</button><button data-lang="en">Eng</button></div>
+</header>
+
+<!-- ===== 主頁 ===== -->
+<main id="hub">
+  <div class="wrap">
+    <section id="hubHero">
+      <div class="panel hero-bubble" id="hubBubble">
+        <div class="avatar" id="hAvatar">👩‍🔬</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2"><b id="hName" class="text-indigo-700"></b><span id="hCount" class="text-xs text-slate-400"></span></div>
+          <p id="hText" class="text-[18px] leading-relaxed mt-1"></p>
+          <div class="flex gap-2 mt-3"><button id="hPrev" class="btn btn-sm" data-i18n="prev"></button><button id="hNext" class="btn btn-sm" data-i18n="next"></button></div>
+        </div>
+        <button class="spk big" data-read="bubble" aria-label="read">🔊</button>
+      </div>
+      <div class="panel" id="featured">
+        <div class="flex items-start gap-3">
+          <div class="text-4xl">🚗💥</div>
+          <div class="flex-1">
+            <span class="pill" style="background:#dcfce7;color:#166534" data-i18n="featuredTag"></span>
+            <h2 class="text-xl font-black mt-1" id="fTitle"></h2>
+            <p class="text-sm text-slate-600 mt-1" id="fDesc"></p>
+            <p class="text-xs text-slate-500 mt-1" id="fItems"></p>
+          </div>
+          <button class="spk" data-read="#featured" aria-label="read">🔊</button>
+        </div>
+        <button id="fStart" class="btn btn-primary w-full mt-3 text-lg" style="min-height:54px" data-i18n="startLab"></button>
+        <p class="text-xs text-slate-500 mt-2" id="openCount"></p>
+      </div>
+    </section>
+    <div id="legend">
+      <span class="pill" style="background:#dcfce7;color:#14532d">✅ <span data-i18n="legendOpen"></span></span>
+      <span class="pill" style="background:#fef9c3;color:#713f12">🟡 <span data-i18n="legendPartial"></span></span>
+      <span class="pill" style="background:#f1f5f9;color:#64748b">🔒 <span data-i18n="legendLocked"></span></span>
+      <span class="text-xs text-slate-500" data-i18n="legendPhase"></span>
+    </div>
+    <div id="topics"></div>
+  </div>
+</main>
+
+<!-- ===== 實驗室介面 ===== -->
+<div id="labUI" class="is-hidden">
+  <section id="stageCard" class="panel">
+    <div class="flex items-center gap-2">
+      <span id="stageNum" class="text-xs font-black text-indigo-600"></span>
+      <div class="flex-1"></div>
+      <button class="spk" data-read="#stageCard" aria-label="read">🔊</button>
+    </div>
+    <div id="stageTitle" class="font-black text-[17px] mt-1"></div>
+    <div class="dots" id="dots"></div>
+    <div class="card-row" id="taskRow"><div class="lbl" data-i18n="task"></div><div class="task" id="taskText"></div></div>
+    <div class="card-row" id="condRow"><div class="lbl" data-i18n="cond"></div><div class="conds" id="conds"></div></div>
+  </section>
+
+  <section id="bubble" class="panel">
+    <div class="flex items-start gap-3">
+      <div id="bAvatar" class="avatar">👩‍🔬</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2"><span id="bName" class="font-black text-indigo-700"></span><span id="bCount" class="text-xs text-slate-400"></span></div>
+        <p id="bText" class="mt-1"></p>
+        <p id="bAdv" class="is-hidden"></p>
+      </div>
+      <button id="bSpk" class="spk big" data-read="bubble" aria-label="read">🔊</button>
+    </div>
+    <div id="chain" class="chain is-hidden"></div>
+    <div class="flex items-center gap-2 mt-3">
+      <button id="bPrev" class="btn btn-sm" data-i18n="prev"></button>
+      <button id="bRedo" class="btn btn-sm" data-i18n="redo"></button>
+      <div class="flex-1"></div>
+      <button id="bNext" class="btn btn-sm btn-primary" data-i18n="next"></button>
+    </div>
+  </section>
+
+  <section id="graphPanel" class="panel">
+    <div class="flex items-center gap-2 mb-1"><div class="tabs" id="tabs"></div><button class="spk" data-read="graph" aria-label="read">🔊</button></div>
+    <canvas id="chart"></canvas>
+    <div id="chartLegend"></div>
+  </section>
+
+  <div id="fabs">
+    <button id="fabTools" class="btn" data-noread>🧰<small data-i18n="toolsS"></small></button>
+    <button id="fabGraph" class="btn active" data-noread>📈<small data-i18n="graphS"></small></button>
+    <button id="fabReset" class="btn" data-noread>🔄<small data-i18n="resetS"></small></button>
+    <button id="fabCam" class="btn" data-noread>🎥<small data-i18n="camS"></small></button>
+  </div>
+
+  <section id="tools" class="panel is-hidden">
+    <div class="flex items-center justify-between mb-1"><b data-i18n="tools"></b><button id="toolsClose" class="btn btn-sm" data-noread>✕</button></div>
+    <div id="params"></div>
+    <div class="grid grid-cols-2 gap-2 mt-3">
+      <button id="pushA" class="btn btn-red" data-i18n="pushA"></button>
+      <button id="pushB" class="btn btn-blue" data-i18n="pushB"></button>
+    </div>
+  </section>
+
+  <section id="quiz" class="panel is-hidden"></section>
+
+  <section id="info" class="panel is-hidden">
+    <div class="flex items-start gap-2">
+      <div class="flex-1">
+        <div class="font-black" id="infoTitle"></div>
+        <p class="text-[15px] leading-relaxed" id="infoText"></p>
+        <div id="infoStatus"></div>
+      </div>
+      <button class="spk" data-read="#info" aria-label="read">🔊</button>
+      <button id="infoClose" class="btn btn-sm" data-noread>✕</button>
+    </div>
+  </section>
+
+  <div id="toast"></div>
+  <div id="ghost" class="is-hidden">👆</div>
+  <div id="demoBadge" class="is-hidden" data-i18n="demo"></div>
+</div>
+
+<!-- ===== 完成 ===== -->
+<div id="done" class="modal is-hidden">
+  <div class="panel text-center">
+    <div class="text-6xl">🏆</div>
+    <h2 class="text-2xl font-black mt-2" id="doneTitle"></h2>
+    <p class="text-lg mt-2" id="doneStars"></p>
+    <div class="flex gap-2 mt-4 justify-center">
+      <button id="doneHub" class="btn" data-i18n="backHub"></button>
+      <button id="doneAgain" class="btn btn-primary" data-i18n="playAgain"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 設定 ===== -->
+<div id="settings" class="modal is-hidden">
+  <div class="panel">
+    <div class="flex items-center justify-between"><h2 class="text-xl font-black" data-i18n="settingsTitle"></h2><button class="spk" data-read="#settings .panel" aria-label="read">🔊</button></div>
+    <div id="sRows"></div>
+    <div class="flex gap-2 mt-4"><button id="sReset" class="btn" data-i18n="sReset"></button><div class="flex-1"></div><button id="sClose" class="btn btn-primary" data-i18n="close"></button></div>
+  </div>
+</div>
+
+<!-- ===== 開始：輕按任何地方 ===== -->
+<div id="start" class="modal" style="background:linear-gradient(160deg,rgba(79,70,229,.88),rgba(8,145,178,.85));">
+  <div class="text-center text-white max-w-xl">
+    <div class="flex justify-center mb-3"><div class="seg" data-noread><button data-lang="zh">中</button><button data-lang="en">Eng</button></div></div>
+    <div class="text-5xl">👩‍🔬 🚗💥🚙 👦</div>
+    <h1 class="text-3xl font-black mt-3" data-i18n="appTitle"></h1>
+    <p class="mt-1 text-lg opacity-90" data-i18n="appSub"></p>
+    <div class="tapme mt-6">👆</div>
+    <p class="text-2xl font-black mt-2" data-i18n="tapStart"></p>
+    <p class="mt-2 opacity-90" data-i18n="tapStartSub"></p>
+    <button id="startMuted" class="btn mt-6" data-i18n="startMuted"></button>
+  </div>
+</div>
+
+<div id="voiceTip" class="panel p-3 flex items-start gap-2 is-hidden">
+  <span class="text-xl">🔈</span><p id="voiceTipText" class="flex-1 text-sm text-slate-700"></p><button id="voiceTipClose" class="btn btn-sm" data-noread>✕</button>
+</div>
+
+<script type="module" src="./js/core.js"></script>
+</body>
+</html>
