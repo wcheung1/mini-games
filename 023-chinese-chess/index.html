@@ -245,6 +245,17 @@ details.more>summary{cursor:pointer;font-weight:800;color:#1864ab;margin:6px 0}
 .levels.mini .lvl{padding:5px 4px;border-radius:12px}
 .levels.mini .lvl .ic{font-size:20px}.levels.mini .lvl .nm{font-size:13px}
 @media (min-width:1001px) and (orientation:landscape){ .scol{overflow-y:auto;padding-bottom:6px} }
+/* 語音控制條（喺頂部橫條入面，唔會遮住棋盤） */
+#vbar{display:none;align-items:center;gap:6px;background:#fff;border-radius:999px;padding:3px 4px 3px 10px;box-shadow:0 2px 8px rgba(120,60,10,.25);min-width:0;max-width:52vw;color:#5c3d1e}
+#vbar.on{display:flex;animation:fadeIn .2s}
+#vbar.paused{background:#e7f5ff;outline:3px solid #4dabf7}
+#vbar .vb-ic{font-size:17px}
+#vbar .vb-tx{flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vbar .vb-tx i{font-style:normal;color:#a07a55;font-size:12px;margin-left:4px}
+.vb-btn{background:#fff4e6;color:#e8590c;border-radius:999px;padding:6px 12px;font-weight:900;white-space:nowrap;min-height:36px;font-size:15px}
+.vb-btn.pri{background:linear-gradient(180deg,#ffa25c,#ff7a2e);color:#fff}
+#vbar.paused .vb-btn.pri{background:linear-gradient(180deg,#4dabf7,#228be6)}
+@media (max-width:760px){ #vbar .vb-tx{display:none} #vbar{padding:3px;max-width:none} #topbar .tb-chip{display:none} }
 
 </style>
 </head>
@@ -253,6 +264,7 @@ details.more>summary{cursor:pointer;font-weight:800;color:#1864ab;margin:6px 0}
   <header id="topbar">
     <div class="logo" id="tb-logo" data-go="home">中國象棋小學堂</div>
     <span class="sp"></span>
+    <div id="vbar" role="region" aria-label="語音控制"></div>
     <button class="tb-chip" id="tb-rank" data-go="ranks"></button>
     <span class="tb-chip hide-s" id="tb-stars"></span>
     <button class="tb-btn" data-go="home" aria-label="主頁">🏠</button>
@@ -1401,34 +1413,101 @@ var Speech = {
     t = t.replace(/將(?=[佢居炮馬兵卒優每全高隻架啲呢另])/g, P);
     return t.replace(/將/g, '醬').split(P).join('將');
   },
+  /* 將文字切成短句（逗號、句號），暫停之後由嗰句重新讀起，唔會由頭讀 */
+  split: function (t) {
+    var raw = t.replace(/([。！？!?；;，,、：:\n])/g, '$1\u0001').split('\u0001'), out = [], buf = '';
+    raw.forEach(function (x) {
+      x = x.trim(); if (!x) return;
+      buf += x;
+      if (buf.length >= 8 || /[。！？!?\n]$/.test(buf)) { while (buf.length > 40) { out.push(buf.slice(0, 40)); buf = buf.slice(40); } out.push(buf); buf = ''; }
+    });
+    if (buf) out.push(buf);
+    return out;
+  },
+  st: null, paused: false,
   speak: function (text, btn, onend) {
     if (!this.ok) { if (onend) onend(); return; }
     this.stop();
     var t = this.clean(text); if (!t) { if (onend) onend(); return; }
-    var parts = t.replace(/([。！？!?；\n])/g, '$1\u0001').split('\u0001').reduce(function (acc, s) {
-      s = s.trim(); if (!s) return acc;
-      while (s.length > 80) { var cut = s.lastIndexOf('，', 80); if (cut < 20) cut = 80; acc.push(s.slice(0, cut + 1)); s = s.slice(cut + 1); }
-      acc.push(s); return acc;
-    }, []);
-    var tok = ++this.token, self = this;
+    this.st = { parts: this.split(t), i: 0, ends: onend ? [{ at: 0, fn: onend }] : [], btn: btn || null };
+    this.st.ends[0] && (this.st.ends[0].at = this.st.parts.length);
     if (btn) { btn.classList.add('playing'); this.curBtn = btn; }
-    var i = 0;
-    function next() {
-      if (tok !== self.token) return;
-      if (i >= parts.length) { self.done(); if (onend) onend(); return; }
-      var u = new SpeechSynthesisUtterance(parts[i++]);
-      u.lang = self.voice ? self.voice.lang : 'zh-HK';
-      if (self.voice) u.voice = self.voice;
-      u.rate = Store.d.set.rate || 1; u.pitch = 1.05;
-      u.onend = function () { setTimeout(next, 60); };
-      u.onerror = function () { setTimeout(next, 60); };
-      speechSynthesis.speak(u);
-    }
-    next();
+    this.paused = false;
+    this.play();
   },
+  play: function () {
+    var st = this.st; if (!st || this.paused) return;
+    var tok = ++this.token, self = this;
+    this.fire();
+    if (st.i >= st.parts.length) { var e = st.ends; this.st = null; this.done(); this.bar(); e.forEach(function (x) { try { x.fn(); } catch (er) {} }); return; }
+    this.lastPlay = Date.now();
+    var u = new SpeechSynthesisUtterance(st.parts[st.i]);
+    u.lang = self.voice ? self.voice.lang : 'zh-HK';
+    if (self.voice) u.voice = self.voice;
+    u.rate = Store.d.set.rate || 1; u.pitch = 1.05;
+    var fin = function () { if (tok !== self.token || self.st !== st || self.paused) return; st.i++; setTimeout(function () { if (tok === self.token) self.play(); }, 60); };
+    u.onend = fin; u.onerror = fin;
+    this.bar();
+    try { speechSynthesis.speak(u); } catch (er) { fin(); }
+  },
+  /* 讀完某一段之後要做嘅嘢（例如電腦行下一步） */
+  fire: function () {
+    var st = this.st; if (!st) return;
+    var keep = [];
+    st.ends.forEach(function (x) { if (x.at <= st.i && st.i < st.parts.length) { try { x.fn(); } catch (er) {} } else keep.push(x); });
+    st.ends = keep;
+  },
+  pause: function () {
+    if (!this.st || this.paused) return;
+    this.paused = true; this.token++;
+    try { speechSynthesis.cancel(); } catch (e) {}
+    this.bar();
+  },
+  resume: function () {
+    if (!this.st || !this.paused) return;
+    this.paused = false; this.play();
+  },
+  toggle: function () { if (this.paused) this.resume(); else this.pause(); },
+  active: function () { return !!this.st; },
   done: function () { if (this.curBtn) this.curBtn.classList.remove('playing'); this.curBtn = null; },
-  stop: function () { this.token++; this.done(); if (this.ok) try { speechSynthesis.cancel(); } catch (e) {} },
-  auto: function (text, onend) { if (Store.d.set.auto) this.speak(text, null, onend); else if (onend) onend(); },
+  stop: function () { this.token++; this.st = null; this.paused = false; this.done(); if (this.ok) try { speechSynthesis.cancel(); } catch (e) {} this.bar(); },
+  auto: function (text, onend) {
+    if (!Store.d.set.auto || !this.ok) { if (onend) onend(); return; }
+    /* 暫停緊嘅時候有新解說：排喺後面，等你撳「繼續」先讀，唔會蓋走你未聽完嗰段 */
+    if (this.paused && this.st) {
+      var t = this.clean(text); if (!t) { if (onend) onend(); return; }
+      var add = this.split(t); this.st.parts = this.st.parts.concat(add);
+      if (onend) this.st.ends.push({ at: this.st.parts.length, fn: onend });
+      if (this.st.parts.length > 200) this.st.parts.splice(this.st.i + 1, this.st.parts.length - 200);
+      this.bar(); return;
+    }
+    this.speak(text, null, onend);
+  },
+  /* 等語音讀完（同埋冇暫停）先做 fn；最少等 minMs */
+  after: function (fn, minMs, tok, check) {
+    var t0 = Date.now(), self = this;
+    (function wait() {
+      if (check && !check()) return;
+      /* 部分瀏覽器有時唔會話我哋讀完：一句讀咗太耐都冇反應，就當讀完 */
+      var cur = self.st ? (self.st.parts[self.st.i] || '') : '', stuck = self.st && Date.now() - (self.lastPlay || t0) > cur.length * 400 / (Store.d.set.rate || 1) + 4000;
+      var busy = self.paused || (self.st && !stuck);
+      if (busy || Date.now() - t0 < (minMs || 0)) { setTimeout(wait, 300); return; }
+      fn();
+    })();
+  },
+  /* 畫面底部嘅語音控制條 */
+  bar: function () {
+    var el = document.getElementById('vbar'); if (!el) return;
+    var st = this.st;
+    if (!st) { el.classList.remove('on'); return; }
+    var cur = st.parts[Math.min(st.i, st.parts.length - 1)] || '', left = st.parts.length - st.i;
+    el.classList.add('on'); el.classList.toggle('paused', this.paused);
+    el.innerHTML = '<span class="vb-ic">' + (this.paused ? '⏸' : '🔊') + '</span><span class="vb-tx">' + (this.paused ? '<b>語音暫停咗</b>：' : '') + esc(cur) + (left > 1 ? '<i>（仲有 ' + (left - 1) + ' 句）</i>' : '') + '</span>' +
+      '<button class="vb-btn pri" data-vb="toggle">' + (this.paused ? '▶ 繼續聽' : '⏸ 暫停語音') + '</button>' +
+      (this.paused && st.i > 0 ? '<button class="vb-btn" data-vb="back">⏪ 上一句</button>' : '') +
+      '<button class="vb-btn" data-vb="stop" aria-label="停止語音">⏹</button>';
+  },
+  back: function () { if (!this.st) return; this.st.i = Math.max(0, this.st.i - 1); this.bar(); if (!this.paused) { this.token++; try { speechSynthesis.cancel(); } catch (e) {} this.play(); } },
   unlock: function () {
     if (!this.ok || this.unlocked) return; this.unlocked = true;
     try { var u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u); } catch (e) {}
@@ -1444,6 +1523,17 @@ document.addEventListener('click', function (e) {
   Speech.speak(SAY[+b.dataset.say], b);
 });
 document.addEventListener('pointerdown', function () { Speech.unlock(); Sfx.unlock(); }, { once: false, capture: true });
+document.addEventListener('click', function (e) {
+  var b = e.target.closest && e.target.closest('[data-vb]'); if (!b) return;
+  e.stopPropagation();
+  var a = b.dataset.vb;
+  if (a === 'toggle') Speech.toggle(); else if (a === 'stop') Speech.stop(); else if (a === 'back') Speech.back();
+}, true);
+/* 鍵盤：P 鍵暫停／繼續語音 */
+document.addEventListener('keydown', function (e) {
+  if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (e.key === 'p' || e.key === 'P') { if (Speech.active()) { e.preventDefault(); Speech.toggle(); } }
+});
 
 /* ---------- 音效（Web Audio，唔使下載） ---------- */
 var Sfx = {
@@ -3028,7 +3118,7 @@ var Lesson = {
         if (!Lesson.c || Lesson.c.tok !== tok) return;
         if (c.oi >= s.moves.length) { self.autoT = null; return; }
         self.openSet(c.oi + 1);
-        var wait = function () { if (Speech.ok && speechSynthesis.speaking && Store.d.set.auto) self.autoT = setTimeout(wait, 400); else self.autoT = setTimeout(loop, 1600); };
+        var wait = function () { if (Speech.active() && Store.d.set.auto) self.autoT = setTimeout(wait, 400); else self.autoT = setTimeout(loop, 1600); };
         self.autoT = setTimeout(wait, 1200);
       };
       loop();
@@ -3465,7 +3555,7 @@ var Game = {
         var said = (rec.guess ? (rec.guess.hit ? '你估中咗！' : '你估' + rec.guess.note + '，排第' + rec.guess.rank + '。') : '') + '棋譜行咗' + rec.note + '。' + (row ? '電腦喺' + rec.total + '步入面將佢排第' + rec.rank + '。' : '') + br.ex.reasons.map(function (x) { return x.tx; }).join('');
         var end = self.checkEnd();
         Speech.auto(said);
-        if (!end && !self.paused) self.timer = setTimeout(function () { if (self.tok === tok) self.loop(); }, Math.max((Setup.speed || 3) * 1000, Store.d.set.auto ? said.length * 260 : 0));
+        if (!end && !self.paused) Speech.after(function () { if (self.tok === tok && !self.paused) self.loop(); }, (Setup.speed || 3) * 1000, tok, function () { return self.tok === tok; });
       }); });
     });
   },
@@ -3629,10 +3719,10 @@ var Game = {
         var end = self.checkEnd();
         var next = function () { if (self.tok === tok && !end) self.loop(); };
         if (self.cfg.mode === 'cvc') {
-          var delay = (Setup.speed || 3) * 1000, fired = false;
-          var go1 = function () { if (fired) return; fired = true; next(); };
-          Speech.auto(said, function () { self.timer = setTimeout(go1, 500); });
-          setTimeout(go1, Store.d.set.auto && Speech.ok ? Math.max(delay, said.length * 280) : delay);
+          var delay = (Setup.speed || 3) * 1000;
+          Speech.auto(said);
+          /* 等語音讀完先行下一步；語音暫停咗就一直等 */
+          Speech.after(function () { if (self.tok === tok && !self.paused) next(); }, delay, tok, function () { return self.tok === tok; });
         } else { Speech.auto(said); next(); }
       }); });
     });
@@ -3877,7 +3967,7 @@ var Game = {
     if (a === 'newgame') { if (this.recs.length < 4 || confirm('開新一盤？')) this.start(this.cfg); return; }
     if (a === 'flip') { Board.setFlip(!Board.flip); return; }
     if (a === 'unpeek') { this.unpeek(); return; }
-    if (a === 'pause') { this.paused = !this.paused; this.controls(); if (!this.paused && this.peek) this.unpeek(); if (!this.paused && !this.busy) this.loop(); else { Speech.stop(); clearTimeout(this.timer); } return; }
+    if (a === 'pause') { this.paused = !this.paused; this.controls(); if (!this.paused && this.peek) this.unpeek(); if (!this.paused && !this.busy) this.loop(); else { clearTimeout(this.timer); } return; }
     if (a === 'stepone') { if (this.peek) this.unpeek(); if (this.awaitGuess) { this.awaitGuess = false; this.advance(); return; } if (!this.busy && !this.over) { this.paused = true; this.controls(); clearTimeout(this.timer); if (this.players[this.pos.turn] === 'ai') { if (this.cfg.guess && this.guessFor !== this.hist.length) this.loop(); else this.advance(); } } return; }
     if (a === 'back') { this.back(); return; }
     if (a === 'export') { this.exportRec(); return; }
