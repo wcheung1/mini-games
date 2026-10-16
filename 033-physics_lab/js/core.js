@@ -1,17 +1,21 @@
 /* =====================================================================
  * 物理虛擬實驗室 · 核心
- * 語音（主次優先）、教學流程、主頁導覽、圖表、煙花、介面
+ * 語音（主次優先）、教學流程、主頁、圖表、煙花、介面
+ * 實驗枱放喺 js/labs/*.js，每個檔案 export default 一個 create(ctx)
  * ===================================================================== */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { TOPICS, PARTIAL, BENCHES, HUB_TOUR } from './syllabus.js';
-import { createCollisionLab } from './labs/collisions.js';
+import { TOPICS, BENCHES, HUB_TOUR, ORDER } from './syllabus.js';
+import { makeKit, buildWorld } from './kit.js';
+
+const BENCH_FILES = ['track', 'energy', 'play', 'heat', 'waves', 'optics', 'circuits', 'fields', 'atom'];
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const QS = new URLSearchParams(location.search);
 const FAST = QS.has('fast') ? 0.05 : 1;      // 測試用：加快語音
+const TURBO = QS.has('turbo') ? 4 : 1;       // 測試用：加快物理
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const fmt = (s, o) => s.replace(/\{(\w+)\}/g, (_, k) => o[k] ?? '');
@@ -24,6 +28,7 @@ const store = {
 const DEF = { lang: 'zh', auto: true, adv: false, rate: 1, demoDelay: 1.5, thinkTime: 15, sfx: true, fireworks: true, mute: false };
 const S = Object.assign({}, DEF, store.get('settings', {}));
 const save = () => store.set('settings', S);
+const PROGRESS = store.get('progress', {});
 const App = { view: 'start', pointRead: false };
 
 /* =====================================================================
@@ -37,24 +42,24 @@ const I18N = {
     sayChan: '陳老師說話中', sayMing: '小明說話中', sayInfo: '朗讀中', sayIdle: '安靜', sayPaused: '語音已暫停', queued: '・{n} 項等候中',
     waitTeacher: '🕒 老師講完就會讀出', reading: '🔊 朗讀中', pointReadOn: '點讀模式：輕按任何文字就會讀出來', pointReadOff: '已關閉點讀模式',
     tapStart: '輕按畫面任何地方開始', tapStartSub: '老師會自動朗讀和示範全部內容，你只需要看和聽。', startMuted: '🔇 靜音開始（只顯示字幕）',
-    featuredTag: '✅ 已開放', startLab: '▶ 開始實驗', legendOpen: '已開放', legendPartial: '部分涵蓋', legendLocked: '即將推出',
-    legendPhase: '「第 N 期」＝預計開放次序（開發路線圖）', phase: '第 {n} 期', topicN: '課題 {n}',
-    openCount: '已開放 {a} 項・部分涵蓋 {b} 項・全部 {c} 項', itemsCovered: '涵蓋第 {list} 項',
-    lockedSay: '第 {n} 項：{name}。這個實驗即將推出，預計在第 {p} 期開放。',
+    allOpen: '✅ 全部實驗已開放', allTitle: '{n} 個 3D 互動實驗', allDesc: '由科學家工具箱開始，一步步探索熱、力、波、電磁和原子。每個實驗都會自動講解和示範。',
+    startAll: '▶ 由頭開始', continueAt: '▶ 繼續：{name}', progress: '已完成 {a} / {b} 個實驗',
+    legendDone: '已完成', legendExtra: '⭐ 加料內容', legendMerged: '同一張卡內的項目已合併成一個實驗',
+    topicN: '課題 {n}', start: '▶ 開始', covers: '涵蓋', doneBadge: '✅ 已完成',
     prev: '◀ 上一步', next: '下一步 ▶', redo: '🔁 再做', stepOf: '第 {i} / {n} 步', task: '🎯 任務', cond: '📋 實驗條件', chain: '🔗 因果推理',
-    taskDone: '做到了！', tools: '🧰 工具', toolsS: '工具', graphS: '圖表', resetS: '重設', camS: '視角',
-    pushA: '👉 推 A 車', pushB: '👈 推 B 車', locked: '🔒 保持不變', on: '開', off: '關',
+    taskDone: '做到了！', tools: '🧰 工具', toolsS: '工具', graphS: '圖表', resetS: '重設', camS: '視角', locked: '🔒 保持不變', on: '開', off: '關',
     quizTitle: '🤔 估一估', optN: '第 {n} 個答案：', question: '問題：',
-    yourPick: '你揀咗：{x}。我哋做實驗睇吓！', yourPickNoRun: '你揀咗：{x}。', timeUp: '時間到！一齊睇吓答案。',
+    yourPick: '你揀咗：{x}。我哋做實驗睇吓！', timeUp: '時間到！一齊睇吓答案。',
     correct: '🎉 答對了！', wrong: '💪 差一點點！', timeUpShort: '⏰ 時間到', correctSay: '答啱喇，好叻！', wrongSay: '唔緊要，差少少！',
-    watching: '🔬 實驗進行中…', thinking: '🤔 思考時間', continue: '繼續 ▶',
-    finishTitle: '完成撞車實驗室！', finishStars: '你答對了 {a} / {b} 題', finishSay: '恭喜你完成撞車實驗室！你答對咗 {a} 題，總共 {b} 題。',
-    backHub: '🏠 回主頁', playAgain: '🔁 再玩一次',
+    watching: '🔬 實驗進行中…', continue: '繼續 ▶',
+    finishTitle: '完成「{name}」！', finishStars: '你答對了 {a} / {b} 題', finishSay: '恭喜你完成{name}！你答對咗 {a} 題，總共 {b} 題。',
+    nextLesson: '▶ 下一個：{name}', nextIn: '{n} 秒後自動開始', backHub: '🏠 回主頁', playAgain: '🔁 再玩一次',
     settingsTitle: '⚙️ 設定', sRate: '🗣️ 語速', sDemo: '🤖 自動示範前等待（秒）', sThink: '🤔 答題思考時間（秒）', sSfx: '🔔 音效',
-    sFw: '🎆 煙花效果', sMute: '🔇 靜音（只顯示字幕）', sAuto: '🤖 自動導覽', sReset: '重設全部設定', close: '完成',
+    sFw: '🎆 煙花效果', sMute: '🔇 靜音（只顯示字幕）', sAuto: '🤖 自動導覽', sReset: '重設全部設定', sProgress: '清除學習進度', close: '完成',
     voiceTip: '找不到廣東話語音。請在 iPad「設定 → 輔助使用 → 朗讀內容 → 聲音 → 中文（香港）」下載，然後重新載入本頁。',
-    noSpeech: '這個瀏覽器不支援語音，會以字幕顯示。', demo: '🤖 自動示範中', xAxis: '時間 t (s)', ghostNote: '虛線＝上一次', crashNote: '橙色虛線＝碰撞',
-    chan: '陳老師', ming: '小明', because: '因為', so: '所以'
+    noSpeech: '這個瀏覽器不支援語音，會以字幕顯示。', demo: '🤖 自動示範中', xAxis: '時間 t (s)', ghostNote: '虛線＝上一次', crashNote: '橙色虛線＝事件',
+    slope: '斜率 ≈ {m}', chan: '陳老師', ming: '小明', because: '因為', so: '所以', board: '黑板',
+    chanInfo: '陳老師是物理學家，最喜歡問「為甚麼」。', mingInfo: '小明讀小學四年級，最喜歡動手做實驗。'
   },
   en: {
     appTitle: 'Physics Virtual Lab', appSub: 'A 3D physics playground for kids', home: '🏠 Home',
@@ -63,32 +68,31 @@ const I18N = {
     sayChan: 'Ms Chan is talking', sayMing: 'Ming is talking', sayInfo: 'Reading', sayIdle: 'Quiet', sayPaused: 'Voice paused', queued: ' · {n} waiting',
     waitTeacher: '🕒 Will be read after the teacher finishes', reading: '🔊 Reading', pointReadOn: 'Tap-to-read: tap any text to hear it', pointReadOff: 'Tap-to-read is off',
     tapStart: 'Tap anywhere to start', tapStartSub: 'The teacher will read and demonstrate everything automatically. Just watch and listen.', startMuted: '🔇 Start muted (subtitles only)',
-    featuredTag: '✅ Open now', startLab: '▶ Start the lab', legendOpen: 'Open', legendPartial: 'Partly covered', legendLocked: 'Coming soon',
-    legendPhase: '"Phase N" = planned release order (roadmap)', phase: 'Phase {n}', topicN: 'Topic {n}',
-    openCount: '{a} open · {b} partly covered · {c} in total', itemsCovered: 'Covers items {list}',
-    lockedSay: 'Item {n}: {name}. This lab is coming soon, planned for phase {p}.',
+    allOpen: '✅ Every lab is open', allTitle: '{n} interactive 3D labs', allDesc: "Start with the Scientist's Toolkit, then explore heat, forces, waves, electricity and atoms. Every lab explains and demonstrates itself.",
+    startAll: '▶ Start from the beginning', continueAt: '▶ Continue: {name}', progress: '{a} of {b} labs finished',
+    legendDone: 'Finished', legendExtra: '⭐ Bonus content', legendMerged: 'Items on the same card are combined into one lab',
+    topicN: 'Topic {n}', start: '▶ Start', covers: 'Covers', doneBadge: '✅ Finished',
     prev: '◀ Back', next: 'Next ▶', redo: '🔁 Redo', stepOf: 'Step {i} of {n}', task: '🎯 Your task', cond: '📋 Conditions', chain: '🔗 Cause and effect',
-    taskDone: 'Done!', tools: '🧰 Tools', toolsS: 'Tools', graphS: 'Graph', resetS: 'Reset', camS: 'View',
-    pushA: '👉 Push A', pushB: '👈 Push B', locked: '🔒 Kept the same', on: 'On', off: 'Off',
+    taskDone: 'Done!', tools: '🧰 Tools', toolsS: 'Tools', graphS: 'Graph', resetS: 'Reset', camS: 'View', locked: '🔒 Kept the same', on: 'On', off: 'Off',
     quizTitle: '🤔 Make a guess', optN: 'Option {n}: ', question: 'Question: ',
-    yourPick: "You picked: {x}. Let's test it!", yourPickNoRun: 'You picked: {x}.', timeUp: "Time's up! Let's see the answer.",
+    yourPick: "You picked: {x}. Let's test it!", timeUp: "Time's up! Let's see the answer.",
     correct: '🎉 Correct!', wrong: '💪 Almost!', timeUpShort: "⏰ Time's up", correctSay: 'Correct, well done!', wrongSay: 'Nice try, almost there!',
-    watching: '🔬 Experiment running…', thinking: '🤔 Thinking time', continue: 'Continue ▶',
-    finishTitle: 'Crash Lab complete!', finishStars: 'You got {a} of {b} questions right', finishSay: 'Congratulations on finishing the Crash Lab! You got {a} out of {b} questions right.',
-    backHub: '🏠 Back home', playAgain: '🔁 Play again',
+    watching: '🔬 Experiment running…', continue: 'Continue ▶',
+    finishTitle: '"{name}" complete!', finishStars: 'You got {a} of {b} questions right', finishSay: 'Congratulations on finishing {name}! You got {a} out of {b} questions right.',
+    nextLesson: '▶ Next: {name}', nextIn: 'Starting in {n} s', backHub: '🏠 Back home', playAgain: '🔁 Play again',
     settingsTitle: '⚙️ Settings', sRate: '🗣️ Speech speed', sDemo: '🤖 Wait before auto demo (s)', sThink: '🤔 Thinking time for questions (s)', sSfx: '🔔 Sound effects',
-    sFw: '🎆 Fireworks', sMute: '🔇 Mute (subtitles only)', sAuto: '🤖 Auto guide', sReset: 'Reset all settings', close: 'Done',
+    sFw: '🎆 Fireworks', sMute: '🔇 Mute (subtitles only)', sAuto: '🤖 Auto guide', sReset: 'Reset all settings', sProgress: 'Clear my progress', close: 'Done',
     voiceTip: 'No British English voice found. On iPad, go to Settings → Accessibility → Spoken Content → Voices → English (UK) to download one, then reload this page.',
-    noSpeech: "This browser doesn't support speech, so subtitles will be shown.", demo: '🤖 Auto demo', xAxis: 'time t (s)', ghostNote: 'dashed = last run', crashNote: 'orange dashed = crash',
-    chan: 'Ms Chan', ming: 'Ming', because: 'Because', so: 'so'
+    noSpeech: "This browser doesn't support speech, so subtitles will be shown.", demo: '🤖 Auto demo', xAxis: 'time t (s)', ghostNote: 'dashed = last run', crashNote: 'orange dashed = event',
+    slope: 'slope ≈ {m}', chan: 'Ms Chan', ming: 'Ming', because: 'Because', so: 'so', board: 'Blackboard',
+    chanInfo: 'Ms Chan is a physicist who loves asking why.', mingInfo: 'Ming is in Primary 4 and loves doing experiments.'
   }
 };
 const t = (k) => I18N[S.lang][k] ?? k;
-const L = (o) => (o ? (o[S.lang] ?? o.zh) : '');
+const L = (o) => (o == null ? '' : typeof o === 'string' ? o : (o[S.lang] ?? o.zh));
 
 /* =====================================================================
  * 2. 語音系統（Web Speech API）
- * ---------------------------------------------------------------------
  *  主線 main：老師的教學旁白。換階段 → 即刻截斷一切，讀新內容。
  *  支線 side：點物件、點讀、喇叭。老師講緊 → 排隊，等老師講完先讀。
  *  暫停：停止一切聲音和自動流程；繼續：由當句重新開始。
@@ -98,16 +102,28 @@ function speakable(s, lang) {
   s = String(s).replace(EMOJI, '').replace(/\s*\n+\s*/g, lang === 'zh' ? '，' : ', ');
   const R = lang === 'zh' ? [
     [/KE\s*=\s*½mv²/g, '動能等於二分之一 m v 平方'], [/F\s*=\s*Δp\s*\/\s*Δt/g, '力等於動量改變除以時間'], [/F\s*=\s*ma/g, 'F 等於 m a'],
+    [/E\s*=\s*mcΔT/g, 'E 等於 m c delta T'], [/E\s*=\s*mL/g, 'E 等於 m L'], [/v\s*=\s*fλ/g, 'v 等於 f 乘 lambda'], [/V\s*=\s*IR/g, 'V 等於 I R'], [/P\s*=\s*VI/g, 'P 等於 V I'],
+    [/E\s*=\s*mc²/g, 'E 等於 m c 平方'], [/PE\s*=\s*mgh/g, '勢能等於 m g h'], [/W\s*=\s*Fs/g, '功等於力乘距離'], [/P\s*=\s*W\s*\/\s*t/g, '功率等於功除以時間'],
     [/F\(A→B\)\s*=\s*−F\(B→A\)/g, 'A 推 B 嘅力，等於負 B 推 A 嘅力'], [/Δp_A\s*=\s*−Δp_B/g, 'A 嘅動量改變，等於負 B 嘅動量改變'], [/p_A \+ p_B/g, '兩架車嘅總動量'],
-    [/½/g, '二分之一 '], [/²/g, ' 平方'], [/kg·m\/s/g, '公斤米每秒'], [/m\/s/g, '米每秒'], [/N·s/g, '牛頓秒'], [/(\d)\s*kg/g, '$1 公斤'], [/(\d)\s*J\b/g, '$1 焦耳'],
-    [/(\d)\s*m\b/g, '$1 米'], [/v–t/g, '速度時間'], [/s–t/g, '位置時間'], [/p–t/g, '動量時間'], [/KE–t/g, '動能時間'], [/Δp/g, '動量改變'], [/Δt/g, '時間'],
-    [/KE/g, '動能'], [/→/g, '，變成'], [/=/g, '等於'], [/×/g, '乘'], [/÷/g, '除以'], [/−(?=\d)/g, '負'], [/\+(?=\d)/g, '正'], [/μ/g, 'mu'], [/±/g, '正負']
+    [/½/g, '二分之一 '], [/²/g, ' 平方'], [/³/g, ' 立方'], [/kg·m\/s/g, '公斤米每秒'], [/m\/s²/g, '米每二次方秒'], [/m\/s/g, '米每秒'], [/N·s/g, '牛頓秒'], [/kWh/g, '度電'],
+    [/J\/kg°C/g, '焦耳每公斤每度'], [/J\/kg/g, '焦耳每公斤'], [/kg\/m 平方/g, ''], [/g\/cm 立方/g, '克每立方厘米'], [/°C/g, '度'], [/(\d)°/g, '$1 度'],
+    [/(\d)\s*kg/g, '$1 公斤'], [/(\d)\s*kJ\b/g, '$1 千焦耳'], [/(\d)\s*J\b/g, '$1 焦耳'], [/(\d)\s*kW\b/g, '$1 千瓦'], [/(\d)\s*W\b/g, '$1 瓦'], [/(\d)\s*Hz\b/g, '$1 赫茲'],
+    [/(\d)\s*mA\b/g, '$1 毫安'], [/(\d)\s*A\b/g, '$1 安培'], [/(\d)\s*V\b/g, '$1 伏特'], [/(\d)\s*Ω/g, '$1 歐姆'], [/(\d)\s*N\b/g, '$1 牛頓'], [/(\d)\s*cm\b/g, '$1 厘米'], [/(\d)\s*m\b/g, '$1 米'], [/(\d)\s*s\b/g, '$1 秒'],
+    [/v–t/g, '速度時間'], [/s–t/g, '位置時間'], [/a–t/g, '加速度時間'], [/p–t/g, '動量時間'], [/KE–t/g, '動能時間'], [/T–t/g, '溫度時間'], [/I–V/g, '電流電壓'], [/N–t/g, '數目時間'],
+    [/Δp/g, '動量改變'], [/ΔT/g, '溫度改變'], [/Δt/g, '時間'], [/KE/g, '動能'], [/PE/g, '勢能'], [/→/g, '，變成'], [/=/g, '等於'], [/×/g, '乘'], [/÷/g, '除以'],
+    [/−(?=\d)/g, '負'], [/\+(?=\d)/g, '正'], [/μ/g, 'mu'], [/λ/g, 'lambda'], [/α/g, '阿爾法'], [/β/g, '貝他'], [/γ/g, '伽瑪'], [/±/g, '正負'], [/≈/g, '大約'], [/(\d)\s*%/g, '百分之$1']
   ] : [
     [/KE\s*=\s*½mv²/g, 'K E equals half m v squared'], [/F\s*=\s*Δp\s*\/\s*Δt/g, 'F equals change in momentum divided by time'], [/F\s*=\s*ma/g, 'F equals m a'],
+    [/E\s*=\s*mcΔT/g, 'E equals m c delta T'], [/E\s*=\s*mL/g, 'E equals m L'], [/v\s*=\s*fλ/g, 'v equals f lambda'], [/V\s*=\s*IR/g, 'V equals I R'], [/P\s*=\s*VI/g, 'P equals V I'],
+    [/E\s*=\s*mc²/g, 'E equals m c squared'], [/PE\s*=\s*mgh/g, 'P E equals m g h'], [/W\s*=\s*Fs/g, 'work equals force times distance'], [/P\s*=\s*W\s*\/\s*t/g, 'power equals work divided by time'],
     [/F\(A→B\)\s*=\s*−F\(B→A\)/g, 'the force of A on B equals minus the force of B on A'], [/Δp_A\s*=\s*−Δp_B/g, "the change in A's momentum equals minus the change in B's momentum"],
-    [/p_A \+ p_B/g, 'the total momentum'], [/½/g, 'half '], [/²/g, ' squared'], [/kg·m\/s/g, 'kilogram metres per second'], [/m\/s/g, 'metres per second'],
-    [/N·s/g, 'newton seconds'], [/(\d)\s*kg/g, '$1 kilograms'], [/(\d)\s*J\b/g, '$1 joules'], [/(\d)\s*m\b/g, '$1 metres'], [/–t\b/g, '-time'], [/Δp/g, 'change in momentum'], [/Δt/g, 'time'],
-    [/\bKE\b/g, 'K E'], [/→/g, ' to '], [/=/g, ' equals '], [/×/g, ' times '], [/÷/g, ' divided by '], [/−(?=\d)/g, 'minus '], [/\+(?=\d)/g, 'plus '], [/μ/g, 'mu'], [/±/g, 'plus or minus ']
+    [/p_A \+ p_B/g, 'the total momentum'], [/½/g, 'half '], [/²/g, ' squared'], [/³/g, ' cubed'], [/kg·m\/s/g, 'kilogram metres per second'], [/m\/s²/g, 'metres per second squared'], [/m\/s/g, 'metres per second'],
+    [/N·s/g, 'newton seconds'], [/kWh/g, 'kilowatt hours'], [/J\/kg°C/g, 'joules per kilogram per degree'], [/J\/kg/g, 'joules per kilogram'], [/g\/cm³/g, 'grams per cubic centimetre'], [/°C/g, ' degrees'], [/(\d)°/g, '$1 degrees'],
+    [/(\d)\s*kg/g, '$1 kilograms'], [/(\d)\s*kJ\b/g, '$1 kilojoules'], [/(\d)\s*J\b/g, '$1 joules'], [/(\d)\s*kW\b/g, '$1 kilowatts'], [/(\d)\s*W\b/g, '$1 watts'], [/(\d)\s*Hz\b/g, '$1 hertz'],
+    [/(\d)\s*mA\b/g, '$1 milliamps'], [/(\d)\s*A\b/g, '$1 amps'], [/(\d)\s*V\b/g, '$1 volts'], [/(\d)\s*Ω/g, '$1 ohms'], [/(\d)\s*N\b/g, '$1 newtons'], [/(\d)\s*cm\b/g, '$1 centimetres'], [/(\d)\s*m\b/g, '$1 metres'], [/(\d)\s*s\b/g, '$1 seconds'],
+    [/–t\b/g, '-time'], [/I–V/g, 'current-voltage'], [/Δp/g, 'change in momentum'], [/ΔT/g, 'temperature change'], [/Δt/g, 'time'], [/\bKE\b/g, 'K E'], [/\bPE\b/g, 'P E'], [/→/g, ' to '],
+    [/=/g, ' equals '], [/×/g, ' times '], [/÷/g, ' divided by '], [/−(?=\d)/g, 'minus '], [/\+(?=\d)/g, 'plus '], [/μ/g, 'mu'], [/λ/g, 'lambda'], [/α/g, 'alpha'], [/β/g, 'beta'], [/γ/g, 'gamma'],
+    [/±/g, 'plus or minus '], [/≈/g, 'about '], [/(\d)\s*%/g, '$1 percent']
   ];
   for (const [a, b] of R) s = s.replace(a, b);
   return s.replace(/\s+/g, ' ').trim();
@@ -163,13 +179,11 @@ const Speech = {
     this.speaking = false;
   },
   cutAll() { this.stopOutput(); this.main = null; this.side = null; this.queue = []; this.idleCbs = []; this.notify(); },
-  // 主線：換階段時用（截斷舊語音）
   say(get, onDone, who = null) {
     this.cutAll();
     this.main = { get, chunks: this.prep(get), i: 0, onDone, who, kind: 'main' };
     this.pump();
   },
-  // 支線：老師講緊就排隊
   sideSay(get, key, who = 'info') {
     key = key || String(this.textOf(get)).slice(0, 40);
     if (this.main) {
@@ -188,7 +202,7 @@ const Speech = {
   isCurrent(key) { return this.speaking && this.cur && this.cur.key === key; },
   pause() { this.paused = true; this.stopOutput(); this.notify(); },
   resume() { this.paused = false; this.pump(); this.notify(); },
-  relang() { // 轉語言：主線由頭用新語言重讀
+  relang() {
     if (this.main) { this.main.chunks = this.prep(this.main.get); this.main.i = 0; }
     this.side = null; this.queue = [];
     this.stopOutput(); this.pump();
@@ -241,7 +255,7 @@ const Speech = {
  * 3. 音效（WebAudio）與煙花
  * ===================================================================== */
 const Sfx = {
-  ac: null, lastBoom: 0,
+  ac: null, lastBoom: 0, toneNode: null,
   unlock() { try { this.ac = this.ac || new (window.AudioContext || window.webkitAudioContext)(); if (this.ac.state === 'suspended') this.ac.resume(); } catch (_) {} },
   tone(f, t0, d, type = 'sine', vol = 0.07) {
     const o = this.ac.createOscillator(), g = this.ac.createGain();
@@ -256,13 +270,21 @@ const Sfx = {
     s.buffer = b; f.type = 'lowpass'; f.frequency.value = freq; g.gain.value = vol;
     s.connect(f).connect(g).connect(this.ac.destination); s.start(t0);
   },
+  // 實驗用：播放一段純音（聲音實驗）
+  sound(freq, vol = 0.1, dur = 1.5) {
+    if (!this.ac) return;
+    try { this.tone(freq, this.ac.currentTime, dur, 'sine', Math.max(0.0002, Math.min(0.25, vol))); } catch (_) {}
+  },
   play(name) {
     if (!S.sfx || !this.ac) return;
     const t0 = this.ac.currentTime;
     try {
       if (name === 'pop') this.tone(660, t0, 0.09, 'triangle', 0.05);
       else if (name === 'tick') this.tone(440, t0, 0.05, 'square', 0.02);
+      else if (name === 'click') this.tone(1800, t0, 0.03, 'square', 0.03);
       else if (name === 'crash') this.noise(t0, 0.14, 0.09, 1400);
+      else if (name === 'splash') this.noise(t0, 0.3, 0.06, 700);
+      else if (name === 'zap') { this.tone(900, t0, 0.08, 'sawtooth', 0.03); this.tone(400, t0 + 0.05, 0.1, 'sawtooth', 0.03); }
       else if (name === 'correct') [523, 659, 784, 1047].forEach((f, i) => this.tone(f, t0 + i * 0.09, 0.22, 'triangle', 0.07));
       else if (name === 'wrong') { this.tone(392, t0, 0.18, 'sine', 0.05); this.tone(330, t0 + 0.16, 0.26, 'sine', 0.05); }
       else if (name === 'done') [523, 659, 784].forEach((f) => this.tone(f, t0, 0.6, 'triangle', 0.05));
@@ -293,7 +315,7 @@ const FW = {
   tick(now) {
     const dt = Math.min((now - this.last) / 1000, 0.05); this.last = now;
     const g = this.g;
-    g.globalCompositeOperation = 'destination-out'; g.fillStyle = 'rgba(0,0,0,0.28)'; g.fillRect(0, 0, innerWidth, innerHeight);
+    g.globalCompositeOperation = 'destination-out'; g.fillStyle = 'rgba(0,0,0,0.3)'; g.fillRect(0, 0, innerWidth, innerHeight);
     g.globalCompositeOperation = 'lighter';
     for (const r of this.rockets) {
       if (r.delay > 0) { r.delay -= dt; continue; }
@@ -317,11 +339,12 @@ const FW = {
 function celebrate(text, big = false) {
   FW.launch(big ? 11 : 6);
   Sfx.play(big ? 'done' : 'correct');
+  world.cheer();
   const c = $('#cheer'); c.textContent = text; c.classList.remove('go'); void c.offsetWidth; c.classList.add('go');
 }
 
 /* =====================================================================
- * 4. 3D 引擎（Three.js）+ iPad 手勢
+ * 4. 3D 引擎（Three.js）+ iPad 手勢 + 實驗室房間
  * ===================================================================== */
 const stageEl = $('#stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -337,61 +360,104 @@ stageEl.appendChild(labelRenderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xdbeafe);
-scene.fog = new THREE.Fog(0xdbeafe, 32, 60);
-const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.1, 200);
+scene.fog = new THREE.Fog(0xdbeafe, 34, 64);
+const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.05, 200);
 scene.add(new THREE.HemisphereLight(0xffffff, 0x94a3b8, 1.6));
 const sun = new THREE.DirectionalLight(0xffffff, 2.2);
 sun.position.set(6, 12, 8); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
-Object.assign(sun.shadow.camera, { left: -13, right: 13, top: 13, bottom: -13, near: 1, far: 40 });
+Object.assign(sun.shadow.camera, { left: -14, right: 14, top: 14, bottom: -14, near: 1, far: 40 });
 sun.shadow.camera.updateProjectionMatrix(); scene.add(sun);
 
-const lab = createCollisionLab({
-  THREE, CSS2DObject, scene, camera,
-  lang: () => S.lang, adv: () => S.adv,
-  emit: (type, d) => Run.onEvent(type, d),
-  info: (key, tg, xg) => Info.show(key, tg, xg),
-  sfx: (n) => Sfx.play(n),
-  speaker: () => { const w = Speech.who(); return w === 'chan' || w === 'ming' ? w : null; }
-});
-lab.mount();
-const LABS = [lab];
+const kit = makeKit(THREE, CSS2DObject);
+const world = buildWorld(THREE, kit, scene);
 
-// 觸控：手指落在物件上 → 交給實驗室；落在空白 → 旋轉視角
+/* ---------------- 載入所有實驗枱 ---------------- */
+const BENCH = {};       // id → 實驗枱
+const LESSONS = {};     // id → 實驗單元
+function makeCtx(id) {
+  const root = new THREE.Group(); root.visible = false; scene.add(root);
+  return {
+    THREE, CSS2DObject, kit, scene, camera, root, id,
+    lang: () => S.lang, adv: () => S.adv,
+    emit: (type, d) => Run.onEvent(type, d || {}),
+    info: (key, tg, xg) => Info.show(key, tg, xg),
+    sfx: (n) => Sfx.play(n),
+    sound: (f, v, d) => Sfx.sound(f, v, d),
+    toast: (x) => toast(L(x)),
+    cheer: () => world.cheer(),
+    speaker: () => { const w = Speech.who(); return w === 'chan' || w === 'ming' ? w : null; },
+    renderTools: () => renderTools()
+  };
+}
+const loaded = await Promise.all(BENCH_FILES.map((f) => import(`./labs/${f}.js`).then((m) => [f, m.default]).catch((e) => { console.error('bench failed', f, e); return [f, null]; })));
+for (const [f, create] of loaded) {
+  if (!create) continue;
+  try {
+    const ctx = makeCtx(f);
+    const b = create(ctx);
+    b.root = ctx.root; b.key = f;
+    b.mount();
+    BENCH[f] = b;
+    for (const ls of b.lessons) { ls.bench = b; LESSONS[ls.id] = ls; }
+  } catch (e) { console.error('bench error', f, e); }
+}
+const ORDERED = ORDER.filter((id) => LESSONS[id]).concat(Object.keys(LESSONS).filter((id) => !ORDER.includes(id)));
+
+// 觸控：手指落在物件上 → 交給實驗枱；落在空白 → 旋轉視角
 const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
 const setRay = (e) => { const r = canvas.getBoundingClientRect(); ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1); raycaster.setFromCamera(ndc, camera); return raycaster; };
-const pointers = new Set(); let captured = null, controls;
+const pointers = new Set(); let captured = null, tapStart = null, controls;
+const bench = () => Run.lab;
 canvas.addEventListener('pointerdown', (e) => {
   if (e.isPrimary) pointers.clear();
   pointers.add(e.pointerId);
-  if (pointers.size > 1 || captured !== null || App.view !== 'lab') return;
-  if (lab.pointerDown(e, setRay(e))) { captured = e.pointerId; controls.enabled = false; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
+  if (pointers.size > 1) { tapStart = null; return; }
+  if (captured !== null || App.view !== 'lab' || !bench()) return;
+  tapStart = { x: e.clientX, y: e.clientY, t: performance.now() };
+  if (bench().pointerDown && bench().pointerDown(e, setRay(e))) { captured = e.pointerId; controls.enabled = false; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
 }, { capture: true });
-canvas.addEventListener('pointermove', (e) => { if (captured === e.pointerId) lab.pointerMove(e, setRay(e)); });
-const pUp = (e) => { pointers.delete(e.pointerId); lab.pointerUp(e); if (captured === e.pointerId) { captured = null; controls.enabled = true; } };
+canvas.addEventListener('pointermove', (e) => { if (captured === e.pointerId && bench().pointerMove) bench().pointerMove(e, setRay(e)); });
+const pUp = (e) => {
+  pointers.delete(e.pointerId);
+  if (captured === e.pointerId) { captured = null; controls.enabled = true; if (bench().pointerUp) bench().pointerUp(e, setRay(e)); tapStart = null; return; }
+  if (tapStart && e.type === 'pointerup' && Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y) < 10 && performance.now() - tapStart.t < 450) {
+    const ray = setRay(e);
+    if (!(bench().tap && bench().tap(ray))) worldTap(ray);
+  }
+  tapStart = null;
+};
 canvas.addEventListener('pointerup', pUp); canvas.addEventListener('pointercancel', pUp);
+function worldTap(ray) {
+  const hits = ray.intersectObjects(world.pickables.map((q) => q.obj), false);
+  if (!hits.length) return;
+  const h = world.pickables.find((q) => q.obj === hits[0].object);
+  if (h.kind === 'person') { world.wave(h.id); Info.show(h.id, () => t(h.id), () => t(h.id + 'Info')); }
+  else if (h.kind === 'board' && bench().board) Info.show('board', () => t('board'), () => L(bench().board.info) || bench().board.lines.join('；'));
+}
 
 controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true; controls.dampingFactor = 0.08;
-controls.minDistance = 4; controls.maxDistance = 32; controls.maxPolarAngle = Math.PI * 0.47;
+controls.minDistance = 2.5; controls.maxDistance = 34; controls.maxPolarAngle = Math.PI * 0.49;
 controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-controls.addEventListener('change', () => { const tg = controls.target; tg.set(THREE.MathUtils.clamp(tg.x, -12, 12), THREE.MathUtils.clamp(tg.y, 0, 4), THREE.MathUtils.clamp(tg.z, -8, 8)); });
+controls.addEventListener('change', () => { const tg = controls.target; tg.set(THREE.MathUtils.clamp(tg.x, -14, 14), THREE.MathUtils.clamp(tg.y, 0, 6), THREE.MathUtils.clamp(tg.z, -8, 8)); });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => e.preventDefault());
 function defaultView() {
-  const c = lab.camera, d = innerWidth / innerHeight < 1 ? 1.75 : 1.12;
-  camera.position.set(c.pos[0] * d, c.pos[1] * d, c.pos[2] * d);
+  const ls = Run.lesson, b = Run.lab; if (!b) return;
+  const c = (Run.st && Run.st.camera) || (ls && ls.camera) || b.camera;
+  const d = innerWidth / innerHeight < 1 ? 1.7 : 1.1;
+  camera.position.set(c.target[0] + (c.pos[0] - c.target[0]) * d, c.target[1] + (c.pos[1] - c.target[1]) * d, c.target[2] + (c.pos[2] - c.target[2]) * d);
   controls.target.set(...c.target); controls.update();
 }
 
 /* =====================================================================
- * 5. 圖表（x 軸：時間；y 軸：速度 / 位置 / 動量 / 動能）
+ * 5. 圖表（時間圖 / x–y 圖 / 散點圖 + 最佳直線）
  * ===================================================================== */
-const COLORS = { A: '#dc2626', B: '#2563eb', T: '#334155' };
 function niceStep(span, n) { const raw = span / n, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
 function ticks(lo, hi, n) { const st = niceStep(hi - lo || 1, n), out = []; for (let v = Math.ceil(lo / st - 1e-9) * st; v <= hi + 1e-9; v += st) out.push(+v.toFixed(6)); return out; }
-const fmtTick = (v) => (Math.abs(v) < 1e-9 ? '0' : Math.abs(v) >= 10 || Number.isInteger(v) ? String(Math.round(v * 10) / 10) : v.toFixed(1)).replace('-', '−');
+const fmtTick = (v) => { const a = Math.abs(v); const s = a < 1e-9 ? '0' : a >= 1000 ? String(Math.round(v)) : a >= 10 || Number.isInteger(v) ? String(Math.round(v * 10) / 10) : a >= 0.1 ? v.toFixed(1) : v.toFixed(2); return s.replace('-', '−'); };
 const Chart = {
-  cv: null, tab: 'v', hover: null, open: true, hoverT: null, lastLegend: '',
+  cv: null, tab: null, hover: null, open: true, hoverT: null, lastLegend: '',
   init() {
     this.cv = $('#chart');
     const set = (e) => { const r = this.cv.getBoundingClientRect(); this.hover = e.clientX - r.left; clearTimeout(this.hoverT); this.draw(); };
@@ -399,69 +465,103 @@ const Chart = {
     const clear = () => { this.hoverT = setTimeout(() => { this.hover = null; this.draw(); }, 1500); };
     this.cv.addEventListener('pointerup', clear); this.cv.addEventListener('pointerleave', clear);
   },
-  setTab(id) { this.tab = id; renderTabs(); this.draw(); },
+  defs() { const ls = Run.lesson; return ls ? (ls.graphs || []).map((id) => Run.lab.graphs.find((g) => g.id === id)).filter(Boolean) : []; },
+  setTab(id) { if (this.defs().some((d) => d.id === id)) this.tab = id; renderTabs(); this.draw(); },
   draw() {
-    const cv = this.cv; if (!cv || !this.open || App.view !== 'lab') return;
+    const cv = this.cv; if (!cv || !this.open || App.view !== 'lab' || !Run.lab) return;
+    const def = this.defs().find((d) => d.id === this.tab); if (!def) return;
     const dpr = Math.min(devicePixelRatio, 2), W = cv.clientWidth, Hh = cv.clientHeight; if (!W || !Hh) return;
     if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(Hh * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(Hh * dpr); }
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, Hh);
-    const def = lab.graphs.find((x) => x.id === this.tab), H = lab.hist(), G = lab.ghost();
-    const pad = { l: 40, r: 66, t: 20, b: 30 }, pw = W - pad.l - pad.r, ph = Hh - pad.t - pad.b;
-    const tMax = H.t.length ? H.t[H.t.length - 1] : 0, gMax = G && G.t.length ? G.t[G.t.length - 1] : 0;
-    let x1 = Math.max(4, tMax, Math.min(gMax, 12)), x0 = Math.max(0, x1 - 12);
+    const pad = { l: 42, r: 70, t: 20, b: 30 }, pw = W - pad.l - pad.r, ph = Hh - pad.t - pad.b;
+    const mode = def.mode || 'time';
+    const sets = []; let ev = [], x0, x1, xTitle;
+    if (mode === 'time') {
+      const H = Run.lab.hist(), G = Run.lab.ghost ? Run.lab.ghost() : null;
+      const tMax = H.t.length ? H.t[H.t.length - 1] : 0, gMax = G && G.t.length ? G.t[G.t.length - 1] : 0;
+      const span = def.span || 12;
+      x1 = Math.max(def.minSpan || 4, tMax, Math.min(gMax, span)); x0 = Math.max(0, x1 - span);
+      for (const [k, name, color] of def.series) {
+        if (G && G.c[k]) sets.push({ xs: G.t, ys: G.c[k], color, ghost: true });
+        sets.push({ xs: H.t, ys: H.c[k], color, name, k, w: def.total === k ? 2.6 : 2 });
+      }
+      ev = H.ev || []; xTitle = (def.x ? L(def.x) : t('xAxis'));
+    } else {
+      const D = def.data();
+      for (const [k, name, color] of def.series) {
+        if (D.ghost && D.ghost.c[k]) sets.push({ xs: D.ghost.x, ys: D.ghost.c[k], color, ghost: true });
+        if (mode === 'scatter') sets.push({ pts: (D.pts && D.pts[k]) || [], color, name, k });
+        else sets.push({ xs: D.x, ys: D.c[k], color, name, k, w: def.total === k ? 2.6 : 2 });
+      }
+      const allX = sets.flatMap((s) => (s.pts ? s.pts.map((p) => p[0]) : s.xs)).filter(Number.isFinite);
+      if (def.xRange) [x0, x1] = def.xRange;
+      else { x0 = mode === 'scatter' ? 0 : Math.min(...allX, 0); x1 = Math.max(...allX, x0 + 1) * (mode === 'scatter' ? 1.15 : 1); }
+      xTitle = L(def.x);
+    }
     let lo = Infinity, hi = -Infinity;
-    const scan = (h) => { for (const [k] of def.series) { const a = h.c[k]; for (let i = 0; i < a.length; i++) { if (h.t[i] < x0) continue; const v = a[i]; if (Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } } } };
-    scan(H); if (G) scan(G);
+    for (const s of sets) {
+      if (s.pts) s.pts.forEach((p) => { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); });
+      else for (let i = 0; i < s.ys.length; i++) { if (s.xs[i] < x0 || s.xs[i] > x1) continue; const v = s.ys[i]; if (Number.isFinite(v)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } }
+    }
     if (def.fixed) [lo, hi] = def.fixed;
     else if (def.sym) { const m = Math.max(Math.abs(lo) || 0, Math.abs(hi) || 0, def.min || 1) * 1.15; lo = -m; hi = m; }
-    else { hi = Math.max((Number.isFinite(hi) ? hi : 0) * 1.15, def.min || 1); lo = 0; }
+    else { hi = Math.max((Number.isFinite(hi) ? hi : 0) * 1.15, def.min || 1); lo = def.zero !== false ? Math.min(0, Number.isFinite(lo) ? lo * 1.15 : 0) : (Number.isFinite(lo) ? lo : 0); }
     const yt = ticks(lo, hi, 4); lo = Math.min(lo, yt[0]); hi = Math.max(hi, yt[yt.length - 1]);
-    const X = (tt) => pad.l + ((tt - x0) / (x1 - x0)) * pw, Y = (v) => pad.t + ((hi - v) / (hi - lo)) * ph;
+    const X = (v) => pad.l + ((v - x0) / (x1 - x0 || 1)) * pw, Y = (v) => pad.t + ((hi - v) / (hi - lo || 1)) * ph;
     g.font = '11px -apple-system, system-ui, sans-serif'; g.lineWidth = 1;
     g.textAlign = 'right'; g.textBaseline = 'middle';
     for (const v of yt) { const y = Y(v); g.strokeStyle = Math.abs(v) < 1e-9 ? '#94a3b8' : '#e2e8f0'; g.lineWidth = Math.abs(v) < 1e-9 ? 1.5 : 1; g.beginPath(); g.moveTo(pad.l, y); g.lineTo(pad.l + pw, y); g.stroke(); g.fillStyle = '#64748b'; g.fillText(fmtTick(v), pad.l - 5, y); }
     g.textAlign = 'center'; g.textBaseline = 'top';
-    for (const tt of ticks(x0, x1, 6)) { if (tt < x0 - 1e-6) continue; const x = X(tt); g.strokeStyle = '#f1f5f9'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke(); g.fillStyle = '#64748b'; g.fillText(fmtTick(tt), x, pad.t + ph + 5); }
+    for (const v of ticks(x0, x1, 6)) { if (v < x0 - 1e-6) continue; const x = X(v); g.strokeStyle = '#f1f5f9'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke(); g.fillStyle = '#64748b'; g.fillText(fmtTick(v), x, pad.t + ph + 5); }
     g.strokeStyle = '#475569'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(pad.l, pad.t); g.lineTo(pad.l, pad.t + ph); g.lineTo(pad.l + pw, pad.t + ph); g.stroke();
     g.fillStyle = '#334155'; g.font = '700 11px -apple-system, system-ui, sans-serif';
     g.textAlign = 'left'; g.textBaseline = 'bottom'; g.fillText('↑ ' + L(def.y), pad.l - 4, pad.t - 5);
-    g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText(t('xAxis') + ' →', W - 2, Hh - 2);
+    g.textAlign = 'right'; g.textBaseline = 'bottom'; g.fillText(xTitle + ' →', W - 2, Hh - 2);
     g.save(); g.beginPath(); g.rect(pad.l, pad.t - 3, pw, ph + 6); g.clip();
-    for (const ev of H.ev) { if (ev.t < x0) continue; const x = X(ev.t); g.strokeStyle = '#f59e0b'; g.lineWidth = 1.5; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke(); g.setLineDash([]); }
-    const line = (h, k, color, w, dash, alpha) => {
-      g.strokeStyle = color; g.lineWidth = w; g.globalAlpha = alpha; g.setLineDash(dash || []); g.lineJoin = 'round';
-      g.beginPath(); let pen = false; const a = h.c[k];
-      for (let i = 0; i < a.length; i++) { if (h.t[i] < x0) continue; const v = a[i]; if (!Number.isFinite(v)) { pen = false; continue; } const x = X(h.t[i]), y = Y(v); if (pen) g.lineTo(x, y); else { g.moveTo(x, y); pen = true; } }
+    for (const e of ev) { if (e.t < x0) continue; const x = X(e.t); g.strokeStyle = '#f59e0b'; g.lineWidth = 1.5; g.setLineDash([4, 4]); g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke(); g.setLineDash([]); }
+    const fits = [];
+    for (const s of sets) {
+      if (s.pts) {
+        g.fillStyle = s.color;
+        for (const [px, py] of s.pts) { g.beginPath(); g.arc(X(px), Y(py), 5, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); }
+        if (def.fit && s.pts.length >= 2) {
+          let sxy = 0, sxx = 0; s.pts.forEach(([a, b]) => { sxy += a * b; sxx += a * a; });
+          const m = sxy / (sxx || 1); fits.push({ m, color: s.color });
+          g.strokeStyle = s.color; g.lineWidth = 1.5; g.setLineDash([6, 4]); g.beginPath(); g.moveTo(X(0), Y(0)); g.lineTo(X(x1), Y(m * x1)); g.stroke(); g.setLineDash([]);
+        }
+        continue;
+      }
+      g.strokeStyle = s.color; g.lineWidth = s.w || 2; g.globalAlpha = s.ghost ? 0.4 : 1; g.setLineDash(s.ghost ? [5, 4] : []); g.lineJoin = 'round';
+      g.beginPath(); let pen = false;
+      for (let i = 0; i < s.ys.length; i++) { const xv = s.xs[i], v = s.ys[i]; if (xv < x0 || !Number.isFinite(v)) { pen = false; continue; } const x = X(xv), y = Y(v); if (pen) g.lineTo(x, y); else { g.moveTo(x, y); pen = true; } }
       g.stroke(); g.globalAlpha = 1; g.setLineDash([]);
-    };
-    if (G) for (const [k, s] of def.series) line(G, k, COLORS[s], 2, [5, 4], 0.4);
-    for (const [k, s] of def.series) line(H, k, COLORS[s], s === 'T' ? 2.6 : 2, null, 1);
-    g.restore();
-    // 直接標示（線尾）
-    const n = H.t.length;
-    if (n) {
-      const labs = def.series.map(([k, s]) => ({ s, v: H.c[k][n - 1] })).filter((o) => Number.isFinite(o.v)).map((o) => ({ ...o, y: Math.min(Math.max(Y(o.v), pad.t), pad.t + ph) }));
-      labs.sort((a, b) => a.y - b.y);
-      for (let i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < 14) labs[i].y = labs[i - 1].y + 14;
-      g.font = '700 11px -apple-system, system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
-      for (const o of labs) { g.fillStyle = COLORS[o.s]; g.beginPath(); g.arc(pad.l + pw + 7, o.y, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#334155'; g.fillText(`${lab.seriesName(o.s)} ${fmtTick(Math.round(o.v * 10) / 10)}`, pad.l + pw + 14, o.y); }
     }
-    // 十字線提示
-    if (this.hover != null && n && this.hover >= pad.l && this.hover <= pad.l + pw) {
-      const tt = x0 + ((this.hover - pad.l) / pw) * (x1 - x0);
-      let i = 0, j = n - 1; while (i < j) { const m = (i + j) >> 1; if (H.t[m] < tt) i = m + 1; else j = m; }
-      const x = X(H.t[i]);
+    g.restore();
+    // 線尾直接標示
+    g.font = '700 11px -apple-system, system-ui, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
+    const labs = sets.filter((s) => !s.ghost && !s.pts && s.ys.length).map((s) => {
+      let i = s.ys.length - 1; while (i >= 0 && !Number.isFinite(s.ys[i])) i--;
+      return i < 0 ? null : { s, v: s.ys[i], y: Math.min(Math.max(Y(s.ys[i]), pad.t), pad.t + ph) };
+    }).filter(Boolean).sort((a, b) => a.y - b.y);
+    for (let i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < 14) labs[i].y = labs[i - 1].y + 14;
+    for (const o of labs) { g.fillStyle = o.s.color; g.beginPath(); g.arc(pad.l + pw + 7, o.y, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#334155'; g.fillText(`${L(o.s.name)} ${fmtTick(Math.round(o.v * 100) / 100)}`, pad.l + pw + 14, o.y); }
+    fits.forEach((fi, k) => { g.fillStyle = '#334155'; g.fillText(fmt(t('slope'), { m: fi.m.toFixed(2) }), pad.l + 8, pad.t + 10 + k * 14); });
+    // 十字線
+    const base = sets.find((s) => !s.ghost && !s.pts && s.xs && s.xs.length);
+    if (this.hover != null && base && this.hover >= pad.l && this.hover <= pad.l + pw) {
+      const xv = x0 + ((this.hover - pad.l) / pw) * (x1 - x0), xs = base.xs;
+      let i = 0, j = xs.length - 1; while (i < j) { const m = (i + j) >> 1; if (xs[m] < xv) i = m + 1; else j = m; }
+      const x = X(xs[i]);
       g.strokeStyle = '#64748b'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke();
-      const rows = [`t = ${H.t[i].toFixed(2)} s`, ...def.series.filter(([k]) => Number.isFinite(H.c[k][i])).map(([k, s]) => `${lab.seriesName(s)}: ${H.c[k][i].toFixed(2)}`)];
-      g.font = '700 11px -apple-system, system-ui, sans-serif';
+      const rows = [`${mode === 'time' ? 't' : 'x'} = ${xs[i].toFixed(2)}`, ...sets.filter((s) => !s.ghost && !s.pts && Number.isFinite(s.ys[i])).map((s) => `${L(s.name)}: ${s.ys[i].toFixed(2)}`)];
       const bw = Math.max(...rows.map((r) => g.measureText(r).width)) + 14, bh = rows.length * 15 + 8;
       const bx = Math.min(x + 8, pad.l + pw - bw), by = pad.t + 4;
       g.fillStyle = 'rgba(15,23,42,.88)'; g.beginPath(); g.roundRect ? g.roundRect(bx, by, bw, bh, 6) : g.rect(bx, by, bw, bh); g.fill();
       g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'top';
       rows.forEach((r, k) => g.fillText(r, bx + 7, by + 5 + k * 15));
     }
-    const legend = def.series.map(([, s]) => `<span><i class="sw" style="background:${COLORS[s]}"></i>${esc(lab.seriesName(s))}</span>`).join('')
-      + (G ? `<span>┄ ${esc(t('ghostNote'))}</span>` : '') + (H.ev.length ? `<span style="color:#b45309">┆ ${esc(t('crashNote'))}</span>` : '');
+    const legend = def.series.map(([, name, color]) => `<span><i class="sw" style="background:${color}"></i>${esc(L(name))}</span>`).join('')
+      + (sets.some((s) => s.ghost) ? `<span>┄ ${esc(t('ghostNote'))}</span>` : '') + (ev.length ? `<span style="color:#b45309">┆ ${esc(L(def.evNote) || t('crashNote'))}</span>` : '');
     if (legend !== this.lastLegend) { $('#chartLegend').innerHTML = legend; this.lastLegend = legend; }
   }
 };
@@ -494,7 +594,7 @@ const Info = {
 
 function readable(el) {
   const c = el.cloneNode(true);
-  c.querySelectorAll('.spk, button[data-noread], .no-tts, canvas').forEach((n) => n.remove());
+  c.querySelectorAll('.spk, button[data-noread], .no-tts, canvas, input').forEach((n) => n.remove());
   return c.innerText;
 }
 function chainSpeech(chain) {
@@ -505,7 +605,7 @@ function chainSpeech(chain) {
 function readFor(btn) {
   const r = btn.dataset.read;
   if (r === 'bubble') return App.view === 'lab' ? Run.replay() : Tour.replay();
-  if (r === 'graph') return Speech.sideSay(() => lab.describeGraph(Chart.tab), 'graph');
+  if (r === 'graph') return Speech.sideSay(() => (Run.lab.describeGraph ? Run.lab.describeGraph(Chart.tab) : '') || readable($('#graphPanel')), 'graph');
   if (r === 'chain') return Speech.sideSay(() => chainSpeech(Run.st.chain), 'chain');
   if (r === 'quizq') return Speech.sideSay(() => quizSpeech(Run.st.quiz), 'quizq');
   if (r && r.startsWith('opt:')) { const k = +r.slice(4); return Speech.sideSay(() => fmt(t('optN'), { n: k + 1 }) + L(Run.st.quiz.opts[k]), 'opt' + k); }
@@ -541,7 +641,7 @@ function renderTopbar() {
   $('#btnPause').classList.toggle('btn-amber', Speech.paused);
   $('#btnRead').classList.toggle('active', App.pointRead);
   $('#btnAdv').classList.toggle('active', S.adv);
-  $('#brandSub').textContent = lab ? L(LABS[0].title) : t('appSub');
+  $('#brandSub').textContent = lab && Run.lesson ? L(Run.lesson.title) : t('appSub');
   $$('[data-lang]').forEach((b) => b.classList.toggle('active', b.dataset.lang === S.lang));
   renderSayPill(); updateVoiceTip();
   requestAnimationFrame(measure);
@@ -563,19 +663,22 @@ function updateVoiceTip() {
   $('#voiceTipText').textContent = msg;
   $('#voiceTip').classList.toggle('is-hidden', !msg || updateVoiceTip.dismissed?.[S.lang] || App.view !== 'hub');
 }
-
 function measure() {
   document.documentElement.style.setProperty('--top', $('#topbar').offsetHeight + 4 + 'px');
   const b = $('#bubble'); if (b && App.view === 'lab') document.documentElement.style.setProperty('--bubbleH', b.offsetHeight + 'px');
 }
 
 /* =====================================================================
- * 7. 主頁（課程大綱 + 導覽）
+ * 7. 主頁（課程大綱 → 實驗單元 + 導覽）
  * ===================================================================== */
-const itemStage = new Map(); // 項目編號 → 實驗步驟
-LABS[0].stages.forEach((st, i) => (st.items || []).forEach((n) => { if (!itemStage.has(n)) itemStage.set(n, i); }));
-function itemStatus(n) { return PARTIAL.includes(n) ? 'partial' : itemStage.has(n) ? 'open' : 'locked'; }
-
+const ITEM_NAME = {};
+TOPICS.forEach((tp) => tp.subs.forEach((sb) => sb.items.forEach(([n, zh, en]) => (ITEM_NAME[n] = { zh, en }))));
+const itemTarget = new Map(); // 項目 → { lesson, stage }
+for (const id of ORDERED) {
+  const ls = LESSONS[id];
+  (ls.items || []).forEach((n) => { if (!itemTarget.has(n)) itemTarget.set(n, { lesson: id, stage: 0 }); });
+  ls.stages.forEach((st, i) => (st.items || []).forEach((n) => { const cur = itemTarget.get(n); if (cur && cur.lesson === id && cur.stage === 0 && i > 0) cur.stage = i; }));
+}
 function renderHub() {
   let html = '';
   for (const tp of TOPICS) {
@@ -583,34 +686,51 @@ function renderHub() {
       <header class="topic-h"><span class="ticon">${tp.icon}</span><div class="flex-1"><div class="tnum">${esc(fmt(t('topicN'), { n: tp.id }))}</div><h2>${esc(L(tp.name))}</h2><p class="tdesc">${esc(L(tp.desc))}</p></div>
       <button class="spk" data-read="#topic-${tp.id} .topic-h" aria-label="read">🔊</button></header>`;
     for (const sb of tp.subs) {
-      const b = BENCHES[sb.bench];
-      html += `<div class="sub"><div class="sub-h"><b>${sb.id} ${esc(L(sb.name))}</b><span class="pill phase p${sb.phase}">${esc(fmt(t('phase'), { n: sb.phase }))}</span><span class="pill bench">${b.icon} ${esc(L(b))}</span></div><ul>`;
-      for (const [n, zh, en] of sb.items) {
-        const st = itemStatus(n);
-        html += `<li class="item ${st}" data-item="${n}" data-phase="${sb.phase}" data-name="${esc(S.lang === 'zh' ? zh : en)}"><span class="num">${n}</span><span class="nm">${esc(S.lang === 'zh' ? zh : en)}</span><span>${st === 'open' ? '✅' : st === 'partial' ? '🟡' : '🔒'}</span></li>`;
+      const lessons = ORDERED.map((id) => LESSONS[id]).filter((ls) => (ls.subs || []).includes(sb.id));
+      html += `<div class="sub"><div class="sub-h"><b>${sb.id} ${esc(L(sb.name))}</b></div>`;
+      const shown = new Set();
+      for (const ls of lessons) {
+        const its = sb.items.filter(([n]) => (ls.items || []).includes(n));
+        its.forEach(([n]) => shown.add(n));
+        const done = PROGRESS[ls.id];
+        html += `<div class="lcard ${done ? 'done' : ''}" data-lesson="${ls.id}">
+          <div class="lc-h"><span class="lc-i">${ls.icon}</span><div class="flex-1"><b>${esc(L(ls.title))}</b><div class="lc-d">${esc(L(ls.desc))}</div>
+          <div class="lc-m"><span class="pill bench">${(BENCHES[ls.bench.key] || { icon: '🔬' }).icon} ${esc(L(BENCHES[ls.bench.key] || { zh: ls.bench.key, en: ls.bench.key }))}</span>${done ? `<span class="pill" style="background:#dcfce7;color:#166534">${esc(t('doneBadge'))} ${'⭐'.repeat(done)}</span>` : ''}</div></div>
+          <button class="btn btn-primary btn-sm" data-start="${ls.id}">${esc(t('start'))}</button></div>
+          ${its.length ? `<ul>${its.map(([n, zh, en]) => `<li class="item open" data-item="${n}"><span class="num">${typeof n === 'string' ? '⭐' : n}</span><span class="nm">${esc(S.lang === 'zh' ? zh : en)}</span></li>`).join('')}</ul>` : ''}
+        </div>`;
       }
-      html += '</ul></div>';
+      const rest = sb.items.filter(([n]) => !shown.has(n));
+      if (rest.length) html += `<ul>${rest.map(([n, zh, en]) => { const tg = itemTarget.get(n); return `<li class="item ${tg ? 'open' : 'locked'}" data-item="${n}"><span class="num">${typeof n === 'string' ? '⭐' : n}</span><span class="nm">${esc(S.lang === 'zh' ? zh : en)}</span><span>${tg ? '↗' : '🔒'}</span></li>`; }).join('')}</ul>`;
+      html += '</div>';
     }
     html += '</section>';
   }
   $('#topics').innerHTML = html;
-  const all = TOPICS.flatMap((tp) => tp.subs.flatMap((s) => s.items.map((i) => i[0])));
-  const nOpen = all.filter((n) => itemStatus(n) === 'open').length, nPart = all.filter((n) => itemStatus(n) === 'partial').length;
-  $('#fTitle').textContent = L(LABS[0].title); $('#fDesc').textContent = L(LABS[0].desc);
-  $('#fItems').textContent = fmt(t('itemsCovered'), { list: [...itemStage.keys()].sort((a, b) => a - b).join(', ') });
-  $('#openCount').textContent = fmt(t('openCount'), { a: nOpen, b: nPart, c: all.length });
+  const n = ORDERED.length, nd = ORDERED.filter((id) => PROGRESS[id]).length;
+  $('#fTag').textContent = t('allOpen');
+  $('#fTitle').textContent = fmt(t('allTitle'), { n });
+  $('#fDesc').textContent = t('allDesc');
+  $('#openCount').textContent = fmt(t('progress'), { a: nd, b: n });
+  const nextId = ORDERED.find((id) => !PROGRESS[id]);
+  $('#fStart').textContent = nd && nextId ? fmt(t('continueAt'), { name: L(LESSONS[nextId].title) }) : t('startAll');
+  $('#fStart').dataset.lesson = nextId || ORDERED[0];
   Tour.render();
 }
 $('#topics').addEventListener('click', (e) => {
-  const li = e.target.closest('.item'); if (!li) return;
-  const n = +li.dataset.item;
-  if (itemStage.has(n)) { Sfx.unlock(); enterLab(itemStage.get(n)); return; }
-  Speech.sideSay(() => fmt(t('lockedSay'), { n, name: li.dataset.name, p: li.dataset.phase }), 'item' + n);
-  toast('🔒 ' + t('legendLocked'));
+  const st = e.target.closest('[data-start]');
+  if (st) { Sfx.unlock(); enterLesson(st.dataset.start, 0); return; }
+  const li = e.target.closest('.item');
+  if (li) {
+    const raw = li.dataset.item, n = /^\d+$/.test(raw) ? +raw : raw, tg = itemTarget.get(n);
+    if (tg) { Sfx.unlock(); enterLesson(tg.lesson, tg.stage); }
+    return;
+  }
+  const card = e.target.closest('.lcard'); if (card) { Sfx.unlock(); enterLesson(card.dataset.lesson, 0); }
 });
 
 const Tour = {
-  i: 0, tok: 0, timer: null,
+  i: 0, tok: 0, timer: null, done: false,
   step() { return HUB_TOUR[this.i]; },
   render() {
     const s = this.step();
@@ -637,38 +757,40 @@ const Tour = {
     if (App.view !== 'hub' || !S.auto || Speech.paused || !this.done) return;
     const tok = this.tok;
     if (this.i < HUB_TOUR.length - 1) this.timer = setTimeout(() => tok === this.tok && this.go(this.i + 1), 450 * FAST);
-    else this.timer = setTimeout(() => tok === this.tok && enterLab(0), 900 * FAST);
+    else this.timer = setTimeout(() => tok === this.tok && enterLesson($('#fStart').dataset.lesson, 0), 900 * FAST);
   },
   halt() { clearTimeout(this.timer); },
   replay() { this.go(this.i); }
 };
 $('#hPrev').onclick = () => Tour.go(Tour.i - 1);
-$('#hNext').onclick = () => (Tour.i < HUB_TOUR.length - 1 ? Tour.go(Tour.i + 1) : enterLab(0));
-$('#fStart').onclick = () => { Sfx.unlock(); enterLab(0); };
+$('#hNext').onclick = () => (Tour.i < HUB_TOUR.length - 1 ? Tour.go(Tour.i + 1) : enterLesson($('#fStart').dataset.lesson, 0));
+$('#fStart').onclick = () => { Sfx.unlock(); enterLesson($('#fStart').dataset.lesson, 0); };
 
 /* =====================================================================
  * 8. 實驗室教學流程（Run）
- * ---------------------------------------------------------------------
  *  換階段 → Speech.say() 截斷舊語音
  *  完成任務 / 答題 → 推進（同樣截斷）
  *  自動導覽：講完 → 自動示範 → 自動下一步；問題會倒數，時間到就揭曉
  * ===================================================================== */
 const Run = {
-  lab, i: 0, st: null, tok: 0, timers: [], autoT: null, narrDone: false, goalDone: false, demoRunning: false, demoDone: false, quiz: null, locks: new Set(), score: {}, enteredAt: 0,
+  lab: null, lesson: null, i: 0, st: null, tok: 0, timers: [], autoT: null, narrDone: false, goalDone: false, demoRunning: false, demoDone: false,
+  quiz: null, locks: new Set(), score: {}, enteredAt: 0, toolsByDemo: false,
   later(sec, fn) { const tok = this.tok; const id = setTimeout(() => { if (tok === this.tok) fn(); }, sec * 1000); this.timers.push(id); return id; },
-  clear() { this.tok++; this.timers.forEach(clearTimeout); this.timers = []; this.autoT = null; this.demoRunning = false; showDemo(false); },
+  clear() { this.tok++; this.timers.forEach(clearTimeout); this.timers = []; this.autoT = null; this.demoRunning = false; showDemo(false); stopNextCountdown(); },
   go(i) {
     this.clear();
-    const stages = this.lab.stages;
+    const stages = this.lesson.stages;
     this.i = Math.max(0, Math.min(i, stages.length - 1));
     const st = this.st = stages[this.i];
     this.narrDone = false; this.goalDone = false; this.demoDone = false; this.enteredAt = performance.now();
     this.quiz = st.quiz ? { phase: 'ask', pick: null, correct: null, revealSaid: false } : null;
     Info.hide(); $('#done').classList.add('is-hidden');
-    if (this.toolsByDemo) { openTools(false); this.toolsByDemo = false; } // 示範時打開的工具箱，換步驟就收起
-    if (st.setup) this.lab.apply(st.setup);
+    if (this.toolsByDemo) { openTools(false); this.toolsByDemo = false; }
+    if (st.setup) this.lab.apply({ ...(this.lesson.base || {}), ...st.setup });
     this.locks = new Set(st.lock || []);
     renderTools(); if (st.graph) Chart.setTab(st.graph);
+    if (st.camera || this.camStage) defaultView();
+    this.camStage = !!st.camera;
     renderStage(); renderBubble(); renderQuiz();
     if (st.pre) this.actions(st.pre);
     const tok = this.tok;
@@ -682,7 +804,7 @@ const Run = {
     return s;
   },
   bubbleText() { const q = this.quiz; return q && q.phase === 'reveal' ? L(this.st.quiz.why) : L(this.st.say); },
-  next() { if (this.i < this.lab.stages.length - 1) this.go(this.i + 1); else this.finish(); },
+  next() { if (this.i < this.lesson.stages.length - 1) this.go(this.i + 1); else this.finish(); },
   prev() { this.go(this.i - 1); },
   replay() {
     const q = this.quiz, tok = this.tok;
@@ -712,11 +834,16 @@ const Run = {
     const tok = this.tok; let start = this.lab.simTime(), last = start;
     while (tok === this.tok) {
       const now = this.lab.simTime();
-      if (now < last) start = now; // 實驗被重設
+      if (now < last) start = now;
       last = now;
       if (now - start >= sec) return;
       await sleep(80);
     }
+  },
+  async waitFor(ev, maxSec) { // 等某個事件（最多 maxSec 模擬秒）
+    const tok = this.tok; this.waiting = { ev, hit: false };
+    let start = this.lab.simTime(), last = start;
+    while (tok === this.tok && !this.waiting.hit) { const now = this.lab.simTime(); if (now < last) start = now; last = now; if (now - start >= maxSec) break; await sleep(80); }
   },
   async actions(list, demo = false) {
     if (!list) return;
@@ -725,25 +852,30 @@ const Run = {
     for (const a of list) {
       if (tok !== this.tok) return;
       if (a[0] === 'wait') await this.waitSim(a[1]);
+      else if (a[0] === 'until') await this.waitFor(a[1], a[2] ?? 10);
       else if (a[0] === 'openTools') { if ($('#tools').classList.contains('is-hidden')) { openTools(true); this.toolsByDemo = true; } }
+      else if (a[0] === 'set') { this.lab.setParam(a[1], a[2]); renderTools(a[1]); this.onEvent('param', { key: a[1], value: a[2] }); await sleep(150); }
+      else if (a[0] === 'again') { this.lab.again(); await sleep(100); }
       else {
-        if (a[0] === 'push' && App.view === 'lab') await ghostTap(this.lab.screenPos(a[1]));
+        const pos = this.lab.screenPos ? this.lab.screenPos(a) : null;
+        if (pos && App.view === 'lab') await ghostTap(pos);
         if (tok !== this.tok) return;
         this.lab.act(a);
-        if (a[0] === 'set') { renderTools(a[1]); }
         await sleep(120);
       }
     }
     if (tok === this.tok && demo) { this.demoRunning = false; showDemo(false); }
   },
   onEvent(type, d = {}) {
+    if (this.waiting && this.waiting.ev === type) this.waiting.hit = true;
+    if (type === 'param' || type === 'refresh') renderTools();
     const st = this.st;
     if (App.view !== 'lab' || !st || !st.goal || this.goalDone) return;
     if (performance.now() - this.enteredAt < 250) return;
     const g = st.goal;
     if (g.type !== type) return;
     if (g.id != null && d.id !== g.id) return;
-    if (g.test && !g.test()) return;
+    if (g.test && !g.test(d)) return;
     this.goalDone = true; this.halt(); renderStage();
     toast('✅ ' + t('taskDone')); Sfx.play('correct');
     this.later(st.settle ?? 1.6, () => this.next());
@@ -775,14 +907,34 @@ const Run = {
   },
   finish() {
     this.halt();
-    const ans = Object.values(this.score), total = this.lab.stages.filter((s) => s.quiz).length, ok = ans.filter(Boolean).length;
-    $('#doneTitle').textContent = t('finishTitle');
-    $('#doneStars').textContent = fmt(t('finishStars'), { a: ok, b: total }) + ' ' + '⭐'.repeat(Math.round((ok / total) * 5));
+    const ls = this.lesson, ans = Object.values(this.score), total = ls.stages.filter((s) => s.quiz).length, ok = ans.filter(Boolean).length;
+    const stars = total ? Math.max(1, Math.round((ok / total) * 3)) : 3;
+    PROGRESS[ls.id] = Math.max(PROGRESS[ls.id] || 0, stars); store.set('progress', PROGRESS);
+    renderDone();
     $('#done').classList.remove('is-hidden');
     celebrate('🏆', true);
-    Speech.say(() => fmt(t('finishSay'), { a: ok, b: total }), null, 'chan');
+    const nxt = nextLessonId();
+    Speech.say(() => fmt(t('finishSay'), { name: L(ls.title), a: ok, b: total }), () => Speech.whenIdle(() => { if (S.auto && nxt && App.view === 'lab') startNextCountdown(nxt); }), 'chan');
   }
 };
+function nextLessonId() { const i = ORDERED.indexOf(Run.lesson.id); return i >= 0 && i < ORDERED.length - 1 ? ORDERED[i + 1] : null; }
+function renderDone() {
+  const ls = Run.lesson; if (!ls) return;
+  const ans = Object.values(Run.score), total = ls.stages.filter((s) => s.quiz).length, ok = ans.filter(Boolean).length;
+  $('#doneTitle').textContent = fmt(t('finishTitle'), { name: L(ls.title) });
+  $('#doneStars').textContent = (total ? fmt(t('finishStars'), { a: ok, b: total }) + ' ' : '') + '⭐'.repeat(PROGRESS[ls.id] || 1);
+  const nxt = nextLessonId();
+  $('#doneNext').classList.toggle('is-hidden', !nxt);
+  if (nxt) $('#doneNext').textContent = fmt(t('nextLesson'), { name: L(LESSONS[nxt].title) });
+}
+let nextT = null;
+function startNextCountdown(id) {
+  stopNextCountdown();
+  let n = 10;
+  const tick = () => { $('#doneCount').textContent = fmt(t('nextIn'), { n }); if (n-- <= 0) { stopNextCountdown(); enterLesson(id, 0); } else nextT = setTimeout(tick, 1000 * FAST); };
+  tick();
+}
+function stopNextCountdown() { clearTimeout(nextT); nextT = null; const c = $('#doneCount'); if (c) c.textContent = ''; }
 
 function showDemo(on) { $('#demoBadge').classList.toggle('is-hidden', !on); }
 async function ghostTap(pos) {
@@ -808,10 +960,10 @@ function stopCountdown() {
 
 /* ---------------- 實驗室畫面 ---------------- */
 function renderStage() {
-  const st = Run.st, n = Run.lab.stages.length;
+  const st = Run.st, n = Run.lesson.stages.length;
   $('#stageNum').textContent = fmt(t('stepOf'), { i: Run.i + 1, n });
   $('#stageTitle').textContent = L(st.title);
-  $('#dots').innerHTML = Run.lab.stages.map((_, k) => `<i class="${k < Run.i ? 'past' : k === Run.i ? 'now' : ''}"></i>`).join('');
+  $('#dots').innerHTML = Run.lesson.stages.map((_, k) => `<i class="${k < Run.i ? 'past' : k === Run.i ? 'now' : ''}"></i>`).join('');
   $('#taskRow').classList.toggle('is-hidden', !st.task);
   if (st.task) { $('#taskText').textContent = L(st.task) + (Run.goalDone ? '  ✅ ' + t('taskDone') : ''); $('#taskText').classList.toggle('done', Run.goalDone); }
   $('#condRow').classList.toggle('is-hidden', !st.cond);
@@ -823,7 +975,7 @@ function renderBubble() {
   const st = Run.st, q = Run.quiz;
   $('#bAvatar').textContent = st.who === 'chan' ? '👩‍🔬' : '👦';
   $('#bName').textContent = t(st.who);
-  $('#bCount').textContent = `${Run.i + 1} / ${Run.lab.stages.length}`;
+  $('#bCount').textContent = `${Run.i + 1} / ${Run.lesson.stages.length}`;
   $('#bText').textContent = Run.bubbleText();
   const showAdv = S.adv && st.adv && (!q || q.phase === 'reveal');
   $('#bAdv').textContent = showAdv ? '🔬 ' + L(st.adv) : '';
@@ -850,13 +1002,14 @@ function renderQuiz() {
     el.innerHTML = `<div class="qhead">${esc(t('quizTitle'))}<div class="flex-1"></div><button class="spk" data-read="quizq" aria-label="read">🔊</button></div>
       ${rv ? `<div id="qResult" style="color:${q.correct ? '#16a34a' : '#b45309'}">${esc(q.pick == null ? t('timeUpShort') : q.correct ? t('correct') : t('wrong'))}</div>` : ''}
       <div id="qText">${esc(L(Q.q))}</div>
-      ${Q.opts.map((o, k) => `<button class="opt ${rv && k === Q.ans ? 'right' : ''} ${rv && k === q.pick && k !== Q.ans ? 'wrongpick' : ''}" data-k="${k}" ${rv ? 'disabled' : ''}>
+      ${Q.opts.map((o, k) => `<button class="opt ${rv && k === Q.ans ? 'right' : ''} ${rv && k === q.pick && k !== Q.ans ? 'wrongpick' : ''} ${rv && k !== Q.ans && k !== q.pick ? 'dim' : ''}" data-k="${k}" ${rv ? 'disabled' : ''}>
         <span class="k">${rv && k === Q.ans ? '✓' : rv && k === q.pick ? '✗' : k + 1}</span><span class="tx">${esc(L(o))}</span>
         <span class="spk" data-read="opt:${k}" aria-label="read">🔊</span></button>`).join('')}
       <div id="qBar" class="is-hidden"><i></i></div>
       ${rv ? `<button id="qCont" class="btn btn-primary w-full mt-1 ${q.revealSaid && !S.auto ? 'glow' : ''}">${esc(t('continue'))}</button>` : ''}`;
   }
   document.body.classList.toggle('quiz-open', q.phase !== 'watch');
+  document.body.classList.toggle('quiz-reveal', q.phase === 'reveal');
   if (q.phase === 'ask' && Run.narrDone && S.auto && !Speech.paused) startCountdown();
 }
 $('#quiz').addEventListener('click', (e) => {
@@ -865,43 +1018,83 @@ $('#quiz').addEventListener('click', (e) => {
 });
 
 function renderTabs() {
-  $('#tabs').innerHTML = lab.graphs.map((g) => `<button data-tab="${g.id}" class="${g.id === Chart.tab ? 'active' : ''}">${esc(L(g.tab))}</button>`).join('');
+  const defs = Chart.defs();
+  $('#tabs').innerHTML = defs.map((g) => `<button data-tab="${g.id}" class="${g.id === Chart.tab ? 'active' : ''}">${esc(L(g.tab))}</button>`).join('');
 }
 $('#tabs').addEventListener('click', (e) => { const b = e.target.closest('[data-tab]'); if (b) Chart.setTab(b.dataset.tab); });
 
-function fmtParam(d, v) { return (d.unit === '×' ? v.toFixed(1) + '×' : (d.step < 1 ? v.toFixed(d.step < 0.1 ? 2 : 1) : v) + (d.unit ? ' ' + d.unit : '')) + (d.word ? ' · ' + lab.paramWord(d.key, v) : ''); }
+function paramDefs() { const ls = Run.lesson, b = Run.lab; return b ? b.params.filter((d) => !ls.params || ls.params.includes(d.key)) : []; }
+function fmtParam(d, v) {
+  if (d.type === 'select') { const o = d.options.find((q) => q.v === v); return o ? L(o.label) : String(v); }
+  const s = d.fmt ? d.fmt(v) : (d.unit === '×' ? v.toFixed(1) + '×' : (d.step < 1 ? v.toFixed(d.step < 0.1 ? 2 : 1) : v) + (d.unit ? ' ' + d.unit : ''));
+  return s + (d.word ? ' · ' + L(d.word(v)) : '');
+}
 function renderTools(flashKey) {
-  $('#params').innerHTML = lab.params.map((d) => {
-    const v = lab.getParam(d.key), lk = Run.locks.has(d.key);
-    if (d.type === 'toggle') return `<div class="prow ${lk ? 'locked' : ''}" data-key="${d.key}"><div class="ph">${esc(L(d.label))} ${lk ? `<span class="lock">${esc(t('locked'))}</span>` : ''}
-      <span class="val"></span><button class="toggle ${v ? 'on' : ''}" data-toggle="${d.key}" ${lk ? 'disabled' : ''} aria-label="toggle"></button></div></div>`;
-    return `<div class="prow ${lk ? 'locked' : ''} ${flashKey === d.key ? 'flash' : ''}" data-key="${d.key}">
-      <div class="ph">${esc(L(d.label))} ${lk ? `<span class="lock">${esc(t('locked'))}</span>` : ''}<span class="val" id="pv-${d.key}">${esc(fmtParam(d, v))}</span></div>
+  if (!Run.lab || App.view !== 'lab') return;
+  const b = Run.lab;
+  $('#params').innerHTML = paramDefs().map((d) => {
+    const v = b.getParam(d.key), lk = Run.locks.has(d.key);
+    const head = `<div class="ph">${esc(L(d.label))} ${lk ? `<span class="lock">${esc(t('locked'))}</span>` : ''}<span class="val" id="pv-${d.key}">${d.type === 'toggle' ? '' : esc(fmtParam(d, v))}</span>`;
+    if (d.type === 'toggle') return `<div class="prow ${lk ? 'locked' : ''} ${flashKey === d.key ? 'flash' : ''}">${head}<button class="toggle ${v ? 'on' : ''}" data-toggle="${d.key}" ${lk ? 'disabled' : ''} aria-label="toggle"></button></div>${d.hint ? `<div class="hint">${esc(L(d.hint))}</div>` : ''}</div>`;
+    if (d.type === 'select') return `<div class="prow ${lk ? 'locked' : ''} ${flashKey === d.key ? 'flash' : ''}">${head}</div>${d.hint ? `<div class="hint">${esc(L(d.hint))}</div>` : ''}
+      <div class="seg wrap">${d.options.map((o) => `<button data-sel="${d.key}" data-v="${esc(String(o.v))}" class="${o.v === v ? 'active' : ''}" ${lk ? 'disabled' : ''}>${esc(L(o.label))}</button>`).join('')}</div></div>`;
+    return `<div class="prow ${lk ? 'locked' : ''} ${flashKey === d.key ? 'flash' : ''}">${head}</div>
       ${d.hint ? `<div class="hint">${esc(L(d.hint))}</div>` : ''}
       <input type="range" min="${d.min}" max="${d.max}" step="${d.step}" value="${v}" data-param="${d.key}" ${lk ? 'disabled' : ''} /></div>`;
   }).join('');
-  $('#pushB').disabled = !lab.getParam('showB');
+  const btns = (Run.lesson.buttons || b.buttons || []).filter((x) => !x.show || x.show());
+  $('#toolBtns').innerHTML = btns.map((x, i) => `<button class="btn ${x.cls || ''}" data-btn="${i}" ${x.enabled && !x.enabled() ? 'disabled' : ''}>${esc(L(x.label))}</button>`).join('');
+  $('#toolBtns').dataset.n = btns.length;
 }
 $('#params').addEventListener('input', (e) => {
   const k = e.target.dataset.param; if (!k) return;
-  const d = lab.params.find((q) => q.key === k), v = Number(e.target.value);
-  lab.setParam(k, v); $('#pv-' + k).textContent = fmtParam(d, v);
+  const d = Run.lab.params.find((q) => q.key === k), v = Number(e.target.value);
+  Run.lab.setParam(k, v); $('#pv-' + k).textContent = fmtParam(d, v);
+  Run.onEvent('param', { key: k, value: v, ui: true });
 });
+$('#params').addEventListener('change', () => renderTools());
 $('#params').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-toggle]'); if (!b || b.disabled) return;
-  const k = b.dataset.toggle; lab.setParam(k, !lab.getParam(k)); renderTools();
+  const b = e.target.closest('[data-toggle]');
+  if (b && !b.disabled) { const k = b.dataset.toggle, v = !Run.lab.getParam(k); Run.lab.setParam(k, v); Run.onEvent('param', { key: k, value: v, ui: true }); renderTools(); return; }
+  const s = e.target.closest('[data-sel]');
+  if (s && !s.disabled) {
+    const k = s.dataset.sel, d = Run.lab.params.find((q) => q.key === k), o = d.options.find((q) => String(q.v) === s.dataset.v);
+    Run.lab.setParam(k, o.v); Run.onEvent('param', { key: k, value: o.v, ui: true }); renderTools();
+  }
+});
+$('#toolBtns').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-btn]'); if (!b) return;
+  const x = (Run.lesson.buttons || Run.lab.buttons || []).filter((q) => !q.show || q.show())[+b.dataset.btn];
+  Sfx.unlock();
+  if (x.act[0] === 'again') Run.lab.again(); else Run.lab.act(x.act);
+  renderTools();
 });
 function openTools(on) { $('#tools').classList.toggle('is-hidden', !on); $('#fabTools').classList.toggle('active', on); }
 
 /* =====================================================================
  * 9. 畫面切換、語言、設定
  * ===================================================================== */
-function enterLab(i = 0) {
+function enterLesson(id, i = 0) {
+  const ls = LESSONS[id]; if (!ls) return;
   Tour.halt(); $$('.spot').forEach((el) => el.classList.remove('spot'));
+  stopNextCountdown();
+  const b = ls.bench;
+  if (Run.lab && Run.lab !== b) { Run.lab.root.visible = false; Run.lab.deactivate && Run.lab.deactivate(); }
+  Run.clear();
+  Run.lab = b; Run.lesson = ls; b.root.visible = true;
+  world.setBoard(b.board); world.placePeople(b.people);
+  if (i === 0 || !Run.score) Run.score = {};
+  b.activate && b.activate(ls);
+  b.apply({ ...(ls.base || {}), ...((ls.stages[0] && ls.stages[0].setup) || {}) });
   App.view = 'lab';
   $('#hub').classList.add('is-hidden'); $('#labUI').classList.remove('is-hidden'); stageEl.style.visibility = 'visible';
-  if (i === 0) Run.score = {};
+  const gr = ls.graphs || [];
+  Chart.tab = gr[0] || null;
+  Chart.open = gr.length > 0 && Chart.userOpen !== false;
+  $('#graphPanel').classList.toggle('is-hidden', !Chart.open); $('#fabGraph').classList.toggle('is-hidden', !gr.length); $('#fabGraph').classList.toggle('active', Chart.open);
+  document.body.classList.toggle('no-graph', !Chart.open);
   openTools(innerWidth >= 1366);
+  Run.i = i; Run.st = ls.stages[i];
   renderTopbar(); renderTabs(); defaultView();
   Run.go(i);
   requestAnimationFrame(measure);
@@ -910,16 +1103,17 @@ function goHub() {
   Run.clear(); Run.halt(); Speech.cutAll();
   App.view = 'hub';
   $('#labUI').classList.add('is-hidden'); $('#done').classList.add('is-hidden'); $('#hub').classList.remove('is-hidden'); stageEl.style.visibility = 'hidden';
-  document.body.classList.remove('quiz-open');
-  renderTopbar(); Tour.render();
+  document.body.classList.remove('quiz-open', 'quiz-reveal');
+  renderHub(); renderTopbar(); Tour.render();
 }
 function applyI18n() {
   document.documentElement.lang = S.lang === 'zh' ? 'zh-HK' : 'en-GB';
   document.title = t('appTitle');
   $$('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  world.labels({ chan: t('chan'), ming: t('ming') });
   renderTopbar(); renderHub(); renderSettings();
-  if (App.view === 'lab') { renderStage(); renderBubble(); renderQuiz(); renderTools(); renderTabs(); lab.labels(); Chart.lastLegend = ''; Chart.draw(); Info.relang(); }
-  if (!$('#done').classList.contains('is-hidden')) { const ans = Object.values(Run.score), total = lab.stages.filter((s) => s.quiz).length; $('#doneTitle').textContent = t('finishTitle'); $('#doneStars').textContent = fmt(t('finishStars'), { a: ans.filter(Boolean).length, b: total }); }
+  if (App.view === 'lab') { renderStage(); renderBubble(); renderQuiz(); renderTools(); renderTabs(); Run.lab.labels && Run.lab.labels(); Chart.lastLegend = ''; Chart.draw(); Info.relang(); }
+  if (!$('#done').classList.contains('is-hidden')) renderDone();
   updateVoiceTip();
 }
 function setLang(l) { if (S.lang === l) return; S.lang = l; save(); applyI18n(); Speech.relang(); }
@@ -944,11 +1138,12 @@ $('#sRows').addEventListener('click', (e) => {
 $('#btnSettings').onclick = () => { renderSettings(); $('#settings').classList.remove('is-hidden'); };
 $('#sClose').onclick = () => $('#settings').classList.add('is-hidden');
 $('#sReset').onclick = () => { const lang = S.lang; Object.assign(S, DEF, { lang }); save(); renderSettings(); renderTopbar(); };
+$('#sProgress').onclick = () => { Object.keys(PROGRESS).forEach((k) => delete PROGRESS[k]); store.set('progress', PROGRESS); renderHub(); toast('✓'); };
 
 function onAutoChange() {
   renderTopbar();
   if (S.auto) { App.view === 'lab' ? Run.kick() : Tour.kick(); }
-  else { Run.halt(); Tour.halt(); }
+  else { Run.halt(); Tour.halt(); stopNextCountdown(); }
   if (App.view === 'lab') { renderBubble(); renderQuiz(); }
 }
 
@@ -958,27 +1153,25 @@ $('#btnHome').onclick = goHub;
 $('#btnAuto').onclick = () => { S.auto = !S.auto; save(); onAutoChange(); toast(S.auto ? t('autoOn') : t('autoOff')); };
 $('#btnPause').onclick = () => {
   if (Speech.paused) { Speech.resume(); App.view === 'lab' ? Run.kick() : Tour.kick(); }
-  else { Speech.pause(); Run.halt(); Tour.halt(); }
+  else { Speech.pause(); Run.halt(); Tour.halt(); stopNextCountdown(); }
   renderTopbar();
 };
 $('#btnRead').onclick = () => { App.pointRead = !App.pointRead; document.body.classList.toggle('pointread', App.pointRead); renderTopbar(); toast(App.pointRead ? t('pointReadOn') : t('pointReadOff')); };
-$('#btnAdv').onclick = () => { S.adv = !S.adv; save(); renderTopbar(); if (App.view === 'lab') { renderBubble(); lab.labels(); } };
+$('#btnAdv').onclick = () => { S.adv = !S.adv; save(); renderTopbar(); if (App.view === 'lab') { renderBubble(); Run.lab.labels && Run.lab.labels(); } };
 $('#bPrev').onclick = () => Run.prev();
 $('#bNext').onclick = () => Run.next();
 $('#bRedo').onclick = () => Run.go(Run.i);
 $('#fabTools').onclick = () => openTools($('#tools').classList.contains('is-hidden'));
 $('#toolsClose').onclick = () => openTools(false);
-$('#fabGraph').onclick = () => { Chart.open = !Chart.open; $('#graphPanel').classList.toggle('is-hidden', !Chart.open); $('#fabGraph').classList.toggle('active', Chart.open); Chart.draw(); };
-$('#fabReset').onclick = () => { lab.again(); };
+$('#fabGraph').onclick = () => { Chart.open = !Chart.open; Chart.userOpen = Chart.open; $('#graphPanel').classList.toggle('is-hidden', !Chart.open); $('#fabGraph').classList.toggle('active', Chart.open); document.body.classList.toggle('no-graph', !Chart.open); Chart.draw(); };
+$('#fabReset').onclick = () => { Run.lab.again(); renderTools(); };
 $('#fabCam').onclick = defaultView;
-$('#pushA').onclick = () => lab.act(['push', 0]);
-$('#pushB').onclick = () => lab.act(['push', 1]);
 $('#infoClose').onclick = () => Info.hide();
 $('#doneHub').onclick = goHub;
-$('#doneAgain').onclick = () => { $('#done').classList.add('is-hidden'); Run.score = {}; Run.go(0); };
+$('#doneAgain').onclick = () => { stopNextCountdown(); $('#done').classList.add('is-hidden'); Run.score = {}; enterLesson(Run.lesson.id, 0); };
+$('#doneNext').onclick = () => { const n = nextLessonId(); stopNextCountdown(); if (n) enterLesson(n, 0); };
 $('#voiceTipClose').onclick = () => { updateVoiceTip.dismissed = { ...(updateVoiceTip.dismissed || {}), [S.lang]: true }; updateVoiceTip(); };
 
-// 開始：輕按任何地方（同時解鎖 iPad 語音及音效）
 function start(muted) {
   Sfx.unlock(); Speech.unlock();
   S.auto = true; S.mute = !!muted; save();
@@ -1003,20 +1196,33 @@ const clock = new THREE.Clock();
 let uiT = 0;
 renderer.setAnimationLoop(() => {
   const dt = Math.min(clock.getDelta(), 0.05);
-  if (App.view !== 'lab') return;
-  lab.update(dt, clock.elapsedTime);
+  if (App.view !== 'lab' || !Run.lab) return;
+  Run.lab.update(dt * TURBO, clock.elapsedTime);
+  world.update(dt, clock.elapsedTime, (() => { const w = Speech.who(); return w === 'chan' || w === 'ming' ? w : null; })());
   controls.update();
   uiT += dt;
-  if (uiT > 0.1) { uiT = 0; lab.labels(); Chart.draw(); }
+  if (uiT > 0.1) { uiT = 0; Run.lab.labels && Run.lab.labels(); Chart.draw(); }
   renderer.render(scene, camera);
-  labelRenderer.render(scene, camera);
+  renderLabels();
 });
+// CSS2DRenderer 唔會理會「父物件被隱藏」，所以渲染前暫時隱藏佢哋
+const cssObjs = [];
+scene.traverse((o) => o.isCSS2DObject && cssObjs.push(o));
+let cssCount = 0;
+function renderLabels() {
+  if (cssCount++ % 60 === 0) { cssObjs.length = 0; scene.traverse((o) => o.isCSS2DObject && cssObjs.push(o)); }
+  const tmp = [];
+  for (const o of cssObjs) {
+    if (!o.visible) continue;
+    for (let q = o.parent; q; q = q.parent) if (!q.visible) { o.visible = false; tmp.push(o); break; }
+  }
+  labelRenderer.render(scene, camera);
+  for (const o of tmp) o.visible = true;
+}
 
 FW.init(); Chart.init(); Speech.init();
 stageEl.style.visibility = 'hidden';
 applyI18n();
-renderTabs();
-defaultView();
 
 // 測試用掛鈎（不影響正常使用）
-window.__lab = { Run, Speech, Tour, lab, S, App, enterLab, goHub };
+window.__lab = { Run, Speech, Tour, S, App, BENCH, LESSONS, ORDERED, enterLesson, goHub };

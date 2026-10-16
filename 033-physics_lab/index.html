@@ -102,6 +102,27 @@
   .item.open { background: #dcfce7; color: #14532d; font-weight: 700; cursor: pointer; }
   .item.partial { background: #fef9c3; color: #713f12; font-weight: 700; cursor: pointer; }
   .item.open:active, .item.partial:active { transform: scale(.98); }
+  .item.open { background: #f0fdf4; color: #14532d; font-weight: 600; padding: 5px 10px; font-size: 13px; }
+  .lcard { border: 2px solid #e0e7ff; border-radius: 16px; padding: 10px; margin-bottom: 8px; background: #fafaff; cursor: pointer; }
+  .lcard.done { border-color: #86efac; background: #f7fef9; }
+  .lc-h { display: flex; gap: 10px; align-items: flex-start; }
+  .lc-i { font-size: 28px; line-height: 1.1; }
+  .lc-h b { font-size: 16px; font-weight: 900; }
+  .lc-d { font-size: 13px; color: var(--ink2); margin-top: 2px; }
+  .lc-m { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .lcard ul { margin-top: 8px; }
+  .seg.wrap { flex-wrap: wrap; }
+  .seg.wrap button { flex: 1 1 auto; }
+  .seg button:disabled { opacity: .5; }
+  .opt.dim { opacity: .45; }
+  body.quiz-reveal .opt { min-height: 46px; padding-top: 6px; padding-bottom: 6px; font-size: 15px; }
+  body.quiz-reveal .opt.dim { display: none; }
+  body.no-graph #bubble { width: min(640px, calc(100vw - 24px)); }
+  .readout { padding: 3px 10px; border-radius: 10px; font-size: 13px; font-weight: 800; white-space: nowrap; pointer-events: none; background: rgba(15,23,42,.85); color: #fff; text-align: center; line-height: 1.35; }
+  .readout.light { background: #fff; color: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  .readout.warn { background: #dc2626; }
+  .readout.ok { background: #16a34a; }
+  .readout small { font-size: 11px; opacity: .85; font-weight: 700; display: block; }
 
   /* ---------- 實驗室介面 ---------- */
   #labUI > * { position: fixed; z-index: 20; }
@@ -235,12 +256,11 @@
       </div>
       <div class="panel" id="featured">
         <div class="flex items-start gap-3">
-          <div class="text-4xl">🚗💥</div>
+          <div class="text-4xl">🔬</div>
           <div class="flex-1">
-            <span class="pill" style="background:#dcfce7;color:#166534" data-i18n="featuredTag"></span>
+            <span class="pill" style="background:#dcfce7;color:#166534" id="fTag"></span>
             <h2 class="text-xl font-black mt-1" id="fTitle"></h2>
             <p class="text-sm text-slate-600 mt-1" id="fDesc"></p>
-            <p class="text-xs text-slate-500 mt-1" id="fItems"></p>
           </div>
           <button class="spk" data-read="#featured" aria-label="read">🔊</button>
         </div>
@@ -249,10 +269,9 @@
       </div>
     </section>
     <div id="legend">
-      <span class="pill" style="background:#dcfce7;color:#14532d">✅ <span data-i18n="legendOpen"></span></span>
-      <span class="pill" style="background:#fef9c3;color:#713f12">🟡 <span data-i18n="legendPartial"></span></span>
-      <span class="pill" style="background:#f1f5f9;color:#64748b">🔒 <span data-i18n="legendLocked"></span></span>
-      <span class="text-xs text-slate-500" data-i18n="legendPhase"></span>
+      <span class="pill" style="background:#dcfce7;color:#14532d">✅ <span data-i18n="legendDone"></span></span>
+      <span class="pill" style="background:#fef3c7;color:#92400e" data-i18n="legendExtra"></span>
+      <span class="text-xs text-slate-500" data-i18n="legendMerged"></span>
     </div>
     <div id="topics"></div>
   </div>
@@ -307,10 +326,7 @@
   <section id="tools" class="panel is-hidden">
     <div class="flex items-center justify-between mb-1"><b data-i18n="tools"></b><button id="toolsClose" class="btn btn-sm" data-noread>✕</button></div>
     <div id="params"></div>
-    <div class="grid grid-cols-2 gap-2 mt-3">
-      <button id="pushA" class="btn btn-red" data-i18n="pushA"></button>
-      <button id="pushB" class="btn btn-blue" data-i18n="pushB"></button>
-    </div>
+    <div id="toolBtns" class="grid grid-cols-2 gap-2 mt-3"></div>
   </section>
 
   <section id="quiz" class="panel is-hidden"></section>
@@ -338,9 +354,11 @@
     <div class="text-6xl">🏆</div>
     <h2 class="text-2xl font-black mt-2" id="doneTitle"></h2>
     <p class="text-lg mt-2" id="doneStars"></p>
-    <div class="flex gap-2 mt-4 justify-center">
+    <button id="doneNext" class="btn btn-primary w-full mt-4 text-lg" style="min-height:54px"></button>
+    <p id="doneCount" class="text-sm text-slate-500 mt-1"></p>
+    <div class="flex gap-2 mt-3 justify-center">
       <button id="doneHub" class="btn" data-i18n="backHub"></button>
-      <button id="doneAgain" class="btn btn-primary" data-i18n="playAgain"></button>
+      <button id="doneAgain" class="btn" data-i18n="playAgain"></button>
     </div>
   </div>
 </div>
@@ -350,7 +368,7 @@
   <div class="panel">
     <div class="flex items-center justify-between"><h2 class="text-xl font-black" data-i18n="settingsTitle"></h2><button class="spk" data-read="#settings .panel" aria-label="read">🔊</button></div>
     <div id="sRows"></div>
-    <div class="flex gap-2 mt-4"><button id="sReset" class="btn" data-i18n="sReset"></button><div class="flex-1"></div><button id="sClose" class="btn btn-primary" data-i18n="close"></button></div>
+    <div class="flex flex-wrap gap-2 mt-4"><button id="sReset" class="btn btn-sm" data-i18n="sReset"></button><button id="sProgress" class="btn btn-sm" data-i18n="sProgress"></button><div class="flex-1"></div><button id="sClose" class="btn btn-primary" data-i18n="close"></button></div>
   </div>
 </div>
 
