@@ -11,7 +11,7 @@
 :root{
   --bg1:#fff6e5; --bg2:#e7f2ff; --ink:#26213d; --ink2:#5b5577; --card:#ffffff; --line:#e6e1f5;
   --pri:#6c4cff; --pri2:#8f78ff; --pink:#ff4f8b; --ok:#19b36b; --warn:#ff9f1c; --soft:#f4f1ff;
-  --c0:#f7f8fb; --c1:#ffd21f; --c2:#1fb24a; --c3:#1f6fe5; --c4:#e8352e; --c5:#ff8a1f; --cb:#5b6078;
+  --c0:#f7f8fb; --c1:#ffd21f; --c2:#1fb24a; --c3:#1f6fe5; --c4:#b71c2c; --c5:#ff5800; --cb:#5b6078;
   --r:18px; --shadow:0 6px 20px rgba(60,40,140,.12);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -1002,7 +1002,8 @@ details.parents ul{margin:4px 0;padding-left:20px}
 'use strict';
 const C = window.Cube;
 const $ = s => document.querySelector(s);
-const COLORS = ['#f7f8fb', '#ffd21f', '#1fb24a', '#1f6fe5', '#e8352e', '#ff8a1f'];
+// 顏色：橙色加深（接近真扭計骰），紅色改深紅，令橙／黃／紅三隻色分得清楚
+const COLORS = ['#f7f8fb', '#ffd21f', '#1fb24a', '#1f6fe5', '#b71c2c', '#ff5800'];
 const BLANKC = '#5b6078';
 const LS = C.LESSON_SOLVED;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1083,7 +1084,7 @@ function mascot(size = 90, mood = 'happy') {
   return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" aria-hidden="true">
   <rect x="8" y="10" width="84" height="84" rx="20" fill="#26213d"/>
   <rect x="14" y="16" width="35" height="35" rx="9" fill="#ffd21f"/><rect x="51" y="16" width="35" height="35" rx="9" fill="#1fb24a"/>
-  <rect x="14" y="53" width="35" height="35" rx="9" fill="#ff8a1f"/><rect x="51" y="53" width="35" height="35" rx="9" fill="#1f6fe5"/>
+  <rect x="14" y="53" width="35" height="35" rx="9" fill="#ff5800"/><rect x="51" y="53" width="35" height="35" rx="9" fill="#1f6fe5"/>
   <circle cx="36" cy="44" r="10" fill="#fff"/><circle cx="64" cy="44" r="10" fill="#fff"/>
   <circle cx="38" cy="46" r="5" fill="#26213d"/><circle cx="66" cy="46" r="5" fill="#26213d"/>
   <circle cx="40" cy="44" r="1.8" fill="#fff"/><circle cx="68" cy="44" r="1.8" fill="#fff"/>
@@ -1119,7 +1120,8 @@ class CubeView {
       g.position.copy(g.userData.home); g.add(new T.Mesh(body, bodyMat)); this.root.add(g); this.cubies[[sx, sy, sz].join()] = g;
     }
     C.ST.forEach((s, i) => {
-      const m = new T.Mesh(sg, new T.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.02 }));
+      // 貼紙用「唔受燈光影響」嘅材質：無論點轉，顏色都一樣，唔會變深變淺
+      const m = new T.Mesh(sg, new T.MeshBasicMaterial({ color: 0xffffff }));
       const n = new T.Vector3(...s.n);
       m.position.copy(n.clone().multiplyScalar(0.487));
       m.quaternion.setFromUnitVectors(new T.Vector3(0, 0, 1), n);
