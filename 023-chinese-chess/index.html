@@ -1943,7 +1943,7 @@ var Think = {
     /* 3 攻 */
     var op = this.opps(pos), o3 = { arrows: [] }, L3 = [];
     op.mates.slice(0, 1).forEach(function (mm) { L3.push('🏆 有機會<b>一步將死</b>：' + XQ.notation(b, mm) + '！'); o3.arrows.push([mm & 127, mm >> 7, 'g', '★']); });
-    op.caps.slice(0, 2).forEach(function (c) { L3.push('🍖 可以食對方嘅<b>' + self.pName(c.victim) + '</b>（' + XQ.notation(b, c.m) + '），賺' + c.gain + '分。'); o3.arrows.push([c.m & 127, c.m >> 7, 'g']); });
+    op.caps.slice(0, 2).forEach(function (c) { L3.push('🍖 可以食對方嘅<b>' + self.pName(c.victim) + '</b>（' + XQ.notation(b, c.m) + '）' + (c.gain >= 4 ? '，係得子嘅好機會！' : '，可以謀得小便宜。')); o3.arrows.push([c.m & 127, c.m >> 7, 'g']); });
     if (!op.mates.length) op.checks.slice(0, 1).forEach(function (c) { L3.push('📣 可以將軍：' + XQ.notation(b, c.m || c) + '。不過將軍唔一定係好棋，要睇吓之後點。'); var mm = c.m || c; o3.arrows.push([mm & 127, mm >> 7, 'c']); });
     if (!L3.length) L3.push('😌 暫時冇即刻食子嘅機會。咁就要諗<b>計劃</b>：出子、搶好位置、準備攻擊。');
     steps.push({ k: 3, ic: '⚔️', name: '攻：我有冇機會？', sum: op.mates.length ? '可以將死！' : op.caps.length ? '有' + op.caps.length + '個食子機會' : '諗計劃', html: L3.join('<br>'), say: L3.join('').replace(/<[^>]+>/g, ''), ov: o3 });
@@ -2075,6 +2075,395 @@ var Think = {
     return { steps: steps, ex: ex2, rows: rows, sayAll: say4 + sayP };
   }
 };
+
+/* ================================================================
+   App 第二部分（續）：棋評員式解說
+   參考棋評常用講法：佳著／正著／緩著／劣著／敗著、搶先／反先、
+   得子／謀子／兌子、捉雙、抽將、牽制、伏殺、解殺還殺、棄子爭先，
+   同埋子力位置術語（巡河車、騎河車、肋道、卒林線、沉底、臥槽馬、
+   掛角馬、窩心馬、當頭炮、空頭炮、士角炮、過河兵……）同象棋諺語。
+   每一步都講「做咗乜、意圖係乜、對方點應」，比較其他選擇時講
+   「具體差喺邊」，唔講數字。
+   ================================================================ */
+(function () {
+var T_ = Think;
+var KN = function (s) { return s ? '將' : '帥'; }, BN = function (s) { return s ? '卒' : '兵'; };
+var GEO = function (s, sq) { var r = XQ.rowOf(sq); return { rr: s === 0 ? r : 9 - r, c: XQ.colOf(sq) }; };   /* rr：9 = 自己底線，0 = 對方底線 */
+
+/* 開局階段：棋子仲多（未點交換）兼且行咗唔多步 */
+T_.isOpening = function (pos) { var n = 0; for (var i = 0; i < 90; i++) if (pos.b[i]) n++; return n >= 28 && pos.stack.length < 60; };
+/* 局面形勢用棋評用語 */
+T_.evalWord = function (sc) {
+  if (sc > XQ.MATE - 200) return '有殺棋，勝定';
+  if (sc < -XQ.MATE + 200) return '會俾對方殺';
+  var a = Math.abs(sc), w = a < 60 ? '均勢' : a < 200 ? '略佔優' : a < 500 ? '佔優' : a < 1200 ? '大優' : '勝勢';
+  if (a < 60) return '雙方均勢';
+  return (sc > 0 ? '我方' : '對方') + w;
+};
+T_.evalWordSide = function (sc, me, you) {
+  if (Math.abs(sc) < 60) return '雙方均勢';
+  return this.evalWord(sc).replace('我方', me).replace('對方', you);
+};
+
+/* 車／炮直線牽制：我方直線棋子 → 一隻對方棋子 → 對方帥將，嗰隻棋子就郁唔得 */
+T_.pinsBy = function (b, s) {
+  var out = [], ek = -1, eb = (s ^ 1) << 3;
+  for (var i = 0; i < 90; i++) if (b[i] === eb + XQ.K) ek = i;
+  if (ek < 0) return out;
+  var kr = XQ.rowOf(ek), kc = XQ.colOf(ek);
+  for (var sq = 0; sq < 90; sq++) {
+    var p = b[sq]; if (!p || (p >> 3) !== s) continue;
+    var t = p & 7; if (t !== XQ.R && t !== XQ.C) continue;
+    var r = XQ.rowOf(sq), c = XQ.colOf(sq); if (r !== kr && c !== kc) continue;
+    var dr = Math.sign(kr - r), dc = Math.sign(kc - c), between = [];
+    for (var rr = r + dr, cc = c + dc; rr !== kr || cc !== kc; rr += dr, cc += dc) { if (b[rr * 9 + cc]) between.push(rr * 9 + cc); }
+    if (t === XQ.R && between.length === 1 && (b[between[0]] >> 3) !== s) out.push(between[0]);
+    if (t === XQ.C && between.length === 2 && (b[between[1]] >> 3) !== s) out.push(between[1]);
+  }
+  return out;
+};
+
+/* 子力位置術語 */
+T_.posTags = function (pos, m) {
+  var b = pos.b, f = m & 127, t = m >> 7, p = b[f], s = p >> 3, e = s ^ 1, ty = p & 7, self = this;
+  var gf = GEO(s, f), gt = GEO(s, t), early = this.isOpening(pos), P = [], W = [];
+  var add = function (k, ic, short, tx) { P.push({ k: k, ic: ic, short: short, tx: tx }); };
+  var warn = function (k, ic, short, tx) { W.push({ k: k, ic: ic, short: short, tx: tx }); };
+  var enemyCentralCannon = false;
+  for (var i = 0; i < 90; i++) if (b[i] === (e << 3) + XQ.C && XQ.colOf(i) === 4) enemyCentralCannon = true;
+  if (ty === XQ.R) {
+    if (early && (gf.rr === 9 && gt.rr !== 9 || gf.rr === 9 && (gf.c === 0 || gf.c === 8) && gt.c !== gf.c)) add('dev', '🚗', '出車', '出車！車係最強嘅子' + (early ? '，「三步不出車，棋必定要輸」' : '') + '，早啲參戰。');
+    if (gt.rr === 0) add('r-sink', '⚔️', '沉底車', '車沉到對方底線，直接威脅九宮同底線嘅棋子。');
+    else if (gt.rr === 1) add('r-2', '⚔️', '車佔宮頂', '車佔住對方宮頂線，壓住士象，隨時配合殺著。');
+    else if (gt.rr === 3) add('r-pawn', '⚔️', '車壓卒林', '車壓到對方卒林線，可以左右捉' + BN(e) + '，又限制對方馬嘅出路。');
+    else if (gt.rr === 4) add('r-ride', '🛡️', '騎河車', '車騎住對方河口（騎河車），封鎖對方' + BN(e) + '同馬前進。');
+    else if (gt.rr === 5) add('r-patrol', '🌊', '巡河車', '車企喺自己河邊（巡河車），左右支援，攻守兼備。');
+    else if (gt.rr < 5 && gf.rr >= 5) add('r-cross', '⚔️', '過河車', '車衝過河，入對方陣地搞亂佢嘅部署。');
+    if ((gt.c === 3 || gt.c === 5) && gf.c !== gt.c && gt.rr <= 6) add('r-rib', '🎯', '佔肋道', '車佔住肋道（四、六路），呢條係攻入九宮嘅要道。');
+    if (gt.c === 4 && gf.c !== 4) add('r-mid', '🎯', '車佔中路', '車佔中路，直接對住對方中宮。');
+  } else if (ty === XQ.N) {
+    if (gf.rr === 9 && early) {
+      if (gt.c === 2 || gt.c === 6) add('dev', '🐴', '跳正馬', '跳正馬出嚟，保護中' + BN(s) + (enemyCentralCannon ? '，應付對方當頭炮（「當頭炮，馬來招」）' : '') + '。');
+      else add('dev', '🐴', '跳邊馬', '跳邊馬出嚟，讓開車路；不過邊馬控制嘅位少啲（「馬跳邊，易被殲」）。');
+    }
+    if (gt.rr === 1 && (gt.c === 2 || gt.c === 6)) add('n-trough', '🐎', '臥槽馬', '馬跳到臥槽位，伏住將軍同捉車，係攻擊九宮嘅好位。');
+    else if (gt.rr === 0 && (gt.c === 3 || gt.c === 5)) add('n-corner', '🐎', '掛角馬', '馬掛住對方士角，直接威脅九宮。');
+    else if (gt.rr <= 3) add('n-in', '🐎', '馬入敵陣', '馬殺入對方陣地，「馬蹬四方」，周圍都係佢嘅攻擊點。');
+    else if ((gt.rr === 4 || gt.rr === 5) && gf.rr > 5) add('n-river', '🐴', '盤河馬', '馬去到河口（盤河馬），準備過河，亦可以保護' + BN(s) + '。');
+    else if (gt.rr > gf.rr && gf.rr <= 5) add('n-back', '🐴', '回馬防守', '馬退返嚟加強防守。');
+    if (gt.rr === 8 && gt.c === 4) warn('n-heart', '⚠️', '窩心馬', '窩心馬：馬企咗喺九宮正中，阻住' + KN(s) + '嘅出路（「馬退窩心，不死也昏」）。');
+  } else if (ty === XQ.C) {
+    if (gt.c === 4 && gf.c !== 4) {
+      add('c-center', '💥', '架中炮', '架當頭炮，瞄住對方中路（「起炮在中宮，觀棋氣象雄」）。');
+      var ek = pos.ks[e], between = 0;
+      if (ek >= 0 && XQ.colOf(ek) === 4) { var lo = Math.min(XQ.rowOf(t), XQ.rowOf(ek)), hi = Math.max(XQ.rowOf(t), XQ.rowOf(ek)); for (var r = lo + 1; r < hi; r++) if (b[r * 9 + 4] && r * 9 + 4 !== f) between++; if (between === 0) add('c-empty', '💥', '空頭炮', '空頭炮！炮同對方' + KN(e) + '之間冇棋子，對方中路嘅' + KN(e) + '同士都唔敢郁（「空頭炮，兇惡難當」）。'); }
+    }
+    if (gt.rr === 0) add('c-sink', '💣', '沉底炮', '炮沉到對方底線，配合其他子組成重炮或者悶宮殺。');
+    else if (gt.rr <= 3 && gf.rr > 3) add('c-in', '💣', '炮過河', '炮過河，深入對方陣地打擊。');
+    else if (gt.rr === 4) add('c-ride', '💣', '騎河炮', '炮騎住對方河口，牽制對方' + BN(e) + '同馬。');
+    else if (gt.rr === 5 && gf.rr !== 5) add('c-patrol', '💣', '巡河炮', '炮企喺河邊（巡河炮），可以左右打' + BN(e) + '，又保護自己。');
+    if (gt.rr === 8 && (gt.c === 3 || gt.c === 5)) add('c-corner', '🏰', '士角炮', '炮放喺士角（士角炮），先穩住陣腳，再配合馬出擊。');
+    if (early && gf.rr === 7 && gt.rr === 7 && Math.abs(gt.c - gf.c) >= 4 && gt.c !== 4) add('c-cross', '💣', '過宮炮', '過宮炮：炮橫過九宮去另一邊，出其不意。');
+  } else if (ty === XQ.P) {
+    if (gf.rr >= 5 && gt.rr <= 4) add('p-cross', '🌉', '過河' + BN(s), '「小卒過河當大車」，' + BN(s) + '過咗河就可以打橫行，威力加倍。');
+    else if (early && (gt.c === 2 || gt.c === 6) && gf.rr === 6) add('p-open', '🛣️', '挺' + BN(s) + '活馬', '挺' + BN(s) + '活馬：' + BN(s) + '向前一步，等隔籬隻馬有路跳出嚟。');
+    else if (gt.c === 4 && gf.rr >= 5) add('p-mid', '⚔️', '挺中' + BN(s), '挺中' + BN(s) + '，配合中路攻勢（不過「中卒守將門，無事莫輕進」，要計清楚）。');
+    if (gt.rr <= 2 && gt.rr >= 1 && gt.c >= 3 && gt.c <= 5) add('p-palace', '⚔️', BN(s) + '臨九宮', BN(s) + '逼近對方九宮，「卒坐宮心，老帥昏」，好有殺傷力。');
+    if (gt.rr === 0) warn('p-old', '⚠️', '老' + BN(s), '老' + BN(s) + '：去到底線就郁唔到幾多（「老卒無功」）。');
+    if (!P.length && gt.rr < gf.rr) add('p-push', '🪖', BN(s) + '推進', BN(s) + '穩步推進，擴大自己嘅空間。');
+  } else if (ty === XQ.A) {
+    add('a', '🏰', s ? '撐士' : '撐仕', (s ? '撐士' : '撐仕') + '，鞏固九宮，令' + KN(s) + '更安全。');
+  } else if (ty === XQ.B) {
+    var Bn = s ? '象' : '相';
+    if (gt.c === 4) add('b', '🏰', '補中' + Bn, '補中' + Bn + '，鞏固中路，兩隻' + Bn + '連埋一齊互相保護。');
+    else if (gt.c === 0 || gt.c === 8) add('b', '🏰', '飛邊' + Bn, Bn + '飛去邊路，暫時避開攻擊；不過中路會鬆咗少少。');
+    else if (gt.rr === 5) add('b', '🏰', Bn + '守河口', '飛' + Bn + '守住河口，阻止對方' + BN(e) + '同馬衝過嚟。');
+    else add('b', '🏰', (s ? '落象' : '落相'), (s ? '落象' : '落相') + '，收緊防守。');
+  } else if (ty === XQ.K) {
+    if (gt.c !== gf.c) add('k-side', '👑', '出' + KN(s) + '助攻', KN(s) + '移去另一條直線，用白臉' + KN(s) + '封住對方' + KN(e) + '嘅路。');
+    else add('k', '👑', KN(s) + '移位', KN(s) + '上落一格，避開危險。');
+    if (early) warn('k-early', '⚠️', '無事動' + KN(s), '開局冇事最好唔好郁' + KN(s) + '（「無事不動將」）。');
+  }
+  return { P: P, W: W };
+};
+
+/* 一步棋嘅全部特徵 */
+T_._fc = {}; T_._fcn = 0;
+T_.feat = function (pos, m, light) {
+  var key = pos.h1 + ':' + pos.h2 + ':' + m + (light ? 'L' : '');
+  if (this._fc[key]) return this._fc[key];
+  if (++this._fcn > 4000) { this._fc = {}; this._fcn = 0; }
+  var b = pos.b, f = m & 127, t = m >> 7, p = b[f], s = p >> 3, e = s ^ 1, ty = p & 7, cap = b[t], self = this;
+  var hb = this.hanging(b, s), heb = this.hanging(b, e), pinsB = this.pinsBy(b, s);
+  var chkBefore = XQ.inCheck(pos), thBefore = (light || chkBefore) ? [] : this.threatMate(pos);
+  var note = XQ.notation(b, m), pt = this.posTags(pos, m);
+  pos.make(m);
+  var a = pos.b, oppLegal = XQ.legalMoves(pos), mate = !oppLegal.length && XQ.inCheck(pos), stale = !oppLegal.length, chk = XQ.inCheck(pos);
+  var ha = this.hanging(a, s), hea = this.hanging(a, e), pinsA = this.pinsBy(a, s);
+  var recap = cap ? this.realAtt(a, t, e) : [];
+  var oppMates = (light || stale) ? [] : this.mates1(pos);
+  var myThreat = (light || stale || chk) ? [] : (function () { var q = pos.clone(); q.turn ^= 1; return self.mates1(q); })();
+  var disc = chk && !XQ.canReach(a, t, pos.ks[e]);
+  var threatNote = myThreat.length ? (function () { var q = pos.clone(); q.turn ^= 1; return XQ.notation(q.b, myThreat[0]); })() : '';
+  pos.unmake();
+  var T = [], W = pt.W.slice(), P = pt.P;
+  var add = function (k, ic, short, tx) { T.push({ k: k, ic: ic, short: short, tx: tx }); };
+  var nm = this.pName(p), gain = 0;
+  if (mate) add('mate', '🏆', '絕殺', '絕殺！對方已經冇路可走。');
+  else if (stale) add('stale', '🏆', '困斃', '困斃！對方一步都行唔到，贏咗。');
+  var parry = thBefore.length && !oppMates.length;
+  var newT = hea.filter(function (h) { return !heb.some(function (x) { return x.sq === h.sq; }); });
+  var newPins = pinsA.filter(function (q) { return pinsB.indexOf(q) < 0 && a[q] && (a[q] & 7) !== XQ.P; });
+  if (chkBefore) add('defcheck', '🆘', '應將', '先應將，化解對方嘅將軍。');
+  if (parry) {
+    if (chk || myThreat.length) add('parry', '🧱', '解殺還殺', '解殺還殺：一步化解對方嘅殺著，仲即刻反擊！');
+    else if (newT.length) add('parry', '🧱', '一解一捉', '一解一捉：化解咗對方嘅殺著，仲順手捉住對方嘅' + this.pName(newT[0].p) + '。');
+    else add('parry', '🧱', '解殺', '解殺：睇穿對方下一步嘅殺著，及時化解。');
+  }
+  if (cap) {
+    var v = this.val(cap, t), mv = this.val(p, t), cn = this.pName(cap);
+    if (!recap.length) { gain = v; add('cap', '🍖', '白食' + cn, '白食對方嘅' + cn + '（得子），對方食唔返。'); }
+    else if (v > mv) { gain = v - mv; add('cap', '💰', '謀子', '用' + nm + '換對方嘅' + cn + '，以小換大，係謀子。'); }
+    else if (v === mv) add('trade', '🔄', '兌' + cn, '兌' + cn + '：一換一，簡化局面。');
+    else { gain = v - mv; add('capbad', '😬', '食' + cn, '食咗' + cn + '，但係對方可以食返我哋嘅' + nm + '，係虧本交換。'); }
+  }
+  if (!mate && chk) { if (disc) add('disc', '🎁', '抽將', '抽將（閃擊）：' + nm + '一移開，後面嘅子就將軍，' + nm + '可以趁機搞事。'); else add('check', '📣', '將軍', '將軍！逼對方應將，搶先手。'); }
+  if (!mate && newT.length >= 2) add('fork', '🍴', '捉雙', '捉雙：一步同時捉住對方嘅' + this.pName(newT[0].p) + '同' + this.pName(newT[1].p) + '，對方顧此失彼。');
+  else if (!mate && newT.length === 1) add('attack', '🎯', '捉' + this.pName(newT[0].p), '捉住對方嘅' + this.pName(newT[0].p) + '，逼佢應付（爭先）。');
+  if (!mate && newPins.length) add('pin', '📌', '牽制' + this.pName(a[newPins[0]] || b[newPins[0]]), '牽制住對方嘅' + this.pName(b[newPins[0]] || a[newPins[0]]) + '：佢一郁開，' + KN(e) + '就有危險，所以郁唔得。');
+  if (myThreat.length) add('threat', '⚡', '伏殺', '伏殺：伏有' + threatNote + '嘅殺著，對方要即刻防守。');
+  var wasH = hb.some(function (h) { return h.sq === f; }), nowH = ha.some(function (h) { return h.sq === t; });
+  if (wasH && !nowH && !cap) add('escape', '🏃', '逃' + nm, nm + '本來俾人捉緊，及時走去安全位置。');
+  var saved = hb.filter(function (h) { return h.sq !== f && !ha.some(function (x) { return x.sq === h.sq; }); });
+  if (saved.length) add('guard', '🛡️', '保護' + this.pName(saved[0].p), '保護咗' + this.pName(saved[0].p) + '（生根），對方食唔落。');
+  if (oppMates.length) W.unshift({ k: 'blunder', ic: '🚨', short: '漏殺', tx: '大漏著：對方下一步可以殺！' });
+  if (nowH && ty !== XQ.K && !(cap && this.val(cap, t) >= this.val(p, t))) W.push({ k: 'hang', ic: '⚠️', short: nm + '無根', tx: nm + '去咗一個冇足夠保護嘅位，對方可以食。' });
+  ha.filter(function (h) { return h.sq !== t && !hb.some(function (x) { return x.sq === h.sq; }); }).slice(0, 1).forEach(function (h) { W.push({ k: 'expose', ic: '⚠️', short: '露出破綻', tx: '行完之後，' + self.pName(h.p) + '冇咗保護，變成無根子。' }); });
+  var forcing = mate || chk || newT.length > 0 || myThreat.length > 0 || gain > 0 || newPins.length > 0;
+  var r = { m: m, note: note, s: s, ty: ty, nm: nm, mate: mate, chk: chk, gain: gain, T: T, P: P, W: W, forcing: forcing, dev: P.some(function (x) { return x.k === 'dev'; }) || (ty === XQ.C && GEO(s, f).rr === 7 && (XQ.colOf(f) === 1 || XQ.colOf(f) === 7) && this.isOpening(pos)), sac: nowH && !cap && ty !== XQ.K };
+  r.all = T.concat(P);
+  r.top = r.all[0] || { k: 'quiet', ic: '🧩', short: '調整陣形', tx: '調整陣形，等待更好嘅時機（停著）。' };
+  this._fc[key] = r;
+  return r;
+};
+
+/* 候選清單入面嘅簡短說明 */
+T_.quick = function (pos, m) {
+  var F = this.feat(pos, m, true), L = F.all.slice(0, 2);
+  if (!L.length) L = [F.top];
+  var w = F.W.filter(function (x) { return x.k === 'hang' || x.k === 'n-heart' || x.k === 'p-old'; })[0];
+  return L.map(function (x) { return x.ic + ' ' + x.short; }).join('，') + (w ? '，' + w.ic + ' ' + w.short : '');
+};
+
+/* 評價字眼 */
+T_.verdict = function (cands, m) {
+  if (!cands || !cands.length) return null;
+  var c = null; for (var i = 0; i < cands.length; i++) if (cands[i].m === m) c = cands[i];
+  if (!c) return null;
+  var best = cands[0].score, d = best - c.score;
+  if (best > XQ.MATE - 200 && c.score > XQ.MATE - 200) d = 0;
+  var V = d <= 15 ? ['best', '🌟', '佳著！最好嘅一步'] : d <= 60 ? ['good', '👍', '好棋！正著'] : d <= 150 ? ['ok', '🙂', '緩著：可以行，不過慢咗半拍'] :
+    d <= 400 ? ['weak', '🤔', '疑問手：有啲吃虧'] : ['blunder', '⚠️', '劣著！會失子或者俾人搶攻'];
+  return { key: V[0], em: V[1], label: V[2], delta: d, score: c.score, best: cands[0] };
+};
+
+/* 解釋一步棋（揀咗嘅原因） */
+T_.explain = function (pos, m, cands) {
+  var F = this.feat(pos, m, false), self = this;
+  var R = F.T.slice(0, 3).map(function (x) { return { ic: x.ic, tx: x.tx }; });
+  F.P.slice(0, R.length >= 2 ? 1 : 2).forEach(function (x) { R.push({ ic: x.ic, tx: x.tx }); });
+  if (!R.length) R.push({ ic: F.top.ic, tx: F.top.tx });
+  var D = F.W.filter(function (x) { return x.k !== 'k-early'; }).map(function (x) { return { ic: x.ic, tx: x.tx }; });
+  var out = { side: F.s, m: m, note: F.note, plain: this.plain(pos.b, m), reasons: R.slice(0, 4), dangers: D, mate: F.mate, check: F.chk, feat: F };
+  if (cands && cands.length) {
+    out.verdict = this.verdict(cands, m);
+    var mine = null; cands.forEach(function (c) { if (c.m === m) mine = c; });
+    out.pv = mine ? mine.pv : [m];
+    out.score = mine ? mine.score : null;
+    var alts = [];
+    for (var i = 0; i < cands.length && alts.length < 3; i++) if (cands[i].m !== m) alts.push(cands[i]);
+    out.alts = alts.map(function (c) { return self.whyNot(pos, c, mine ? mine.score : cands[0].score, mine ? mine.pv : cands[0].pv, F.note); });
+  }
+  return out;
+};
+
+/* 對方應手嘅特徵（行完 pv[0] 之後嘅 pv[1]） */
+T_.replyFeat = function (pos, pv) {
+  if (!pv || pv.length < 2 || !XQ.isLegal(pos, pv[0])) return null;
+  pos.make(pv[0]);
+  var r = XQ.isLegal(pos, pv[1]) ? this.feat(pos, pv[1], true) : null;
+  pos.unmake();
+  return r;
+};
+T_.myNextFeat = function (pos, pv) {
+  if (!pv || pv.length < 3) return null;
+  var q = pos.clone();
+  for (var i = 0; i < 2; i++) { if (!XQ.isLegal(q, pv[i])) return null; q.make(pv[i]); }
+  return XQ.isLegal(q, pv[2]) ? this.feat(q, pv[2], true) : null;
+};
+var mainShort = function (F) { var x = F.T[0] || F.P[0]; return x ? x.short : ''; };
+var planOf = function (F) { var x = F.P[0] || F.T[0] || F.top; return x.short; };
+
+/* 點解唔揀呢一步：講出具體分別（唔講數字） */
+T_.whyNot = function (pos, c, chosen, chosenPv, chosenNote) {
+  var d = chosen - c.score, FA = this.feat(pos, c.m, true), note = FA.note, tx, self = this;
+  var cm = chosenPv && chosenPv[0], FC = cm && XQ.isLegal(pos, cm) ? this.feat(pos, cm, true) : null;
+  var cn = chosenNote || (FC ? FC.note : '揀咗嗰步');
+  var RA = this.replyFeat(pos, c.pv), RC = this.replyFeat(pos, chosenPv);
+  var alt = this.netGain(pos, c.pv || [c.m], 4), mine = this.netGain(pos, chosenPv || [], 4);
+  var plan = planOf(FA);
+  var cDist = FC ? FC.all.filter(function (x) { return !FA.all.some(function (y) { return y.k === x.k; }); })[0] : null;
+  if (c.score < -XQ.MATE + 200) return { m: c.m, note: note, score: c.score, delta: d, tx: '敗著：行完之後會俾對方將死。' };
+  if (c.score > XQ.MATE - 200 && chosen > XQ.MATE - 200) return { m: c.m, note: note, score: c.score, delta: d, tx: '都殺得到，不過' + cn + '殺得更快、更直接。' };
+  if (chosen > XQ.MATE - 200) return { m: c.m, note: note, score: c.score, delta: d, tx: '錯過咗殺棋：' + cn + '可以直接入局將死對方，呢步就放走咗機會。' };
+  if (d < -20) {
+    tx = this.mode === 'human' ? '呢步其實比你揀嗰步更好：' + (FA.top.tx) :
+      this.mode === 'master' ? '電腦淺層計覺得呢步都好有力（' + plan + '），棋手冇咁行，可能有更長遠嘅打算，值得諗吓點解。' :
+      this.mode === 'deep' ? '表面睇呢步（' + plan + '）好似唔錯，但係電腦再計深幾步，發現' + cn + '更實際。' : '呢步（' + plan + '）其實仲好；呢個等級嘅電腦有時會睇漏眼。';
+    return { m: c.m, note: note, score: c.score, delta: d, tx: tx };
+  }
+  var parts = [];
+  var label = d <= 20 ? '都係好棋' : d <= 80 ? '係正著' : d <= 200 ? '係緩著' : d <= 400 ? '係劣著' : '係敗著';
+  /* 1. 子力得失：呢條路自己會唔會蝕子？揀咗嗰步係咪有得子而呢步冇？ */
+  if (alt.net < -0.5) {
+    var ln = alt.firstLoss ? alt.firstLoss.name : '子';
+    if (alt.firstLoss && d <= 80) parts.push('問題係冇顧住' + ln + '：對方可以' + alt.firstLoss.note + '食咗佢；雖然換到少少主動，但' + cn + '先保住子更穩陣');
+    else parts.push(alt.firstLoss ? '問題係行完之後，對方可以' + alt.firstLoss.note + '食咗我哋嘅' + ln + '，計埋之後嘅交換係失子' : '問題係計落去會失子');
+  } else if (mine.net > alt.net + 0.5) {
+    var gc = FC && FC.T.filter(function (x) { return x.k === 'cap'; })[0];
+    parts.push('錯過咗得子機會：' + cn + (gc ? '可以' + gc.short : '計落去可以多得子') + '，呢步就放走咗呢個便宜');
+  } else if (alt.net > mine.net + 0.5 && d > 20) parts.push('呢步雖然可以多食子，但係貪食會失先，之後局面變被動（「得子失先卻是輸」）');
+  /* 2. 對方應手會唔會反奪先手 */
+  if (!parts.length && RA && RA.forcing && !(RC && RC.forcing)) parts.push('行完之後，對方可以' + RA.note + '（' + mainShort(RA) + '）反過嚟搶先手');
+  /* 3. 自己有冇咗先手 */
+  if (!parts.length && FC && FC.forcing && !FA.forcing) parts.push('佢冇先手：' + cn + '可以' + mainShort(FC) + '逼對方應付，呢步就俾咗對方喘息嘅機會');
+  /* 4. 出子快慢 */
+  if (!parts.length && FC && FC.dev && !FA.dev && this.isOpening(pos)) { var dv = FC.P.filter(function (x) { return x.k === 'dev'; })[0]; parts.push('出子慢咗一步：' + cn + '即刻' + (dv ? dv.short : '出' + FC.nm) + '，呢步就遲咗' + (FC.ty === XQ.R ? '（「輸棋只因出車遲」）' : '（開局要快啲出大子）')); }
+  /* 5. 自身破綻 */
+  if (!parts.length && FA.W.length) parts.push('不過' + FA.W[0].tx.replace(/。$/, ''));
+  /* 6. 思路比較：同一個計劃定唔同計劃、之後嘅後續手段 */
+  var plainCase = !parts.length;
+  if (plainCase) {
+    var MA = this.myNextFeat(pos, c.pv), MCn = this.myNextFeat(pos, chosenPv);
+    var kA = (FA.T[0] || FA.P[0] || FA.top).short, kC = FC ? (FC.T[0] || FC.P[0] || FC.top).short : '';
+    var follow = (MCn && MCn.forcing && !(MA && MA.forcing)) ? cn + '之後伏有' + MCn.note + '（' + MCn.top.short + '），呢步就冇咁強嘅後續' : '';
+    if (kA === kC) parts.push((FC && FA.ty === FC.ty ? '同' + cn + '一樣係' + kA + '，只係用另一隻' + FA.nm : '同樣係' + kA + '，不過用' + FA.nm + '去做' + (FA.P[0] ? '（' + FA.P[0].short + '）' : '')) + (follow ? '；分別在於' + follow : (RA ? '，對方都係以' + RA.note + '應付，效果相若' : '，效果相若')));
+    else {
+      var seg = '呢步走「' + plan + '」路線' + (RA ? '，對方會以' + RA.note + '（' + RA.top.short + '）應付' : '') + (MA ? '，之後可以' + MA.note + '（' + MA.top.short + '）' : '');
+      seg += cDist ? '；' + cn + '就多咗「' + cDist.short + '」嘅作用' : follow ? '；而' + follow : '';
+      if (d > 20) seg += '，所以稍遜一籌';
+      parts.push(seg);
+    }
+  }
+  tx = plainCase ? label + '：' + parts.join('；') + '。' : label + '（' + plan + '），' + parts.join('；') + '。';
+  return { m: c.m, note: note, score: c.score, delta: d, tx: tx };
+};
+
+/* 預判一條路：用棋評講法描述 */
+T_.lineTalk = function (pos, row, me, you) {
+  var RA = this.replyFeat(pos, row.pvm), MN = this.myNextFeat(pos, row.pvm), t = '';
+  if (row.pv[0] && row.pv[0].mate) return '呢步直接絕殺！';
+  if (RA) t = '行' + row.note + '之後，' + you + '最好嘅應法係' + RA.note + '（' + RA.top.short + '）。';
+  if (MN) t += (MN.forcing ? '跟住' + me + '伏有' + MN.note + '（' + MN.top.short + '）嘅手段。' : '跟住' + me + '可以' + MN.note + '（' + MN.top.short + '）。');
+  t += '形勢：' + this.evalWordSide(row.score, me, you) + '。';
+  return t;
+};
+
+/* 思考第4、5步 */
+T_.brain = function (pos, m, cands, ctx) {
+  this._fc = {};
+  var s = pos.turn, e = s ^ 1, b = pos.b, self = this, me = this.side(s), you = this.side(e);
+  var steps = this.pre(pos, ctx);
+  var ex2 = this.explain(pos, m, cands);
+  var all = (cands || []).slice();
+  if (!all.some(function (c) { return c.m === m; })) all.unshift({ m: m, score: ex2.score || 0, pv: [m] });
+  var top0 = all[0], mc0 = all.filter(function (c) { return c.m === m; })[0];
+  if (mc0 !== top0 && (this.mode === 'deep' || top0.score - mc0.score <= 20)) { all.splice(all.indexOf(mc0), 1); all.unshift(mc0); }
+  var chosenC = all.filter(function (c) { return c.m === m; })[0], chosenScore = chosenC.score;
+  var PAL = ['b', 'c', 'p', 'g', 'o', 'r'];
+  var rows = all.map(function (c, i) {
+    var chosen = c.m === m, near = i < 8 || chosen;
+    return { m: c.m, note: XQ.notation(b, c.m), score: c.score, rank: i + 1, chosen: chosen, pvm: c.pv || [c.m],
+      col: chosen ? 'y' : PAL[i % PAL.length], what: self.quick(pos, c.m),
+      why: chosen ? ex2.reasons.map(function (r) { return r.tx; }).join('') : (near ? self.whyNot(pos, c, chosenScore, chosenC.pv, ex2.note).tx : ''),
+      pv: self.pvList(pos, c.pv || [c.m], 5) };
+  });
+  var chosenIdx = 0; rows.forEach(function (r, i) { if (r.chosen) chosenIdx = i; });
+  var cr0 = rows[chosenIdx];
+  var others = rows.filter(function (r) { return !r.chosen; });
+  var near = others.filter(function (r) { return chosenScore - r.score <= 300 || r.score > chosenScore; }).slice(0, 2);
+  /* 揀咗嗰步嘅評語 */
+  var F = ex2.feat, label;
+  /* 先棄後取：表面虧本嘅食子／送子，計落去其實唔蝕 */
+  var netC = this.netGain(pos, chosenC.pv || [m], 4), MC0 = this.myNextFeat(pos, chosenC.pv), combo = false;
+  if ((F.T.some(function (x) { return x.k === 'capbad'; }) || F.sac) && netC.net >= 0 && chosenScore > -200) {
+    combo = true;
+    ex2.reasons = ex2.reasons.filter(function (r) { return r.ic !== '😬'; });
+    ex2.reasons.unshift({ ic: '✨', tx: '先棄後取：' + F.nm + '表面上會俾對方食，但係' + (MC0 ? '之後可以' + MC0.note + '（' + MC0.top.short + '）搶返' : '計落去搶得返') + '，唔蝕之餘仲搶到先手。' });
+    ex2.dangers = ex2.dangers.filter(function (x) { return !/無根|保護/.test(x.tx); });
+  }
+  var gap2 = others.length ? chosenScore - others[0].score : 0;
+  if (F.mate) label = '絕殺';
+  else if (cr0.rank > 1) label = '緩著';
+  else if (combo) label = '妙著（「寧失一子，不失一先」）';
+  else if (others.length && gap2 > 300) label = '只此一著（其他走法都會吃虧）';
+  else if (others.length && gap2 > 100) label = '佳著';
+  else label = '正著';
+  var intent = '';
+  var RC = this.replyFeat(pos, chosenC.pv), MC = this.myNextFeat(pos, chosenC.pv);
+  if (!F.mate && RC) intent += you + '最好嘅應法係' + RC.note + '（' + RC.top.short + '）。';
+  if (!F.mate && MC) intent += MC.forcing ? '之後' + me + '伏有' + MC.note + '（' + MC.top.short + '）嘅手段。' : '之後' + me + '準備' + MC.note + '（' + MC.top.short + '）。';
+  var head = me + '行' + ex2.note + '，係' + label + '。' + ex2.reasons.map(function (r) { return r.tx; }).join('') + (ex2.dangers.length && cr0.rank > 1 ? ex2.dangers[0].tx : '');
+  var say4 = head + intent;
+  if (cr0.rank > 1) say4 += '其實最好嘅係' + rows[0].note + '（' + planOf(this.feat(pos, rows[0].m, true)) + '），' + rows[0].why;
+  var ORD = ['', '第一', '第二', '第三', '第四', '第五'], k = 2;
+  near.forEach(function (r) {
+    if (r.rank === 1 && cr0.rank > 1) return;
+    say4 += (ORD[k] || '另一個') + '選擇係' + r.note + '，' + r.why; k++;
+  });
+  if (others.length && !near.length) say4 += '其他走法都明顯吃虧，唔使考慮。';
+  /* 畫面 */
+  var vals = rows.slice(0, 12).map(function (r) { return Math.max(-1500, Math.min(1500, r.score)); });
+  var maxS = Math.max.apply(null, vals), minS = Math.min.apply(null, vals);
+  function bar(sc) { var v = Math.max(-1500, Math.min(1500, sc)); return maxS === minS ? 80 : Math.max(6, 12 + 83 * (v - minS) / (maxS - minS)); }
+  function rowHtml(r, i) {
+    var mark = r.chosen ? '✔ ' : (r.score > chosenScore + 20 ? '💭 ' : chosenScore - r.score <= 20 ? '≈ ' : '✘ ');
+    return '<div class="cand crow' + (r.chosen ? ' chosen' : '') + '" data-cand="%K%:3:' + i + '"><span class="tag" style="background:' + COLORS[r.col] + '">' + r.rank + '</span><span class="nm">' + r.note + '</span><span class="bb"><i style="width:' + bar(r.score) + '%;background:' + COLORS[r.col] + '"></i></span><span class="sc">' + self.scoreTxt(r.score) + '</span>' + (r.chosen ? ' 👑' : '') + '</div>' +
+      '<div class="why"><span class="what">' + esc(r.what) + '</span>' + (r.why ? '<br>' + mark + esc(r.why) : '') + '</div>';
+  }
+  var SHOW = 8;
+  var html4 = '<div style="margin-bottom:6px">呢個局面有 <b>' + rows.length + '</b> 步棋可以行，我逐步試過，再由最好排落去。<br><span style="font-size:14px;color:var(--ink2)">👆 撳任何一步，棋盤會顯示嗰步同埋之後嘅發展。</span></div>';
+  rows.slice(0, SHOW).forEach(function (r, i) { html4 += rowHtml(r, i); });
+  if (rows.length > SHOW) {
+    html4 += '<details class="more"><summary>顯示其餘 ' + (rows.length - SHOW) + ' 步' + (chosenIdx >= SHOW ? '（包括揀咗嗰步）' : '') + '</summary>';
+    rows.slice(SHOW).forEach(function (r, i) { html4 += rowHtml(r, i + SHOW); });
+    html4 += '</details>';
+  }
+  html4 += '<div style="margin-top:8px"><b>🎙️ 棋評：</b>' + esc(say4) + '</div>';
+  var o4 = { arrows: [] };
+  rows.slice(0, 5).forEach(function (r) { o4.arrows.push([r.m & 127, r.m >> 7, r.col, String(r.rank)]); });
+  if (chosenIdx >= 5) o4.arrows.push([cr0.m & 127, cr0.m >> 7, 'y', String(cr0.rank)]);
+  steps.push({ k: 4, ic: '🎯', name: '揀：邊步最好？', sum: rows.length + '步候選 → ' + ex2.note + '（' + label.replace(/（.*$/, '') + '）', html: html4, say: say4, ov: o4, rows: rows });
+  /* 5 預判 */
+  var lines = rows.slice(0, 6);
+  if (chosenIdx >= 6) lines = lines.slice(0, 5).concat([cr0]);
+  lines.sort(function (x, y) { return (y.chosen ? 1 : 0) - (x.chosen ? 1 : 0); });
+  var html5 = '<div>每一步棋，對手都有佢嘅<b>應法</b>。我將每個候選喺腦入面行落去：</div>', sayP = '';
+  lines.forEach(function (r, j) {
+    html5 += '<div class="pvrow' + (r.chosen ? ' chosen' : '') + '" data-line="%K%:4:' + j + '"><div class="pvline"><span class="tag" style="background:' + COLORS[r.col] + '">' + r.rank + '</span>';
+    r.pv.forEach(function (x, i) { html5 += '<span class="pvm ' + (x.side ? 'k' : 'r') + '">' + x.note + (x.cap ? ' 🍖' : '') + (x.mate ? ' 🏆' : x.chk ? ' 📣' : '') + '</span>' + (i < r.pv.length - 1 ? '→' : ''); });
+    html5 += '<button class="btn sm blue" data-act="pvline" data-line="%K%:4:' + j + '">▶</button></div>';
+    var t = self.lineTalk(pos, r, me, you);
+    html5 += '<div class="why">' + (r.chosen ? '👑 ' : '') + esc(t) + '</div></div>';
+    if (r.chosen) sayP = t;
+  });
+  var o5 = { arrows: [] };
+  cr0.pv.forEach(function (x, i) { o5.arrows.push([x.m & 127, x.m >> 7, x.side === s ? 'y' : 'k', String(i + 1), x.side !== s]); });
+  steps.push({ k: 5, ic: '🔮', name: '預判：每步之後會點？', sum: cr0.pv.slice(1, 3).map(function (x) { return x.note; }).join(' → ') || (ex2.mate ? '絕殺！' : '—'),
+    html: html5, say: sayP, ov: o5, lines: lines, pv: cr0.pv.map(function (x) { return x.m; }) });
+  return { steps: steps, ex: ex2, rows: rows, sayAll: say4 };
+};
+})();
 
 /* ================================================================
    App 第三部分：畫面、學習地圖、課堂
@@ -2939,7 +3328,7 @@ var Editor = {
         txt += '<br>電腦建議：' + pv.map(function (x) { return x.note; }).join(' → ') + '（睇咗 ' + r.depth + ' 層）';
         self.evalTxt = txt; self.status();
         Board.setMarks({ arrows: [[r.move & 127, r.move >> 7, 'g', '✓']] });
-        Speech.auto(txt.replace(/<[^>]+>/g, ''));
+        Speech.auto(txt.replace(/（紅方角度[^）]*）|（[^）]*層）/g, '').replace(/（[+-]?[0-9.]+）/g, '').replace(/<[^>]+>/g, ''));
       });
       return;
     }
@@ -3324,7 +3713,7 @@ var Game = {
     var best = cands[0].score, good = cands.filter(function (c) { return c.score >= best - 40; }).slice(0, 4).map(function (c) { return XQ.iccs(c.m); });
     var list = Store.d.mist = Store.d.mist || [], fen = rec.before.fen();
     if (list.some(function (x) { return x.fen === fen; })) return;
-    var why = v.key === 'blunder' ? '嗰步會蝕好多（差' + (v.delta / 100).toFixed(1) + '分）。' : '嗰步有啲可惜（差' + (v.delta / 100).toFixed(1) + '分）。';
+    var why = v.key === 'blunder' ? '嗰步係劣著，會失子或者俾對方搶攻。' : '嗰步係疑問手，有啲吃虧。';
     if (rec.ex.dangers.length) why += rec.ex.dangers[0].tx;
     list.push({ fen: fen, note: rec.note, best: good, why: why, opp: this.cfg.mode === 'ai' ? LV[this.cfg.level - 1].nm + '電腦' : '朋友', t: Date.now() });
     while (list.length > 60) list.shift();
