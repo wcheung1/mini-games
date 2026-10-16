@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#ff8a3d">
-<meta name="description" content="象棋小學堂：用廣東話由零開始教小朋友捉中國象棋，由認識棋子到殺法、戰術、開局、中局、殘局，可以同電腦對弈，每一步都有思考過程解釋。">
-<title>象棋小學堂 — 由零開始學中國象棋</title>
+<meta name="description" content="中國象棋小學堂：用廣東話由零開始教小朋友捉中國象棋，由認識棋子到殺法、戰術、開局、中局、殘局，可以同電腦對弈，每一步都有思考過程解釋。">
+<title>中國象棋小學堂 — 由零開始學捉中國象棋</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23f6e2bd' stroke='%23a8773e' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='24' fill='none' stroke='%23c92a2a' stroke-width='2'/%3E%3Ctext x='32' y='43' font-size='30' text-anchor='middle' fill='%23c92a2a' font-weight='900'%3E帥%3C/text%3E%3C/svg%3E">
 <style>
 :root{
@@ -251,7 +251,7 @@ details.more>summary{cursor:pointer;font-weight:800;color:#1864ab;margin:6px 0}
 <body>
 <div id="app">
   <header id="topbar">
-    <div class="logo" id="tb-logo" data-go="home">象棋小學堂</div>
+    <div class="logo" id="tb-logo" data-go="home">中國象棋小學堂</div>
     <span class="sp"></span>
     <button class="tb-chip" id="tb-rank" data-go="ranks"></button>
     <span class="tb-chip hide-s" id="tb-stars"></span>
@@ -278,7 +278,7 @@ details.more>summary{cursor:pointer;font-weight:800;color:#1864ab;margin:6px 0}
 <div id="modal"><div class="box"></div></div>
 <div id="toast"></div>
 <canvas id="confetti"></canvas>
-<noscript>請開啟 JavaScript 先可以使用象棋小學堂。</noscript>
+<noscript>請開啟 JavaScript 先可以使用中國象棋小學堂。</noscript>
 <script id="engine-src">
 /* ================================================================
    象棋引擎 XQ —— 走法、規則、記譜、電腦思考 (alpha-beta 搜尋)
@@ -981,11 +981,11 @@ var STAGES = [
   lessons: [
   { id: 'L1', icon: '🗺️', title: '認識棋盤', steps: [
     { t: 'talk', fen: EMPTY, say: '你好！我係**象仔老師**🐘。今日開始，我會陪你一步一步學捉中國象棋，由完全唔識，一路練到做高手！準備好未？我哋出發啦！' },
-    { t: 'talk', fen: EMPTY, marks: { river: true }, say: '呢個就係象棋棋盤。中間呢條闊闊嘅河，叫做**楚河漢界**。河嘅下面係紅方嘅地方，上面係黑方嘅地方。' },
+    { t: 'talk', fen: EMPTY, marks: { river: true }, say: '呢個就係中國象棋嘅棋盤。中間呢條闊闊嘅河，叫做**楚河漢界**。河嘅下面係紅方嘅地方，上面係黑方嘅地方。' },
     { t: 'talk', fen: EMPTY, marks: { palace: true }, say: '睇吓上下兩邊，有兩個畫咗交叉線嘅正方形，叫做**九宮**。九宮就好似皇帝嘅屋企，帥同將要住喺入面，唔可以出去㗎！' },
-    { t: 'talk', fen: EMPTY, marks: { dots: ['e4', 'c3', 'g6'] }, say: '要記住呀：象棋嘅棋子唔係放喺格仔入面，而係放喺**線同線交叉嘅點**上面。好似我標咗嘅呢幾粒點咁。' },
+    { t: 'talk', fen: EMPTY, marks: { dots: ['e4', 'c3', 'g6'] }, say: '要記住呀：中國象棋嘅棋子唔係放喺格仔入面，而係放喺**線同線交叉嘅點**上面。好似我標咗嘅呢幾粒點咁。' },
     { t: 'quiz', fen: EMPTY, say: '小測驗！象棋棋子係放喺邊度㗎？', opts: [
-      { a: '放喺格仔中間', why: '唔係呀，象棋同國際象棋唔同，棋子唔放喺格仔入面。' },
+      { a: '放喺格仔中間', why: '唔係呀，中國象棋同國際象棋唔同，棋子唔放喺格仔入面。' },
       { a: '放喺線同線交叉嘅點', ok: true, why: '啱晒！棋子企喺交叉點上面。' },
       { a: '隨便放邊度都得', why: '唔得㗎，每隻棋子都要企喺交叉點。' }] },
     { t: 'talk', fen: START, say: '而家棋子全部擺好晒喇！**紅方**喺下面，**黑方**喺上面。每邊都有十六隻棋子。規矩係**紅方先行**，然後輪流一人行一步。' },
@@ -1312,7 +1312,7 @@ var STAGES = [
     { t: 'talk', fen: START, say: '最後記住：**輸棋唔係失敗，係學習嘅機會**。全世界嘅象棋大師，都係輸過幾千盤棋先變成高手。每日練一啲，你一定會越嚟越叻！加油！💪' }
   ] },
   { id: 'H4', icon: '🎓', title: '畢業考試', steps: [
-    { t: 'play', fen: START, n: 300, level: 3, say: '畢業考試！同**炮手級**電腦捉一盤完整嘅棋。用晒你學過嘅所有嘢：開局出子、中局四步曲、殘局收官。贏咗就畢業！', win: '恭喜你畢業！你已經係真正嘅象棋小高手喇！繼續去對戰模式挑戰更高級嘅電腦啦！', hints: ['記住思考四步曲：一睇、二防、三攻、四揀。', '開局快啲出車馬炮，唔好亂郁帥。'] }
+    { t: 'play', fen: START, n: 300, level: 3, say: '畢業考試！同**炮手級**電腦捉一盤完整嘅棋。用晒你學過嘅所有嘢：開局出子、中局四步曲、殘局收官。贏咗就畢業！', win: '恭喜你畢業！你已經係真正嘅中國象棋小高手喇！繼續去對戰模式挑戰更高級嘅電腦啦！', hints: ['記住思考四步曲：一睇、二防、三攻、四揀。', '開局快啲出車馬炮，唔好亂郁帥。'] }
   ] }
   ] }
 ];
@@ -1384,10 +1384,22 @@ var Speech = {
     setTimeout(pick, 800); setTimeout(pick, 2500);
   },
   clean: function (t) {
-    return String(t).replace(/\*\*/g, '').replace(/<[^>]+>/g, '')
+    t = String(t).replace(/\*\*/g, '').replace(/<[^>]+>/g, '')
       .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '')
       .replace(/→/g, '，然後').replace(/[「」『』]/g, '').replace(/（/g, '，').replace(/）/g, '，')
       .replace(/\+(\d)/g, '加$1').replace(/-(\d)/g, '減$1').replace(/\s+/g, ' ').trim();
+    return this.pron(t);
+  },
+  /* 中國象棋專用讀音：車讀「居」；棋子「將」讀「醬」（第三聲），「將軍」「將死」「應將」嘅「將」讀第一聲 */
+  pron: function (t) {
+    var P = '\u0002';
+    t = t.replace(/[俥車]/g, '居').replace(/傌/g, '馬').replace(/砲/g, '炮');
+    t = t.replace(/長(將|捉)/g, '場$1');
+    t = t.replace(/帥將(?![軍死緊])/g, '帥醬');
+    t = t.replace(/(應|場|抽|連|雙|反|亂|即)將/g, '$1' + P);
+    t = t.replace(/將(?=[軍死緊極來])/g, P);
+    t = t.replace(/將(?=[佢居炮馬兵卒優每全高隻架啲呢另])/g, P);
+    return t.replace(/將/g, '醬').split(P).join('將');
   },
   speak: function (text, btn, onend) {
     if (!this.ok) { if (onend) onend(); return; }
@@ -2122,8 +2134,8 @@ var UI = {
   home: function () {
     var t = Prog.totals(), nx = Prog.next(), r = Prog.rank();
     var greet = ['今日想學啲乜嘢呀？', '歡迎返嚟！我哋繼續努力！', '每日練一啲，你會越嚟越叻！'][Math.floor(Math.random() * 3)];
-    var hello = '你好！我係象仔老師。' + (t.done ? '你已經完成咗' + t.done + '課，好叻呀！' : '我會由零開始，教你捉中國象棋，一步一步變成高手！') + greet;
-    var h = '<div class="hero"><div class="mascot">' + mascotSvg() + '</div><div style="z-index:1"><h1>象棋小學堂 ' + spk(hello) + '</h1>' +
+    var hello = '你好！我係象仔老師，歡迎嚟到中國象棋小學堂！' + (t.done ? '你已經完成咗' + t.done + '課，好叻呀！' : '我會由零開始，教你捉中國象棋，一步一步變成高手！') + greet;
+    var h = '<div class="hero"><div class="mascot">' + mascotSvg() + '</div><div style="z-index:1"><h1>中國象棋小學堂 ' + spk(hello) + '</h1>' +
       '<p>' + esc(hello) + '</p><p>而家嘅稱號：<b>' + RANKS[r].icon + ' ' + RANKS[r].name + '</b>　｜　已完成 ' + t.done + ' / ' + t.n + ' 課</p>' +
       '<div class="navrow">' + (Store.d.saved && Store.d.saved.moves.length ? '<button class="btn blue" data-go="resume">⏯ 繼續上次對局（已行 ' + Store.d.saved.moves.length + ' 步）</button>' : '') + (nx ? '<button class="btn pri" data-go="lesson" data-si="' + nx[0] + '" data-li="' + nx[1] + '">▶ 繼續學習：' + esc(STAGES[nx[0]].lessons[nx[1]].title) + '</button>' : '<button class="btn pri" data-go="setup">🏆 全部完成！去對戰挑戰</button>') + '</div></div></div>';
     h += this.voiceTip();
@@ -2212,7 +2224,7 @@ var UI = {
     $$('[data-sw]', m).forEach(function (b) { b.onclick = function () { S[b.dataset.sw] = !S[b.dataset.sw]; b.classList.toggle('on', S[b.dataset.sw]); Store.save(); if (b.dataset.sw === 'helper' && Game.on) Game.refreshSide(); }; });
     $('#rate', m).oninput = function (e) { S.rate = +e.target.value; Store.save(); };
     $('#vsel', m).onchange = function (e) { S.voice = e.target.value; Store.save(); Speech.init(); };
-    $('#vtest', m).onclick = function (e) { Speech.speak('你好！我係象仔老師，我哋一齊學捉象棋啦！炮二平五，馬八進七。', e.target); };
+    $('#vtest', m).onclick = function (e) { Speech.speak('你好！我係象仔老師，歡迎嚟到中國象棋小學堂！炮二平五，馬八進七，車九平八，將5平4，將軍！', e.target); };
     $('#reset', m).onclick = function () { if (confirm('真係要清除所有進度？')) { Store.d.done = {}; Store.d.wins = {}; Store.d.games = 0; Store.d.puzzles = 0; Store.save(); closeModal(); UI.show('home'); } };
   },
   about: function () {
@@ -3094,7 +3106,7 @@ var Game = {
   /* 匯出棋譜 */
   recordText: function () {
     var c = this.cfg, lines = [], d = new Date();
-    lines.push('象棋小學堂 棋譜');
+    lines.push('中國象棋小學堂 棋譜');
     lines.push('日期：' + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate());
     lines.push('紅方：' + this.who(0).replace(/^\S+\s/, '') + '　黑方：' + this.who(1).replace(/^\S+\s/, ''));
     var bn = this.bookName(); if (bn) lines.push('開局：' + bn);
@@ -3119,7 +3131,7 @@ var Game = {
     };
     $('#dlrec').onclick = function () {
       var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain;charset=utf-8' }));
-      a.download = '象棋棋譜-' + Date.now() + '.txt'; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 500);
+      a.download = '中國象棋棋譜-' + Date.now() + '.txt'; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 500);
     };
   },
   stop: function () { this.on = false; this.tok++; Board.onTap = null; clearTimeout(this.timer); },
@@ -3653,7 +3665,7 @@ $('#modal').addEventListener('click', function (e) { if (e.target.id === 'modal'
 
 window.addEventListener('load', function () {
   Board.init(); Eng.init(); Speech.init();
-  $('#tb-logo').innerHTML = '<div style="width:38px;height:38px;background:#fff;border-radius:50%;padding:2px">' + mascotSvg() + '</div><span>象棋小學堂</span>';
+  $('#tb-logo').innerHTML = '<div style="width:38px;height:38px;background:#fff;border-radius:50%;padding:2px">' + mascotSvg() + '</div><span>中國象棋小學堂</span>';
   UI.show('home');
 });
 
