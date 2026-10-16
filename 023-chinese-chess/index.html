@@ -234,6 +234,17 @@ details.more>summary{cursor:pointer;font-weight:800;color:#1864ab;margin:6px 0}
 .pvrow .btn.sm{min-height:30px;padding:3px 10px;margin-left:auto}
 .pvrow .tag{width:22px;height:22px;min-width:22px;border-radius:50%;color:#fff;font-weight:900;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
 .pvrow .pvline{align-items:center}
+/* editor */
+.edrow{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.edp{width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fffaf0,#f6e2bd 70%,#d9b47c);border:2px solid #a8773e;font-family:var(--kai);font-weight:900;font-size:24px;position:relative;box-shadow:0 2px 4px rgba(90,53,16,.3);padding:0}
+.edp.r{color:#c92a2a}.edp.k{color:#1f1f1f}
+.edp.sel{outline:4px solid #228be6;outline-offset:2px;transform:scale(1.08)}
+.edp.out{opacity:.4}
+.edp i{position:absolute;right:-6px;bottom:-4px;background:#fff;border:1.5px solid #a8773e;border-radius:10px;font-style:normal;font-family:var(--font);font-size:12px;line-height:16px;min-width:18px;color:#5c3d1e}
+.levels.mini{grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:6px}
+.levels.mini .lvl{padding:5px 4px;border-radius:12px}
+.levels.mini .lvl .ic{font-size:20px}.levels.mini .lvl .nm{font-size:13px}
+@media (min-width:1001px) and (orientation:landscape){ .scol{overflow-y:auto;padding-bottom:6px} }
 
 </style>
 </head>
@@ -2083,6 +2094,7 @@ var UI = {
       '<button class="card" data-go="map"><div class="ic">🗺️</div><h3>學習地圖</h3><p>七個關卡，由認識棋子到高手之路。</p><div class="bar"><i style="width:' + Math.round(100 * t.done / t.n) + '%"></i></div></button>' +
       '<button class="card" data-go="setup"><div class="ic">⚔️</div><h3>對戰</h3><p>同電腦捉（6個難度）、兩個人捉、或者睇電腦對電腦。每步都有解釋！</p></button>' +
       '<button class="card" data-go="daily"><div class="ic">🎲</div><h3>每日練習</h3><p>隨機殺法同戰術題，溫故知新。</p></button>' +
+      '<button class="card" data-go="edit"><div class="ic">🧩</div><h3>自製殘局</h3><p>自己隨意擺棋子，再同電腦、朋友捉，或者睇電腦對電腦。</p></button>' +
       '<button class="card" data-go="book"><div class="ic">📖</div><h3>開局百科</h3><p>' + BOOK.length + ' 個正統開局，逐步解釋，仲可以跟住行。</p></button>' +
       '<button class="card" data-go="study"><div class="ic">📚</div><h3>打譜室</h3><p>貼上任何棋譜逐步分析，或者睇電腦高手示範對局。</p></button>' +
       '<button class="card" data-go="mist"><div class="ic">📒</div><h3>錯題本' + ((Store.d.mist || []).length ? '（' + Store.d.mist.length + '）' : '') + '</h3><p>對局時行差咗嘅步會自動記低，重溫到識為止。</p></button>' +
@@ -2253,14 +2265,15 @@ function soundFor(pos, m) { /* 喺行棋前叫 */
    ================================================================ */
 var PRAISE = ['好叻呀！', '做得好！', '你真係好醒！', '犀利！', '完全正確！', '嘩，好勁！'];
 var ENCOURAGE = ['差少少！再試吓？', '唔緊要，高手都係咁練出嚟㗎！', '好接近喇！再諗多一步。', '冇問題，我哋慢慢嚟。', '試多次，你得㗎！'];
+var TOKSEQ = 1;
 var Lesson = {
   c: null,
-  stop: function () { if (this.c) { this.c.tok++; this.c = null; } clearTimeout(this.autoT); },
+  stop: function () { if (this.c) { this.c.tok = ++TOKSEQ; this.c = null; } clearTimeout(this.autoT); },
   open: function (si, li) {
     if (!Prog.lessonUnlocked(si, li)) { toast('🔒 先完成前面嘅課先可以解鎖呀！（家長可以喺設定開「全部解鎖」）'); return; }
     UI.show('board'); Game.on = false;
     var L = STAGES[si].lessons[li];
-    this.c = { si: si, li: li, L: L, i: 0, hints: 0, wrong: 0, tok: 1 };
+    this.c = { si: si, li: li, L: L, i: 0, hints: 0, wrong: 0, tok: ++TOKSEQ };
     Board.setFlip(false);
     $('#bctrl').innerHTML = '';
     $('#tug').style.display = 'none';
@@ -2279,7 +2292,7 @@ var Lesson = {
     steps.push({ t: 'open', mode: 'play', side: 'red', name: bk.name, moves: mv, say: '而家你做**紅方**，跟住「' + bk.name + '」自己行一次！' });
     steps.push({ t: 'open', mode: 'play', side: 'black', name: bk.name, moves: mv, say: '再試做**黑方**！棋盤會轉過嚟。' });
     UI.show('board'); Game.on = false;
-    this.c = { si: 0, li: 0, L: { id: 'book', icon: '📖', title: bk.name, steps: steps }, i: 0, hints: 0, wrong: 0, tok: 1, daily: true, kind: 'book' };
+    this.c = { si: 0, li: 0, L: { id: 'book', icon: '📖', title: bk.name, steps: steps }, i: 0, hints: 0, wrong: 0, tok: ++TOKSEQ, daily: true, kind: 'book' };
     Board.setFlip(false); $('#bctrl').innerHTML = ''; $('#tug').style.display = 'none';
     this.go(0);
   },
@@ -2294,7 +2307,7 @@ var Lesson = {
       win: '好嘢！搵到喇！呢步比上次嗰步好好多。記住呢個局面嘅教訓！',
       hints: ['用思考四步曲：一睇對手上一步想做乜？二防：你有冇棋子有危險？', '試吓郁你嘅' + pn + '。'] };
     UI.show('board'); Game.on = false;
-    this.c = { si: 0, li: 0, L: { id: 'mist', icon: '📒', title: '錯題本（仲有 ' + list.length + ' 題）', steps: [step] }, i: 0, hints: 0, wrong: 0, tok: 1, daily: true, kind: 'mist' };
+    this.c = { si: 0, li: 0, L: { id: 'mist', icon: '📒', title: '錯題本（仲有 ' + list.length + ' 題）', steps: [step] }, i: 0, hints: 0, wrong: 0, tok: ++TOKSEQ, daily: true, kind: 'mist' };
     Board.setFlip(false); $('#bctrl').innerHTML = ''; $('#tug').style.display = 'none';
     this.go(0);
   },
@@ -2310,13 +2323,13 @@ var Lesson = {
     STAGES.forEach(function (st, si) { st.lessons.forEach(function (l, li) { l.steps.forEach(function (s, k) { if (s.t === 'goal' && (s.goal === 'mate' || s.goal === 'moves' || s.goal === 'defend') && si >= 1) pool.push([si, li, k]); }); }); });
     var pk = rnd(pool), st = STAGES[pk[0]].lessons[pk[1]];
     UI.show('board'); Game.on = false;
-    this.c = { si: pk[0], li: pk[1], L: { id: 'daily', icon: '🎲', title: '每日練習：' + st.title, steps: [st.steps[pk[2]]] }, i: 0, hints: 0, wrong: 0, tok: 1, daily: true };
+    this.c = { si: pk[0], li: pk[1], L: { id: 'daily', icon: '🎲', title: '每日練習：' + st.title, steps: [st.steps[pk[2]]] }, i: 0, hints: 0, wrong: 0, tok: ++TOKSEQ, daily: true };
     Board.setFlip(false); $('#bctrl').innerHTML = ''; $('#tug').style.display = 'none';
     this.go(0);
   },
   step: function () { return this.c.L.steps[this.c.i]; },
   go: function (i) {
-    var c = this.c; c.i = i; c.tok++; c.ok = false; c.st = {}; c.stepWrong = 0; c.stepHints = 0;
+    var c = this.c; c.i = i; c.tok = ++TOKSEQ; c.ok = false; c.st = {}; c.stepWrong = 0; c.stepHints = 0;
     clearTimeout(this.autoT); Speech.stop();
     var s = this.step();
     Board.stars = []; Board.lock = false; Board.last = null;
@@ -2665,6 +2678,245 @@ function parseRecord(text) {
 }
 
 /* ================================================================
+   App 第五部分：自製殘局（隨意擺棋子）
+   ================================================================ */
+var ED_MAX = [0, 1, 2, 2, 2, 2, 2, 5];
+var ED_ORDER = [XQ.K, XQ.A, XQ.B, XQ.N, XQ.R, XQ.C, XQ.P];
+var ED_BISHOP = [[[9, 2], [9, 6], [7, 0], [7, 4], [7, 8], [5, 2], [5, 6]], [[0, 2], [0, 6], [2, 0], [2, 4], [2, 8], [4, 2], [4, 6]]];
+var ED_ADVISOR = [[[9, 3], [9, 5], [8, 4], [7, 3], [7, 5]], [[0, 3], [0, 5], [1, 4], [2, 3], [2, 5]]];
+var ED_EMPTY = '4k4/9/9/9/9/9/9/9/9/4K4 w';
+
+var Editor = {
+  b: null, turn: 0, tool: 'move', sel: -1, undo: [], evalTxt: '',
+  mode: 'ai', side: 0, level: 3, redLv: 4, blackLv: 4,
+  open: function (fen) {
+    Game.stop(); Lesson.stop(); Game.on = false;
+    UI.show('board');
+    this.undo = []; this.sel = -1; this.tool = 'move'; this.evalTxt = '';
+    this.load(fen || Store.d.edLast || ED_EMPTY);
+    $('#tug').style.display = 'none';
+    Board.lock = false;
+    Board.onTap = function (sq) { Editor.tap(sq); };
+    this.panel(); this.ctrl(); this.render();
+    Speech.auto('呢度係自製殘局。喺右邊揀一隻棋子，再撳棋盤就可以擺上去。揀手掌可以搬棋子，揀擦膠可以刪除。擺好之後，揀邊個行先同點樣捉，再撳開始。');
+  },
+  load: function (fen) {
+    var p = new XQ.Pos(fen); this.b = new Int8Array(p.b); this.turn = p.turn;
+  },
+  fen: function () {
+    var out = [], CH = ['', 'k', 'a', 'b', 'n', 'r', 'c', 'p'];
+    for (var r = 0; r < 10; r++) {
+      var s = '', e = 0;
+      for (var c = 0; c < 9; c++) {
+        var p = this.b[r * 9 + c];
+        if (!p) { e++; continue; }
+        if (e) { s += e; e = 0; }
+        s += (p >> 3) ? CH[p & 7] : CH[p & 7].toUpperCase();
+      }
+      if (e) s += e; out.push(s);
+    }
+    return out.join('/') + ' ' + (this.turn ? 'b' : 'w');
+  },
+  count: function (p) { var n = 0; for (var i = 0; i < 90; i++) if (this.b[i] === p) n++; return n; },
+  pname: function (p) { return (p >> 3 ? XQ.NAME_BLK : XQ.NAME_RED)[p & 7]; },
+  /* 呢隻棋子可唔可以擺喺呢度？（返回原因，可以就返回空字串） */
+  why: function (p, sq) {
+    var s = p >> 3, t = p & 7, r = XQ.rowOf(sq), c = XQ.colOf(sq), nm = this.pname(p);
+    var inList = function (L) { return L.some(function (x) { return x[0] === r && x[1] === c; }); };
+    if (t === XQ.K && !XQ.inPalace(r, c, s)) return nm + '一定要喺自己個九宮入面。';
+    if (t === XQ.A && !inList(ED_ADVISOR[s])) return nm + '只可以企喺九宮嘅五個點（四個角同中心）。';
+    if (t === XQ.B && !inList(ED_BISHOP[s])) return nm + '只可以企喺自己嗰邊嘅七個「田」字點，唔可以過河。';
+    if (t === XQ.P) {
+      var crossed = s === 0 ? r <= 4 : r >= 5, home = s === 0 ? r >= 7 : r <= 2;
+      if (home) return nm + '唔會喺咁後嘅位置（兵卒唔識後退）。';
+      if (!crossed && c % 2) return nm + '未過河嘅時候只可以企喺開局嗰啲直線上面。';
+    }
+    return '';
+  },
+  allowed: function (p) {
+    var out = [];
+    for (var sq = 0; sq < 90; sq++) { var q = this.b[sq]; if ((q & 7) === XQ.K && q !== p) continue; if (!this.why(p, sq)) out.push(sq << 7); }
+    return out;
+  },
+  push: function () { this.undo.push(this.fen()); if (this.undo.length > 80) this.undo.shift(); this.evalTxt = ''; },
+  tap: function (sq) {
+    var b = this.b, cur = b[sq], tool = this.tool, self = this;
+    var isK = function (q) { return q && (q & 7) === XQ.K; };
+    if (tool === 'erase') {
+      if (!cur) return;
+      if (isK(cur)) { toast('帥同將一定要有㗎！可以用 ✋ 搬佢去第二個位。'); Sfx.soft(); return; }
+      this.push(); b[sq] = 0; Sfx.cap(); this.render(); return;
+    }
+    if (tool === 'move') {
+      if (this.sel < 0) { if (cur) { this.sel = sq; Sfx.sel(); } this.render(); return; }
+      if (sq === this.sel) { this.sel = -1; this.render(); return; }
+      var p = b[this.sel];
+      if (isK(cur)) { toast('唔可以蓋住帥或者將呀。'); Sfx.soft(); return; }
+      var w = this.why(p, sq); if (w) { toast('🙅 ' + w); Sfx.soft(); return; }
+      this.push(); b[sq] = p; b[this.sel] = 0; this.sel = -1; Sfx.move(); this.render(); return;
+    }
+    /* 擺棋子 */
+    var pc = tool;
+    if (cur === pc && !isK(pc)) { this.push(); b[sq] = 0; Sfx.cap(); this.render(); return; }   /* 再撳一次就移走 */
+    if (isK(cur)) { toast('唔可以蓋住帥或者將呀。'); Sfx.soft(); return; }
+    var w2 = this.why(pc, sq); if (w2) { toast('🙅 ' + w2); Sfx.soft(); return; }
+    if (isK(pc)) {   /* 帥將得一隻：直接搬過去 */
+      this.push(); for (var i = 0; i < 90; i++) if (b[i] === pc) b[i] = 0; b[sq] = pc; Sfx.move(); this.render(); return;
+    }
+    if (this.count(pc) >= ED_MAX[pc & 7] && cur !== pc) { toast((pc >> 3 ? '黑方' : '紅方') + '最多只可以有 ' + ED_MAX[pc & 7] + ' 隻' + this.pname(pc) + '。'); Sfx.soft(); return; }
+    this.push(); b[sq] = pc; Sfx.move(); this.render();
+  },
+  render: function () {
+    var pos = new XQ.Pos(this.fen());
+    Board.set(pos, { last: null, marks: {} });
+    var legal = [];
+    if (this.tool === 'move' && this.sel >= 0) legal = this.allowed(this.b[this.sel]);
+    else if (typeof this.tool === 'number') legal = this.allowed(this.tool);
+    if (legal.length > 45) legal = [];
+    Board.sel = this.tool === 'move' ? this.sel : -1; Board.legal = legal; Board.render();
+    this.palette(); this.status();
+    var fi = $('#edfen'); if (fi && document.activeElement !== fi) fi.value = this.fen();
+  },
+  /* 檢查局面合唔合理 */
+  check: function () {
+    var err = [], warn = [], self = this, pos = new XQ.Pos(this.fen()), mover = this.turn ? '黑方' : '紅方', other = this.turn ? '紅方' : '黑方';
+    if (this.count(XQ.K) !== 1 || this.count(8 + XQ.K) !== 1) err.push('紅方要有一個帥，黑方要有一個將。');
+    for (var t = 1; t <= 7; t++) for (var s = 0; s < 2; s++) { var p = t + s * 8; if (this.count(p) > ED_MAX[t]) err.push((s ? '黑方' : '紅方') + '嘅' + this.pname(p) + '太多（最多 ' + ED_MAX[t] + ' 隻）。'); }
+    for (var sq = 0; sq < 90; sq++) if (this.b[sq]) { var w = this.why(this.b[sq], sq); if (w) { err.push(w); break; } }
+    if (!err.length) {
+      if (XQ.kingAttacked(pos, pos.turn ^ 1)) err.push('輪到' + mover + '行，但係' + other + '嘅' + (this.turn ? '帥' : '將') + '已經俾人將緊（或者白臉將），即係' + mover + '可以直接食帥將，唔合理。試吓轉換邊個行先。');
+      else if (!XQ.legalMoves(pos).length) err.push(mover + '一步棋都行唔到（' + (XQ.inCheck(pos) ? '已經俾人將死' : '困斃') + '），一開始就輸咗。');
+      else if (XQ.inCheck(pos)) warn.push('⚠️ 一開始' + mover + '就俾人將緊軍，要先應將。');
+      var c = pos.cnt, noAtt = function (o) { return c[o + XQ.R] + c[o + XQ.N] + c[o + XQ.C] + c[o + XQ.P] === 0; };
+      if (noAtt(0) && noAtt(8)) warn.push('⚠️ 雙方都冇車馬炮兵，一開始就會判和。');
+      else if (noAtt(0)) warn.push('紅方冇攻擊棋子，紅方最好只係守和。');
+      else if (noAtt(8)) warn.push('黑方冇攻擊棋子，黑方最好只係守和。');
+    }
+    return { err: err, warn: warn, pos: pos };
+  },
+  status: function () {
+    var el = $('#edstat'); if (!el) return;
+    var ck = this.check();
+    var h = ck.err.length ? '<div class="fb try" style="background:#fff5f5;color:#c92a2a">❌ ' + ck.err.map(esc).join('<br>❌ ') + '</div>' :
+      '<div class="fb good">✅ 局面合理，可以開始！輪到<b>' + (this.turn ? '⚫ 黑方' : '🔴 紅方') + '</b>行先。</div>';
+    if (ck.warn.length) h += '<div class="warnv">' + ck.warn.map(esc).join('<br>') + '</div>';
+    if (this.evalTxt) h += '<div class="fb" style="background:#e7f5ff;color:#1864ab">' + this.evalTxt + '</div>';
+    el.innerHTML = h;
+    var go = $('#edgo'); if (go) go.disabled = !!ck.err.length;
+  },
+  palette: function () {
+    var el = $('#edpal'); if (!el) return;
+    var self = this, h = '';
+    [0, 1].forEach(function (s) {
+      h += '<div class="edrow">';
+      ED_ORDER.forEach(function (t) {
+        var p = t + s * 8, left = ED_MAX[t] - self.count(p);
+        h += '<button class="edp ' + (s ? 'k' : 'r') + (self.tool === p ? ' sel' : '') + (left <= 0 && t !== XQ.K ? ' out' : '') + '" data-edtool="' + p + '" aria-label="' + self.pname(p) + '">' + self.pname(p) + (t !== XQ.K ? '<i>' + left + '</i>' : '') + '</button>';
+      });
+      h += '</div>';
+    });
+    h += '<div class="edrow"><button class="btn sm' + (this.tool === 'move' ? ' blue' : '') + '" data-edtool="move">✋ 搬棋子</button><button class="btn sm' + (this.tool === 'erase' ? ' blue' : '') + '" data-edtool="erase">🧽 刪除</button></div>';
+    el.innerHTML = h;
+  },
+  presets: function () {
+    var out = [{ n: '空白（只有帥同將）', f: ED_EMPTY }, { n: '開局擺法', f: START }], seen = {};
+    STAGES.forEach(function (st) { st.lessons.forEach(function (l) { l.steps.forEach(function (s) {
+      if (!s.fen || s.fen === START || seen[s.fen]) return;
+      if (s.t === 'play' || (s.t === 'goal' && s.goal === 'mate')) { seen[s.fen] = 1; out.push({ n: (s.t === 'play' ? '殘局：' : '殺法：') + l.title, f: s.fen }); }
+    }); }); });
+    return out;
+  },
+  lvRow: function (key, cur) {
+    return '<div class="levels mini">' + LV.map(function (l, i) { return '<button class="lvl' + (cur === i + 1 ? ' sel' : '') + '" data-edlv="' + key + ':' + (i + 1) + '"><div class="ic">' + l.ic + '</div><div class="nm">' + l.nm + '</div></button>'; }).join('') + '</div>';
+  },
+  panel: function () {
+    var self = this, my = Store.d.myPos || [];
+    var h = '<div class="panel"><div class="ph"><span style="font-size:28px">🧩</span><h3>自製殘局</h3>' + spk('喺下面揀一隻棋子，再撳棋盤就擺到上去。綠色點係可以擺嘅位置。再撳同一隻棋子就會移走。用手掌可以搬棋子，用擦膠可以刪除。帥同將一定要有。擺好之後，揀邊個行先，再揀同電腦捉、兩個人捉，定係睇電腦對電腦。') + '<button class="btn sm ghost" data-go="home">✖ 離開</button></div>' +
+      '<div id="edpal"></div>' +
+      '<div class="row" style="margin:8px 0 4px"><b>邊個行先：</b><div class="seg"><button data-edturn="0" class="' + (this.turn === 0 ? 'sel' : '') + '">🔴 紅方</button><button data-edturn="1" class="' + (this.turn === 1 ? 'sel' : '') + '">⚫ 黑方</button></div></div>' +
+      '<div id="edstat"></div>' +
+      '<div class="navrow" style="margin-top:6px"><button class="btn sm" data-ed="eval">🧠 電腦評估</button><button class="btn sm" data-ed="save">💾 儲存局面</button>' +
+      '<select id="edpre" style="font-size:15px;border-radius:12px;padding:6px;border:2px solid #f0dcc2;max-width:100%"><option value="">📂 載入範例局面…</option>' + this.presets().map(function (x, i) { return '<option value="' + i + '">' + esc(x.n) + '</option>'; }).join('') + '</select></div>' +
+      (my.length ? '<details style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">📁 我儲存咗嘅局面（' + my.length + '）</summary>' + my.map(function (x, i) { return '<div class="row" style="margin:4px 0"><button class="btn sm" style="flex:1;justify-content:flex-start" data-edload="' + i + '">♟️ ' + esc(x.name) + '</button><button class="btn sm ghost" data-eddel="' + i + '">🗑️</button></div>'; }).join('') + '</details>' : '') +
+      '<details id="edfend"' + (this.fenOpen ? ' open' : '') + ' style="margin-top:8px"><summary style="cursor:pointer;font-weight:800">📋 局面代碼（同朋友分享）</summary><p style="font-size:14px;color:var(--ink2);margin:4px 0">呢串代碼（FEN）代表成個局面，可以複製畀朋友，或者貼返入嚟。</p>' +
+      '<input id="edfen" style="width:100%;font-size:14px;padding:8px;border-radius:10px;border:2px solid #f0dcc2;font-family:monospace" value="' + esc(this.fen()) + '"><div class="navrow" style="margin-top:6px"><button class="btn sm" data-ed="copyfen">📋 複製</button><button class="btn sm blue" data-ed="usefen">✅ 套用代碼</button></div></details>' +
+      '</div>';
+    h += '<div class="panel"><h3 style="margin:0 0 6px">⚔️ 點樣捉？</h3><div class="seg" style="flex-wrap:wrap">' +
+      [['ai', '🤖 同電腦捉'], ['pvp', '👫 兩個人捉'], ['cvc', '🍿 電腦對電腦']].map(function (x) { return '<button data-edmode="' + x[0] + '" class="' + (self.mode === x[0] ? 'sel' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    if (this.mode === 'ai') {
+      h += '<div class="row" style="margin:8px 0 4px"><b>你做：</b><div class="seg"><button data-edside="0" class="' + (this.side === 0 ? 'sel' : '') + '">🔴 紅方</button><button data-edside="1" class="' + (this.side === 1 ? 'sel' : '') + '">⚫ 黑方</button></div></div><b>電腦難度：</b>' + this.lvRow('level', this.level);
+    } else if (this.mode === 'cvc') {
+      h += '<div style="margin-top:8px"><b>🔴 紅方電腦：</b></div>' + this.lvRow('redLv', this.redLv) + '<div style="margin-top:6px"><b>⚫ 黑方電腦：</b></div>' + this.lvRow('blackLv', this.blackLv);
+    } else h += '<p style="font-size:15px;color:var(--ink2)">兩位玩家輪流用同一部機捉，每步都有點評。</p>';
+    h += '<div class="navrow"><span class="sp"></span><button class="btn pri" id="edgo" data-ed="start" style="font-size:19px;padding:10px 24px">開始 ▶</button></div></div>';
+    $('#side').innerHTML = h;
+    $('#edpre').onchange = function (e) { var i = e.target.value; if (i === '') return; var x = self.presets()[+i]; self.push(); self.load(x.f); self.sel = -1; self.panel(); self.render(); toast('📂 已載入：' + x.n); };
+    this.palette(); this.status();
+  },
+  ctrl: function () {
+    $('#bctrl').innerHTML = '<button class="btn" data-ed="undo">↩️ 撤銷</button><button class="btn" data-ed="clear">🧹 清空</button><button class="btn" data-ed="startpos">♟️ 開局擺法</button><button class="btn" data-ed="flip">🔄 翻轉</button>';
+  },
+  validFen: function (str) {
+    str = String(str).trim(); var parts = str.split(/\s+/), rows = (parts[0] || '').split('/');
+    if (rows.length !== 10) return null;
+    for (var i = 0; i < 10; i++) { var n = 0; for (var j = 0; j < rows[i].length; j++) { var ch = rows[i][j]; if (/[1-9]/.test(ch)) n += +ch; else if (/[kabnrcpeh]/i.test(ch)) n++; else return null; } if (n !== 9) return null; }
+    return parts[0] + ' ' + (/^b/i.test(parts[1] || '') ? 'b' : 'w');
+  },
+  act: function (a) {
+    var self = this;
+    if (a === 'undo') { if (!this.undo.length) { toast('冇嘢可以撤銷'); return; } this.load(this.undo.pop()); this.sel = -1; this.evalTxt = ''; this.panel(); this.render(); return; }
+    if (a === 'clear') { this.push(); this.load(ED_EMPTY.replace(' w', this.turn ? ' b' : ' w')); this.sel = -1; this.render(); toast('🧹 清空咗，得返帥同將'); return; }
+    if (a === 'startpos') { this.push(); this.load(START); this.sel = -1; this.panel(); this.render(); return; }
+    if (a === 'flip') { Board.setFlip(!Board.flip); this.render(); return; }
+    if (a === 'copyfen') { var inp = $('#edfen'); inp.value = this.fen(); inp.select(); try { if (navigator.clipboard) navigator.clipboard.writeText(inp.value); else document.execCommand('copy'); toast('✅ 已複製局面代碼'); } catch (e) {} return; }
+    if (a === 'usefen') { this.fenOpen = true; var f = this.validFen($('#edfen').value); if (!f) { toast('❌ 局面代碼唔啱格式，請檢查吓'); Sfx.soft(); return; } this.push(); this.load(f); this.sel = -1; this.panel(); this.render(); toast('✅ 已套用'); return; }
+    if (a === 'save') {
+      var my = Store.d.myPos = Store.d.myPos || [];
+      var name = prompt('幫呢個局面改個名：', '我的殘局 ' + (my.length + 1)); if (name === null) return;
+      my.unshift({ name: name.trim() || ('我的殘局 ' + (my.length + 1)), fen: this.fen(), t: Date.now() }); while (my.length > 40) my.pop();
+      Store.save(); this.panel(); this.render(); toast('💾 已儲存'); return;
+    }
+    if (a === 'eval') {
+      var ck = this.check(); if (ck.err.length) { toast('先要改好局面先可以評估'); return; }
+      this.evalTxt = '🧠 電腦諗緊…'; this.status();
+      var fen = this.fen();
+      Eng.call({ cmd: 'best', fen: fen, moves: [], depth: 12, time: 2500 }).then(function (r) {
+        if (fen !== self.fen() || !r.move) return;
+        var red = self.turn ? -r.score : r.score, side = red > 0 ? '紅方' : '黑方', a = Math.abs(red), txt;
+        if (a > XQ.MATE - 200) txt = '🏆 <b>' + side + '有殺棋！</b>大約 ' + Math.ceil((XQ.MATE - a) / 2) + ' 步之內將死對方。';
+        else if (a < 80) txt = '⚖️ 形勢<b>差唔多</b>（' + Think.scoreTxt(red) + '）。';
+        else txt = (a < 300 ? '🙂 ' + side + '<b>略佔優</b>' : a < 800 ? '💪 ' + side + '<b>佔優</b>' : '🔥 ' + side + '<b>大優</b>') + '（紅方角度 ' + Think.scoreTxt(red) + '）。';
+        var p = new XQ.Pos(fen), pv = Think.pvList(p, r.pv || [r.move], 4);
+        txt += '<br>電腦建議：' + pv.map(function (x) { return x.note; }).join(' → ') + '（睇咗 ' + r.depth + ' 層）';
+        self.evalTxt = txt; self.status();
+        Board.setMarks({ arrows: [[r.move & 127, r.move >> 7, 'g', '✓']] });
+        Speech.auto(txt.replace(/<[^>]+>/g, ''));
+      });
+      return;
+    }
+    if (a === 'start') {
+      var ck2 = this.check(); if (ck2.err.length) { toast('❌ ' + ck2.err[0]); return; }
+      var f2 = this.fen(); Store.d.edLast = f2; Store.save();
+      Game.start({ mode: this.mode, level: this.level, side: this.side, redLv: this.redLv, blackLv: this.blackLv, fen: f2 });
+      return;
+    }
+  }
+};
+
+document.addEventListener('click', function (e) {
+  var t = e.target; if (!t.closest) return;
+  var x;
+  if ((x = t.closest('[data-edtool]'))) { var v = x.dataset.edtool; Editor.tool = /^\d+$/.test(v) ? +v : v; Editor.sel = -1; Sfx.sel(); Editor.render(); return; }
+  if ((x = t.closest('[data-edturn]'))) { Editor.push(); Editor.turn = +x.dataset.edturn; Editor.panel(); Editor.render(); return; }
+  if ((x = t.closest('[data-edmode]'))) { Editor.mode = x.dataset.edmode; Editor.panel(); return; }
+  if ((x = t.closest('[data-edside]'))) { Editor.side = +x.dataset.edside; Editor.panel(); return; }
+  if ((x = t.closest('[data-edlv]'))) { var kv = x.dataset.edlv.split(':'); Editor[kv[0]] = +kv[1]; Editor.panel(); return; }
+  if ((x = t.closest('[data-edload]'))) { var it = Store.d.myPos[+x.dataset.edload]; Editor.push(); Editor.load(it.fen); Editor.sel = -1; Editor.panel(); Editor.render(); toast('📁 已載入：' + it.name); return; }
+  if ((x = t.closest('[data-eddel]'))) { var i = +x.dataset.eddel; if (confirm('刪除「' + Store.d.myPos[i].name + '」？')) { Store.d.myPos.splice(i, 1); Store.save(); Editor.panel(); } return; }
+  if ((x = t.closest('[data-ed]'))) { Editor.act(x.dataset.ed); return; }
+});
+
+/* ================================================================
    App 第四部分：對戰模式（同電腦 / 兩人 / 電腦對電腦）＋ 啟動
    ================================================================ */
 var LV = [
@@ -2683,7 +2935,8 @@ var Setup = {
     h += '<div class="modes">' +
       '<button class="mode' + (this.mode === 'ai' ? ' sel' : '') + '" data-mode="ai"><div class="ic">🤖</div><h3 style="margin:6px 0 2px">同電腦捉</h3><div style="color:var(--ink2);font-size:15px">揀難度，挑戰電腦！每步都有點評。</div></button>' +
       '<button class="mode' + (this.mode === 'pvp' ? ' sel' : '') + '" data-mode="pvp"><div class="ic">👫</div><h3 style="margin:6px 0 2px">兩個人捉</h3><div style="color:var(--ink2);font-size:15px">同朋友或者家人用同一部機捉。</div></button>' +
-      '<button class="mode' + (this.mode === 'cvc' ? ' sel' : '') + '" data-mode="cvc"><div class="ic">🍿</div><h3 style="margin:6px 0 2px">睇電腦對電腦</h3><div style="color:var(--ink2);font-size:15px">觀察高手對弈，學佢點樣諗。</div></button></div>';
+      '<button class="mode' + (this.mode === 'cvc' ? ' sel' : '') + '" data-mode="cvc"><div class="ic">🍿</div><h3 style="margin:6px 0 2px">睇電腦對電腦</h3><div style="color:var(--ink2);font-size:15px">觀察高手對弈，學佢點樣諗。</div></button>' +
+      '<button class="mode" data-go="edit"><div class="ic">🧩</div><h3 style="margin:6px 0 2px">自己擺局面</h3><div style="color:var(--ink2);font-size:15px">隨意擺棋子，自製殘局，再揀點樣捉。</div></button></div>';
     function lvGrid(key, cur) { return '<div class="levels">' + LV.map(function (l, i) { return '<button class="lvl' + (cur === i + 1 ? ' sel' : '') + '" data-lv="' + key + ':' + (i + 1) + '"><div class="ic">' + l.ic + '</div><div class="nm">' + l.nm + '</div><div class="ds">' + l.ds + '</div></button>'; }).join('') + '</div>'; }
     if (this.mode === 'ai') {
       h += '<h3>🎚️ 揀電腦難度</h3>' + lvGrid('level', this.level);
@@ -2705,7 +2958,8 @@ var Game = {
   start: function (cfg) {
     Lesson.stop();
     this.cfg = cfg; this.on = true; this.tok++;
-    this.pos = new XQ.Pos(START); this.hist = []; this.recs = []; this.over = null; this.an = null; this.anP = null;
+    this.fen0 = cfg.fen || START; this.custom = this.fen0 !== START;
+    this.pos = new XQ.Pos(this.fen0); this.hist = []; this.recs = []; this.over = null; this.an = null; this.anP = null;
     this.paused = false; this.review = null; this.hintLvl = 0; this.busy = false; this.lastFb = null; this.lastAi = null;
     this.peek = false; this.awaitGuess = false; this.guessM = null; this.guessFor = -1; this.gs = { n: 0, hit: 0, top3: 0 }; this.mistN = 0;
     this.players = cfg.mode === 'ai' ? (cfg.side === 0 ? ['human', 'ai'] : ['ai', 'human']) : cfg.mode === 'pvp' ? ['human', 'human'] : ['ai', 'ai'];
@@ -2734,7 +2988,7 @@ var Game = {
     this.controls(); this.side(); this.tug(0);
     if (!cfg.pre && cfg.mode !== 'study') { Store.d.games = (Store.d.games || 0) + 1; }
     this.save();
-    var intro = cfg.mode === 'study' ? '打譜開始！「' + (cfg.title || '棋譜') + '」一共有' + this.studyMoves.length + '步。撳下一步逐步睇，開估棋模式可以先估棋手會點行。' : cfg.pre ? '歡迎返嚟！我哋由上次停低嘅地方繼續。' : cfg.mode === 'ai' ? '開始對戰！你係' + (cfg.side ? '黑方' : '紅方') + '，對手係' + LV[cfg.level - 1].nm + '電腦。記住思考四步曲：一睇、二防、三攻、四揀。加油！' :
+    var intro = cfg.mode === 'study' ? '打譜開始！「' + (cfg.title || '棋譜') + '」一共有' + this.studyMoves.length + '步。撳下一步逐步睇，開估棋模式可以先估棋手會點行。' : cfg.pre ? '歡迎返嚟！我哋由上次停低嘅地方繼續。' : this.custom ? '自製局面開始！輪到' + (this.pos.turn ? '黑方' : '紅方') + '行先。' + (cfg.mode === 'ai' ? '你做' + (cfg.side ? '黑方' : '紅方') + '，對手係' + LV[cfg.level - 1].nm + '電腦。' : '') : cfg.mode === 'ai' ? '開始對戰！你係' + (cfg.side ? '黑方' : '紅方') + '，對手係' + LV[cfg.level - 1].nm + '電腦。記住思考四步曲：一睇、二防、三攻、四揀。加油！' :
       cfg.mode === 'pvp' ? '兩位玩家，準備好未？紅方行先！' : '電腦對電腦開始！留意右邊嘅思考泡泡，睇吓佢哋點樣諗。';
     Speech.auto(intro);
     setTimeout(function () { self.loop(); }, 600);
@@ -2743,7 +2997,7 @@ var Game = {
   save: function () {
     if (!this.cfg || this.cfg.mode === 'study') return;
     if (this.over) { delete Store.d.saved; Store.save(); return; }
-    Store.d.saved = { cfg: { mode: this.cfg.mode, level: this.cfg.level, side: this.cfg.side, redLv: this.cfg.redLv, blackLv: this.cfg.blackLv }, moves: this.hist.map(XQ.iccs), t: Date.now() };
+    Store.d.saved = { cfg: { mode: this.cfg.mode, level: this.cfg.level, side: this.cfg.side, redLv: this.cfg.redLv, blackLv: this.cfg.blackLv, fen: this.custom ? this.fen0 : undefined }, moves: this.hist.map(XQ.iccs), t: Date.now() };
     Store.save();
   },
   resume: function () {
@@ -2757,7 +3011,7 @@ var Game = {
     if (k >= this.studyMoves.length) { this.paused = true; this.controls(); toast('📚 棋譜已經完結！可以撳「📋 復盤」睇走勢圖，或者「🎮 我嚟接手」自己捉落去。'); return; }
     var m = this.studyMoves[k];
     this.busy = true; this.thinking(true);
-    Eng.call({ cmd: 'analyze', fen: START, moves: this.hist.slice(), depth: 3, time: 1500 }).then(function (r) {
+    Eng.call({ cmd: 'analyze', fen: this.fen0, moves: this.hist.slice(), depth: 3, time: 1500 }).then(function (r) {
       if (self.tok !== tok || !self.on) return;
       var before = self.pos.clone();
       Think.mode = 'master';
@@ -2789,7 +3043,7 @@ var Game = {
   analyzeRec: function (i) {
     var self = this, r = this.recs[i]; if (!r || r.anBusy) return; r.anBusy = true;
     toast('🧠 分析緊…');
-    Eng.call({ cmd: 'analyze', fen: START, moves: this.hist.slice(0, i), depth: 3, time: 1500 }).then(function (res) {
+    Eng.call({ cmd: 'analyze', fen: this.fen0, moves: this.hist.slice(0, i), depth: 3, time: 1500 }).then(function (res) {
       r.anBusy = false;
       Think.mode = r.kind === 'human' ? 'human' : 'deep';
       r.brain = Think.brain(r.before, r.m, res.cands, self.ctxFor(i));
@@ -2809,7 +3063,10 @@ var Game = {
     var bn = this.bookName(); if (bn) lines.push('開局：' + bn);
     if (this.over) lines.push('結果：' + (this.over.w < 0 ? '和棋' : (this.over.w ? '黑勝' : '紅勝')) + '（' + this.over.why + '）');
     lines.push('');
-    for (var i = 0; i < this.recs.length; i += 2) lines.push((i / 2 + 1) + '. ' + this.recs[i].note + (this.recs[i + 1] ? '　' + this.recs[i + 1].note : ''));
+    if (this.custom) { lines.splice(lines.length - 1, 0, '開始局面（自製）：' + this.fen0); }
+    var st = 0;
+    if (this.recs.length && this.recs[0].side === 1) { lines.push('1. …　' + this.recs[0].note); st = 1; }
+    for (var i = st; i < this.recs.length; i += 2) lines.push(((i + st) / 2 + 1) + '. ' + this.recs[i].note + (this.recs[i + 1] ? '　' + this.recs[i + 1].note : ''));
     return lines.join('\n');
   },
   exportRec: function () {
@@ -2833,7 +3090,7 @@ var Game = {
     var c = this.cfg, h = '';
     if (c.mode === 'cvc' || c.mode === 'study') h += '<button class="btn" data-act="back">⏮ 退一步</button><button class="btn blue" data-act="pause">' + (this.paused ? '▶ 繼續' : '⏸ 暫停') + '</button><button class="btn" data-act="stepone">⏭ 下一步</button><button class="btn' + (c.guess ? ' ok' : '') + '" data-act="guess">🤔 估棋' + (c.guess ? '：開' : '') + '</button><button class="btn pri" data-act="takeover">🎮 我嚟接手</button>';
     else h += '<button class="btn" data-act="undo">↩️ 悔棋</button><button class="btn" data-act="hint">💡 提示</button>';
-    h += '<button class="btn" data-act="flip">🔄 翻轉</button><button class="btn" data-act="review">📋 復盤</button><button class="btn" data-act="export">📤 棋譜</button>' + (c.mode === 'study' ? '' : '<button class="btn" data-act="newgame">🆕 新局</button>');
+    h += '<button class="btn" data-act="flip">🔄 翻轉</button><button class="btn" data-act="review">📋 復盤</button><button class="btn" data-act="export">📤 棋譜</button>' + (c.mode === 'study' ? '' : '<button class="btn" data-act="newgame">' + (this.custom ? '🔁 由頭再嚟' : '🆕 新局') + '</button>') + '<button class="btn" data-act="edit">✏️ 擺局</button>';
     $('#bctrl').innerHTML = h;
   },
   who: function (s) {
@@ -2854,20 +3111,23 @@ var Game = {
     this.refreshSide(); this.moveList();
   },
   bookName: function () {
+    if (this.custom) return '';
     var h = this.hist.map(XQ.iccs), best = '', bl = 0;
     BOOK.forEach(function (b) { var mv = b.moves.split(' '), k = 0; while (k < h.length && k < mv.length && mv[k] === h[k]) k++; if (k >= 2 && k > bl && (k === h.length || k === mv.length)) { bl = k; best = b.name; } });
     return best;
   },
   bookMoves: function () {
+    if (this.custom) return [];
     var h = this.hist.map(XQ.iccs), out = [];
     BOOK.forEach(function (b) { var mv = b.moves.split(' '); if (mv.length <= h.length) return; for (var k = 0; k < h.length; k++) if (mv[k] !== h[k]) return; var m = XQ.parseIccs(mv[h.length]); if (out.indexOf(m) < 0) out.push(m); });
     return out;
   },
   moveList: function () {
     var el = $('#mlist'); if (!el) return; var self = this;
+    var off = this.recs.length && this.recs[0].side === 1 ? 1 : 0;
     el.innerHTML = this.recs.map(function (r, i) {
       var v = r.ex && r.ex.verdict ? ' ' + r.ex.verdict.em : '';
-      return '<span class="' + (r.side ? '' : 'r') + (self.review && self.review.i === i ? ' cur' : '') + '" data-rv="' + i + '">' + (r.side ? '' : (Math.floor(i / 2) + 1) + '. ') + r.note + v + '</span>';
+      return '<span class="' + (r.side ? '' : 'r') + (self.review && self.review.i === i ? ' cur' : '') + '" data-rv="' + i + '">' + (!r.side ? (Math.floor((i + off) / 2) + 1) + '. ' : i === 0 ? '1. … ' : '') + r.note + v + '</span>';
     }).join('') || '<span style="background:none;color:var(--ink2)">仲未開始</span>';
     el.scrollTop = el.scrollHeight;
     var bk = this.bookName(), bt = $('#bookTxt'); if (bt) bt.textContent = bk ? '📖 開局：' + bk : '';
@@ -2894,7 +3154,7 @@ var Game = {
       this.advance();
     } else {
       this.hintLvl = 0;
-      this.anP = Eng.call({ cmd: 'analyze', fen: START, moves: this.hist.slice(), depth: 3, time: 1500 }).then(function (r) {
+      this.anP = Eng.call({ cmd: 'analyze', fen: this.fen0, moves: this.hist.slice(), depth: 3, time: 1500 }).then(function (r) {
         if (self.tok !== tok) return r;
         self.an = { n: self.hist.length, cands: r.cands };
         if (r.cands.length) self.tug(s === 0 ? r.cands[0].score : -r.cands[0].score);
@@ -2911,7 +3171,7 @@ var Game = {
     var self = this, tok = this.tok, s = this.pos.turn;
     this.busy = true; this.thinking(true);
     var book = this.lv[s] >= 2 ? this.bookMoves() : [];
-    Eng.call({ cmd: 'ai', fen: START, moves: this.hist.slice(), level: this.lv[s], book: book }).then(function (r) {
+    Eng.call({ cmd: 'ai', fen: this.fen0, moves: this.hist.slice(), level: this.lv[s], book: book }).then(function (r) {
       if (self.tok !== tok || !self.on) return;
       if (!r.move) { self.busy = false; return; }
       var before = self.pos.clone(), k = self.recs.length;
@@ -3026,14 +3286,21 @@ var Game = {
     if (!XQ.legalMoves(p).length) res = { w: p.turn ^ 1, why: XQ.inCheck(p) ? '將死' : '困斃' };
     else { var rr = XQ.repResult(p); if (rr) res = rr.draw ? { w: -1, why: '重複局面' } : { w: rr.loser ^ 1, why: '長將作負：' + (rr.loser ? '黑方' : '紅方') + '不停將軍' }; }
     if (!res && this.hist.length >= 300) res = { w: -1, why: '步數太多' };
-    else if (this.hist.length >= 300) res = { w: -1, why: '步數太多' };
+    if (!res) {
+      var cn = p.cnt, noAtt = function (o) { return cn[o + XQ.R] + cn[o + XQ.N] + cn[o + XQ.C] + cn[o + XQ.P] === 0; };
+      if (noAtt(0) && noAtt(8)) res = { w: -1, why: '雙方都冇攻擊棋子' };
+    }
+    if (!res && this.hist.length >= 120) {
+      var capd = false; for (var ci = this.recs.length - 120; ci < this.recs.length; ci++) if (ci >= 0 && this.recs[ci].before.b[this.recs[ci].m >> 7]) capd = true;
+      if (!capd && this.recs.length >= 120) res = { w: -1, why: '六十回合冇食子' };
+    }
     if (!res) return false;
     this.over = res; this.refreshSide(); this.save();
     var c = this.cfg, h, say;
     var humanWon = c.mode === 'ai' && res.w === c.side, humanLost = c.mode === 'ai' && res.w === (c.side ^ 1);
-    if (humanWon) { Store.d.wins[c.level] = (Store.d.wins[c.level] || 0) + 1; Store.save(); UI.updTop(); }
+    if (humanWon && !this.custom) { Store.d.wins[c.level] = (Store.d.wins[c.level] || 0) + 1; Store.save(); UI.updTop(); }
     if (res.w < 0) { say = '和棋！（' + res.why + '）雙方都好努力！'; h = '<div class="big-emoji">🤝</div>'; }
-    else if (humanWon) { say = '你贏咗！' + res.why + '！你打贏咗' + LV[c.level - 1].nm + '電腦，好犀利呀！'; h = '<div class="big-emoji">🏆</div>'; Sfx.win(); Confetti.fire(); }
+    else if (humanWon) { say = '你贏咗！' + res.why + '！你打贏咗' + LV[c.level - 1].nm + '電腦，好犀利呀！' + (this.custom ? '（自製局面唔計入段位）' : ''); h = '<div class="big-emoji">🏆</div>'; Sfx.win(); Confetti.fire(); }
     else if (humanLost) { say = '今次輸咗，唔緊要！輸棋係學習嘅好機會。我哋一齊復盤，睇吓邊步可以更好！'; h = '<div class="big-emoji">💪</div>'; Sfx.soft(); }
     else { say = this.side2(res.w) + '贏咗！（' + res.why + '）'; h = '<div class="big-emoji">🏁</div>'; Sfx.win(); Confetti.fire(); }
     modal(h + '<h2 class="center" style="margin:6px 0">' + esc(say) + ' ' + spk(say) + '</h2>' + this.summary() + '<div class="navrow"><button class="btn" data-close data-go="home">🏠 主頁</button><span class="sp"></span><button class="btn blue" data-close data-act="review">📋 復盤</button><button class="btn pri" data-close data-act="again">🔁 再嚟一盤</button></div>');
@@ -3176,6 +3443,7 @@ var Game = {
     if (a === 'stepone') { if (this.peek) this.unpeek(); if (this.awaitGuess) { this.awaitGuess = false; this.advance(); return; } if (!this.busy && !this.over) { this.paused = true; this.controls(); clearTimeout(this.timer); if (this.players[this.pos.turn] === 'ai') { if (this.cfg.guess && this.guessFor !== this.hist.length) this.loop(); else this.advance(); } } return; }
     if (a === 'back') { this.back(); return; }
     if (a === 'export') { this.exportRec(); return; }
+    if (a === 'edit') { Editor.open(this.pos.fen()); return; }
     if (a === 'anal') { this.analyzeRec(+el.dataset.rec); return; }
     if (a === 'takeover') { this.takeover(); return; }
     if (a === 'skipguess') { if (this.awaitGuess) { this.awaitGuess = false; this.advance(); } return; }
@@ -3212,7 +3480,7 @@ var Game = {
     if (this.review) { this.review = null; Board.lock = false; }
     if (this.peek) this.unpeek();
     this.tok++; this.busy = false; this.awaitGuess = false; Speech.stop(); clearTimeout(this.timer); this.thinking(false);
-    this.cfg = { mode: 'ai', side: s, level: opp };
+    this.cfg = { mode: 'ai', side: s, level: opp, fen: this.custom ? this.fen0 : undefined };
     this.players = s === 0 ? ['human', 'ai'] : ['ai', 'human']; this.lv = [opp, opp]; this.paused = false;
     Board.setFlip(s === 1); Board.set(this.pos, { last: this.hist[this.hist.length - 1] || null, marks: {} });
     this.relast(); this.controls(); this.side();
@@ -3320,6 +3588,7 @@ document.addEventListener('click', function (e) {
     else if (g === 'daily') Lesson.daily();
     else if (g === 'mist') Lesson.mist();
     else if (g === 'resume') Game.resume();
+    else if (g === 'edit') Editor.open();
     else if (g === 'demo') { var dg = DEMOS[+go.dataset.i]; Game.start({ mode: 'study', moves: dg.moves.split(' ').map(XQ.parseIccs), title: dg.name }); }
     else if (g === 'bookitem') Lesson.openBook(+go.dataset.i);
     else if (g === 'settings') UI.settings();
