@@ -329,7 +329,7 @@ let S = (() => {
   return s;
 })();
 let saveTimer = 0;
-function save() { S.updatedAt = Date.now(); clearTimeout(saveTimer); saveTimer = setTimeout(() => { LS.set('gi_state_v1', S); if (window.Cloud) Cloud.schedulePush(); }, 250); }
+function save() { S.updatedAt = Date.now(); clearTimeout(saveTimer); saveTimer = setTimeout(() => { LS.set('gi_state_v1', S); if (typeof Cloud !== 'undefined') Cloud.schedulePush(); }, 250); }
 function saveNow() { S.updatedAt = Date.now(); LS.set('gi_state_v1', S); }
 
 /* ---------- AI 設定（獨立存喺 localStorage） ---------- */
@@ -3130,7 +3130,7 @@ function openMap() {
   let h = `<div class="card green"><p class="big">學識反思，令每件事都變成成長。</p>${spk('學識反思，令每件事都變成成長。')}<p class="small">完成 ${d}/${L.length} 關 · 學識 ${k}/${C.length} 種技巧 · 每章左邊「學」有龜伯伯示範，右邊「練」自己試。</p></div>
    <div class="row" style="margin-bottom:10px">
      <button class="mini-btn" data-go="hub">🏝️ 小島</button><button class="mini-btn" data-go="mail">✉️ 信箱</button><button class="mini-btn" data-go="diary">📔 秘密日記</button><button class="mini-btn" data-go="ai">🌳 樹洞傾訴</button>
-     <button class="mini-btn" data-go="roots">🌱 我嘅根</button><button class="mini-btn" data-go="read">📚 延伸閱讀</button><button class="mini-btn" data-go="sos" style="border-color:var(--pink);color:var(--pink)">🆘 我想同大人講</button></div>`;
+     <button class="mini-btn" data-go="roots">🌱 我嘅根</button><button class="mini-btn" data-go="read">📚 延伸閱讀</button></div>`;
   h += `<details class="more"><summary>🧭 遇到事，第一時間點諗？</summary><div class="in">${THINK_STEPS.map(t => `<p class="txt">${esc(t)}</p>`).join('')}${spk(THINK_STEPS.join(''))}</div></details>`;
   const nextId = nextLevel();
   for (const c of C) {
@@ -3153,7 +3153,7 @@ function openMap() {
   });
   $$('#sheetInner [data-go]').forEach(b => b.onclick = () => goto(b.dataset.go));
 }
-function goto(k) { if (k === 'hub') { UI.closeSheet(); return hub(); } ({ mail: openMail, diary: openDiary, ai: () => AI.open(), roots: openRoots, read: openRead, sos: openSOS, settings: openSettings })[k](); }
+function goto(k) { if (k === 'hub') { UI.closeSheet(); return hub(); } ({ mail: openMail, diary: openDiary, ai: () => AI.open(), roots: openRoots, read: openRead, settings: openSettings })[k](); }
 
 /* ---------- 開始一關：飛去小劇場、標題卡 ---------- */
 function startLevel(id, opts = {}) {
@@ -3171,10 +3171,9 @@ function startLevel(id, opts = {}) {
   UI.title(`${c.name} · ${lv.mode === 'learn' ? '學' : '練'}`, `${SETS[id] ? SETS[id].em + ' ' : ''}${lv.title}`, lv.mode === 'learn' ? 'var(--purple)' : 'var(--orange)');
   UI.panel(`<div class="card purple"><p class="kicker">${esc(c.name)} · ${lv.mode === 'learn' ? '學' : '練'}</p><p class="big">${esc(lv.hook)}</p>${spk(lv.hook)}</div>
     <div class="card"><p class="txt">🎬 ${esc(lv.title)}</p><p class="small">示範情景（虛構故事）· 留意發光嘅嘢，撳佢故事就會郁。</p>${spk(lv.title)}</div>
-    ${lv.sensitive ? `<div class="card pink"><p class="txt">呢關講到有啲難過嘅事。可以搵大人陪你一齊玩，唔舒服就停一停。</p>${spk('呢關講到有啲難過嘅事。可以搵大人陪你一齊玩，唔舒服就停一停。')}<button class="btn help" data-go="sos" style="margin-top:6px">🆘 我想同大人講</button></div>` : ''}
+    ${lv.sensitive ? `<div class="card pink"><p class="txt">呢關講到有啲難過嘅事。可以搵大人陪你一齊玩，唔舒服就停一停。</p>${spk('呢關講到有啲難過嘅事。可以搵大人陪你一齊玩，唔舒服就停一停。')}</div>` : ''}
     <button class="btn main pulse wide" id="bStart">🎬 開始</button>`, [lv.hook].concat(lv.sensitive ? ['呢關講到有啲難過嘅事。可以搵大人陪你一齊玩。'] : []));
   $('#bStart').onclick = () => playScene(false);
-  const s = $('[data-go="sos"]', $('#panelInner')); if (s) s.onclick = openSOS;
 }
 
 /* ---------- 情景：逐句演出（撳發光物件先行落去） ---------- */
@@ -3765,12 +3764,10 @@ function openDiary() {
     <details class="more"><summary>✏️ 寫低今日嘅事</summary><div class="in form"><textarea id="dTxt" maxlength="600" placeholder="今日發生咗……我覺得……下次我想試……"></textarea><button class="btn reflect" id="bDSave" style="margin-top:6px">💾 收好</button></div></details>
     <details class="more"><summary>🌱 等緊開花嘅種子（${seeds.length}）</summary><div class="in">${seeds.length ? seeds.map(s => `<div class="entry"><p class="txt" style="margin:0">${esc(s.t)}</p>${spk(s.t)}</div>`).join('') : '<p class="small">未有。</p>'}</div></details>
     <details class="more"><summary>🌸 開咗花嘅種子（${bloom.length}）</summary><div class="in">${bloom.length ? bloom.map(s => `<div class="entry"><p class="txt" style="margin:0">${esc(s.t)}</p>${spk(s.t)}</div>`).join('') : '<p class="small">試咗自己種嘅種子，就會開花。</p>'}</div></details>
-    <div class="list" style="margin-top:8px">${S.diary.length ? S.diary.map(e => `<div class="entry"><span class="when">${fmtTime(e.at)}</span><p class="txt" style="margin:2px 0">${esc(e.title)}</p>${e.photo ? `<img class="dphoto" src="${e.photo}" alt="嗰一刻">` : ''}${e.lines.map(l => `<p class="small" style="margin:0">${esc(l)}</p>`).join('')}${spk(e.title + '。' + e.lines.join('。'))}</div>`).join('') : '<p class="small">玩完一關就會自動寫低。</p>'}</div>
-    <button class="btn help" data-go="sos" style="margin-top:10px">🆘 我想同大人講</button>`;
+    <div class="list" style="margin-top:8px">${S.diary.length ? S.diary.map(e => `<div class="entry"><span class="when">${fmtTime(e.at)}</span><p class="txt" style="margin:2px 0">${esc(e.title)}</p>${e.photo ? `<img class="dphoto" src="${e.photo}" alt="嗰一刻">` : ''}${e.lines.map(l => `<p class="small" style="margin:0">${esc(l)}</p>`).join('')}${spk(e.title + '。' + e.lines.join('。'))}</div>`).join('') : '<p class="small">玩完一關就會自動寫低。</p>'}</div>`;
   UI.sheet('📔 秘密日記', h, ['呢本日記只有你睇到。']);
   UI.onSheetClose = () => World.openThing('tree', false);
   $('#bDSave').onclick = () => { const v = $('#dTxt').value.trim(); if (!v) return UI.toast('寫低少少先啦。'); diary('✏️ 自己寫', [v]); UI.toast('💾 收好咗'); checkDanger(v, 'diary'); openDiary(); };
-  $('#sheetInner [data-go="sos"]').onclick = openSOS;
 }
 function openRoots() {
   const max = Math.max(5, ...ROOTS.map(r => S.roots[r.id] || 0));
@@ -3786,17 +3783,6 @@ function openRead() {
     <details class="more"><summary>👪 畀大人：點樣陪小朋友反思</summary><div class="in">${PARENT_TIPS.map(t => `<p class="txt">• ${esc(t)}</p>`).join('')}${spk(PARENT_TIPS.join('。'))}</div></details>
     <details class="more"><summary>🧰 所有反思技巧一覽</summary><div class="in">${CH.map(c => `<p class="txt"><b>${esc(c.name)}</b>：${esc(c.one)}</p><p class="small">${esc(c.detail)}</p>`).join('')}${spk(CH.map(c => c.name + '。' + c.one).join('。'))}</div></details>`;
   UI.sheet('📚 延伸閱讀／聽書', h, ['想知多啲？呢度有反思背後嘅研究。']);
-}
-function openSOS(fromAI) {
-  const t = '你願意講出嚟，好勇敢。有啲事唔應該自己一個人頂。';
-  const h = `<div class="card pink"><p class="big">${t}</p>${spk(t)}</div>
-    <div class="card"><p class="txt">👉 搵一個你信任嘅大人：爸爸、媽媽、老師、社工、親戚。</p>${spk('搵一個你信任嘅大人：爸爸、媽媽、老師、社工、親戚。')}</div>
-    <div class="card"><p class="txt">💬 可以咁講：「我有件事想同你講，我有啲驚。」</p>${spk('可以咁講：我有件事想同你講，我有啲驚。')}</div>
-    <div class="card"><p class="txt">如果第一個大人唔信你，再搵第二個。唔係你嘅錯。</p>${spk('如果第一個大人唔信你，再搵第二個。唔係你嘅錯。')}</div>
-    <details class="more"><summary>📞 有危險嘅時候</summary><div class="in small"><p>如果而家有人傷害緊你，叫身邊大人打緊急電話：香港 999；英國 999。</p><p>英國兒童熱線 Childline：0800 1111。香港社會福利署熱線：2343 2255。</p></div></details>
-    <button class="btn help wide" id="bFlag">🚩 話畀家長知：我想傾</button>`;
-  UI.sheet('🆘 我想同大人講', h, [t, '搵一個你信任嘅大人。', '可以咁講：我有件事想同你講，我有啲驚。']);
-  $('#bFlag').onclick = () => { S.flags.push({ at: Date.now(), src: fromAI === true ? 'ai' : 'button', text: '小朋友撳咗「我想同大人講」。' }); save(); UI.toast('🚩 已經記低，家長喺家長區會見到。'); Voice.feedback('已經記低咗。記得都要親口同大人講。'); };
 }
 // 簡單關鍵字：可能係真實傷害 → 溫和提示＋標記畀家長
 const DANGER = /(打我|蝦我|欺凌|被打|打到|流血|唔想活|想死|自殺|殺|傷害自己|𠝹|界手|摸我|虐待|唔安全|恐嚇|威脅|離家|偷拍|bully|hurt me|kill)/i;
@@ -3876,7 +3862,7 @@ const AI = {
       ${noKey ? `<div class="card pink" id="aiNoKey"><p class="txt">樹洞未設定好：要大人幫手喺 ⚙️ 設定 → 🤖 AI 設定 填 API Key。</p>${spk('樹洞未設定好：要大人幫手喺設定填 API Key。')}<button class="btn slate" id="bGoSet" style="margin-top:6px">⚙️ 去設定</button></div>` : ''}
       <div class="ai-status"><span class="dot" id="aiDot"></span><span id="aiSt">${noKey ? '未設定' : '準備好'}</span></div>
       <div class="form"><label for="aiIn">✏️ 你想講咩？</label><textarea id="aiIn" maxlength="1200" placeholder="例如：今日阿明唔畀我玩，我好唔開心……"></textarea></div>
-      <div class="row" style="margin-top:8px"><button class="btn reflect" id="bAISend" style="flex:1">📮 送出</button><button class="btn ghost" id="bAIStop" hidden>⏹ 停</button><button class="btn help" id="bAISos">🆘 我想同大人講</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn reflect" id="bAISend" style="flex:1">📮 送出</button><button class="btn ghost" id="bAIStop" hidden>⏹ 停</button></div>
       <div id="aiSafe"></div>
       <div class="ticker idle" id="aiTick"><span class="run" id="aiRun">🧠 樹洞諗緊乜，會喺呢度實時走過。</span></div>
       <div class="card" id="aiOutCard" style="padding:12px" hidden><p class="kicker">🌳 樹洞回應</p><div class="stream" id="aiOut"></div><div id="aiSecs"></div></div>
@@ -3886,7 +3872,6 @@ const AI = {
     if (noKey) { $('#aiDot').className = 'dot err'; $('#bGoSet').onclick = () => openSettings('ai'); }
     $('#bAISend').onclick = () => this.send($('#aiIn').value.trim());
     $('#bAIStop').onclick = () => { if (this.ctrl) this.ctrl.abort(); };
-    $('#bAISos').onclick = () => openSOS(true);
   },
   status(kind, text) { const d = $('#aiDot'), s = $('#aiSt'); if (!d) return; d.className = 'dot ' + kind; s.textContent = text; },
   tick(text) {
@@ -3897,16 +3882,18 @@ const AI = {
   async send(text) {
     if (this.busy) return;
     if (!text) { UI.toast('寫低少少先啦。'); Voice.feedback('寫低少少先啦。'); return; }
-    if (!AIC.key || !AIC.baseUrl || !AIC.model) { this.status('err', '未設定 API Key'); Sfx.alert(); UI.toast('要先喺 ⚙️ 設定 → 🤖 AI 設定 填好 Base URL、Model 同 API Key。', 4500); Voice.feedback('要先喺設定填好 API Key。'); return; }
     const danger = checkDanger(text, 'ai');
-    if (danger) { $('#aiSafe').innerHTML = `<div class="card pink"><p class="txt">你講嘅嘢好重要。唔係你嘅錯。請搵一個信任嘅大人，親口話佢知。</p>${spk('你講嘅嘢好重要。唔係你嘅錯。請搵一個信任嘅大人，親口話佢知。')}<button class="btn help" id="bSafe2" style="margin-top:6px">🆘 我想同大人講</button></div>`; $('#bSafe2').onclick = () => openSOS(true); Voice.play(['你講嘅嘢好重要。唔係你嘅錯。請搵一個信任嘅大人，親口話佢知。']); }
+    // 小朋友一撳送出，就完整記低（本機＋Firebase），唔理 AI 有冇答到
+    const rec = { id: uid(), at: Date.now(), user: text, thinking: '', answer: '', status: 'waiting', error: '', flagged: !!danger, model: AIC.model || '' };
+    this.keep(rec);
+    if (!AIC.key || !AIC.baseUrl || !AIC.model) { rec.status = 'error'; rec.error = '樹洞未設定 API Key，所以冇 AI 回覆。'; this.keep(rec); this.status('err', '未設定 API Key'); Sfx.alert(); UI.toast('要先喺 ⚙️ 設定 → 🤖 AI 設定 填好 Base URL、Model 同 API Key。', 4500); Voice.feedback('要先喺設定填好 API Key。'); return; }
+    if (danger) { $('#aiSafe').innerHTML = `<div class="card pink"><p class="txt">你講嘅嘢好重要。唔係你嘅錯。請搵一個信任嘅大人，親口話佢知。有即時危險，就即刻叫身邊大人打 999。</p>${spk('你講嘅嘢好重要。唔係你嘅錯。請搵一個信任嘅大人，親口話佢知。')}</div>`; Voice.play(['你講嘅嘢好重要。唔係你嘅錯。請搵一個信任嘅大人，親口話佢知。']); }
     this.busy = true; $('#bAISend').disabled = true; $('#bAIStop').hidden = false;
     $('#aiOutCard').hidden = false; $('#aiOut').textContent = ''; $('#aiOut').classList.add('caret'); $('#aiSecs').innerHTML = ''; $('#aiThink').textContent = ''; $('#aiThinkD').hidden = true;
     this.status('wait', '連線中…'); this.tick('連線中…');
     const msgs = [{ role: 'system', content: this.sysPrompt() }];
     this.session.slice(-6).forEach(m => msgs.push(m)); msgs.push({ role: 'user', content: text });
     let think = '', ans = '', maxT = Math.max(1024, +AIC.maxTokens || 131072), useThink = AIC.thinking, tries = 0, errMsg = '';
-    const rec = { id: uid(), at: Date.now(), user: text, thinking: '', answer: '', flagged: danger, model: AIC.model };
     while (tries < 6) {
       tries++; this.ctrl = new AbortController(); let idle = 0;
       try {
@@ -3949,14 +3936,22 @@ const AI = {
       }
     }
     this.busy = false; this.ctrl = null; $('#bAISend').disabled = false; $('#bAIStop').hidden = true; $('#aiOut').classList.remove('caret');
-    if (!ans && errMsg) { this.status('err', errMsg); $('#aiOut').textContent = ''; $('#aiOutCard').hidden = true; this.tick('出錯：' + errMsg); Sfx.alert(); UI.toast(errMsg, 5000); if (/Key|網址|Base/.test(errMsg)) $('#aiSafe').insertAdjacentHTML('beforeend', `<button class="btn slate" id="bGoSet2" style="margin:6px 0">⚙️ 去設定</button>`), $('#bGoSet2').onclick = () => openSettings('ai'); return; }
+    if (!ans && errMsg) { rec.thinking = think; rec.status = 'error'; rec.error = errMsg; this.keep(rec); this.status('err', errMsg); $('#aiOut').textContent = ''; $('#aiOutCard').hidden = true; this.tick('出錯：' + errMsg); Sfx.alert(); UI.toast(errMsg, 5000); if (/Key|網址|Base/.test(errMsg)) $('#aiSafe').insertAdjacentHTML('beforeend', `<button class="btn slate" id="bGoSet2" style="margin:6px 0">⚙️ 去設定</button>`), $('#bGoSet2').onclick = () => openSettings('ai'); return; }
     if (!ans && think) ans = '（樹洞諗咗好耐，但未講完。可以撳送出再試，或者喺設定加大輸出上限。）';
     this.status('ok', errMsg ? '部分完成：' + errMsg : '完成 ✓');
-    rec.thinking = think; rec.answer = ans; rec.flagged = rec.flagged || /【需要大人】/.test(ans);
-    if (/【需要大人】/.test(ans) && !danger) { S.flags.push({ at: Date.now(), src: 'ai', text: text.slice(0, 200) }); }
-    S.chats.push(rec); if (S.chats.length > 200) S.chats.shift(); save();
+    rec.thinking = think; rec.answer = ans; rec.status = errMsg ? 'partial' : 'done'; rec.error = errMsg || ''; rec.flagged = rec.flagged || /【需要大人】/.test(ans);
+    if (/【需要大人】/.test(ans) && !danger) { S.flags.push({ id: uid(), at: Date.now(), src: 'ai', text: text.slice(0, 200) }); }
+    this.keep(rec); $('#aiIn').value = '';
     this.session.push({ role: 'user', content: text }, { role: 'assistant', content: ans });
     this.render(ans);
+  },
+  // 記低／更新一條對話：本機即刻儲，再即刻上載 Firebase（有登入嘅話）
+  keep(rec) {
+    rec.updatedAt = Date.now();
+    if (!S.chats.some(c => c.id === rec.id)) S.chats.push(rec);
+    trimChats(); saveNow();
+    Cloud.pushChat(rec); Cloud.schedulePush();
+    if ($('#pChats')) renderParentChats();
   },
   // 拆成：拆解、可以試吓、自我對話逐字稿（可以播）、問自己
   render(ans) {
@@ -3967,13 +3962,12 @@ const AI = {
     const lines = c.split(/\n+/).map(s => s.trim()).filter(Boolean);
     const read = lines.map(l => ({ text: l.replace(/^(我|內心嘅我)[:：]\s*/, ''), role: /^內心/.test(l) ? 'turtle' : 'me' }));
     let h = '';
-    if (/【需要大人】/.test(ans)) h += `<div class="card pink"><p class="txt">樹洞覺得呢件事要同大人講。唔係你嘅錯。</p>${spk('樹洞覺得呢件事要同大人講。唔係你嘅錯。')}<button class="btn help" id="bSafe3">🆘 我想同大人講</button></div>`;
+    if (/【需要大人】/.test(ans)) h += `<div class="card pink"><p class="txt">樹洞覺得呢件事要同大人講。唔係你嘅錯。</p>${spk('樹洞覺得呢件事要同大人講。唔係你嘅錯。')}</div>`;
     if (a) h += `<div class="card"><h4>🔍 拆解</h4><p class="txt" style="white-space:pre-wrap">${esc(a)}</p>${spk(a)}</div>`;
     if (b) h += `<div class="card green"><h4>🌱 可以試吓</h4><p class="txt" style="white-space:pre-wrap">${esc(b)}</p>${spk(b)}</div>`;
     if (c) h += `<div class="card blue"><h4>💬 自我對話逐字稿</h4>${lines.map(l => { const m = l.match(/^(我|內心嘅我)[:：]\s*(.*)$/); return m ? `<p class="dialog-line"><b>${m[1]}：</b>${esc(m[2])}</p>` : `<p class="dialog-line">${esc(l)}</p>`; }).join('')}<button class="btn main" id="bPlayT" style="margin-top:6px">▶ 播逐字稿</button>${spk(c)}</div>`;
     if (d) h += `<div class="card purple"><h4>❓ 問自己</h4><p class="txt">${esc(d)}</p>${spk(d)}</div>`;
     $('#aiSecs').innerHTML = h;
-    const s3 = $('#bSafe3'); if (s3) s3.onclick = () => openSOS(true);
     const p = $('#bPlayT'); if (p) p.onclick = () => Voice.play(read);
     Voice.auto([a].concat(b ? ['可以試吓：' + b] : []).concat(['想聽自我對話逐字稿，可以撳播逐字稿。']));
   }
@@ -4066,12 +4060,20 @@ function openParent() {
     <div class="card"><p class="kicker">🎂 年齡（會改變關卡內容）</p><div class="row">${[6, 7, 8, 9, 10, 11, 12].map(a => `<button class="mini-btn ${age() === a ? 'on' : ''}" data-age="${a}">${a}</button>`).join('')}</div><p class="small">6 至 8 歲：描述、覺察、選擇為主；9 至 12 歲：加換位、規律、實踐與回望。</p></div>
     <div class="card"><p class="kicker">🔓 關卡</p><button class="btn ${S.progress.unlockedAll ? 'grow' : 'ghost'}" id="pUnlock">${S.progress.unlockedAll ? '✅ 已解鎖所有關卡（撳一下鎖返）' : '🔓 解鎖所有關卡'}</button></div>
     <div class="card"><p class="kicker">📤 匯出對話＋思考過程</p><p class="small">包括同樹洞嘅對話、AI 思考過程、標記同進度。唔包括小朋友嘅秘密日記。</p><div class="row"><button class="btn slate" id="pExpT">📄 文字檔</button><button class="btn ghost" id="pExpJ">🧾 JSON（完整）</button></div></div>
-    <div class="card ${flags.length ? 'pink' : ''}"><p class="kicker">🚩 需要留意（${flags.length}）</p>${flags.length ? flags.slice(0, 30).map(f => `<p class="small">• ${fmtTime(f.at)}（${f.src === 'ai' ? '樹洞' : f.src === 'diary' ? '日記' : '求助掣'}）：${esc(f.text)}</p>`).join('') : '<p class="small">暫時冇。</p>'}<p class="small">請溫和咁問：「我留意到你想傾，你想同我講吓嗎？」唔好追問細節。</p></div>
+    <div class="card"><p class="kicker">💬 樹洞對話紀錄</p><p class="small">小朋友每次撳「送出」，打嘅字會即刻完整記低；AI 答完會連回答一齊更新。登入咗 Google 嘅話，會自動同步去同一個帳戶嘅其他裝置，唔使撳同步。</p><p class="small" id="pChatSt"></p><div id="pChats"></div></div>
+    <div class="card ${flags.length ? 'pink' : ''}"><p class="kicker">🚩 需要留意（${flags.length}）</p>${flags.length ? flags.slice(0, 30).map(f => `<p class="small">• ${fmtTime(f.at)}（${f.src === 'diary' ? '日記' : '樹洞'}）：${esc(f.text)}</p>`).join('') : '<p class="small">暫時冇。</p>'}<p class="small">請溫和咁問：「我留意到你想傾，你想同我講吓嗎？」唔好追問細節。</p></div>
     <details class="more"><summary>☁️ 跨裝置同步（Firebase＋Google 登入）</summary><div class="in form">
       <p class="small">1. 喺 Firebase 開一個項目，開啟 Authentication 嘅 Google 登入同 Firestore。2. 將網站網域（例如 你的帳戶.github.io）加入 Authorized domains。3. 將 firebaseConfig 貼喺下面。直接雙擊打開檔案（file://）唔支援 Google 登入，要放上 GitHub Pages 等 https 網址。</p>
       <label for="fbCfg">firebaseConfig（JSON）</label><textarea id="fbCfg" placeholder='{"apiKey":"…","authDomain":"…","projectId":"…","appId":"…"}'>${esc(S.firebase.config)}</textarea>
-      <div class="row" style="margin-top:6px"><button class="btn slate" id="fbSave">💾 儲存設定</button><button class="btn ghost" id="fbIn">🔑 Google 登入</button><button class="btn ghost" id="fbSync">🔄 立即同步</button><button class="btn ghost" id="fbOut">登出</button></div>
-      <p class="small" id="fbSt">${esc(fb)}</p><p class="small">Firestore 規則建議：只准用戶讀寫自己嘅 growthIsland/{uid}。</p></div></details>
+      <div class="row" style="margin-top:6px"><button class="btn slate" id="fbSave">💾 儲存設定</button><button class="btn ghost" id="fbIn">🔑 Google 登入</button><button class="btn ghost" id="fbSync">🔄 手動再同步</button><button class="btn ghost" id="fbOut">登出</button></div>
+      <p class="small" id="fbSt">${esc(fb)}</p><p class="small">小朋友部機同家長部機都要：貼同一段 firebaseConfig，再用同一個 Google 帳戶登入。之後會自動同步。</p><p class="small">Firestore 規則（Rules 分頁）：</p><pre class="small" style="white-space:pre-wrap;user-select:all;background:#f4f1ea;padding:8px;border-radius:8px">rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /growthIsland/{uid}/{doc=**} {
+      allow read, write: if request.auth != null &amp;&amp; request.auth.uid == uid;
+    }
+  }
+}</pre></div></details>
     <details class="more"><summary>🔑 改密碼</summary><div class="in form"><label for="c1">新密碼</label><input id="c1" type="password" autocomplete="new-password"><label for="c2">再入一次</label><input id="c2" type="password" autocomplete="new-password"><button class="btn slate" id="pChg" style="margin-top:6px">🔑 改</button></div></details>
     <details class="more"><summary>📖 畀大人：點樣陪小朋友反思</summary><div class="in">${PARENT_TIPS.map(t => `<p class="txt">• ${esc(t)}</p>`).join('')}</div></details>
     <button class="btn help" id="pClear">🧹 清空所有資料</button>`;
@@ -4086,6 +4088,42 @@ function openParent() {
   $('#fbOut').onclick = () => Cloud.logout().then(() => { const el = $('#fbSt'); if (el) el.textContent = Cloud.statusText(); });
   $('#pChg').onclick = () => { const a = $('#c1').value, b = $('#c2').value; if (a.length < 4 || a !== b) { UI.toast('兩次要一樣，最少 4 個字。'); Sfx.alert(); return; } Parent.set(a); UI.toast('🔑 改好喇'); };
   $('#pClear').onclick = clearAll;
+  renderParentChats();
+  if (Cloud.user) Cloud.sync().then(() => { if ($('#pChats')) renderParentChats(); });
+}
+// 家長區：完整睇晒小朋友同樹洞講過乜
+function renderParentChats(all) {
+  const box = $('#pChats'); if (!box || !Parent.ok) return;
+  const st = $('#pChatSt'); if (st) st.textContent = Cloud.user ? '☁️ ' + Cloud.statusText() : '📱 只係呢部機嘅紀錄（未登入 Firebase）。';
+  const list = S.chats.slice().sort((a, b) => (b.at || 0) - (a.at || 0)), shown = all ? list : list.slice(0, 20);
+  const stTxt = c => c.status === 'waiting' ? '⏳ 等緊 AI 回覆…' : c.status === 'error' ? '⚠️ 冇 AI 回覆：' + (c.error || '出錯') : c.status === 'partial' ? '（未講完：' + (c.error || '') + '）' : '';
+  box.innerHTML = shown.map(c => `<div class="entry"${c.flagged ? ' style="border-left:4px solid var(--pink);padding-left:8px"' : ''}><span class="when">${fmtTime(c.at)}${c.flagged ? ' 🚩' : ''}</span>
+    <p class="txt" style="white-space:pre-wrap;margin:4px 0"><b>小朋友：</b>${esc(c.user || '')}</p>
+    ${c.answer ? `<details class="more"><summary>🌳 樹洞回答</summary><div class="in"><p class="small" style="white-space:pre-wrap">${esc(c.answer)}</p></div></details>` : ''}
+    ${stTxt(c) ? `<p class="small">${esc(stTxt(c))}</p>` : ''}
+    ${c.thinking ? `<details class="more"><summary>🧠 AI 思考過程</summary><div class="in"><p class="small" style="white-space:pre-wrap">${esc(c.thinking)}</p></div></details>` : ''}</div>`).join('') || '<p class="small">未有對話。</p>';
+  if (!all && list.length > shown.length) { box.insertAdjacentHTML('beforeend', `<button class="mini-btn" id="pChatAll">顯示全部（${list.length}）</button>`); $('#pChatAll').onclick = () => renderParentChats(true); }
+}
+// 本機最多留 300 段；舊嘅思考過程喺本機截短（雲端仍然有完整版本）
+function trimChats() {
+  S.chats.sort((a, b) => (a.at || 0) - (b.at || 0));
+  if (S.chats.length > 300) S.chats.splice(0, S.chats.length - 300);
+  const n = S.chats.length; S.chats.forEach((c, i) => { if (i < n - 20 && c.thinking && c.thinking.length > 3000) c.thinking = c.thinking.slice(0, 3000) + '…（本機截短，完整版喺雲端／匯出前請先同步）'; });
+}
+// 合併對話：同一條以較新（updatedAt）為準
+function mergeChats(rc) {
+  const sent = Cloud.sentMap(); let ch = false;
+  for (const r of rc || []) {
+    if (!r || !r.id) continue;
+    const i = S.chats.findIndex(c => c.id === r.id), l = i >= 0 ? S.chats[i] : null;
+    sent[r.id] = Math.max(sent[r.id] || 0, r.updatedAt || r.at || 0);
+    if (l && (l.updatedAt || l.at || 0) > (r.updatedAt || r.at || 0)) continue;
+    if (l && (l.thinking || '').length > (r.thinking || '').length && (l.updatedAt || 0) === (r.updatedAt || 0)) continue;
+    if (l) S.chats[i] = Object.assign({}, l, r); else S.chats.push(r); ch = true;
+  }
+  LS.set('gi_cloud_sent2', sent);
+  if (ch) { trimChats(); saveNow(); if ($('#pChats')) renderParentChats(); }
+  return ch;
 }
 function exportData(kind) {
   if (!Parent.ok) { UI.toast('要先入家長密碼。'); return; }
@@ -4135,7 +4173,7 @@ const Cloud = {
         this.auth = this.app.auth(); this.db = this.app.firestore(); this.err = '';
         if (location.protocol === 'file:') this.err = '用 file:// 打開唔可以 Google 登入，請放上 https 網址（例如 GitHub Pages）。';
         this.auth.getRedirectResult().catch(() => { });
-        this.auth.onAuthStateChanged(u => { this.user = u; if (u) this.sync(); });
+        this.auth.onAuthStateChanged(u => { this.user = u; if (u) { this.sync(); this.listen(); } else this.unlisten(); });
       } catch (e) { this.err = 'Firebase 載入失敗：' + (e.message || e); this.app = null; }
     })();
     const r = await this.loading; this.loading = null; return r;
@@ -4145,9 +4183,29 @@ const Cloud = {
     try { await this.auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     catch (e) { if (/popup/i.test(e.code || '')) await this.auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); else { this.err = '登入失敗：' + (e.message || e.code); UI.toast(this.err, 5000); } }
   },
-  async logout() { if (this.auth) await this.auth.signOut(); this.user = null; },
+  async logout() { this.unlisten(); if (this.auth) await this.auth.signOut(); this.user = null; },
+  sentMap() { return LS.get('gi_cloud_sent2', {}) || {}; },
+  // 另一部機一送出，呢部機即刻收到（唔使撳同步）
+  listen() {
+    this.unlisten(); if (!this.user || !this.db) return;
+    this.unsub = this.ref().collection('chats').onSnapshot(snap => {
+      const rc = []; snap.docChanges().forEach(d => { if (d.type !== 'removed') rc.push(d.doc.data()); });
+      if (rc.length) mergeChats(rc);
+    }, e => { this.err = '即時同步失敗：' + (e.message || e); });
+  },
+  unlisten() { if (this.unsub) { try { this.unsub(); } catch (e) { } this.unsub = null; } },
+  async pushChat(c) {
+    if (!this.user || !this.db) { if (S.firebase.config && !this.app) this.load(); return; }
+    const d = JSON.parse(JSON.stringify(c));
+    if ((d.thinking || '').length > 150000) d.thinking = d.thinking.slice(0, 150000) + '…（太長，已截短）';
+    if ((d.answer || '').length > 100000) d.answer = d.answer.slice(0, 100000) + '…';
+    try {
+      await this.ref().collection('chats').doc(c.id).set(d, { merge: true });
+      const s = this.sentMap(); s[c.id] = c.updatedAt || c.at; LS.set('gi_cloud_sent2', s); this.err = '';
+    } catch (e) { this.err = '上載對話失敗（會再試）：' + (e.message || e); }
+  },
   ref() { return this.db.collection('growthIsland').doc(this.user.uid); },
-  pack() { const s = JSON.parse(JSON.stringify(S)); delete s.chats; s.firebase = { config: '' }; return s; },
+  pack() { const s = JSON.parse(JSON.stringify(S)); delete s.chats; delete s.updatedAt; s.firebase = { config: '' }; return s; },
   async sync() {
     if (!this.user || !this.db) return;
     try {
@@ -4155,7 +4213,7 @@ const Cloud = {
       if (snap.exists) {
         const r = JSON.parse(snap.data().state || '{}');
         const chats = await this.ref().collection('chats').get(); const rc = []; chats.forEach(d => rc.push(d.data()));
-        mergeState(r, rc);
+        mergeChats(rc); mergeState(r);
       }
       await this.push(); this.err = '';
     } catch (e) { this.err = '同步失敗：' + (e.message || e); }
@@ -4164,15 +4222,15 @@ const Cloud = {
   async push() {
     if (!this.user || !this.db) return;
     await this.ref().set({ state: JSON.stringify(this.pack()), updatedAt: Date.now() });
-    const sent = new Set(LS.get('gi_cloud_sent', []));
-    for (const c of S.chats) if (!sent.has(c.id)) { await this.ref().collection('chats').doc(c.id).set(c); sent.add(c.id); }
-    LS.set('gi_cloud_sent', [...sent]);
+    // 未上載過、或者之後更新過嘅對話（例如斷線時送出）都補上
+    const sent = this.sentMap();
+    for (const c of S.chats.slice()) if ((sent[c.id] || 0) < (c.updatedAt || c.at || 1)) await this.pushChat(c);
   }
 };
 // 合併兩部機嘅資料：唔會刪走任何一邊嘅紀錄
-function mergeState(r, rchats) {
+function mergeState(r) {
   const byId = (a, b) => { const m = new Map(); [...(a || []), ...(b || [])].forEach(x => m.set(x.id || x.at, Object.assign({}, m.get(x.id || x.at), x))); return [...m.values()].sort((x, y) => (x.at || 0) - (y.at || 0)); };
-  S.chats = byId(S.chats, rchats); S.diary = byId(S.diary, r.diary).reverse(); S.seeds = byId(S.seeds, r.seeds); S.flags = byId(S.flags, r.flags);
+  S.diary = byId(S.diary, r.diary).reverse(); S.seeds = byId(S.seeds, r.seeds); S.flags = byId(S.flags, r.flags);
   S.progress.done = Object.assign({}, r.progress && r.progress.done, S.progress.done);
   S.globes = Object.assign({}, r.globes, S.globes);
   for (const k in (r.roots || {})) S.roots[k] = Math.max(S.roots[k] || 0, r.roots[k] || 0);
@@ -4203,7 +4261,7 @@ function boot() {
     splash();
   });
   if (S.firebase.config) Cloud.load();
-  window.__GI = { S: () => S, G, World, Voice, LV, startLevel, openMap, STEP, AI, Parent, Stage, SETS, hub, ACT }; // 測試用
+  window.__GI = { S: () => S, G, Cloud, World, Voice, LV, startLevel, openMap, STEP, AI, Parent, Stage, SETS, hub, ACT }; // 測試用
 }
 window.addEventListener('error', e => { console.warn('[成長小島]', e.message); });
 window.addEventListener('unhandledrejection', e => { console.warn('[成長小島]', e.reason); });
