@@ -10,11 +10,13 @@
   --sky:#87CEEB;--ground:#7CB342;--panel:#fffef8;--ink:#2c2416;--accent:#e67e22;
   --good:#27ae60;--soft:#f39c12;--bad:#c0392b;--hud:rgba(255,254,248,.94);
   --radius:14px;--shadow:0 8px 24px rgba(44,36,22,.18);--font:"PingFang HK","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  /* Top HUD: topbar offset 8px + iconbtn 42px + breathing room; plus notch safe-area */
+  --hud-offset: calc(8px + 42px + 10px + env(safe-area-inset-top, 0px));
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink);background:#f5efe4;overflow:hidden}
 button,input,select{font:inherit}
-#app{position:relative;width:100%;height:100%;overflow:hidden;background:#f5efe4}
+#app{position:relative;width:100%;height:100%;overflow:hidden;background:var(--panel)}
 canvas#c3d,#compass,#minimap,#bubble,#cdnBanner{display:none!important}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;z-index:20;overflow:auto;-webkit-overflow-scrolling:touch}
 .screen.active{display:flex}
@@ -33,11 +35,11 @@ h1.title{font-size:clamp(1.8rem,6vw,2.6rem);margin:0 0 8px;text-align:center;col
 .char-avatar{font-size:3rem;line-height:1}
 .hud{position:absolute;z-index:30;pointer-events:none}
 .hud>*{pointer-events:auto}
-.topbar{top:8px;left:8px;right:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.topbar{top:max(8px, env(safe-area-inset-top, 0px));left:max(8px, env(safe-area-inset-left, 0px));right:max(8px, env(safe-area-inset-right, 0px));display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pill{background:var(--hud);border-radius:999px;padding:8px 12px;box-shadow:var(--shadow);font-size:.9rem;display:inline-flex;align-items:center;gap:6px}
 .iconbtn{width:42px;height:42px;border-radius:50%;border:0;background:var(--hud);box-shadow:var(--shadow);cursor:pointer;font-size:1.2rem}
 .bottombar{bottom:10px;left:8px;right:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.panel{position:absolute;z-index:40;inset:0;left:0;right:0;top:0;bottom:0;width:100%;max-width:none;height:100%;max-height:none;height:100dvh;max-height:100dvh;transform:none;border-radius:0;box-shadow:none;background:var(--panel);padding:12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;display:flex;flex-direction:column}
+.panel{position:absolute;z-index:40;left:0;right:0;top:var(--hud-offset);bottom:0;width:100%;max-width:none;height:calc(100% - var(--hud-offset));max-height:calc(100% - var(--hud-offset));height:calc(100dvh - var(--hud-offset));max-height:calc(100dvh - var(--hud-offset));transform:none;border-radius:0;box-shadow:none;background:var(--panel);padding:12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));overflow:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;display:flex;flex-direction:column}
 .panel.hidden,.hidden{display:none!important}
 .panel h2{margin:0 0 8px;font-size:1.15rem}
 .panel p{margin:0 0 8px;line-height:1.55;font-size:.95rem}
@@ -265,14 +267,13 @@ input[type=text]{padding:8px 10px;border-radius:8px;border:2px solid #ddd;width:
 
 /* ---- Catalog fills viewport (desktop + phone + iPad) ---- */
 .panel.catalog-mode{
-  inset:0;
-  left:0; right:0; top:0; bottom:0;
+  left:0; right:0; top:var(--hud-offset); bottom:0;
   width:100%;
   max-width:none;
-  height:100%;
-  max-height:none;
-  height:100dvh;
-  max-height:100dvh;
+  height:calc(100% - var(--hud-offset));
+  max-height:calc(100% - var(--hud-offset));
+  height:calc(100dvh - var(--hud-offset));
+  max-height:calc(100dvh - var(--hud-offset));
   transform:none;
   border-radius:0;
   padding:12px max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
@@ -375,6 +376,8 @@ input[type=text]{padding:8px 10px;border-radius:8px;border:2px solid #ddd;width:
 /* Keep pause / settings above full-page panels */
 #hubUI{z-index:50!important}
 #hubUI .topbar{z-index:51}
+/* Progress pill stays left; pause + settings sit right so both edges are clear of body text */
+#hubUI .topbar #pauseBtn{margin-left:auto}
 
 </style>
 </head>
