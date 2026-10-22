@@ -52,6 +52,8 @@ const I18N = {
     yourPick: '你揀咗：{x}。我哋做實驗睇吓！', timeUp: '時間到！一齊睇吓答案。',
     correct: '🎉 答對了！', wrong: '💪 差一點點！', timeUpShort: '⏰ 時間到', correctSay: '答啱喇，好叻！', wrongSay: '唔緊要，差少少！',
     watching: '🔬 實驗進行中…', continue: '繼續 ▶',
+    advOn: '🔬 進階模式：開（多了公式圖表）', advOff: '🔬 進階模式：關',
+    skipPick: '唔估都冇問題，我哋一齊做實驗，睇吓結果係點！', revealShort: '👀 實驗結果', watchWait: '🔬 實驗進行中，請等結果出來',
     finishTitle: '完成「{name}」！', finishStars: '你答對了 {a} / {b} 題', finishSay: '恭喜你完成{name}！你答對咗 {a} 題，總共 {b} 題。',
     nextLesson: '▶ 下一個：{name}', nextIn: '{n} 秒後自動開始', backHub: '🏠 回主頁', playAgain: '🔁 再玩一次',
     settingsTitle: '⚙️ 設定', sRate: '🗣️ 語速', sDemo: '🤖 自動示範前等待（秒）', sThink: '🤔 答題思考時間（秒）', sSfx: '🔔 音效',
@@ -78,6 +80,8 @@ const I18N = {
     yourPick: "You picked: {x}. Let's test it!", timeUp: "Time's up! Let's see the answer.",
     correct: '🎉 Correct!', wrong: '💪 Almost!', timeUpShort: "⏰ Time's up", correctSay: 'Correct, well done!', wrongSay: 'Nice try, almost there!',
     watching: '🔬 Experiment running…', continue: 'Continue ▶',
+    advOn: '🔬 Advanced: on (extra formula graphs)', advOff: '🔬 Advanced: off',
+    skipPick: "No guess? That's fine. Let's do the experiment and see what happens!", revealShort: "👀 Here's the result", watchWait: '🔬 The experiment is still running. Wait for the result',
     finishTitle: '"{name}" complete!', finishStars: 'You got {a} of {b} questions right', finishSay: 'Congratulations on finishing {name}! You got {a} out of {b} questions right.',
     nextLesson: '▶ Next: {name}', nextIn: 'Starting in {n} s', backHub: '🏠 Back home', playAgain: '🔁 Play again',
     settingsTitle: '⚙️ Settings', sRate: '🗣️ Speech speed', sDemo: '🤖 Wait before auto demo (s)', sThink: '🤔 Thinking time for questions (s)', sSfx: '🔔 Sound effects',
@@ -101,6 +105,7 @@ const EMOJI = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}️‍⃣]/gu;
 function speakable(s, lang) {
   s = String(s).replace(EMOJI, '').replace(/\s*\n+\s*/g, lang === 'zh' ? '，' : ', ');
   const R = lang === 'zh' ? [
+    [/T\s*\(°C\)/g, '攝氏溫度'], [/T\s*\(K\)/g, '絕對溫度'], [/\s\+\s/g, ' 加 '], [/∝/g, '成正比於'], [/kJ\/°C/g, '千焦耳每度'], [/J\/g\b/g, '焦耳每克'], [/(\d)\s*K\b/g, '$1 開爾文'],
     [/KE\s*=\s*½mv²/g, '動能等於二分之一 m v 平方'], [/F\s*=\s*Δp\s*\/\s*Δt/g, '力等於動量改變除以時間'], [/F\s*=\s*ma/g, 'F 等於 m a'],
     [/E\s*=\s*mcΔT/g, 'E 等於 m c delta T'], [/E\s*=\s*mL/g, 'E 等於 m L'], [/v\s*=\s*fλ/g, 'v 等於 f 乘 lambda'], [/V\s*=\s*IR/g, 'V 等於 I R'], [/P\s*=\s*VI/g, 'P 等於 V I'],
     [/E\s*=\s*mc²/g, 'E 等於 m c 平方'], [/PE\s*=\s*mgh/g, '勢能等於 m g h'], [/W\s*=\s*Fs/g, '功等於力乘距離'], [/P\s*=\s*W\s*\/\s*t/g, '功率等於功除以時間'],
@@ -113,6 +118,7 @@ function speakable(s, lang) {
     [/Δp/g, '動量改變'], [/ΔT/g, '溫度改變'], [/Δt/g, '時間'], [/KE/g, '動能'], [/PE/g, '勢能'], [/→/g, '，變成'], [/=/g, '等於'], [/×/g, '乘'], [/÷/g, '除以'],
     [/−(?=\d)/g, '負'], [/\+(?=\d)/g, '正'], [/μ/g, 'mu'], [/λ/g, 'lambda'], [/α/g, '阿爾法'], [/β/g, '貝他'], [/γ/g, '伽瑪'], [/±/g, '正負'], [/≈/g, '大約'], [/(\d)\s*%/g, '百分之$1']
   ] : [
+    [/T\s*\(°C\)/g, 'Celsius temperature'], [/T\s*\(K\)/g, 'absolute temperature'], [/\s\+\s/g, ' plus '], [/∝/g, ' is proportional to '], [/kJ\/°C/g, 'kilojoules per degree'], [/J\/g\b/g, 'joules per gram'], [/(\d)\s*K\b/g, '$1 kelvin'],
     [/KE\s*=\s*½mv²/g, 'K E equals half m v squared'], [/F\s*=\s*Δp\s*\/\s*Δt/g, 'F equals change in momentum divided by time'], [/F\s*=\s*ma/g, 'F equals m a'],
     [/E\s*=\s*mcΔT/g, 'E equals m c delta T'], [/E\s*=\s*mL/g, 'E equals m L'], [/v\s*=\s*fλ/g, 'v equals f lambda'], [/V\s*=\s*IR/g, 'V equals I R'], [/P\s*=\s*VI/g, 'P equals V I'],
     [/E\s*=\s*mc²/g, 'E equals m c squared'], [/PE\s*=\s*mgh/g, 'P E equals m g h'], [/W\s*=\s*Fs/g, 'work equals force times distance'], [/P\s*=\s*W\s*\/\s*t/g, 'power equals work divided by time'],
@@ -374,6 +380,7 @@ const world = buildWorld(THREE, kit, scene);
 /* ---------------- 載入所有實驗枱 ---------------- */
 const BENCH = {};       // id → 實驗枱
 const LESSONS = {};     // id → 實驗單元
+const Cam = { tw: null, key: null }; // 鏡頭動畫（近看／返回全景）
 function makeCtx(id) {
   const root = new THREE.Group(); root.visible = false; scene.add(root);
   return {
@@ -386,7 +393,9 @@ function makeCtx(id) {
     toast: (x) => toast(L(x)),
     cheer: () => world.cheer(),
     speaker: () => { const w = Speech.who(); return w === 'chan' || w === 'ming' ? w : null; },
-    renderTools: () => renderTools()
+    renderTools: () => renderTools(),
+    focus: (view, key) => focusView(view, key), // 鏡頭慢慢移去近看 view={pos,target}；null＝返回全景
+    focusKey: () => Cam.key
   };
 }
 const loaded = await Promise.all(BENCH_FILES.map((f) => import(`./labs/${f}.js`).then((m) => [f, m.default]).catch((e) => { console.error('bench failed', f, e); return [f, null]; })));
@@ -414,6 +423,7 @@ canvas.addEventListener('pointerdown', (e) => {
   if (pointers.size > 1) { tapStart = null; return; }
   if (captured !== null || App.view !== 'lab' || !bench()) return;
   tapStart = { x: e.clientX, y: e.clientY, t: performance.now() };
+  Cam.tw = null; // 手指一郁就停咗鏡頭動畫
   if (bench().pointerDown && bench().pointerDown(e, setRay(e))) { captured = e.pointerId; controls.enabled = false; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} }
 }, { capture: true });
 canvas.addEventListener('pointermove', (e) => { if (captured === e.pointerId && bench().pointerMove) bench().pointerMove(e, setRay(e)); });
@@ -432,7 +442,7 @@ function worldTap(ray) {
   if (!hits.length) return;
   const h = world.pickables.find((q) => q.obj === hits[0].object);
   if (h.kind === 'person') { world.wave(h.id); Info.show(h.id, () => t(h.id), () => t(h.id + 'Info')); }
-  else if (h.kind === 'board' && bench().board) Info.show('board', () => t('board'), () => L(bench().board.info) || bench().board.lines.join('；'));
+  else if (h.kind === 'board' && curBoard()) Info.show('board', () => t('board'), () => L(curBoard().info) || curBoard().lines.map(L).join('；'));
 }
 
 controls = new OrbitControls(camera, canvas);
@@ -442,12 +452,39 @@ controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
 controls.addEventListener('change', () => { const tg = controls.target; tg.set(THREE.MathUtils.clamp(tg.x, -14, 14), THREE.MathUtils.clamp(tg.y, 0, 6), THREE.MathUtils.clamp(tg.z, -8, 8)); });
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 document.addEventListener('dblclick', (e) => e.preventDefault());
-function defaultView() {
-  const ls = Run.lesson, b = Run.lab; if (!b) return;
+function homeView() {
+  const ls = Run.lesson, b = Run.lab; if (!b) return null;
   const c = (Run.st && Run.st.camera) || (ls && ls.camera) || b.camera;
   const d = innerWidth / innerHeight < 1 ? 1.7 : 1.1;
-  camera.position.set(c.target[0] + (c.pos[0] - c.target[0]) * d, c.target[1] + (c.pos[1] - c.target[1]) * d, c.target[2] + (c.pos[2] - c.target[2]) * d);
-  controls.target.set(...c.target); controls.update();
+  return { pos: [0, 1, 2].map((i) => c.target[i] + (c.pos[i] - c.target[i]) * d), target: c.target };
+}
+// animate：用動畫慢慢移返去；否則即刻跳
+function defaultView(animate = false) {
+  const v = homeView(); if (!v) return;
+  const had = Cam.key; Cam.key = null;
+  if (animate) tweenCam(v.pos, v.target);
+  else { Cam.tw = null; camera.position.set(...v.pos); controls.target.set(...v.target); controls.update(); }
+  if (had) renderTools();
+}
+function tweenCam(pos, target, dur = 0.9) {
+  Cam.tw = { p0: camera.position.clone(), t0: controls.target.clone(), p1: new THREE.Vector3(...pos), t1: new THREE.Vector3(...target), s: 0, dur };
+}
+// 近看：實驗枱用 ctx.focus({pos,target}, key)；null＝返回全景
+function focusView(view, key) {
+  if (!view) { if (Cam.key) defaultView(true); return; }
+  const d = innerWidth / innerHeight < 1 ? 1.45 : 1;
+  const pos = view.pos.map((v, i) => view.target[i] + (v - view.target[i]) * d);
+  // 下面有對話框同圖表：將鏡頭向下移少少，令想睇嘅嘢喺畫面中上位置
+  const dist = Math.hypot(...pos.map((v, i) => v - view.target[i])), sh = dist * Math.tan((camera.fov * Math.PI) / 360) * 0.12;
+  pos[1] -= sh; const target = [view.target[0], view.target[1] - sh, view.target[2]];
+  Cam.key = key || 'focus'; tweenCam(pos, target); renderTools();
+}
+function stepCam(dt) {
+  const w = Cam.tw; if (!w) return;
+  w.s = Math.min(1, w.s + dt / w.dur);
+  const e = w.s < 0.5 ? 2 * w.s * w.s : 1 - Math.pow(-2 * w.s + 2, 2) / 2;
+  camera.position.lerpVectors(w.p0, w.p1, e); controls.target.lerpVectors(w.t0, w.t1, e);
+  if (w.s >= 1) Cam.tw = null;
 }
 
 /* =====================================================================
@@ -465,7 +502,8 @@ const Chart = {
     const clear = () => { this.hoverT = setTimeout(() => { this.hover = null; this.draw(); }, 1500); };
     this.cv.addEventListener('pointerup', clear); this.cv.addEventListener('pointerleave', clear);
   },
-  defs() { const ls = Run.lesson; return ls ? (ls.graphs || []).map((id) => Run.lab.graphs.find((g) => g.id === id)).filter(Boolean) : []; },
+  // adv:true 的圖表只在「進階」模式顯示
+  defs() { const ls = Run.lesson; return ls ? (ls.graphs || []).map((id) => Run.lab.graphs.find((g) => g.id === id)).filter((g) => g && (!g.adv || S.adv)) : []; },
   setTab(id) { if (this.defs().some((d) => d.id === id)) this.tab = id; renderTabs(); this.draw(); },
   draw() {
     const cv = this.cv; if (!cv || !this.open || App.view !== 'lab' || !Run.lab) return;
@@ -481,17 +519,17 @@ const Chart = {
       const tMax = H.t.length ? H.t[H.t.length - 1] : 0, gMax = G && G.t.length ? G.t[G.t.length - 1] : 0;
       const span = def.span || 12;
       x1 = Math.max(def.minSpan || 4, tMax, Math.min(gMax, span)); x0 = Math.max(0, x1 - span);
-      for (const [k, name, color] of def.series) {
-        if (G && G.c[k]) sets.push({ xs: G.t, ys: G.c[k], color, ghost: true });
-        sets.push({ xs: H.t, ys: H.c[k], color, name, k, w: def.total === k ? 2.6 : 2 });
+      for (const [k, name, color, o = {}] of def.series) {
+        if (G && G.c[k] && !o.dash) sets.push({ xs: G.t, ys: G.c[k], color, ghost: true });
+        sets.push({ xs: H.t, ys: H.c[k], color, name, k, w: def.total === k ? 2.6 : 2, dash: !!o.dash });
       }
       ev = H.ev || []; xTitle = (def.x ? L(def.x) : t('xAxis'));
     } else {
       const D = def.data();
-      for (const [k, name, color] of def.series) {
+      for (const [k, name, color, o = {}] of def.series) {
         if (D.ghost && D.ghost.c[k]) sets.push({ xs: D.ghost.x, ys: D.ghost.c[k], color, ghost: true });
-        if (mode === 'scatter') sets.push({ pts: (D.pts && D.pts[k]) || [], color, name, k });
-        else sets.push({ xs: D.x, ys: D.c[k], color, name, k, w: def.total === k ? 2.6 : 2 });
+        if (mode === 'scatter') sets.push({ pts: (D.pts && D.pts[k]) || [], color, name, k, fit: o.fit !== false });
+        else sets.push({ xs: (D.xk && D.xk[k]) || D.x, ys: D.c[k], color, name, k, w: def.total === k ? 2.6 : 2, dash: !!o.dash }); // D.xk：個別系列用自己的 x
       }
       const allX = sets.flatMap((s) => (s.pts ? s.pts.map((p) => p[0]) : s.xs)).filter(Number.isFinite);
       if (def.xRange) [x0, x1] = def.xRange;
@@ -524,16 +562,16 @@ const Chart = {
       if (s.pts) {
         g.fillStyle = s.color;
         for (const [px, py] of s.pts) { g.beginPath(); g.arc(X(px), Y(py), 5, 0, Math.PI * 2); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 2; g.stroke(); }
-        if (def.fit && s.pts.length >= 2) {
+        if (def.fit && s.fit && s.pts.length >= 2) {
           let sxy = 0, sxx = 0; s.pts.forEach(([a, b]) => { sxy += a * b; sxx += a * a; });
           const m = sxy / (sxx || 1); fits.push({ m, color: s.color });
           g.strokeStyle = s.color; g.lineWidth = 1.5; g.setLineDash([6, 4]); g.beginPath(); g.moveTo(X(0), Y(0)); g.lineTo(X(x1), Y(m * x1)); g.stroke(); g.setLineDash([]);
         }
         continue;
       }
-      g.strokeStyle = s.color; g.lineWidth = s.w || 2; g.globalAlpha = s.ghost ? 0.4 : 1; g.setLineDash(s.ghost ? [5, 4] : []); g.lineJoin = 'round';
+      g.strokeStyle = s.color; g.lineWidth = s.w || 2; g.globalAlpha = s.ghost ? 0.4 : 1; g.setLineDash(s.ghost ? [5, 4] : s.dash ? [8, 5] : []); g.lineJoin = 'round';
       g.beginPath(); let pen = false;
-      for (let i = 0; i < s.ys.length; i++) { const xv = s.xs[i], v = s.ys[i]; if (xv < x0 || !Number.isFinite(v)) { pen = false; continue; } const x = X(xv), y = Y(v); if (pen) g.lineTo(x, y); else { g.moveTo(x, y); pen = true; } }
+      for (let i = 0; i < s.ys.length; i++) { const xv = s.xs[i], v = s.ys[i]; if (xv < x0 || xv > x1 + 1e-9 || !Number.isFinite(v)) { pen = false; continue; } const x = X(xv), y = Y(v); if (pen) g.lineTo(x, y); else { g.moveTo(x, y); pen = true; } }
       g.stroke(); g.globalAlpha = 1; g.setLineDash([]);
     }
     g.restore();
@@ -545,7 +583,7 @@ const Chart = {
     }).filter(Boolean).sort((a, b) => a.y - b.y);
     for (let i = 1; i < labs.length; i++) if (labs[i].y - labs[i - 1].y < 14) labs[i].y = labs[i - 1].y + 14;
     for (const o of labs) { g.fillStyle = o.s.color; g.beginPath(); g.arc(pad.l + pw + 7, o.y, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#334155'; g.fillText(`${L(o.s.name)} ${fmtTick(Math.round(o.v * 100) / 100)}`, pad.l + pw + 14, o.y); }
-    fits.forEach((fi, k) => { g.fillStyle = '#334155'; g.fillText(fmt(t('slope'), { m: fi.m.toFixed(2) }), pad.l + 8, pad.t + 10 + k * 14); });
+    fits.forEach((fi, k) => { const s = fmt(L(def.slope) || t('slope'), { m: fi.m.toFixed(2) }), y = pad.t + 10 + k * 15; g.fillStyle = 'rgba(255,255,255,.88)'; g.fillRect(pad.l + 4, y - 7, g.measureText(s).width + 8, 14); g.fillStyle = fi.color; g.fillText(s, pad.l + 8, y); });
     // 十字線
     const base = sets.find((s) => !s.ghost && !s.pts && s.xs && s.xs.length);
     if (this.hover != null && base && this.hover >= pad.l && this.hover <= pad.l + pw) {
@@ -553,14 +591,14 @@ const Chart = {
       let i = 0, j = xs.length - 1; while (i < j) { const m = (i + j) >> 1; if (xs[m] < xv) i = m + 1; else j = m; }
       const x = X(xs[i]);
       g.strokeStyle = '#64748b'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, pad.t); g.lineTo(x, pad.t + ph); g.stroke();
-      const rows = [`${mode === 'time' ? 't' : 'x'} = ${xs[i].toFixed(2)}`, ...sets.filter((s) => !s.ghost && !s.pts && Number.isFinite(s.ys[i])).map((s) => `${L(s.name)}: ${s.ys[i].toFixed(2)}`)];
+      const rows = [`${mode === 'time' ? 't' : 'x'} = ${xs[i].toFixed(2)}`, ...sets.filter((s) => !s.ghost && !s.pts && s.xs === xs && Number.isFinite(s.ys[i])).map((s) => `${L(s.name)}: ${s.ys[i].toFixed(2)}`)];
       const bw = Math.max(...rows.map((r) => g.measureText(r).width)) + 14, bh = rows.length * 15 + 8;
       const bx = Math.min(x + 8, pad.l + pw - bw), by = pad.t + 4;
       g.fillStyle = 'rgba(15,23,42,.88)'; g.beginPath(); g.roundRect ? g.roundRect(bx, by, bw, bh, 6) : g.rect(bx, by, bw, bh); g.fill();
       g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'top';
       rows.forEach((r, k) => g.fillText(r, bx + 7, by + 5 + k * 15));
     }
-    const legend = def.series.map(([, name, color]) => `<span><i class="sw" style="background:${color}"></i>${esc(L(name))}</span>`).join('')
+    const legend = def.series.map(([, name, color, o = {}]) => `<span><i class="sw" style="background:${o.dash ? `repeating-linear-gradient(90deg,${color} 0 5px,transparent 5px 8px)` : color}"></i>${esc(L(name))}</span>`).join('')
       + (sets.some((s) => s.ghost) ? `<span>┄ ${esc(t('ghostNote'))}</span>` : '') + (ev.length ? `<span style="color:#b45309">┆ ${esc(L(def.evNote) || t('crashNote'))}</span>` : '');
     if (legend !== this.lastLegend) { $('#chartLegend').innerHTML = legend; this.lastLegend = legend; }
   }
@@ -772,6 +810,7 @@ $('#fStart').onclick = () => { Sfx.unlock(); enterLesson($('#fStart').dataset.le
  *  完成任務 / 答題 → 推進（同樣截斷）
  *  自動導覽：講完 → 自動示範 → 自動下一步；問題會倒數，時間到就揭曉
  * ===================================================================== */
+const WATCH_AFTER = 3, WATCH_MIN = 6; // 答完之後：實驗做完最少再睇 3 秒；由答題到揭曉最少 6 秒
 const Run = {
   lab: null, lesson: null, i: 0, st: null, tok: 0, timers: [], autoT: null, narrDone: false, goalDone: false, demoRunning: false, demoDone: false,
   quiz: null, locks: new Set(), score: {}, enteredAt: 0, toolsByDemo: false,
@@ -783,13 +822,15 @@ const Run = {
     this.i = Math.max(0, Math.min(i, stages.length - 1));
     const st = this.st = stages[this.i];
     this.narrDone = false; this.goalDone = false; this.demoDone = false; this.enteredAt = performance.now();
-    this.quiz = st.quiz ? { phase: 'ask', pick: null, correct: null, revealSaid: false } : null;
+    this.quiz = st.quiz ? { phase: 'ask', pick: null, correct: null, revealSaid: false, skipped: false } : null;
     Info.hide(); $('#done').classList.add('is-hidden');
     if (this.toolsByDemo) { openTools(false); this.toolsByDemo = false; }
     if (st.setup) this.lab.apply({ ...(this.lesson.base || {}), ...st.setup });
     this.locks = new Set(st.lock || []);
     renderTools(); if (st.graph) Chart.setTab(st.graph);
+    if (S.adv && st.advGraph) Chart.setTab(st.advGraph); // 進階模式：自動打開對應公式的圖表
     if (st.camera || this.camStage) defaultView();
+    else if (Cam.key) defaultView(true); // 換步驟：由近看慢慢返回全景
     this.camStage = !!st.camera;
     renderStage(); renderBubble(); renderQuiz();
     if (st.pre) this.actions(st.pre);
@@ -804,7 +845,13 @@ const Run = {
     return s;
   },
   bubbleText() { const q = this.quiz; return q && q.phase === 'reveal' ? L(this.st.quiz.why) : L(this.st.say); },
-  next() { if (this.i < this.lesson.stages.length - 1) this.go(this.i + 1); else this.finish(); },
+  next() {
+    const q = this.quiz;
+    // 估一估：唔揀答案都要做完個實驗、睇到結果，先可以去下一步
+    if (q && q.phase === 'ask') return this.answer(null, true);
+    if (q && q.phase === 'watch') { toast(t('watchWait')); return; }
+    if (this.i < this.lesson.stages.length - 1) this.go(this.i + 1); else this.finish();
+  },
   prev() { this.go(this.i - 1); },
   replay() {
     const q = this.quiz, tok = this.tok;
@@ -880,18 +927,29 @@ const Run = {
     toast('✅ ' + t('taskDone')); Sfx.play('correct');
     this.later(st.settle ?? 1.6, () => this.next());
   },
-  answer(k) {
+  // skipped：撳咗「下一步」而冇揀答案
+  answer(k, skipped = false) {
     const q = this.quiz; if (!q || q.phase !== 'ask') return;
     this.halt();
     const st = this.st, Q = st.quiz;
-    q.pick = k; q.correct = k === Q.ans;
+    q.pick = k; q.correct = k === Q.ans; q.skipped = skipped && k == null;
     if (k != null && !(st.id in this.score)) this.score[st.id] = q.correct;
     if (Q.run) {
       q.phase = 'watch'; renderQuiz(); renderStage();
-      Speech.say(() => (q.pick == null ? t('timeUp') : fmt(t('yourPick'), { x: L(Q.opts[q.pick]) })), null, st.who);
-      const tok = this.tok;
-      this.actions(Q.run).then(() => this.waitSim(Q.watch ?? 2.4)).then(() => { if (tok === this.tok) this.reveal(); });
+      Speech.say(() => (q.pick == null ? t(q.skipped ? 'skipPick' : 'timeUp') : fmt(t('yourPick'), { x: L(Q.opts[q.pick]) })), null, st.who);
+      this.watchRun(Q);
     } else this.reveal();
+  },
+  // 做實驗：run 做完（通常 run 入面有 ['until', 結果事件]）→ 再睇 watch 秒 → 再保證有足夠時間睇清楚，先揭曉
+  async watchRun(Q) {
+    const tok = this.tok, t0 = performance.now();
+    await this.actions(Q.run); if (tok !== this.tok) return;
+    const t1 = performance.now();
+    await this.waitSim(Q.watch ?? 2.4); if (tok !== this.tok) return;
+    const now = performance.now();
+    const more = Math.max(WATCH_AFTER * 1000 - (now - t1), WATCH_MIN * 1000 - (now - t0)) / TURBO;
+    if (more > 0) await sleep(more);
+    if (tok === this.tok) this.reveal();
   },
   reveal() {
     const q = this.quiz; q.phase = 'reveal';
@@ -1000,7 +1058,7 @@ function renderQuiz() {
   } else {
     const rv = q.phase === 'reveal';
     el.innerHTML = `<div class="qhead">${esc(t('quizTitle'))}<div class="flex-1"></div><button class="spk" data-read="quizq" aria-label="read">🔊</button></div>
-      ${rv ? `<div id="qResult" style="color:${q.correct ? '#16a34a' : '#b45309'}">${esc(q.pick == null ? t('timeUpShort') : q.correct ? t('correct') : t('wrong'))}</div>` : ''}
+      ${rv ? `<div id="qResult" style="color:${q.pick == null ? '#4f46e5' : q.correct ? '#16a34a' : '#b45309'}">${esc(q.pick == null ? t(q.skipped ? 'revealShort' : 'timeUpShort') : q.correct ? t('correct') : t('wrong'))}</div>` : ''}
       <div id="qText">${esc(L(Q.q))}</div>
       ${Q.opts.map((o, k) => `<button class="opt ${rv && k === Q.ans ? 'right' : ''} ${rv && k === q.pick && k !== Q.ans ? 'wrongpick' : ''} ${rv && k !== Q.ans && k !== q.pick ? 'dim' : ''}" data-k="${k}" ${rv ? 'disabled' : ''}>
         <span class="k">${rv && k === Q.ans ? '✓' : rv && k === q.pick ? '✗' : k + 1}</span><span class="tx">${esc(L(o))}</span>
@@ -1082,22 +1140,30 @@ function enterLesson(id, i = 0) {
   if (Run.lab && Run.lab !== b) { Run.lab.root.visible = false; Run.lab.deactivate && Run.lab.deactivate(); }
   Run.clear();
   Run.lab = b; Run.lesson = ls; b.root.visible = true;
-  world.setBoard(b.board); world.placePeople(b.people);
+  world.setBoard(boardOf(ls)); world.placePeople(b.people);
   if (i === 0 || !Run.score) Run.score = {};
   b.activate && b.activate(ls);
   b.apply({ ...(ls.base || {}), ...((ls.stages[0] && ls.stages[0].setup) || {}) });
   App.view = 'lab';
   $('#hub').classList.add('is-hidden'); $('#labUI').classList.remove('is-hidden'); stageEl.style.visibility = 'visible';
-  const gr = ls.graphs || [];
-  Chart.tab = gr[0] || null;
-  Chart.open = gr.length > 0 && Chart.userOpen !== false;
-  $('#graphPanel').classList.toggle('is-hidden', !Chart.open); $('#fabGraph').classList.toggle('is-hidden', !gr.length); $('#fabGraph').classList.toggle('active', Chart.open);
-  document.body.classList.toggle('no-graph', !Chart.open);
+  Chart.tab = null; syncGraphs();
   openTools(innerWidth >= 1366);
   Run.i = i; Run.st = ls.stages[i];
   renderTopbar(); renderTabs(); defaultView();
   Run.go(i);
   requestAnimationFrame(measure);
+}
+// 黑板：課堂可以有自己的 board（lesson.board），否則用實驗枱的；lines／title 可以係 {zh,en}
+function curBoard() { return Run.lesson ? Run.lesson.board || Run.lab.board : null; }
+function boardOf(ls) { const b = ls.board || ls.bench.board; return { ...b, title: L(b.title), sub: L(b.sub), lines: (b.lines || []).map(L) }; }
+// 圖表面板：按課堂＋進階模式決定有冇圖、顯示邊幅
+function syncGraphs() {
+  const defs = Chart.defs();
+  if (!defs.some((d) => d.id === Chart.tab)) Chart.tab = defs.length ? defs[0].id : null;
+  Chart.open = defs.length > 0 && Chart.userOpen !== false;
+  $('#graphPanel').classList.toggle('is-hidden', !Chart.open); $('#fabGraph').classList.toggle('is-hidden', !defs.length); $('#fabGraph').classList.toggle('active', Chart.open);
+  document.body.classList.toggle('no-graph', !Chart.open);
+  renderTabs(); Chart.lastLegend = ''; Chart.draw(); requestAnimationFrame(measure);
 }
 function goHub() {
   Run.clear(); Run.halt(); Speech.cutAll();
@@ -1112,7 +1178,7 @@ function applyI18n() {
   $$('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
   world.labels({ chan: t('chan'), ming: t('ming') });
   renderTopbar(); renderHub(); renderSettings();
-  if (App.view === 'lab') { renderStage(); renderBubble(); renderQuiz(); renderTools(); renderTabs(); Run.lab.labels && Run.lab.labels(); Chart.lastLegend = ''; Chart.draw(); Info.relang(); }
+  if (App.view === 'lab') { world.setBoard(boardOf(Run.lesson)); renderStage(); renderBubble(); renderQuiz(); renderTools(); renderTabs(); Run.lab.labels && Run.lab.labels(); Chart.lastLegend = ''; Chart.draw(); Info.relang(); }
   if (!$('#done').classList.contains('is-hidden')) renderDone();
   updateVoiceTip();
 }
@@ -1157,7 +1223,13 @@ $('#btnPause').onclick = () => {
   renderTopbar();
 };
 $('#btnRead').onclick = () => { App.pointRead = !App.pointRead; document.body.classList.toggle('pointread', App.pointRead); renderTopbar(); toast(App.pointRead ? t('pointReadOn') : t('pointReadOff')); };
-$('#btnAdv').onclick = () => { S.adv = !S.adv; save(); renderTopbar(); if (App.view === 'lab') { renderBubble(); Run.lab.labels && Run.lab.labels(); } };
+$('#btnAdv').onclick = () => {
+  S.adv = !S.adv; save(); renderTopbar();
+  if (App.view !== 'lab') return;
+  renderBubble(); Run.lab.labels && Run.lab.labels(); syncGraphs();
+  if (S.adv && Run.st && Run.st.advGraph) Chart.setTab(Run.st.advGraph);
+  toast(S.adv ? t('advOn') : t('advOff'));
+};
 $('#bPrev').onclick = () => Run.prev();
 $('#bNext').onclick = () => Run.next();
 $('#bRedo').onclick = () => Run.go(Run.i);
@@ -1165,7 +1237,7 @@ $('#fabTools').onclick = () => openTools($('#tools').classList.contains('is-hidd
 $('#toolsClose').onclick = () => openTools(false);
 $('#fabGraph').onclick = () => { Chart.open = !Chart.open; Chart.userOpen = Chart.open; $('#graphPanel').classList.toggle('is-hidden', !Chart.open); $('#fabGraph').classList.toggle('active', Chart.open); document.body.classList.toggle('no-graph', !Chart.open); Chart.draw(); };
 $('#fabReset').onclick = () => { Run.lab.again(); renderTools(); };
-$('#fabCam').onclick = defaultView;
+$('#fabCam').onclick = () => defaultView(true);
 $('#infoClose').onclick = () => Info.hide();
 $('#doneHub').onclick = goHub;
 $('#doneAgain').onclick = () => { stopNextCountdown(); $('#done').classList.add('is-hidden'); Run.score = {}; enterLesson(Run.lesson.id, 0); };
@@ -1199,6 +1271,7 @@ renderer.setAnimationLoop(() => {
   if (App.view !== 'lab' || !Run.lab) return;
   Run.lab.update(dt * TURBO, clock.elapsedTime);
   world.update(dt, clock.elapsedTime, (() => { const w = Speech.who(); return w === 'chan' || w === 'ming' ? w : null; })());
+  stepCam(dt);
   controls.update();
   uiT += dt;
   if (uiT > 0.1) { uiT = 0; Run.lab.labels && Run.lab.labels(); Chart.draw(); }
