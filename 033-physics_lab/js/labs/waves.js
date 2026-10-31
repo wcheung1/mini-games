@@ -2,6 +2,23 @@
  * 實驗枱：波動與聲音台（waves）
  * 單元：〰️ 波的基本（48–55）、💧 水波槽（56–60）、🎵 干涉（61–64）、🔊 聲音與超聲波（76–78）
  * 模式：rope（繩波／彈簧波）、tank（水波槽：二維波動方程數值模擬）、sound（喇叭＋空氣粒子）、sonar（聲納船）
+ *
+ * 水波槽水面嘅渲染（WATER_VS / WATER_FS）部分改寫自 Clearwater：
+ *   https://github.com/Aureliengmz/clearwater
+ *   MIT License, Copyright (c) 2026 Lumaris
+ *   Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ *   associated documentation files (the "Software"), to deal in the Software without restriction, including
+ *   without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *   copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the
+ *   following conditions: The above copyright notice and this permission notice shall be included in all
+ *   copies or substantial portions of the Software.
+ *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+ *   LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+ *   EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ *   IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+ *   THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *   搬過嚟嘅有：菲涅耳公式、水嘅吸收／散射常數、B-spline 取樣、由高度場計斜度同曲率、
+ *   Beckmann 太陽反光，同埋水紋「一階透鏡」焦散公式。物理模擬（stepTank）仍然係本檔自己嘅 FDTD。
  * ===================================================================== */
 export default function create(ctx) {
   const { THREE, kit, root } = ctx;
@@ -250,10 +267,14 @@ export default function create(ctx) {
     const tg = G.tank, TY = 0.8;
     mesh(new THREE.BoxGeometry(TW + 0.4, 0.1, TH + 0.4), std(0x475569, 0.5, 0.3), 0, TY - 0.06, 0, tg);
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) mesh(new THREE.BoxGeometry(0.12, TY - 0.1, 0.12), std(0x94a3b8, 0.5, 0.5), sx * (TW / 2), (TY - 0.1) / 2, sz * (TH / 2), tg);
-    V.tex = new THREE.DataTexture(new Uint8Array(NX * NY * 4), NX, NY, THREE.RGBAFormat); V.tex.needsUpdate = true; V.tex.magFilter = THREE.LinearFilter;
-    V.tex.colorSpace = THREE.SRGBColorSpace;
-    const geo = new THREE.PlaneGeometry(TW, TH, 80, 48); geo.rotateX(-Math.PI / 2);
-    V.water = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: V.tex, roughness: 0.6, metalness: 0 }));
+    // 水面高度 → 半精度浮點貼圖（iPad 支援 half float 嘅線性插值）；槽底深度＋牆 → 靜態貼圖
+    V.hData = new Uint16Array(NX * NY * 2); V.lap = new Float32Array(NX * NY); // R = 高度，G = 曲率（拉普拉斯，用嚟計焦散）
+    V.hTex = new THREE.DataTexture(V.hData, NX, NY, THREE.RGFormat, THREE.HalfFloatType);
+    V.hTex.magFilter = V.hTex.minFilter = THREE.LinearFilter; V.hTex.needsUpdate = true;
+    V.bedTex = new THREE.DataTexture(new Uint8Array(NX * NY * 4), NX, NY, THREE.RGBAFormat);
+    V.bedTex.magFilter = V.bedTex.minFilter = THREE.LinearFilter; V.bedTex.needsUpdate = true;
+    const geo = new THREE.PlaneGeometry(TW, TH, NX, NY); geo.rotateX(-Math.PI / 2);
+    V.water = new THREE.Mesh(geo, makeWaterMaterial());
     V.water.position.y = TY + 0.07; tg.add(V.water); // 水面要高過槽底：以前波谷會凹穿槽底，出現郁動嘅深灰色斑
     V.walls = new THREE.Group(); tg.add(V.walls);
     V.probe = mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 10), std(0xf59e0b, 0.4), 0, TY + 0.3, 0, tg); V.probe.visible = false;
@@ -298,26 +319,173 @@ export default function create(ctx) {
     const m = std(0x334155, 0.6);
     const g = new THREE.BoxGeometry(CELL * 1.05, 0.18, CELL * 1.05);
     for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) if (!mask[id(x, y)] && (x + y) % 1 === 0) { const b = new THREE.Mesh(g, m); b.position.set(-TW / 2 + (x + 0.5) * CELL, 0.89, -TH / 2 + (y + 0.5) * CELL); V.walls.add(b); }
+    paintBed();
     S.tankDirty = false;
   }
-  function paintTank() {
-    const d = V.tex.image.data, pos = V.water.geometry.attributes.position;
+  // 貼圖第 r 行 = 格仔第 NY-1-r 行（PlaneGeometry 嘅 v 向 -z 增加）
+  const texRow = (y) => (NY - 1 - y) * NX;
+  // 槽底（只喺轉實驗時變）：R = 相對水深（深水 1、淺水 ≈ 0.33，同 kk 成正比：淺水波速² ∝ 水深），G = 有冇水（牆 = 0）
+  function paintBed() {
+    const d = V.bedTex.image.data, R = 2; // 5×5 平均：淺水區邊界唔會一級級咁成樓梯
     for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
-      const i = id(x, y), j = ((NY - 1 - y) * NX + x) * 4;
-      if (!mask[i]) { d[j] = 51; d[j + 1] = 65; d[j + 2] = 85; d[j + 3] = 255; continue; }
-      // 似真水面：對比柔和；用水面斜度做「光由左上方照落嚟」嘅明暗，有立體感
-      const v = clamp(u[i] * 0.6, -1, 1), sh = kk[i] < K_DEEP ? 1 : 0;
-      const gx = (mask[i + 1] ? u[i + 1] : u[i]) - (mask[i - 1] ? u[i - 1] : u[i]), gy = (mask[i + NX] ? u[i + NX] : u[i]) - (mask[i - NX] ? u[i - NX] : u[i]);
-      const lit = clamp(-(gx + gy) * 0.5 * Math.sqrt(kk[i] / K_DEEP), -1, 1); // 淺水波長短、斜度大：按比例減弱，免得條紋太刺眼
-      d[j] = clamp(46 + sh * 40 + v * 58 + lit * 80, 0, 255); d[j + 1] = clamp(128 + sh * 30 + v * 58 + lit * 80, 0, 255); d[j + 2] = clamp(178 - sh * 10 + v * 42 + lit * 60, 0, 255); d[j + 3] = 255;
+      let s = 0, c = 0;
+      for (let dy = -R; dy <= R; dy++) for (let dx = -R; dx <= R; dx++) { const X = x + dx, Y = y + dy; if (X >= 0 && X < NX && Y >= 0 && Y < NY) { s += kk[id(X, Y)]; c++; } }
+      const i = id(x, y), j = (texRow(y) + x) * 4;
+      d[j] = Math.round(255 * clamp(s / c / K_DEEP, 0, 1)); d[j + 1] = mask[i] ? 255 : 0; d[j + 2] = 0; d[j + 3] = 255;
     }
-    V.tex.needsUpdate = true;
-    for (let k = 0; k < pos.count; k++) {
-      const px = pos.getX(k), pz = pos.getZ(k);
-      const gx = clamp(Math.round((px + TW / 2) / CELL), 0, NX - 1), gy = clamp(Math.round((pz + TH / 2) / CELL), 0, NY - 1);
-      pos.setY(k, mask[id(gx, gy)] ? clamp(u[id(gx, gy)] * 0.03, -0.045, 0.045) : 0);
+    V.bedTex.needsUpdate = true; V.paintedStep = -1;
+  }
+  // 每計完一步先上載一次水面高度（每秒約 50 次），其餘交畀 GPU：法線、折射、焦散都喺 shader 度計
+  function paintTank() {
+    if (V.paintedStep === nStep) return;
+    V.paintedStep = nStep;
+    const h = V.hData, lp = V.lap, toHalf = THREE.DataUtils.toHalfFloat;
+    // 曲率：五點拉普拉斯（同 stepTank 一樣），牆當係水面高度 0
+    lp.fill(0);
+    for (let y = 1; y < NY - 1; y++) for (let x = 1; x < NX - 1; x++) {
+      const i = id(x, y); if (mask[i]) lp[i] = u[i - 1] + u[i + 1] + u[i - NX] + u[i + NX] - 4 * u[i];
     }
-    pos.needsUpdate = true;
+    for (let y = 0; y < NY; y++) {
+      const r = texRow(y);
+      for (let x = 0; x < NX; x++) {
+        const i = id(x, y);
+        // 3×3 平滑：去走條棒同牆邊嘅尖角，焦散就唔會出現幼細刺眼嘅亮線（對真正波長幾乎冇影響）
+        let s = 0;
+        if (x > 0 && y > 0 && x < NX - 1 && y < NY - 1) s = (lp[i] * 4 + (lp[i - 1] + lp[i + 1] + lp[i - NX] + lp[i + NX]) * 2 + lp[i - NX - 1] + lp[i - NX + 1] + lp[i + NX - 1] + lp[i + NX + 1]) / 16;
+        h[(r + x) * 2] = toHalf(mask[i] ? clamp(u[i], -8, 8) : 0);
+        h[(r + x) * 2 + 1] = toHalf(mask[i] ? clamp(s, -4, 4) : 0);
+      }
+    }
+    V.hTex.needsUpdate = true;
+  }
+
+  /* ---------------- 水面 shader（改寫自 Clearwater，MIT） ----------------
+   * 由上面望落個水波槽：見到槽底，加上少少天花反光同太陽反光。
+   * 光亮條紋 = 焦散：每個波峰好似一塊凸透鏡，將由上面照落嚟嘅光聚喺槽底，
+   * 正正就係真實水波槽用燈照、喺下面見到光暗條紋嘅原理（波峰光、波谷暗）。 */
+  const WATER_VS = /* glsl */`
+    uniform sampler2D uH; uniform float uHScale, uHMax;
+    varying vec2 vUv; varying vec3 vWorld;
+    #include <common>
+    #include <fog_pars_vertex>
+    void main() {
+      vUv = uv;
+      vec3 p = position;
+      p.y += clamp(textureLod(uH, uv, 0.0).r * uHScale, -uHMax, uHMax);
+      vec4 wp = modelMatrix * vec4(p, 1.0); vWorld = wp.xyz;
+      vec4 mvPosition = viewMatrix * wp;
+      gl_Position = projectionMatrix * mvPosition;
+      #include <fog_vertex>
+    }`;
+  const WATER_FS = /* glsl */`
+    #include <common>
+    #include <fog_pars_fragment>
+    uniform sampler2D uH, uBed;
+    uniform vec2 uSize;
+    uniform float uHScale, uCell, uSlopeGain, uDepth, uOpt, uLens, uCausLo, uCausHi, uSpec, uSunI, uSkyI;
+    uniform vec3 uSun, uSky, uCeil, uFloorDeep, uFloorShallow, uWall, uScatter;
+    varying vec2 vUv; varying vec3 vWorld;
+
+    // ---- Clearwater: water optics ----
+    const float IOR = 1.3335;
+    const vec3 SIG_A = vec3(0.40, 0.074, 0.088);
+    const vec3 SIG_S = vec3(0.028, 0.052, 0.068);
+    const vec3 SIG_T = SIG_A + SIG_S;
+    float fresnelDielectric(float ci, float n) {
+      ci = clamp(ci, 0.0, 1.0);
+      float st2 = (1.0 - ci * ci) / (n * n); if (st2 >= 1.0) return 1.0;
+      float ct = sqrt(1.0 - st2);
+      float rs = (ci - n * ct) / (ci + n * ct), rp = (n * ci - ct) / (n * ci + ct);
+      return 0.5 * (rs * rs + rp * rp);
+    }
+    // ---- Clearwater: cubic B-spline filtering in 4 bilinear taps: smooth slopes -> smooth highlights ----
+    vec4 texBS(sampler2D t, vec2 uv) {
+      vec2 ts = vec2(textureSize(t, 0)); vec2 p = uv * ts - 0.5; vec2 f = fract(p); p = floor(p);
+      vec2 f2 = f * f, f3 = f2 * f;
+      vec2 w0 = (-f3 + 3.0 * f2 - 3.0 * f + 1.0) / 6.0, w1 = (3.0 * f3 - 6.0 * f2 + 4.0) / 6.0;
+      vec2 w2 = (-3.0 * f3 + 3.0 * f2 + 3.0 * f + 1.0) / 6.0, w3 = f3 / 6.0;
+      vec2 g0 = w0 + w1, g1 = w2 + w3; vec2 h0 = (w1 / g0 - 0.5 + p) / ts, h1 = (w3 / g1 + 1.5 + p) / ts;
+      return (texture(t, vec2(h0.x, h0.y)) * g0.x + texture(t, vec2(h1.x, h0.y)) * g1.x) * g0.y
+           + (texture(t, vec2(h0.x, h1.y)) * g0.x + texture(t, vec2(h1.x, h1.y)) * g1.x) * g1.y;
+    }
+
+    void main() {
+      vec2 px = 1.0 / vec2(textureSize(uH, 0));
+      vec4 bed = texture(uBed, vUv);
+      float dep = bed.r, wet = bed.g;
+
+      // 斜度 → 法線（世界座標：uv.y 向 -z）
+      float hR = texBS(uH, vUv + vec2(px.x, 0.0)).r, hL = texBS(uH, vUv - vec2(px.x, 0.0)).r;
+      float hU = texBS(uH, vUv + vec2(0.0, px.y)).r, hD = texBS(uH, vUv - vec2(0.0, px.y)).r;
+      vec2 slope = uHScale * uSlopeGain * vec2(hR - hL, -(hU - hD)) / (2.0 * uCell);
+      vec3 n = normalize(vec3(-slope.x, 1.0, -slope.y));
+
+      vec3 v = normalize(cameraPosition - vWorld), wd = -v;
+      float nv = dot(n, v);
+      if (nv < 0.02) { n = normalize(n + v * (0.02 - nv)); nv = dot(n, v); }
+      float F = fresnelDielectric(nv, IOR);
+
+      // 反射：實驗室天花同牆（淡藍背景色）
+      vec3 rr = reflect(wd, n); rr.y = abs(rr.y);
+      vec3 refl = mix(uSky, uCeil, smoothstep(0.05, 0.75, rr.y));
+
+      // 太陽反光：Beckmann（Clearwater），強度有上限，避免閃到眼花
+      float a2 = 0.0025;
+      vec3 hv = normalize(v + uSun);
+      float nh = max(dot(n, hv), 0.0), nl = max(dot(n, uSun), 0.0);
+      float c2 = max(nh * nh, 1e-4); float tan2 = (1.0 - c2) / c2;
+      float D = exp(-tan2 / a2) / (PI * a2 * c2 * c2);
+      float Vis = 0.5 / (nl * sqrt(nv * nv * (1.0 - a2) + a2) + nv * sqrt(nl * nl * (1.0 - a2) + a2) + 1e-5);
+      float spec = uSpec * min(D * Vis * fresnelDielectric(max(dot(hv, v), 0.0), IOR) * nl, 1.0);
+
+      // 折射：透過水面睇到嘅槽底位置
+      vec3 tr = refract(wd, n, 1.0 / IOR);
+      float d = uDepth * dep;
+      vec2 off = tr.xz * (d / max(-tr.y, 0.2));
+      vec2 fuv = vUv + vec2(off.x / uSize.x, -off.y / uSize.y);
+
+      // 焦散：Clearwater 嘅「一階透鏡」：由陽光射入水面嗰點嘅曲率決定聚光定散光
+      vec3 sunT = refract(-uSun, vec3(0.0, 1.0, 0.0), 1.0 / IOR);
+      vec2 sOff = sunT.xz * (d / max(-sunT.y, 0.2));
+      vec2 suv = fuv - vec2(sOff.x / uSize.x, -sOff.y / uSize.y);
+      // （曲率 = Clearwater rippleNormals 嘅 lap，喺 CPU 計好放喺 G 通道）
+      // 細嘅時候 ≈ Clearwater 嘅 1/(1+k·lap)；大嘅時候用 tanh 慢慢壓住，唔會一刀切成硬邊光斑／黑斑
+      float lc = -uLens * dep * texBS(uH, suv).g;
+      float caus = lc > 0.0 ? exp(uCausHi * tanh(lc / uCausHi)) : exp(uCausLo * tanh(lc / uCausLo));
+
+      // 槽底顏色 + 光線喺水入面被吸收（Beer–Lambert，Clearwater 常數）
+      vec4 fbed = texture(uBed, fuv);
+      vec3 alb = mix(uFloorShallow, uFloorDeep, clamp((fbed.r - 0.33) / 0.67, 0.0, 1.0));
+      float od = uOpt * fbed.r;
+      float Ts = 1.0 - fresnelDielectric(uSun.y, IOR);
+      vec3 Esun = vec3(uSunI * Ts * caus * max(-sunT.y, 0.0)) * exp(-SIG_T * od / max(-sunT.y, 0.3));
+      vec3 Esky = vec3(uSkyI) * exp(-(SIG_A + 0.4 * SIG_S) * od * 1.25);
+      vec3 Tv = exp(-SIG_T * od / max(-tr.y, 0.3));
+      vec3 under = alb * (Esun + Esky) * Tv + SIG_S / SIG_T * uScatter * (1.0 - Tv);
+
+      vec3 col = F * refl + (1.0 - F) * under + vec3(spec);
+      col = mix(uWall, col, wet);
+      gl_FragColor = vec4(col, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+      #include <fog_fragment>
+    }`;
+  function makeWaterMaterial() {
+    const lin = (hex) => new THREE.Color(hex); // Color(hex) 會自動轉做線性色彩
+    const uniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
+      uHScale: { value: 0.03 }, uHMax: { value: 0.045 }, uCell: { value: CELL }, uSize: { value: new THREE.Vector2(TW, TH) },
+      uSlopeGain: { value: 1.6 }, uDepth: { value: 0.08 }, uOpt: { value: 2.0 },
+      // uCausLo / uCausHi：焦散最暗 e^-0.75 ≈ 0.47 倍、最光 e^0.75 ≈ 2.1 倍（減少動態效果：約 0.6–1.6 倍）
+      uLens: { value: RM ? 10 : 15 }, uCausLo: { value: RM ? 0.5 : 0.75 }, uCausHi: { value: RM ? 0.5 : 0.75 },
+      uSpec: { value: RM ? 0 : 0.5 }, uSunI: { value: 0.95 }, uSkyI: { value: 0.18 },
+      uSun: { value: new THREE.Vector3(6, 12, 8).normalize() }, // 同 core.js 個太陽方向一樣
+      uSky: { value: lin(0xdbeafe) }, uCeil: { value: lin(0xffffff) },
+      uFloorDeep: { value: new THREE.Color(0.16, 0.42, 1.0) }, uFloorShallow: { value: new THREE.Color(0.3, 0.6, 1.0) },
+      uWall: { value: lin(0x334155) }, uScatter: { value: new THREE.Color(0.15, 0.4, 1.0) }
+    }]);
+    // 貼圖要喺 merge 之後先放入去：merge 會複製貼圖，複製品唔會跟住更新
+    uniforms.uH = { value: V.hTex }; uniforms.uBed = { value: V.bedTex };
+    return new THREE.ShaderMaterial({ uniforms, vertexShader: WATER_VS, fragmentShader: WATER_FS, fog: true });
   }
   const gridToWorld = (x, y) => [-TW / 2 + (x + 0.5) * CELL, -TH / 2 + (y + 0.5) * CELL];
 
