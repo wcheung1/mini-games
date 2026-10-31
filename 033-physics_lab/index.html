@@ -35,7 +35,7 @@
   .btn:disabled { opacity: .35; }
   .glow { animation: glow 1.4s infinite; }
   @keyframes glow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.65); } 50% { box-shadow: 0 0 0 9px rgba(245,158,11,0); } }
-  .spk { width: 40px; height: 40px; border-radius: 50%; background: var(--brand-soft); font-size: 19px; flex-shrink: 0; touch-action: manipulation; display: inline-flex; align-items: center; justify-content: center; }
+  .spk { width: 44px; height: 44px; border-radius: 50%; background: var(--brand-soft); font-size: 19px; flex-shrink: 0; touch-action: manipulation; display: inline-flex; align-items: center; justify-content: center; }
   .spk:active { transform: scale(.92); }
   .spk.big { width: 52px; height: 52px; font-size: 25px; }
   .spk.playing { background: var(--brand); animation: pulse 1s infinite; }
@@ -116,7 +116,8 @@
   .seg button:disabled { opacity: .5; }
   .opt.dim { opacity: .45; }
   body.quiz-reveal .opt { min-height: 46px; padding-top: 6px; padding-bottom: 6px; font-size: 15px; }
-  body.quiz-reveal .opt.dim { display: none; }
+  body.quiz-reveal .optrow.dim { display: none; }
+  .optrow.dim .opt { opacity: .45; }
   body.no-graph #bubble { width: min(640px, calc(100vw - 24px)); }
   .readout { padding: 3px 10px; border-radius: 10px; font-size: 13px; font-weight: 800; white-space: nowrap; pointer-events: none; background: rgba(15,23,42,.85); color: #fff; text-align: center; line-height: 1.35; }
   .readout.light { background: #fff; color: var(--ink); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
@@ -174,6 +175,8 @@
 
   #quiz { left: 50%; top: var(--top); transform: translateX(-50%); width: min(600px, calc(100vw - 24px)); padding: 16px; z-index: 30 !important; }
   #quiz.mini { width: auto; padding: 8px 16px; border-radius: 999px; }
+  #quiz.peek { width: auto; padding: 8px; border-radius: 999px; }
+  #quiz.peek #qPeek { min-height: 50px; font-size: 17px; border-radius: 999px; }
   .qhead { display: flex; align-items: center; gap: 8px; font-weight: 900; color: var(--brand); font-size: 16px; }
   #qText { font-size: 19px; font-weight: 800; line-height: 1.5; margin: 6px 0 10px; }
   .opt { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 10px 10px 12px; margin-bottom: 8px; border-radius: 16px;
@@ -183,7 +186,14 @@
   .opt:active { transform: scale(.98); }
   .opt.right { background: #dcfce7; border-color: #22c55e; }
   .opt.wrongpick { background: #fee2e2; border-color: #f87171; }
-  .opt.picked { border-color: var(--brand); }
+  .opt.picked { border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 3px rgba(79,70,229,.25); }
+  .opt.picked .k { background: #f59e0b; }
+  /* 喇叭放喺答案外面，中間留空位，避免誤撳 */
+  .optrow { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+  .optrow .opt { flex: 1; margin-bottom: 0; }
+  .optspk { width: 48px; height: 48px; font-size: 21px; }
+  #qHint { font-size: 13px; font-weight: 700; color: var(--muted); margin: -4px 0 8px; }
+  #qOk { min-height: 54px; font-size: 18px; margin-top: 2px; }
   #qBar { height: 8px; border-radius: 4px; background: #e0e7ff; overflow: hidden; margin-top: 4px; }
   #qBar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #f59e0b, #4f46e5); }
   #qResult { font-size: 22px; font-weight: 900; text-align: center; margin: 4px 0 8px; }
@@ -219,6 +229,8 @@
     #graphPanel { bottom: calc(var(--bubbleH) + 24px); width: min(420px, calc(100vw - 24px)); }
     #demoBadge { bottom: calc(var(--bubbleH) + 290px); }
   }
+  /* 窄畫面（例如 1024 闊嘅舊 iPad）：頂部列只顯示圖示，唔使分兩行 */
+  @media (max-width: 1100px) { #brand .t1, #brand .t2 { display: none; } #brand { padding: 6px 8px; } #topbar .btn { padding: 0 10px; } }
   @media (max-width: 640px) { #chart { height: 170px; } #bText { font-size: 16px; } #brand .t2 { display: none; } }
 </style>
 </head>

@@ -10,7 +10,7 @@ export default function create(ctx) {
   const clamp = THREE.MathUtils.clamp;
   const sc = (zh, en) => ({ zh, en });
 
-  const DEF = { mode: 'rope', wtype: 'trans', rf: 1, A: 0.35, wv: 2, run: false, scen: 'plane', fq: 3, gap: 0.6, sep: 1.6, sf: 2, sA: 0.6, air: true, depth: 300 };
+  const DEF = { mode: 'rope', wtype: 'trans', rf: 1, A: 0.35, wv: 2, run: false, scen: 'plane', fq: 3, gap: 0.6, sep: 1.6, sf: 2, sA: 0.6, air: true, depth: 300, slow: false };
   const p = { ...DEF };
   const SCEN = ['plane', 'reflect', 'concave', 'convex', 'refract', 'gap', 'two'];
   const SCN = { plane: sc('直線波', 'Straight waves'), reflect: sc('平面障礙物', 'Flat barrier'), concave: sc('凹面', 'Concave'), convex: sc('凸面', 'Convex'), refract: sc('深水→淺水', 'Deep → shallow'), gap: sc('窄縫', 'Narrow gap'), two: sc('兩個波源', 'Two sources') };
@@ -26,7 +26,8 @@ export default function create(ctx) {
     { key: 'sf', label: sc('🎵 音調（頻率）', '🎵 Pitch (frequency)'), min: 1, max: 5, step: 1, unit: '', fmt: (v) => [220, 330, 440, 660, 880][v - 1] + ' Hz' },
     { key: 'sA', label: sc('🔊 響度（振幅）', '🔊 Loudness (amplitude)'), min: 0.2, max: 1, step: 0.1, unit: '' },
     { key: 'air', type: 'toggle', label: sc('💨 有空氣', '💨 Air present'), hint: sc('關掉 = 真空', 'Off = vacuum') },
-    { key: 'depth', label: sc('🌊 海床深度', '🌊 Sea depth'), min: 100, max: 600, step: 50, unit: 'm' }
+    { key: 'depth', label: sc('🌊 海床深度', '🌊 Sea depth'), min: 100, max: 600, step: 50, unit: 'm' },
+    { key: 'slow', type: 'toggle', label: sc('🐢 慢動作', '🐢 Slow motion'), hint: sc('水波郁得慢一半，睇得更清楚', 'Ripples move at half speed so they are easier to watch') }
   ];
   const graphs = [
     { id: 'yx', mode: 'xy', tab: sc('位移–距離', 'Displacement–distance'), y: sc('位移 (m)', 'displacement (m)'), x: sc('距離 x (m)', 'distance x (m)'), fixed: [-0.7, 0.7], xRange: [0, 10],
@@ -35,10 +36,10 @@ export default function create(ctx) {
     { id: 'probe', tab: sc('探測點', 'Probe'), y: sc('水面高度', 'water height'), fixed: [-2.5, 2.5], series: [['probe', sc('探測點', 'Probe'), C.blue]] },
     { id: 'mic', tab: sc('咪高峰', 'Microphone'), y: sc('空氣粒子位移', 'air particle displacement'), fixed: [-1.2, 1.2], span: 4, series: [['mic', sc('咪高峰', 'Microphone'), C.teal]] }
   ];
-  const ALL = params.map((q) => q.key);
+  const ALL = params.map((q) => q.key).filter((k) => k !== 'slow');
 
   /* ---------------- 狀態 ---------------- */
-  const S = { simT: 0, lastSample: -1, t0: 0, tw: 0 };
+  const S = { simT: 0, lastSample: -1, t0: 0, tw: 0, acc: 0 };
   const NB = 40, X0 = -5, DX = 10 / (NB - 1);
   const H = new Hist(['bead', 'probe', 'mic']);
   let ghost = null;
@@ -51,6 +52,10 @@ export default function create(ctx) {
   const id = (x, y) => y * NX + x;
   let srcs = [], lineSrc = false, nStep = 0, probe = null, focus = null;
   const K_DEEP = 0.4, K_SHALLOW = 0.13;
+  // 每秒計幾多步：以前每秒約 150 步，水紋每秒閃 4 次以上，容易眼花頭暈。
+  // 而家每秒 50 步（頻率 1–5 → 每秒約 0.9–2.1 個波），慢動作再減半；iPad 開咗「減少動態效果」都會自動慢啲。
+  const RM = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tankRate = () => (RM ? 32 : 50) * (p.slow ? 0.5 : 1);
   const fStep = () => 0.012 + 0.006 * p.fq, lamCells = () => Math.sqrt(K_DEEP) / fStep();
   for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) { const e = Math.min(x, y, NX - 1 - x, NY - 1 - y); damp[id(x, y)] = e < 12 ? 0.12 * Math.pow((12 - e) / 12, 2) : 0; }
   function buildScenario() {
@@ -130,7 +135,7 @@ export default function create(ctx) {
       say: sc('我哋放一塊斜斜嘅平面障礙物。', 'We put a flat barrier in at an angle.'), setup: { mode: 'tank', scen: 'plane', fq: 3 }, lock: ALL,
       quiz: { q: sc('波撞到平面障礙物，反射角同入射角有咩關係？', 'When waves hit a flat barrier, how does the angle of reflection compare with the angle of incidence?'),
         opts: [sc('兩個角相等', 'They are equal'), sc('反射角大啲', 'The reflection angle is bigger'), sc('冇關係', 'No relationship')], ans: 0,
-        run: [['set', 'scen', 'reflect']], watch: 4,
+        run: [['set', 'scen', 'reflect']], watch: 9,
         why: sc('答案係：相等！好似波子撞牆彈返咁，入射角等於反射角。反射之後，波速、頻率同波長都冇變。', 'The answer: they are equal! Like a marble bouncing off a wall, the angle of incidence equals the angle of reflection. The speed, frequency and wavelength don’t change.') },
       chain: [sc('波撞到障礙物', 'Waves hit the barrier'), sc('入射角 = 反射角', 'Incidence = reflection'), sc('波長不變', 'Same wavelength')], items: [56] },
     { id: 'r-curve', who: 'ming', title: sc('凹面與凸面', 'Concave and convex'),
@@ -142,7 +147,7 @@ export default function create(ctx) {
       say: sc('右邊有一塊斜斜嘅淺水區，水波喺淺水會走得慢啲。', 'On the right is a sloping shallow region, where waves travel more slowly.'), setup: { mode: 'tank', scen: 'plane', fq: 3 }, lock: ALL,
       quiz: { q: sc('波由深水去到淺水，波長會點？', 'When waves go from deep to shallow water, what happens to the wavelength?'),
         opts: [sc('變長', 'It gets longer'), sc('變短', 'It gets shorter'), sc('唔變', 'It stays the same')], ans: 1,
-        run: [['set', 'scen', 'refract']], watch: 5,
+        run: [['set', 'scen', 'refract']], watch: 9,
         why: sc('答案係：變短！頻率由波源決定，唔會變；波速慢咗，所以波長變短。斜斜咁入淺水，前進方向仲會轉彎，叫折射。', 'The answer: shorter! The frequency is set by the source and doesn’t change; the speed drops, so the wavelength shortens. Entering at an angle, the waves also change direction: that is refraction.') },
       chain: [sc('淺水波速較慢', 'Slower in shallow water'), sc('頻率不變', 'Same frequency'), sc('波長變短、方向轉彎', 'Shorter wavelength, direction bends')], items: [59] },
     { id: 'r-gap', who: 'chan', title: sc('衍射：估一估', 'Diffraction: predict'),
@@ -150,7 +155,7 @@ export default function create(ctx) {
       setup: { mode: 'tank', scen: 'gap', gap: 2.1, fq: 3 }, lock: ALL,
       quiz: { q: sc('條縫越窄，波穿過之後會點？', 'With a narrower gap, what happens to the waves after they pass through?'),
         opts: [sc('散得越開', 'They spread out more'), sc('散得越少', 'They spread out less'), sc('冇波穿過', 'No waves get through')], ans: 0,
-        run: [['set', 'gap', 0.6]], watch: 5,
+        run: [['set', 'gap', 0.6]], watch: 8,
         why: sc('答案係：散得越開！波穿過縫隙或者繞過障礙物會散開，叫衍射。縫嘅闊度同波長差唔多，衍射最明顯。所以喺牆後面都聽到人講嘢！',
           'The answer: they spread out more! Waves spread out through gaps and round obstacles: diffraction. It is strongest when the gap is about one wavelength wide. That is why you can hear people round a corner!') },
       chain: [sc('縫寬 ≈ 波長', 'Gap ≈ wavelength'), sc('衍射最明顯', 'Strongest diffraction'), sc('波向四面散開', 'Waves spread out')], items: [60] },
@@ -183,7 +188,7 @@ export default function create(ctx) {
     { id: 'i-sep', who: 'chan', title: sc('移近波源：估一估', 'Closer sources: predict'),
       say: sc('我哋將兩個波源移近啲。', 'We move the two sources closer together.'), setup: { mode: 'tank', scen: 'two', sep: 2.4, fq: 3 }, lock: ALL,
       quiz: { q: sc('啲平靜嘅節線會點？', 'What happens to the calm nodal lines?'), opts: [sc('散開啲，數目少咗', 'They spread out and there are fewer'), sc('密咗，數目多咗', 'They get closer and there are more'), sc('唔變', 'No change')], ans: 0,
-        run: [['set', 'sep', 0.8]], watch: 5,
+        run: [['set', 'sep', 0.8]], watch: 8,
         why: sc('答案係：散開啲！波源越近，程差改變得越慢，節線之間就越闊。降噪耳筒都係用相消干涉，將噪音抵消。', 'The answer: they spread out! With closer sources, the path difference changes more slowly, so the nodal lines are further apart. Noise-cancelling headphones use destructive interference to cancel noise.') },
       items: [61] },
     { id: 'i-sum', who: 'chan', title: sc('總結', 'Summary'),
@@ -248,8 +253,8 @@ export default function create(ctx) {
     V.tex = new THREE.DataTexture(new Uint8Array(NX * NY * 4), NX, NY, THREE.RGBAFormat); V.tex.needsUpdate = true; V.tex.magFilter = THREE.LinearFilter;
     V.tex.colorSpace = THREE.SRGBColorSpace;
     const geo = new THREE.PlaneGeometry(TW, TH, 80, 48); geo.rotateX(-Math.PI / 2);
-    V.water = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: V.tex, roughness: 0.25, metalness: 0.1 }));
-    V.water.position.y = TY + 0.02; tg.add(V.water);
+    V.water = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: V.tex, roughness: 0.6, metalness: 0 }));
+    V.water.position.y = TY + 0.07; tg.add(V.water); // 水面要高過槽底：以前波谷會凹穿槽底，出現郁動嘅深灰色斑
     V.walls = new THREE.Group(); tg.add(V.walls);
     V.probe = mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 10), std(0xf59e0b, 0.4), 0, TY + 0.3, 0, tg); V.probe.visible = false;
     V.probeTag = tag('readout', V.probe, 0, 0.6, 0);
@@ -300,14 +305,17 @@ export default function create(ctx) {
     for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
       const i = id(x, y), j = ((NY - 1 - y) * NX + x) * 4;
       if (!mask[i]) { d[j] = 51; d[j + 1] = 65; d[j + 2] = 85; d[j + 3] = 255; continue; }
+      // 似真水面：對比柔和；用水面斜度做「光由左上方照落嚟」嘅明暗，有立體感
       const v = clamp(u[i] * 0.6, -1, 1), sh = kk[i] < K_DEEP ? 1 : 0;
-      d[j] = clamp(40 + sh * 25 + v * 150, 0, 255); d[j + 1] = clamp(120 + sh * 30 + v * 130, 0, 255); d[j + 2] = clamp(200 + v * 60, 0, 255); d[j + 3] = 255;
+      const gx = (mask[i + 1] ? u[i + 1] : u[i]) - (mask[i - 1] ? u[i - 1] : u[i]), gy = (mask[i + NX] ? u[i + NX] : u[i]) - (mask[i - NX] ? u[i - NX] : u[i]);
+      const lit = clamp(-(gx + gy) * 0.5 * Math.sqrt(kk[i] / K_DEEP), -1, 1); // 淺水波長短、斜度大：按比例減弱，免得條紋太刺眼
+      d[j] = clamp(46 + sh * 40 + v * 58 + lit * 80, 0, 255); d[j + 1] = clamp(128 + sh * 30 + v * 58 + lit * 80, 0, 255); d[j + 2] = clamp(178 - sh * 10 + v * 42 + lit * 60, 0, 255); d[j + 3] = 255;
     }
     V.tex.needsUpdate = true;
     for (let k = 0; k < pos.count; k++) {
       const px = pos.getX(k), pz = pos.getZ(k);
       const gx = clamp(Math.round((px + TW / 2) / CELL), 0, NX - 1), gy = clamp(Math.round((pz + TH / 2) / CELL), 0, NY - 1);
-      pos.setY(k, mask[id(gx, gy)] ? u[id(gx, gy)] * 0.05 : 0);
+      pos.setY(k, mask[id(gx, gy)] ? clamp(u[id(gx, gy)] * 0.03, -0.045, 0.045) : 0);
     }
     pos.needsUpdate = true;
   }
@@ -334,8 +342,8 @@ export default function create(ctx) {
       V.links.draw(segs);
     } else if (p.mode === 'tank') {
       if (S.tankDirty) rebuildWalls();
-      const steps = clamp(Math.round(dt * 60 * 2.5), 1, 8);
-      for (let s = 0; s < steps; s++) stepTank();
+      S.acc = Math.min(S.acc + dt * tankRate(), 4);
+      while (S.acc >= 1) { stepTank(); S.acc -= 1; }
       paintTank();
       const amp = Math.sin(2 * Math.PI * fStep() * nStep);
       V.bar.visible = lineSrc; V.bar.position.y = 0.9 + amp * 0.04;
@@ -437,10 +445,10 @@ export default function create(ctx) {
         base: { mode: 'rope' }, params: ['wtype', 'rf', 'A', 'wv'], graphs: ['yx', 'yt'], stages: basicsStages },
       { id: 'ripple', icon: '💧', subs: ['3.1'], items: [56, 57, 58, 59, 60], title: sc('水波槽：反射、折射和衍射', 'Ripple tank: reflection, refraction and diffraction'),
         desc: sc('平面和曲面反射、深水去淺水、窄縫衍射。', 'Flat and curved reflection, deep to shallow water, and diffraction through a gap.'),
-        base: { mode: 'tank' }, params: ['scen', 'fq', 'gap'], graphs: [], camera: { pos: [0, 7.6, 5.6], target: [0, 0.8, 0.3] }, buttons: [{ label: sc('🔄 重設', '🔄 Reset'), act: ['again'] }], stages: rippleStages },
+        base: { mode: 'tank' }, params: ['scen', 'fq', 'gap', 'slow'], graphs: [], camera: { pos: [0, 7.6, 5.6], target: [0, 0.8, 0.3] }, buttons: [{ label: sc('🔄 重設', '🔄 Reset'), act: ['again'] }], stages: rippleStages },
       { id: 'interf', icon: '🎵', subs: ['3.1'], items: [61, 62, 63, 64], title: sc('干涉與程差', 'Interference and path difference'),
         desc: sc('兩個波源相遇：相長、相消，用程差預測。', 'Two sources meet: constructive and destructive interference, predicted by path difference.'),
-        base: { mode: 'tank', scen: 'two' }, params: ['sep', 'fq'], graphs: ['probe'], camera: { pos: [0, 7.6, 5.6], target: [0, 0.8, 0.3] }, buttons: [{ label: sc('🔄 重設', '🔄 Reset'), act: ['again'] }], stages: interfStages },
+        base: { mode: 'tank', scen: 'two' }, params: ['sep', 'fq', 'slow'], graphs: ['probe'], camera: { pos: [0, 7.6, 5.6], target: [0, 0.8, 0.3] }, buttons: [{ label: sc('🔄 重設', '🔄 Reset'), act: ['again'] }], stages: interfStages },
       { id: 'sound', icon: '🔊', subs: ['3.3'], items: [76, 77, 78], title: sc('聲音與超聲波', 'Sound and ultrasound'),
         desc: sc('聲音是縱波，太空聽不到聲，用超聲波量海深。', 'Sound is a longitudinal wave, space is silent, and ultrasound measures the sea.'),
         base: { mode: 'sound' }, params: ['sf', 'sA', 'air', 'depth'], graphs: ['mic'],

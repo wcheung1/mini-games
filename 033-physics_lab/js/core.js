@@ -52,6 +52,8 @@ const I18N = {
     yourPick: '你揀咗：{x}。我哋做實驗睇吓！', timeUp: '時間到！一齊睇吓答案。',
     correct: '🎉 答對了！', wrong: '💪 差一點點！', timeUpShort: '⏰ 時間到', correctSay: '答啱喇，好叻！', wrongSay: '唔緊要，差少少！',
     watching: '🔬 實驗進行中…', continue: '繼續 ▶',
+    peek: '👀 看看實驗', peekBack: '🤔 返回問題',
+    confirm: '✅ 確定答案', pickHint: '先揀一個答案，再按「✅ 確定答案」',
     advOn: '🔬 進階模式：開（多了公式圖表）', advOff: '🔬 進階模式：關',
     skipPick: '唔估都冇問題，我哋一齊做實驗，睇吓結果係點！', revealShort: '👀 實驗結果', watchWait: '🔬 實驗進行中，請等結果出來',
     finishTitle: '完成「{name}」！', finishStars: '你答對了 {a} / {b} 題', finishSay: '恭喜你完成{name}！你答對咗 {a} 題，總共 {b} 題。',
@@ -80,6 +82,8 @@ const I18N = {
     yourPick: "You picked: {x}. Let's test it!", timeUp: "Time's up! Let's see the answer.",
     correct: '🎉 Correct!', wrong: '💪 Almost!', timeUpShort: "⏰ Time's up", correctSay: 'Correct, well done!', wrongSay: 'Nice try, almost there!',
     watching: '🔬 Experiment running…', continue: 'Continue ▶',
+    peek: '👀 See the experiment', peekBack: '🤔 Back to the question',
+    confirm: '✅ That’s my answer', pickHint: 'Pick an answer, then tap “✅ That’s my answer”',
     advOn: '🔬 Advanced: on (extra formula graphs)', advOff: '🔬 Advanced: off',
     skipPick: "No guess? That's fine. Let's do the experiment and see what happens!", revealShort: "👀 Here's the result", watchWait: '🔬 The experiment is still running. Wait for the result',
     finishTitle: '"{name}" complete!', finishStars: 'You got {a} of {b} questions right', finishSay: 'Congratulations on finishing {name}! You got {a} out of {b} questions right.',
@@ -430,7 +434,7 @@ canvas.addEventListener('pointermove', (e) => { if (captured === e.pointerId && 
 const pUp = (e) => {
   pointers.delete(e.pointerId);
   if (captured === e.pointerId) { captured = null; controls.enabled = true; if (bench().pointerUp) bench().pointerUp(e, setRay(e)); tapStart = null; return; }
-  if (tapStart && e.type === 'pointerup' && Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y) < 10 && performance.now() - tapStart.t < 450) {
+  if (tapStart && e.type === 'pointerup' && Math.hypot(e.clientX - tapStart.x, e.clientY - tapStart.y) < 18 && performance.now() - tapStart.t < 700) {
     const ray = setRay(e);
     if (!(bench().tap && bench().tap(ray))) worldTap(ray);
   }
@@ -822,7 +826,7 @@ const Run = {
     this.i = Math.max(0, Math.min(i, stages.length - 1));
     const st = this.st = stages[this.i];
     this.narrDone = false; this.goalDone = false; this.demoDone = false; this.enteredAt = performance.now();
-    this.quiz = st.quiz ? { phase: 'ask', pick: null, correct: null, revealSaid: false, skipped: false } : null;
+    this.quiz = st.quiz ? { phase: 'ask', pick: null, sel: null, peek: false, correct: null, revealSaid: false, skipped: false } : null;
     Info.hide(); $('#done').classList.add('is-hidden');
     if (this.toolsByDemo) { openTools(false); this.toolsByDemo = false; }
     if (st.setup) this.lab.apply({ ...(this.lesson.base || {}), ...st.setup });
@@ -848,7 +852,7 @@ const Run = {
   next() {
     const q = this.quiz;
     // 估一估：唔揀答案都要做完個實驗、睇到結果，先可以去下一步
-    if (q && q.phase === 'ask') return this.answer(null, true);
+    if (q && q.phase === 'ask') return q.sel != null ? this.answer(q.sel) : this.answer(null, true);
     if (q && q.phase === 'watch') { toast(t('watchWait')); return; }
     if (this.i < this.lesson.stages.length - 1) this.go(this.i + 1); else this.finish();
   },
@@ -1008,7 +1012,7 @@ function startCountdown() {
   bar.style.transition = 'none'; bar.style.width = '100%'; void bar.offsetWidth;
   bar.style.transition = `width ${dur}s linear`; bar.style.width = '0%';
   $('#qBar').classList.remove('is-hidden');
-  cdTimer = setTimeout(() => Run.answer(null), dur * 1000);
+  cdTimer = setTimeout(() => Run.answer(Run.quiz ? Run.quiz.sel : null), dur * 1000); // 時間到：揀咗但未確定，都當佢係答案
 }
 function stopCountdown() {
   clearTimeout(cdTimer); cdTimer = null;
@@ -1027,7 +1031,7 @@ function renderStage() {
   $('#condRow').classList.toggle('is-hidden', !st.cond);
   $('#conds').innerHTML = (st.cond || []).map((c) => `<span class="chip">${esc(L(c))}</span>`).join('');
   const q = Run.quiz;
-  document.body.classList.toggle('quiz-open', !!q && q.phase !== 'watch');
+  document.body.classList.toggle('quiz-open', !!q && q.phase !== 'watch' && !q.peek);
 }
 function renderBubble() {
   const st = Run.st, q = Run.quiz;
@@ -1053,25 +1057,43 @@ function renderQuiz() {
   const Q = Run.st.quiz;
   el.classList.remove('is-hidden');
   el.classList.toggle('mini', q.phase === 'watch');
-  if (q.phase === 'watch') {
+  el.classList.toggle('peek', q.phase === 'ask' && q.peek);
+  if (q.phase === 'ask' && q.peek) {
+    el.innerHTML = `<button id="qPeek" class="btn btn-primary" data-noread>${esc(t('peekBack'))}</button>`;
+  } else if (q.phase === 'watch') {
     el.innerHTML = `<div class="qhead">${esc(t('watching'))} <span class="text-slate-500 font-bold">${q.pick == null ? '' : '· ' + (q.pick + 1) + '. ' + esc(L(Q.opts[q.pick]))}</span></div>`;
   } else {
     const rv = q.phase === 'reveal';
-    el.innerHTML = `<div class="qhead">${esc(t('quizTitle'))}<div class="flex-1"></div><button class="spk" data-read="quizq" aria-label="read">🔊</button></div>
+    el.innerHTML = `<div class="qhead">${esc(t('quizTitle'))}<div class="flex-1"></div>${rv ? '' : `<button id="qPeek" class="btn btn-sm" data-noread>${esc(t('peek'))}</button>`}<button class="spk" data-read="quizq" aria-label="read">🔊</button></div>
       ${rv ? `<div id="qResult" style="color:${q.pick == null ? '#4f46e5' : q.correct ? '#16a34a' : '#b45309'}">${esc(q.pick == null ? t(q.skipped ? 'revealShort' : 'timeUpShort') : q.correct ? t('correct') : t('wrong'))}</div>` : ''}
       <div id="qText">${esc(L(Q.q))}</div>
-      ${Q.opts.map((o, k) => `<button class="opt ${rv && k === Q.ans ? 'right' : ''} ${rv && k === q.pick && k !== Q.ans ? 'wrongpick' : ''} ${rv && k !== Q.ans && k !== q.pick ? 'dim' : ''}" data-k="${k}" ${rv ? 'disabled' : ''}>
-        <span class="k">${rv && k === Q.ans ? '✓' : rv && k === q.pick ? '✗' : k + 1}</span><span class="tx">${esc(L(o))}</span>
-        <span class="spk" data-read="opt:${k}" aria-label="read">🔊</span></button>`).join('')}
+      ${rv ? '' : `<div id="qHint">${esc(t('pickHint'))}</div>`}
+      ${Q.opts.map((o, k) => `<div class="optrow ${rv && k !== Q.ans && k !== q.pick ? 'dim' : ''}">
+        <button class="opt ${rv && k === Q.ans ? 'right' : ''} ${rv && k === q.pick && k !== Q.ans ? 'wrongpick' : ''} ${!rv && k === q.sel ? 'picked' : ''}" data-k="${k}" ${rv ? 'disabled' : ''}>
+        <span class="k">${rv && k === Q.ans ? '✓' : rv && k === q.pick ? '✗' : k + 1}</span><span class="tx">${esc(L(o))}</span></button>
+        <button class="spk optspk" data-read="opt:${k}" aria-label="read">🔊</button></div>`).join('')}
+      ${rv ? '' : `<button id="qOk" class="btn btn-primary w-full ${q.sel == null ? 'is-hidden' : ''}" data-noread>${esc(t('confirm'))}</button>`}
       <div id="qBar" class="is-hidden"><i></i></div>
       ${rv ? `<button id="qCont" class="btn btn-primary w-full mt-1 ${q.revealSaid && !S.auto ? 'glow' : ''}">${esc(t('continue'))}</button>` : ''}`;
   }
-  document.body.classList.toggle('quiz-open', q.phase !== 'watch');
+  document.body.classList.toggle('quiz-open', q.phase !== 'watch' && !q.peek);
   document.body.classList.toggle('quiz-reveal', q.phase === 'reveal');
-  if (q.phase === 'ask' && Run.narrDone && S.auto && !Speech.paused) startCountdown();
+  if (q.phase === 'ask' && !q.peek && Run.narrDone && S.auto && !Speech.paused) startCountdown(); else if (q.peek) stopCountdown();
 }
+// 撳答案＝先揀（亮起＋讀出），再撳「確定答案」先算數，避免小朋友誤撳
 $('#quiz').addEventListener('click', (e) => {
-  const o = e.target.closest('.opt'); if (o && !o.disabled) { Sfx.unlock(); Run.answer(+o.dataset.k); return; }
+  const q = Run.quiz;
+  const o = e.target.closest('.opt');
+  if (o && !o.disabled && q && q.phase === 'ask') {
+    Sfx.unlock(); Sfx.play('tick');
+    const k = +o.dataset.k; q.sel = k;
+    $$('#quiz .opt').forEach((b) => b.classList.toggle('picked', +b.dataset.k === k));
+    $('#qOk').classList.remove('is-hidden');
+    Speech.sideSay(() => fmt(t('optN'), { n: k + 1 }) + L(Run.st.quiz.opts[k]), 'opt' + k);
+    return;
+  }
+  if (e.target.closest('#qOk') && q && q.phase === 'ask' && q.sel != null) { Sfx.unlock(); Run.answer(q.sel); return; }
+  if (e.target.closest('#qPeek') && q && q.phase === 'ask') { q.peek = !q.peek; renderQuiz(); renderStage(); return; } // 收起問題睇實驗：暫停倒數
   if (e.target.closest('#qCont')) Run.next();
 });
 
