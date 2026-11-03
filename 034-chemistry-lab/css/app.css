@@ -1,0 +1,100 @@
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Noto Sans TC", system-ui, -apple-system, "PingFang HK", "Microsoft JhengHei", sans-serif;
+  background: #eef7ff;
+  color: #1e293b;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+button { touch-action: manipulation; -webkit-user-select: none; user-select: none; cursor: pointer; font-family: inherit; }
+.app-h { height: 100vh; height: 100dvh; }
+
+/* 實驗頁版面：直向 = 上 3D 下說明；橫向 = 左 3D 右說明 */
+.lesson-main { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.stage-wrap { position: relative; height: 50vh; height: 50dvh; flex: none; overflow: hidden; }
+.lesson-aside { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+@media (orientation: landscape) and (min-width: 700px) {
+  .lesson-main { flex-direction: row; }
+  .stage-wrap { height: auto; flex: 1; }
+  .lesson-aside { flex: none; width: min(440px, 42vw); }
+}
+.stage-wrap canvas { display: block; width: 100%; height: 100%; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+
+/* 提示手指 */
+.hint-hand { position: absolute; left: 0; top: 0; z-index: 6; font-size: 44px; line-height: 1; pointer-events: none; opacity: 0;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); will-change: transform, opacity; }
+
+/* 喇叭動畫 */
+.wave1, .wave2 { animation: wave 0.9s ease-in-out infinite; }
+.wave2 { animation-delay: .25s; }
+@keyframes wave { 0%,100% { opacity: .25 } 50% { opacity: 1 } }
+
+.mouth-talk { transform-box: fill-box; transform-origin: center; animation: talk .26s ease-in-out infinite alternate; }
+@keyframes talk { from { transform: scaleY(.35) } to { transform: scaleY(1) } }
+.lily-float { animation: float 3.2s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-4px) } }
+
+.eq { display: inline-flex; gap: 2px; align-items: flex-end; height: 16px; }
+.eq i { width: 3px; height: 4px; background: #fbbf24; border-radius: 2px; }
+.eq.on i { animation: eq .8s ease-in-out infinite; }
+.eq.on i:nth-child(2) { animation-delay: .2s } .eq.on i:nth-child(3) { animation-delay: .4s }
+@keyframes eq { 0%,100% { height: 4px } 50% { height: 16px } }
+
+.readmode-on .rm-target { outline: 3px dashed #f59e0b; outline-offset: 2px; }
+
+.pop-in { animation: pop .35s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes pop { from { transform: scale(.94); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+
+.pulse-go { animation: pulsego 1.2s ease-in-out infinite; }
+@keyframes pulsego { 0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.55) } 50% { box-shadow: 0 0 0 10px rgba(16,185,129,0) } }
+
+.tour-focus { outline: 4px solid #f59e0b; outline-offset: 4px; transition: outline-color .3s; }
+
+input[type=range].day-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 14px; border-radius: 999px; background: linear-gradient(90deg,#cbd5e1,#b45309); outline: none; }
+input[type=range].day-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 32px; height: 32px; border-radius: 50%; background: #fff; border: 4px solid #ea580c; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
+input[type=range].day-slider::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; background: #fff; border: 4px solid #ea580c; }
+
+.fx-canvas { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+
+#boot { position: fixed; inset: 0; display: grid; place-items: center; text-align: center; font-weight: 700; color: #0369a1; }
+#boot .dot { width: 14px; height: 14px; border-radius: 50%; background: #38bdf8; display: inline-block; margin: 0 4px; animation: eq 1s infinite; }
+
+/* 化學式：下標同上標 */
+.chem sub, .chem sup { font-size: .72em; line-height: 0; }
+.chem sub { vertical-align: -.25em; } .chem sup { vertical-align: .38em; }
+.eq-sym { font-family: "Noto Sans TC", system-ui, sans-serif; letter-spacing: .01em; }
+
+/* 無障礙：字體大小（Tailwind 用 rem，所以改根字體就成頁跟住放大） */
+html.ts-lg { font-size: 112.5%; }
+html.ts-xl { font-size: 125%; }
+/* 高對比：淺色字變深、框線加粗 */
+html.hc body { background: #fff; color: #000; }
+html.hc [class*="text-slate-4"], html.hc [class*="text-slate-5"], html.hc [class*="text-slate-6"] { color: #111827 !important; }
+html.hc [class*="ring-slate-1"], html.hc [class*="ring-slate-2"] { --tw-ring-color: #334155 !important; }
+html.hc .opacity-60, html.hc .opacity-70 { opacity: 1 !important; }
+/* 減少動畫：設定開咗，或者部機開咗「減少動態效果」 */
+html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+/* 鍵盤操作：清楚嘅 focus 框 */
+:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+.skip-link { position: fixed; left: 8px; top: -60px; z-index: 100; padding: 10px 14px; border-radius: 12px; background: #1e293b; color: #fff; font-weight: 700; }
+.skip-link:focus { top: 8px; }
+
+/* 列印（證書、老師報告）：只印 .print-area */
+@media print {
+  body { background: #fff; }
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; }
+  .no-print { display: none !important; }
+  @page { margin: 12mm; }
+}
+
+/* 對比度：白字底色用深一級（Tailwind 變數；html:root 特異度高過 Tailwind 嘅 :root） */
+html:root {
+  --color-emerald-500: #047857; --color-sky-500: #0369a1; --color-amber-500: #b45309;
+  --color-indigo-600: #4338ca; --color-slate-500: #475569; --color-slate-400: #5b6b80;
+}

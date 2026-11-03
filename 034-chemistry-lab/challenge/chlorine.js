@@ -1,0 +1,58 @@
+/* 6.1 漂白水嘅秘密：升中挑戰（電解濃鹽水、陽極同陰極、氣體測試、製造次氯酸鈉） */
+export default {
+  steps: [
+    { tag: 'intro', zh: '升中挑戰開始！電解濃鹽水係化學工業好重要嘅一步，一次過整出氯氣、氫氣同氫氧化鈉。今次我哋會用陽極、陰極呢啲正式講法，寫出半方程式，再睇下點樣用氯氣整漂白水。安全：氯氣有毒，只可以由老師喺抽氣櫃入面做！',
+      en: 'The Secondary Challenge begins! Electrolysing concentrated brine is a key step in the chemical industry: it makes chlorine, hydrogen and sodium hydroxide all at once. This time we will use the proper words anode and cathode, write half-equations, and see how chlorine is turned into bleach. Safety: chlorine is poisonous, so only a teacher may do this, inside a fume cupboard!' },
+    { tag: 'try', action: { id: 'power', events: ['pw_'] }, zh: '撳開關通電。留意正極（陽極）同負極（陰極）各自收集到咩顏色嘅氣體，邊邊收集得多啲。',
+      en: 'Tap the switch to turn on the power. Notice the colour of the gas collected at the positive electrode (anode) and at the negative electrode (cathode), and which side collects more.' },
+    { tag: 'term', zh: '電解嘅正式名詞：', en: 'Key terms for electrolysis:',
+      terms: [
+        { zh: '電解', en: 'electrolysis' },
+        { zh: '濃鹽水（濃氯化鈉溶液）', en: 'concentrated brine (sodium chloride solution)' },
+        { zh: '陽極（接正極）', en: 'anode (positive)' },
+        { zh: '陰極（接負極）', en: 'cathode (negative)' },
+        { zh: '氯氣 [[Cl2]]', en: 'chlorine gas' },
+        { zh: '氫氣 [[H2]]', en: 'hydrogen gas' },
+        { zh: '次氯酸鈉 [[NaOCl]]', en: 'sodium hypochlorite' },
+      ] },
+    { tag: 'equation', zh: '帶負電嘅氯離子去陽極，失去電子變成氯氣；水喺陰極得到電子，放出氫氣，留低氫氧根離子。加埋就係成個電解反應。',
+      en: 'The negative chloride ions go to the anode and lose electrons to become chlorine gas; at the cathode, water gains electrons and gives off hydrogen, leaving hydroxide ions behind. Put together, they make the overall reaction.',
+      eq: [
+        { word: { zh: '陽極：氯離子 → 氯氣 ＋ 電子', en: 'Anode: chloride ions → chlorine + electrons' }, sym: '2[[Cl^-]](aq) → [[Cl2]](g) + 2[[e^-]]' },
+        { word: { zh: '陰極：水 ＋ 電子 → 氫氣 ＋ 氫氧根離子', en: 'Cathode: water + electrons → hydrogen + hydroxide ions' }, sym: '2[[H2O]](l) + 2[[e^-]] → [[H2]](g) + 2[[OH^-]](aq)' },
+        { word: { zh: '總反應：氯化鈉 ＋ 水 → 氫氧化鈉 ＋ 氫氣 ＋ 氯氣', en: 'Overall: sodium chloride + water → sodium hydroxide + hydrogen + chlorine' }, sym: '2[[NaCl]](aq) + 2[[H2O]](l) → 2[[NaOH]](aq) + [[H2]](g) + [[Cl2]](g)' },
+      ] },
+    { tag: 'try', action: { id: 'test', events: ['ts_'] }, zh: '用測試認出兩種氣體：將濕嘅藍色石蕊試紙拖去正極試管，再將點著嘅木條拖去負極試管。',
+      en: 'Identify the two gases: drag the damp blue litmus paper to the positive tube, then drag the burning splint to the negative tube.' },
+    { tag: 'observe', zh: '氯氣測試：濕藍色石蕊試紙先變紅，再漂白變白。因為氯氣溶落水，生成鹽酸同次氯酸：鹽酸令試紙變紅，次氯酸再將顏色漂走。氫氣測試：點著嘅木條會「噗」一聲。',
+      en: 'Test for chlorine: damp blue litmus paper turns red, then is bleached white. Chlorine dissolves in water to form hydrochloric acid and hypochlorous acid: the hydrochloric acid turns the paper red, then the hypochlorous acid bleaches the colour away. Test for hydrogen: a burning splint gives a squeaky pop.',
+      eq: [
+        { word: { zh: '氯氣 ＋ 水 → 鹽酸 ＋ 次氯酸', en: 'chlorine + water → hydrochloric acid + hypochlorous acid' }, sym: '[[Cl2]](g) + [[H2O]](l) → [[HCl]](aq) + [[HOCl]](aq)' },
+      ] },
+    { tag: 'first', zh: '點樣由氯氣整漂白水？將氯氣通入凍嘅稀氫氧化鈉溶液，就會生成次氯酸鈉，即係漂白水嘅主要成分。兩樣原料都係電解濃鹽水得嚟，所以工廠好方便。',
+      en: 'How is bleach made from chlorine? Bubble chlorine into cold, dilute sodium hydroxide solution and it forms sodium hypochlorite, the main ingredient of bleach. Both starting materials come from electrolysing brine, which is very handy for factories.',
+      eq: [
+        { word: { zh: '氯氣 ＋ 氫氧化鈉 → 氯化鈉 ＋ 次氯酸鈉 ＋ 水', en: 'chlorine + sodium hydroxide → sodium chloride + sodium hypochlorite + water' }, sym: '[[Cl2]](g) + 2[[NaOH]](aq) → [[NaCl]](aq) + [[NaOCl]](aq) + [[H2O]](l)' },
+      ] },
+    { tag: 'exam', zh: '考試貼士：講氯氣嘅測試，要寫齊「濕嘅藍色石蕊試紙先變紅，再變白」，淨係寫變白會扣分。陽極收集到嘅氯氣比陰極嘅氫氣少，因為有啲氯氣溶咗落水。安全：一定要喺抽氣櫃入面做，戴護目鏡，千祈唔好聞氯氣。',
+      en: 'Exam tip: for the chlorine test, write the whole result: "damp blue litmus paper turns red, then white". Writing only "turns white" loses marks. Less chlorine collects at the anode than hydrogen at the cathode, because some chlorine dissolves in the water. Safety: always work in a fume cupboard, wear goggles, and never sniff chlorine.' },
+    { tag: 'quiz', zh: '升中挑戰題目，一共三題！', en: 'Secondary Challenge questions: three in a row!' },
+  ],
+  events: {
+    ts_litmus: { zh: '濕藍色石蕊試紙先變紅，再變白！氯氣溶落水生成鹽酸（變紅）同次氯酸（漂白）。呢個就係氯氣嘅測試。', en: 'The damp blue litmus turns red, then white! Chlorine dissolves in water to form hydrochloric acid (red) and hypochlorous acid (bleaching). This is the test for chlorine.' },
+  },
+  quiz: [
+    { q: { zh: '電解濃鹽水，陽極（正極）會產生咩氣體？', en: 'When concentrated brine is electrolysed, which gas forms at the anode (positive electrode)?' },
+      options: [{ zh: '氫氣', en: 'hydrogen' }, { zh: '氧氣', en: 'oxygen' }, { zh: '氯氣', en: 'chlorine' }],
+      correct: 2, right: { zh: '啱！帶負電嘅氯離子被陽極吸過去，失去電子變成氯氣。', en: 'Right! The negative chloride ions are drawn to the anode, where they lose electrons and become chlorine.' },
+      wrong: { zh: '再諗下：陽極帶正電，會吸引邊種帶負電嘅離子？', en: 'Think again: the anode is positive, so which negative ion does it attract?' } },
+    { q: { zh: '點樣測試氯氣？', en: 'What is the test for chlorine?' },
+      options: [{ zh: '點著嘅木條會「噗」一聲', en: 'a burning splint gives a squeaky pop' }, { zh: '濕嘅藍色石蕊試紙先變紅，再變白', en: 'damp blue litmus paper turns red, then white' }, { zh: '令澄清石灰水變混濁', en: 'it turns limewater milky' }],
+      correct: 1, right: { zh: '啱！氯氣溶落水變酸性所以變紅，次氯酸再將顏色漂白。', en: 'Right! Chlorine makes the water acidic so the paper turns red, then hypochlorous acid bleaches it.' },
+      wrong: { zh: '提示：「噗」一聲係氫氣，石灰水係二氧化碳。氯氣可以漂白㗎！', en: 'Hint: the pop is hydrogen and limewater is for carbon dioxide. Chlorine can bleach!' } },
+    { q: { zh: '將氯氣通入凍嘅氫氧化鈉溶液，會整到漂白水嘅邊種主要成分？', en: 'Chlorine is bubbled into cold sodium hydroxide solution. Which main ingredient of bleach does this make?' },
+      options: [{ zh: '次氯酸鈉 [[NaOCl]]', en: 'sodium hypochlorite, [[NaOCl]]' }, { zh: '碳酸鈉 [[Na2CO3]]', en: 'sodium carbonate, [[Na2CO3]]' }, { zh: '硫酸鈉 [[Na2SO4]]', en: 'sodium sulfate, [[Na2SO4]]' }],
+      correct: 0, right: { zh: '啱！[[Cl2]] + 2[[NaOH]] → [[NaCl]] + [[NaOCl]] + [[H2O]]，次氯酸鈉就係漂白水嘅主要成分。', en: 'Right! [[Cl2]] + 2[[NaOH]] → [[NaCl]] + [[NaOCl]] + [[H2O]], and sodium hypochlorite is the main ingredient of bleach.' },
+      wrong: { zh: '再諗下：產物入面一定要有氯。邊個選項有氯？', en: 'Think again: the product must contain chlorine. Which option has chlorine in it?' } },
+  ],
+};

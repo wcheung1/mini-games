@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#e0f2fe">
+<meta name="apple-mobile-web-app-title" content="小麗化學室">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<title>小麗博士化學實驗室 · Dr. Lily's Chemistry Lab</title>
+<meta name="description" content="俾 6 至 12 歲小朋友玩嘅中英雙語 3D 化學實驗室：動手做實驗，用自己嘅說話講得出化學。A bilingual 3D chemistry lab for children aged 6 to 12.">
+<meta property="og:title" content="小麗博士化學實驗室 · Dr. Lily's Chemistry Lab">
+<meta property="og:description" content="29 個動手玩嘅 3D 化學實驗，覆蓋 30 個課題，每個都有升中挑戰；有成就證書同老師專區，可以離線用。29 hands-on 3D chemistry experiments covering 30 topics, each with a Secondary Challenge, plus badges, certificates and a teacher area. Cantonese and English, usable offline.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%2338bdf8'/%3E%3Cpath d='M26 12h12v16l12 20a4 4 0 0 1-3.5 6h-29A4 4 0 0 1 14 48l12-20z' fill='%23fff'/%3E%3Cpath d='M19 42h26l3 6a2 2 0 0 1-2 3H18a2 2 0 0 1-2-3z' fill='%23a855f7'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.3"></script>
+<!-- React 18 + htm（唔使 Babel，直接喺瀏覽器運行） -->
+<script crossorigin src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+<!-- Three.js -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+  }
+}
+</script>
+<link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+<div id="root">
+  <div id="boot">
+    <div>
+      <div><span class="dot"></span><span class="dot" style="animation-delay:.2s"></span><span class="dot" style="animation-delay:.4s"></span></div>
+      <p>小麗博士化學實驗室載入中……<br>Loading Dr. Lily's Chemistry Lab…</p>
+      <p id="boot-msg" style="display:none;color:#b45309;font-size:14px;max-width:340px;margin:12px auto 0"></p>
+    </div>
+  </div>
+</div>
+<noscript>請開啟 JavaScript 先可以使用。Please enable JavaScript.</noscript>
+<script>
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+  function bootMsg(t) { var s = document.getElementById('boot-msg'); if (s) { s.style.display = 'block'; s.innerHTML = t; } }
+  setTimeout(function () { bootMsg('載入時間比平時長，請檢查網絡連線，然後重新整理頁面。<br>This is taking longer than usual. Please check your internet connection and refresh.'); }, 12000);
+  if (location.protocol === 'file:') {
+    bootMsg('請用網址打開（例如 GitHub Pages），唔好直接雙擊檔案。詳情見 README。<br>Please open this through a web address (e.g. GitHub Pages), not by double-clicking the file. See README.');
+  }
+  // 離線版：第一次打開之後，冇網都玩得（用 file:// 打開或者瀏覽器唔支援就略過）
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js').then(function () { return navigator.serviceWorker.ready; }).then(function (reg) {
+        var urls = performance.getEntriesByType('resource').map(function (e) { return e.name; });
+        ['./', './manifest.webmanifest', './icons/apple-touch-icon.png', './icons/icon-192.png'].forEach(function (u) { urls.push(new URL(u, location.href).href); });
+        urls.push(location.href.split('#')[0]);
+        if (reg.active) reg.active.postMessage({ type: 'cache', urls: urls });
+      }).catch(function () {});
+    });
+  }
+</script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

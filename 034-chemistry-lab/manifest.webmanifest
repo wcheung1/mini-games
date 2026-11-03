@@ -1,0 +1,16 @@
+{
+  "name": "小麗博士化學實驗室 · Dr. Lily's Chemistry Lab",
+  "short_name": "小麗化學室",
+  "description": "俾 6 至 12 歲小朋友玩嘅中英雙語 3D 化學實驗室。A bilingual 3D chemistry lab for children aged 6 to 12.",
+  "lang": "zh-HK",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e0f2fe",
+  "theme_color": "#e0f2fe",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
