@@ -60,8 +60,9 @@ button:focus-visible,.card:focus-visible{outline:4px solid var(--grape);outline-
 .mtitle h1{margin:0;font-size:clamp(34px,6.5vw,58px);color:#fff;-webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;text-shadow:0 5px 0 var(--ink);font-weight:900}
 .mtitle .badge{display:inline-block;margin-top:8px;background:var(--sun);border:4px solid var(--ink);border-radius:999px;padding:4px 14px;font-weight:900;font-size:18px}
 .mbottom{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 14px);display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 12px}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;width:min(1040px,100%)}
-@media (max-width:760px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;width:min(1180px,100%)}
+@media (max-width:1000px){.card .cd{display:none}}
+@media (max-width:760px){.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .card{background:#fff;border:4px solid var(--ink);border-radius:24px;padding:12px 12px 10px;cursor:pointer;box-shadow:var(--shadow);position:relative;display:flex;flex-direction:column;gap:4px;transition:transform .1s}
 .card:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(43,45,91,.28)}
 .card .ce{font-size:38px;width:62px;height:62px;border-radius:18px;border:3px solid var(--ink);display:grid;place-items:center}
@@ -175,6 +176,33 @@ button:focus-visible,.card:focus-visible{outline:4px solid var(--grape);outline-
 .choices .save{background:var(--mint);color:#fff}
 .choices .think{background:#fff}
 
+
+/* L5 */
+.coll{display:inline-flex;gap:5px}
+.cslot{width:30px;height:30px;border-radius:50%;border:3px solid var(--ink);display:grid;place-items:center;font-size:15px;position:relative;filter:grayscale(1);opacity:.35}
+.cslot.got{filter:none;opacity:1}
+.cslot.gold{box-shadow:0 0 0 3px #FFE14D}
+.cslot b{position:absolute;right:-9px;top:-9px;background:var(--gum);color:#fff;border-radius:99px;font-size:11px;padding:0 4px;border:2px solid var(--ink);line-height:1.4}
+.l5tap{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 26px);font-size:clamp(20px,3vw,26px);cursor:pointer;animation:tapb 1s ease-in-out infinite}
+@keyframes tapb{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-10px)}}
+.l5flip{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 20px);transform:translateX(-50%);display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;width:94vw}
+.l5panel{position:absolute;left:50%;top:calc(50% + 34px);transform:translate(-50%,-50%);width:min(640px,94vw);max-height:calc(100% - 160px);overflow:auto;-webkit-overflow-scrolling:touch;background:var(--paper);border:5px solid var(--ink);border-radius:28px;padding:16px;box-shadow:0 10px 0 rgba(43,45,91,.3);text-align:center;z-index:20}
+@media (min-width:900px) and (min-aspect-ratio:1/1){.l5panel.side{left:calc(env(safe-area-inset-left) + 16px);top:calc(50% + 44px);transform:translateY(-50%);width:min(470px,50vw);max-height:calc(100% - 180px);padding:12px}.l5panel.side .kgrid{width:min(290px,40vw);margin:8px auto}}
+.phead{display:flex;align-items:center;gap:10px;justify-content:center}
+.ptitle{font-size:clamp(19px,3vw,25px);font-weight:900;line-height:1.35;text-align:left}
+.kgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin:12px auto;width:min(380px,82vw)}
+.kgrid span{aspect-ratio:1/1;display:grid;place-items:center;font-size:clamp(13px,2.2vw,20px);background:#EEE;border-radius:8px}
+.kgrid span.dup{background:#FFE0E6}.kgrid span.done{background:#E3F7EE}
+.kgrid span.win{background:#FFE14D;animation:popIn .3s}
+.kstats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px 0}
+.kstats .chip{font-size:clamp(14px,2vw,18px);padding:4px 10px}
+.pnote{font-size:14px;font-weight:700;opacity:.75;margin:6px 0 10px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.opt{border:4px solid var(--ink);border-radius:18px;padding:10px 14px;font-size:clamp(17px,2.6vw,21px);font-weight:900;background:#fff;cursor:pointer;text-align:left;font-family:var(--f);color:var(--ink);box-shadow:0 4px 0 rgba(43,45,91,.25)}
+.opt:disabled{cursor:default}
+.opt.right{background:#C8F7DC}.opt.wrong{background:#FFD0D6;animation:wob .4s}
+.fb{margin:12px 0;font-weight:700;font-size:clamp(16px,2.4vw,20px);line-height:1.6;display:flex;gap:10px;align-items:center;justify-content:center;text-align:left}
+.fb:empty{display:none}
 @keyframes wob{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 @keyframes toastIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}14%{opacity:1;transform:translate(-50%,-50%) scale(1.12)}24%{transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-90%)}}
@@ -197,7 +225,7 @@ button:focus-visible,.card:focus-visible{outline:4px solid var(--grape);outline-
     <button class="ibtn hide" id="homeBtn" aria-label="返主頁">🏠</button>
     <div class="chip" id="titleChip">🦉 定定大冒險</div>
     <div class="grow"></div>
-    <div class="chip" id="starChip">⭐ 0 / 12</div>
+    <div class="chip" id="starChip">⭐ 0 / 15</div>
     <button class="chip" id="autoBtn">🗣️ <span class="lbl">自動讀出：</span><b>開</b></button>
   </div>
 
@@ -448,6 +476,8 @@ canvas.addEventListener('pointerdown',e=>{
   if(hits.length){let o=hits[0].object;while(o&&!o.userData.onTap)o=o.parent;if(o)o.userData.onTap(o);}
 });
 canvas.addEventListener('pointerup',e=>{if(L&&L.pointerUp)L.pointerUp(e);});
+canvas.addEventListener('pointermove',e=>{if(L&&L.pointerMove)L.pointerMove(e);});
+canvas.addEventListener('pointercancel',e=>{if(L&&L.pointerUp)L.pointerUp(e);});
 document.addEventListener('gesturestart',e=>e.preventDefault());
 
 /* ================= timers ================= */
@@ -489,10 +519,11 @@ const LV=[null,
   {emoji:'🍬',color:'#FFC2DA',name:'棉花糖大考驗',desc:'忍住唔食30秒，就有三粒！',say:'第一關，棉花糖大考驗。忍住唔食棉花糖三十秒，就可以攞到三粒！你會學識轉移視線。'},
   {emoji:'🏃',color:'#BDE7FF',name:'專心返學路',desc:'避開路邊誘惑，準時返學！',say:'第二關，專心返學路。避開路邊嘅誘惑，準時返到學校！你會學識記住目標。'},
   {emoji:'📱',color:'#D9CCFF',name:'網上陷阱',desc:'玩平板時彈出怪廣告，唔好中伏！',say:'第三關，網上陷阱。玩平板嘅時候會彈出好多怪廣告，唔好中伏！你會學識太好嘅嘢要小心，同埋問大人。'},
-  {emoji:'🐷',color:'#FFE0A8',name:'儲錢買足球',desc:'狐狸老闆引你亂買嘢，頂住！',say:'第四關，儲錢買足球。狐狸老闆會引你亂買嘢，你要頂住，儲夠錢買足球！你會學識分清楚需要同想要。'}
+  {emoji:'🐷',color:'#FFE0A8',name:'儲錢買足球',desc:'狐狸老闆引你亂買嘢，頂住！',say:'第四關，儲錢買足球。狐狸老闆會引你亂買嘢，你要頂住，儲夠錢買足球！你會學識分清楚需要同想要。'},
+  {emoji:'🎁',color:'#FFD6F0',name:'盲盒大揭秘',desc:'開盒好刺激，但係有咩陷阱？',say:'第五關，盲盒大揭秘。開盲盒好刺激，但係入面有好多陷阱！你會學識睇清楚機率，同埋點樣面對失望。'}
 ];
-function totalStars(){let s=0;for(let i=1;i<=4;i++)s+=STARS[i]||0;return s;}
-function updStarChip(){$('#starChip').textContent='⭐ '+totalStars()+' / 12';}
+function totalStars(){let s=0;for(let i=1;i<=5;i++)s+=STARS[i]||0;return s;}
+function updStarChip(){$('#starChip').textContent='⭐ '+totalStars()+' / 15';}
 function finishLevel(n,stars){if(!STARS[n]||stars>STARS[n]){STARS[n]=stars;store.set(STARS);}updStarChip();}
 function endButtons(n){return [{label:'再玩一次 🔄',cls:'ghost',onClick:()=>goLevel(n)},{label:'返主頁 🏠',cls:'go',onClick:()=>goLevel(0)}];}
 
@@ -506,7 +537,10 @@ const Menu={
     for(let i=0;i<7;i++){const f=sph(0.12,pick([0xFF5D8F,0xFFD23F,0xffffff,0x7B5CFA]),8);const a=rand(0,Math.PI*2),r=rand(1.6,4);f.position.set(Math.cos(a)*r,-1.0,Math.sin(a)*r);world.add(f);}
     this.owl=makeOwl();world.add(this.owl);
     this.orbit=new THREE.Group();world.add(this.orbit);
-    ['candy','ice','game','tv'].forEach((k,i)=>{const o=L2.makeTempt({k},true);o.scale.setScalar(0.55);const a=i/4*Math.PI*2;o.position.set(Math.cos(a)*3.2,-0.6+ (i%2)*0.5,Math.sin(a)*3.2);this.orbit.add(o);});
+    ['candy','ice','game','tv','bbox'].forEach((k,i)=>{let o;
+      if(k==='bbox'){o=new THREE.Group();const tm=x=>{const t=new THREE.CanvasTexture(bbCanvas(x));t.minFilter=THREE.LinearFilter;return new THREE.MeshToonMaterial({map:t});};const sd=tm('side'),tp=tm('top');const m=new THREE.Mesh(new THREE.BoxGeometry(1.3,1.3,1.3),[sd,sd,tp,sd,sd,sd]);m.position.y=1;o.add(m);const gl=glowSprite('#FFF08A');gl.scale.set(3,3,1);gl.position.y=1;gl.material.opacity=0.7;o.add(gl);}
+      else o=L2.makeTempt({k},true);
+      o.scale.setScalar(0.55);const a=i/5*Math.PI*2;o.position.set(Math.cos(a)*3.2,-0.6+(i%2)*0.5,Math.sin(a)*3.2);this.orbit.add(o);});
     this.clouds=[];for(let i=0;i<5;i++){const c=new THREE.Group();for(let j=0;j<3;j++){const s=sph(rand(0.6,0.9),0xffffff,12);s.position.set(j*0.8-0.8,rand(-0.1,0.2),0);c.add(s);}c.position.set(rand(-12,12),rand(3,6),rand(-12,-5));world.add(c);this.clouds.push(c);}
     $('#menu').classList.add('show');$('#homeBtn').classList.add('hide');$('#titleChip').textContent='🦉 定定大冒險';
     this.renderCards();
@@ -514,7 +548,7 @@ const Menu={
   },
   renderCards(){
     const cards=$('#cards');cards.innerHTML='';
-    for(let i=1;i<=4;i++){
+    for(let i=1;i<=5;i++){
       const d=LV[i],s=STARS[i]||0;
       const c=el('div','card');c.tabIndex=0;c.setAttribute('role','button');
       c.innerHTML='<div class="ce" style="background:'+d.color+'">'+d.emoji+'</div><div class="cn">第 '+i+' 關</div><div class="ct">'+d.name+'</div><div class="cd">'+d.desc+'</div><div class="cs">'+'⭐'.repeat(s)+'<span class="dim">'+'⭐'.repeat(3-s)+'</span></div>';
@@ -523,7 +557,7 @@ const Menu={
       c.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')c.onclick();};
       cards.append(c);
     }
-    const b=$('#badge');const all=[1,2,3,4].every(i=>(STARS[i]||0)>=1),full=totalStars()===12;
+    const b=$('#badge');const all=[1,2,3,4,5].every(i=>(STARS[i]||0)>=1),full=totalStars()===15;
     b.innerHTML=full?'<span class="badge">👑 超級定力王</span>':all?'<span class="badge">🏅 抗誘惑小勇士</span>':'';
   },
   update(dt,t){
@@ -541,7 +575,7 @@ function introDialog(){
     buttons:[{label:'出發！🚀',cls:'go'}]});
 }
 function secretBook(){
-  const items=[['✋🤔👍','定定三步','停一停、諗一諗、揀一揀。'],['🙈','轉移視線','唔好一直望住誘惑，搵其他嘢做。'],['🎯','記住目標','心入面講住自己真正想要乜嘢。'],['⚠️','太好要小心','中獎、免費、倒數催你，都可能係陷阱。'],['🔒','秘密唔俾人','密碼、信用卡、地址、相，唔俾網上嘅人。'],['🙋','問大人','唔肯定，就問爸爸媽媽或者老師。'],['🐷','需要定想要','買嘢前問自己：我真係需要嗎？']];
+  const items=[['✋🤔👍','定定三步','停一停、諗一諗、揀一揀。'],['🙈','轉移視線','唔好一直望住誘惑，搵其他嘢做。'],['🎯','記住目標','心入面講住自己真正想要乜嘢。'],['⚠️','太好要小心','中獎、免費、倒數催你，都可能係陷阱。'],['🔒','秘密唔俾人','密碼、信用卡、地址、相，唔俾網上嘅人。'],['🙋','問大人','唔肯定，就問爸爸媽媽或者老師。'],['🐷','需要定想要','買嘢前問自己：我真係需要嗎？'],['🎁','盲盒睇清楚','開盒靠運氣，隱藏款好難中，差少少唔代表下次會中。'],['💬','講出感受','失望可以講出嚟，唔使即刻再買。']];
   showDialog({title:'📖 定定秘技簿',text:items.map(i=>i[0]+' <b>'+i[1]+'</b>：'+i[2]).join('<br>'),
     say:'定定秘技簿。'+items.map(i=>i[1]+'：'+i[2]).join(''),buttons:[{label:'記住晒！👍',cls:'go'}]});
 }
@@ -1106,8 +1140,346 @@ const L4={
   }
 };
 
+/* ================= LEVEL 5: blind boxes ================= */
+const BUNS={
+  blue:{n:'藍莓兔',c:0x6FA8FF,css:'#6FA8FF'},
+  pink:{n:'草莓兔',c:0xFF8FB8,css:'#FF8FB8'},
+  lemon:{n:'檸檬兔',c:0xFFE066,css:'#FFE066'},
+  mint:{n:'薄荷兔',c:0x7FE0C0,css:'#7FE0C0'},
+  grape:{n:'葡萄兔',c:0xB49CFF,css:'#B49CFF'},
+  orange:{n:'橙仔兔',c:0xFFB061,css:'#FFB061'},
+  gold:{n:'金星兔',c:0xFFC21A,css:'#FFC21A'}
+};
+const BUN_KEYS=['blue','pink','lemon','mint','grape','orange','gold'];
+function makeBunny(key){
+  const B=BUNS[key],g=new THREE.Group(),colored=[];
+  const add=(m)=>{colored.push(m.material);g.add(m);return m;};
+  const body=add(sph(0.5,B.c));body.scale.set(1,1.05,0.95);body.position.y=0.5;
+  const belly=sph(0.34,0xffffff);belly.scale.set(1,1.05,0.5);belly.position.set(0,0.45,0.33);g.add(belly);
+  const head=add(sph(0.44,B.c));head.position.y=1.22;
+  [-1,1].forEach(k=>{
+    const e=add(cyl(0.1,0.13,0.62,B.c,12));e.position.set(k*0.17,1.8,0);e.rotation.z=-k*0.15;
+    const tip=add(sph(0.1,B.c,12));tip.position.set(k*0.216,2.1,0);
+    const inner=cyl(0.05,0.07,0.44,0xFFC2DA,8);inner.position.set(k*0.17,1.8,0.08);inner.rotation.z=-k*0.15;g.add(inner);
+    const foot=add(sph(0.16,B.c,12));foot.scale.set(1,0.6,1.3);foot.position.set(k*0.24,0.06,0.25);
+  });
+  g.add(at(sph(0.14,0xffffff,10),0,0.45,-0.48));
+  addFace(g,{y:1.2,z:0.42,s:0.85});
+  if(key==='gold')g.add(at(textSprite('⭐',{bg:null,h:0.4}),0,0.55,0.55));
+  g.userData.colored=colored;g.userData.key=key;
+  return g;
+}
+function setBunnyColor(b,c){b.userData.colored.forEach(m=>m.color.setHex(c));}
+function bbCanvas(kind){
+  const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+  const F='"PingFang HK","Noto Sans HK","Microsoft JhengHei",sans-serif';
+  if(kind==='bottom'){
+    g.fillStyle='#FFF7EC';g.fillRect(0,0,256,256);
+    g.fillStyle='#6B5B73';g.textAlign='center';g.font='700 15px '+F;
+    ['星星兔盲盒（共7款）','普通款 6款 每款約1/6','隱藏款 金星兔 出現機率 1/144','重複款恕不退換','不適合8歲以下兒童'].forEach((l,i)=>g.fillText(l,128,74+i*24));
+    for(let i=0;i<34;i++){g.fillRect(70+i*3.5,200,(i%3?1.5:2.6),30);}
+    return c;
+  }
+  if(kind==='inner'){g.fillStyle='#5A3E7A';g.fillRect(0,0,256,256);return c;}
+  if(kind==='lid'){g.fillStyle='#FF8FD0';g.fillRect(0,0,256,256);g.fillStyle='#fff';for(let i=0;i<8;i++){g.fillRect(i*32+8,0,14,256);}return c;}
+  const gr=g.createLinearGradient(0,0,256,256);gr.addColorStop(0,'#B98CFF');gr.addColorStop(1,'#FF8FD0');g.fillStyle=gr;g.fillRect(0,0,256,256);
+  g.fillStyle='rgba(255,255,255,.35)';[[30,40],[220,60],[40,210],[210,220],[128,30]].forEach(p=>{g.font='28px '+F;g.fillText('★',p[0],p[1]);});
+  g.textAlign='center';g.textBaseline='middle';
+  if(kind==='top'){g.fillStyle='#fff';g.font='900 54px '+F;g.fillText('星星兔',128,110);g.font='900 34px '+F;g.fillText('盲 盒',128,170);}
+  else{g.lineWidth=10;g.strokeStyle='#5A3E7A';g.fillStyle='#fff';g.font='900 150px '+F;g.strokeText('?',128,120);g.fillText('?',128,120);g.font='900 30px '+F;g.fillText('星星兔',128,220);}
+  return c;
+}
+const FOX5=[
+  '歡迎光臨！星星兔盲盒，超人氣！第一盒免費送你，試下啦！',
+  '嘩，好好運！一套有六隻，仲有隱藏款金星兔！再開一盒啦，十個幣咋！',
+  '哎呀！差少少就係金星兔㗎喇！下一盒一定係！快啲再開！',
+  '又有新款！你就快集齊喇，唔好停呀！',
+  '重複咗？唔緊要，再開多盒就有新款㗎喇！'
+];
+const FOX5_SUNK='真係唔開？你已經開咗咁多盒，而家停手就嘥晒啲錢喇！';
+const THINK5=[null,
+  '老闆<b>送第一盒</b>，係想你試過開盒嘅<b>興奮感覺</b>，之後自己俾錢繼續開。<br>其實令你最興奮嘅，係「<b>唔知會開到乜</b>」嗰一下，唔係公仔本身。',
+  '頭先<b>閃金光</b>，係「<b>差少少</b>」嘅感覺，會令你好想再試。<br>但係差少少<b>唔代表</b>下一盒會中！每一盒開到金星兔嘅機會，都係<b>一樣咁細</b>。',
+  '你得 <b>2款</b>，仲差 <b>4款</b>，再加一隻好難開嘅隱藏款。<br>根本唔係「就快集齊」！佢咁講，係想你<b>停唔到手</b>。',
+  '開得愈多，<b>重複就愈多</b>。<br>你已經有幾隻一樣嘅兔仔，真係<b>需要</b>多一隻嗎？'
+];
+const THINK5_SUNK='已經使咗嘅錢，<b>返唔到嚟</b>㗎喇。<br>繼續開，唔會令之前嘅錢「唔嘥」，只會<b>使得更多</b>。';
+const L5={
+  SEQ:['blue','blue','pink','pink','blue'],
+  enter(){
+    $('#titleChip').textContent='🎁 盲盒大揭秘';
+    scene.background=new THREE.Color(0xF3E6FF);scene.fog=null;
+    setCam(0,2.7,7.4,0,1.45,0);
+    world.add(at(box(40,0.2,40,0xE3CDEB),0,-0.1,0));
+    world.add(at(box(40,14,0.3,0xF7EAFF),0,6,-3));
+    // wall shelves full of boxes
+    const shelfBoxes=new THREE.InstancedMesh(new THREE.BoxGeometry(0.36,0.36,0.36),M(0xffffff),30);
+    const mtx=new THREE.Matrix4(),col=new THREE.Color();
+    for(let r=0;r<3;r++){world.add(at(box(4.4,0.1,0.6,0xC98A55),0,2.3+r*0.8,-2.6));
+      for(let i=0;i<10;i++){mtx.makeRotationY(rand(-0.2,0.2));mtx.setPosition(-1.9+i*0.42,2.53+r*0.8,-2.6);shelfBoxes.setMatrixAt(r*10+i,mtx);shelfBoxes.setColorAt(r*10+i,col.setHex(pick([0xFF8FD0,0xB98CFF,0xFFB6E1,0xD1B8FF])));}}
+    world.add(shelfBoxes);
+    const sign=textSprite('⭐ 星星兔盲盒 ⭐',{h:0.7,bg:'#FF8FD0',color:'#fff',stroke:'#fff'});sign.position.set(0,5.1,-2.5);world.add(sign);
+    // fox + counter
+    this.fox=makeFox();this.fox.position.set(3.1,1.15,-1.3);this.fox.rotation.y=-0.35;world.add(this.fox);
+    world.add(at(box(2.2,1.2,0.9,0xB5651D),3.1,0.6,-0.6));world.add(at(box(2.35,0.12,1.05,0xE8A86B),3.1,1.25,-0.6));
+    // pedestal
+    const ped=cyl(0.95,1.05,0.7,0xffffff,40);ped.position.set(0,0.35,0.4);world.add(ped);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(0.98,0.05,8,40),M(0xFF8FD0));ring.rotation.x=Math.PI/2;ring.position.set(0,0.7,0.4);world.add(ring);
+    // collection shelf + dup basket
+    world.add(at(box(2.8,0.12,0.7,0xC98A55),-2.95,1.86,-0.4));
+    [-4.3,-1.6].forEach(x=>world.add(at(box(0.12,1.86,0.7,0xA86F40),x,0.93,-0.4)));
+    const cl=textSprite('我嘅收藏',{h:0.42});cl.position.set(-2.95,3.05,-0.4);world.add(cl);
+    this.qmarks={};
+    BUN_KEYS.forEach((k,i)=>{const q=textSprite(k==='gold'?'🌟':'?',{h:k==='gold'?0.42:0.34,bg:k==='gold'?'#FFE14D':'#ffffff'});q.position.copy(this.slot(k));q.position.y+=0.32;world.add(q);this.qmarks[k]=q;});
+    const bk=cyl(0.62,0.48,0.55,0xC98A55,20);bk.position.set(-2.9,0.28,1.1);world.add(bk);
+    const bl=textSprite('重複',{h:0.36,bg:'#FFD0D6'});bl.position.set(-2.9,0.95,1.1);world.add(bl);
+    // textures
+    const T=k=>{const t=new THREE.CanvasTexture(bbCanvas(k));t.minFilter=THREE.LinearFilter;return new THREE.MeshToonMaterial({map:t});};
+    const side=T('side'),top=T('top'),bottom=T('bottom'),inner=T('inner'),lidm=T('lid');
+    this.mats={closed:[side,side,top,bottom,side,side],base:[side,side,inner,bottom,side,side],lid:[lidm,lidm,top,lidm,lidm,lidm]};
+    Object.assign(this,{coins:40,opened:0,coll:{},dupN:0,pushed:false,lastPush:false,state:'intro',cur:null,movers:[],foxTalk:0,foxSad:0,flipBox:null,drag:null,autoQ:null,touched:false,stars:3,sim:null,pile:null});
+    const h=$('#lhud');
+    h.innerHTML='<div class="hudtop"><div class="chip pe">🪙 星星幣 <b id="l5coin">40</b></div><div class="chip pe">📦 開咗 <b id="l5open">0</b> 盒</div><div class="chip pe" id="l5collw"><span class="coll" id="l5coll"></span></div></div>'+
+      '<button class="chip l5tap pe hide" id="l5tap">👆 撳個盒，打開佢！</button>'+
+      '<div class="l5flip pe hide" id="l5flip"><div class="chip" id="l5fliptxt">👆 用手指拖個盒，轉嚟睇盒底！</div><button class="btn ghost" id="l5auto">🔄 幫我轉</button></div>'+
+      '<div id="l5choices" class="choices pe"></div><div id="l5panel" class="l5panel pe hide"></div>';
+    $('#l5collw').append(spkBtn(()=>{const d=this.distinct();return '我嘅收藏：有'+d+'款兔仔，重複咗'+this.dupN+'隻'+(this.coll.gold?'。':'，隱藏款金星兔仲未有。');},'coach'));
+    $('#l5tap').onclick=()=>this.tapBox();
+    $('#l5fliptxt').append(spkBtn('用手指拖個盒，轉嚟轉去，睇下個盒底寫咗乜嘢。轉唔到，可以撳幫我轉。','coach'));
+    $('#l5auto').onclick=()=>{SFX.click();this.touched=true;this.autoQ=new THREE.Quaternion().setFromEuler(new THREE.Euler(-1.69,0,0));};
+    this.updColl();
+    showDialog({title:'第五關：盲盒大揭秘 🎁',
+      text:'狐狸老闆開咗間<b>盲盒舖</b>！<br>「星星兔」盲盒一套有<b>6款</b>，仲有一隻好難開到嘅<b>隱藏款金星兔🌟</b>。<br>你有 <b>40個星星幣🪙</b>，每盒 <b>10個幣</b>。<br>開唔開、開幾多，<b>由你決定</b>。不過要小心，盲盒有好多<b>陷阱</b>㗎！',
+      say:'第五關，盲盒大揭秘。狐狸老闆開咗間盲盒舖！星星兔盲盒一套有六款，仲有一隻好難開到嘅隱藏款金星兔。你有四十個星星幣，每盒十個幣。開唔開、開幾多，由你決定。不過要小心，盲盒有好多陷阱㗎！',
+      buttons:[{label:'入舖睇下 🏪',cls:'go',onClick:()=>this.pitch0()}]});
+  },
+  slot(k){const i=BUN_KEYS.indexOf(k);return new THREE.Vector3(-4.08+i*0.38,1.92,-0.4);},
+  distinct(){return Object.keys(this.coll).length;},
+  updColl(){
+    const c=$('#l5coll');if(!c)return;c.innerHTML='';
+    BUN_KEYS.forEach(k=>{const n=this.coll[k]||0;const s=el('span','cslot'+(n?' got':'')+(k==='gold'?' gold':''),k==='gold'&&!n?'❓':'🐰');s.style.background=BUNS[k].css;if(n>1)s.append(el('b','','×'+n));s.title=BUNS[k].n;c.append(s);});
+    $('#l5coin').textContent=this.coins;$('#l5open').textContent=this.opened;
+  },
+  say(text){this.foxTalk=Math.min(5,text.length*0.13);showBubble('🦊 狐狸老闆',text,'fox',0);},
+  pitch0(){
+    this.state='pitch';this.say(FOX5[0]);
+    const c=$('#l5choices');c.innerHTML='';
+    const b=el('button','btn buy','🎁 攞免費嗰盒');b.onclick=()=>{SFX.click();unlockAudio();this.openBox();};c.append(b);c.classList.add('show');
+  },
+  showChoices(pushed){
+    const c=$('#l5choices');c.innerHTML='';
+    const mk=(label,cls,fn)=>{const b=el('button','btn '+cls,label);b.onclick=()=>{SFX.click();unlockAudio();fn();};c.append(b);};
+    mk(pushed?'🎁 好啦，再開':'🎁 再開一盒（10幣）','buy',()=>{if(this.coins<10)return;this.coins-=10;SFX.coin();this.updColl();this.openBox();});
+    mk(pushed?'🙅 都係唔開':'✋ 停手，唔開喇','save',()=>this.stopAsk());
+    mk('🤔 停一停，諗一諗','think',()=>this.think());
+    c.classList.add('show');
+  },
+  hideChoices(){const c=$('#l5choices');if(c)c.classList.remove('show');},
+  think(){
+    const txt=this.lastPush?THINK5_SUNK:THINK5[this.opened];
+    showDialog({title:'停一停，諗一諗 🤔',text:txt,buttons:[{label:'諗好喇！',cls:'go'}]});
+  },
+  openBox(){
+    this.hideChoices();hideBubble();this.lastPush=false;
+    const key=this.SEQ[this.opened],near=this.opened===1;
+    const grp=new THREE.Group();grp.position.set(0,0,0.4);
+    const base=new THREE.Mesh(new THREE.BoxGeometry(1.2,1,1.2),this.mats.base);base.position.y=1.2;grp.add(base);
+    const lid=new THREE.Mesh(new THREE.BoxGeometry(1.3,0.24,1.3),this.mats.lid);lid.position.y=1.82;grp.add(lid);
+    grp.scale.setScalar(0.01);world.add(grp);
+    let a=0;effects.push(dt=>{a+=dt*2;grp.scale.setScalar(Math.max(0.01,easeBack(a)));return a<1;});
+    grp.userData.onTap=()=>this.tapBox();tappables.push(grp);
+    this.cur={grp,base,lid,key,near};this.state='tap';SFX.fake();
+    later(500,()=>{if(this.state==='tap'){$('#l5tap').classList.remove('hide');Voice.say('撳個盒，打開佢！','coach');}});
+  },
+  tapBox(){
+    if(this.state!=='tap')return;this.state='opening';$('#l5tap').classList.add('hide');
+    const C=this.cur,i=tappables.indexOf(C.grp);if(i>=0)tappables.splice(i,1);
+    SFX.pop();
+    // lid flies off
+    const lid=C.lid,v=new THREE.Vector3(2.2,6,1.5);let la=0;
+    effects.push(dt=>{la+=dt;v.y-=12*dt;lid.position.addScaledVector(v,dt);lid.rotation.x+=dt*6;lid.rotation.z-=dt*4;if(la>1.2){C.grp.remove(lid);lid.geometry.dispose();return false;}return true;});
+    // light
+    const glow=glowSprite(C.near?'#FFD700':'#FFFFFF');glow.position.set(0,1.9,0.4);glow.scale.set(0.5,0.5,1);glow.material.opacity=0.95;world.add(glow);C.glow=glow;
+    let ga=0;effects.push(dt=>{ga+=dt;const s=0.5+Math.min(1,ga*1.5)*3.2;glow.scale.set(s,s,1);return ga<1.5;});
+    // bunny rises
+    const b=makeBunny(C.key);if(C.near){setBunnyColor(b,BUNS.gold.c);const st=textSprite('⭐',{bg:null,h:0.4});st.position.set(0,0.55,0.55);b.add(st);b.userData.fakeStar=st;}
+    b.position.set(0,1.0,0.4);b.scale.setScalar(0.01);world.add(b);C.bun=b;
+    this.movers.push({o:b,tgt:new THREE.Vector3(0,2.05,0.6),s:0.95,spin:true});
+    if(C.near){
+      later(350,()=>{SFX.sparkle();toast('✨ 金光？！','fake');Voice.say('嘩！金光！係咪金星兔呀？','tempt');});
+      later(1700,()=>{setBunnyColor(b,BUNS[C.key].c);if(b.userData.fakeStar)b.remove(b.userData.fakeStar);{let fa=0;effects.push(dt=>{fa+=dt*3;glow.material.opacity=Math.max(0,0.95-fa);return fa<1;});}this.reveal();});
+    }else later(1300,()=>this.reveal());
+  },
+  reveal(){
+    const C=this.cur,k=C.key;this.coll[k]=(this.coll[k]||0)+1;const isNew=this.coll[k]===1;
+    this.opened++;
+    const m=this.movers.find(x=>x.o===C.bun);if(m)m.spin=false;C.bun.rotation.y=0;
+    if(isNew){SFX.good();toast('🎉 新款：'+BUNS[k].n,'good');}
+    else{this.dupN++;SFX.bad();toast('😕 重複咗：'+BUNS[k].n,'bad');}
+    if(C.near)Voice.say('唉，原來唔係金星兔，係'+BUNS[k].n+'，仲要重複咗。','coach');
+    this.updColl();
+    later(1500,()=>{
+      if(isNew){if(m){m.tgt=this.slot(k);m.s=0.32;}if(this.qmarks[k]){world.remove(this.qmarks[k]);this.qmarks[k]=null;}}
+      else if(m){m.tgt=new THREE.Vector3(-2.9+rand(-0.25,0.25),0.5+this.dupN*0.12,1.1+rand(-0.2,0.2));m.s=0.3;}
+      const g=C.grp;let a=0;effects.push(dt=>{a+=dt*2.5;g.scale.setScalar(Math.max(0.01,1-a));if(a>=1){world.remove(g);g.traverse(x=>x.geometry&&x.geometry.dispose());if(C.glow){world.remove(C.glow);C.glow.material.map.dispose();C.glow.material.dispose();}return false;}return true;});
+      later(900,()=>this.afterOpen());
+    });
+  },
+  afterOpen(){
+    this.state='decide';
+    if(this.coins<10){this.say('冇幣喇？叫爸爸媽媽俾多啲啦！');later(3200,()=>this.stopFinal(true));return;}
+    this.say(FOX5[this.opened]);this.showChoices(false);
+  },
+  stopAsk(){
+    if(!this.pushed){this.pushed=true;this.lastPush=true;this.hideChoices();SFX.sparkle();this.say(FOX5_SUNK);later(700,()=>this.showChoices(true));return;}
+    this.stopFinal(false);
+  },
+  stopFinal(out){
+    this.state='stopped';this.hideChoices();hideBubble();this.foxSad=3;
+    const paid=this.opened-1;this.stars=paid<=1?3:paid===2?2:1;this.paid=paid;
+    const d=this.distinct();
+    const head=out?'你開咗 <b>'+this.opened+'盒</b>，星星幣全部用晒。':'狐狸老闆點樣催你，你都停得手，好叻！';
+    const headSay=out?'你開咗'+this.opened+'盒，星星幣全部用晒。':'狐狸老闆點樣催你，你都停得手，好叻！';
+    showDialog({title:out?'冇晒星星幣喇 🪙':'你停手喇！✋',
+      text:head+'<br>你一共開咗 <b>'+this.opened+'</b> 盒，攞到 <b>'+d+'</b> 款，重複咗 <b>'+this.dupN+'</b> 隻，金星兔……<b>冇</b>。<br>咦？個盒底好似印住啲<b>細字</b>……睇下先！',
+      say:headSay+'你一共開咗'+this.opened+'盒，攞到'+d+'款，重複咗'+this.dupN+'隻，金星兔就冇。咦？個盒底好似印住啲細字，睇下先！',
+      buttons:[{label:'🔍 睇盒底',cls:'go',onClick:()=>this.startFlip()}]});
+  },
+  startFlip(){
+    this.state='flip';
+    const b=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2),this.mats.closed);b.position.set(0,2.0,1.6);b.scale.setScalar(1.35);b.rotation.set(0.35,0.5,0);world.add(b);this.flipBox=b;
+    $('#l5flip').classList.remove('hide');
+    Voice.say('用手指拖個盒，轉嚟轉去，睇下個盒底寫咗乜嘢。轉唔到，可以撳幫我轉。','coach');
+    later(12000,()=>{if(this.state==='flip')showBubble('🦉 定定','試下將個盒向上反，睇佢個底！','coach',4000);});
+  },
+  pointerDown(e){
+    if(this.state!=='flip')return false;
+    this.drag={x:e.clientX,y:e.clientY};this.autoQ=null;this.touched=true;try{canvas.setPointerCapture(e.pointerId);}catch(err){}
+    return true;
+  },
+  pointerMove(e){
+    if(!this.drag||!this.flipBox)return;
+    const dx=e.clientX-this.drag.x,dy=e.clientY-this.drag.y;this.drag={x:e.clientX,y:e.clientY};
+    const q=this.flipBox.quaternion;
+    q.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),dx*0.012));
+    q.premultiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),dy*0.012));
+  },
+  pointerUp(){this.drag=null;},
+  found(){
+    this.state='found';$('#l5flip').classList.add('hide');hideBubble();SFX.good();
+    toast('🔍 搵到喇！','good');
+    later(1200,()=>showDialog({title:'盒底有細字！🔍',
+      text:'「隱藏款出現機率：<b>1/144</b>」<br>即係平均要開 <b>144盒</b>，先有一隻金星兔！<br>如果一盒賣 <b>80蚊</b>，144盒就係 <b>11,520蚊</b>！<br>啲字印得咁細，好容易<b>睇漏眼</b>。買嘢之前，記得 👀 <b>睇清楚</b>！',
+      say:'盒底有細字！隱藏款出現機率，係一百四十四分之一。即係平均要開一百四十四盒，先有一隻金星兔！如果一盒賣八十蚊，一百四十四盒就係一萬一千五百二十蚊！啲字印得咁細，好容易睇漏眼。買嘢之前，記得睇清楚！',
+      buttons:[{label:'開動揭秘機 🔬',cls:'go',onClick:()=>this.startSim()}]}));
+  },
+  startSim(){
+    this.state='simready';
+    if(this.flipBox){const fb=this.flipBox;let a=0;effects.push(dt=>{a+=dt*3;fb.scale.setScalar(Math.max(0.01,1.35*(1-a)));if(a>=1){world.remove(fb);fb.geometry.dispose();return false;}return true;});this.flipBox=null;}
+    const N=500,pile=new THREE.InstancedMesh(new THREE.BoxGeometry(0.22,0.22,0.22),M(0xffffff),N);
+    const mtx=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),s=new THREE.Vector3(1,1,1),p=new THREE.Vector3(),col=new THREE.Color();
+    for(let i=0;i<N;i++){const f=i/N,r=1.5*(1-f)*Math.sqrt(Math.random()),a=rand(0,Math.PI*2);p.set(1.6+Math.cos(a)*r,0.1+f*1.7,1.2+Math.sin(a)*r*0.7);q.setFromEuler(e.set(rand(0,3),rand(0,3),rand(0,3)));mtx.compose(p,q,s);pile.setMatrixAt(i,mtx);pile.setColorAt(i,col.setHex(pick([0xFF8FD0,0xB98CFF,0xFFB6E1,0xD1B8FF,0x9FD8FF])));}
+    pile.count=0;world.add(pile);this.pile=pile;
+    const P=$('#l5panel');P.className='l5panel pe side';P.innerHTML='';
+    const intro='揭秘機會幫一百個小朋友，每人開五盒星星兔盲盒，睇下有幾多個開到金星兔。撳開始！';
+    const hd=el('div','phead');hd.append(el('div','ptitle','🔬 揭秘機：100個小朋友，每人開5盒'),spkBtn(intro,'coach'));P.append(hd);
+    const grid=el('div','kgrid');for(let i=0;i<100;i++)grid.append(el('span','','🙂'));P.append(grid);this.cells=grid.children;
+    const st=el('div','kstats','<span class="chip">📦 <b id="sBox">0</b> 盒</span><span class="chip">💸 <b id="sMoney">$0</b></span><span class="chip">😕 重複 <b id="sDup">0</b></span><span class="chip">🌟 <b id="sWin">0</b></span>');P.append(st);
+    P.append(el('div','pnote','假設每盒 80 蚊。😕 = 開到重複款　🌟 = 開到金星兔'));
+    const go=el('button','btn go','▶ 開始揭秘');go.onclick=()=>{SFX.click();go.remove();this.runSim();};P.append(go);
+    Voice.say(intro,'coach');
+  },
+  runSim(){
+    this.state='sim';this.sim={i:0,acc:0,kid:new Set(),kidDup:false,win:0,dup:0,tick:0};
+  },
+  simStep(){
+    const S=this.sim;const k=Math.floor(S.i/5);
+    const draw=Math.random()<1/144?'gold':pick(['blue','pink','lemon','mint','grape','orange']);
+    if(S.kid.has(draw)){S.dup++;S.kidDup=true;}S.kid.add(draw);
+    S.i++;this.pile.count=S.i;
+    if(S.i%5===0){const c=this.cells[k];
+      if(S.kid.has('gold')){S.win++;c.textContent='🌟';c.className='win';SFX.sparkle();}
+      else{c.textContent=S.kidDup?'😕':'🙂';c.className=S.kidDup?'dup':'done';}
+      S.kid=new Set();S.kidDup=false;}
+    if(S.i%25===0)SFX.tick();
+    $('#sBox').textContent=S.i;$('#sMoney').textContent='$'+(S.i*80).toLocaleString('en-US');$('#sDup').textContent=S.dup;$('#sWin').textContent=S.win;
+  },
+  simDone(){
+    this.state='simdone';const S=this.sim;
+    const P=$('#l5panel');const b=el('button','btn go','睇結果 👀');b.onclick=()=>{SFX.click();this.simResult();};P.append(b);
+    SFX.win();
+  },
+  simResult(){
+    const S=this.sim;$('#l5panel').classList.add('hide');
+    const winTxt=S.win===0?'一個都<b>冇</b>！':'得 <b>'+S.win+'個</b>！';
+    const winSay=S.win===0?'一個都冇！':'得'+S.win+'個！';
+    showDialog({title:'揭秘結果 🔬',
+      text:'100個小朋友，一共開咗 <b>500盒</b>，使咗 <b>$40,000</b>。<br>開到金星兔嘅小朋友：'+winTxt+'<br>重複咗嘅公仔：<b>'+S.dup+'隻</b>！<br>⚠️ 記住：就算已經開咗好多盒，下一盒開到金星兔嘅機會，都仲係<b>1/144</b>，唔會因為「開得多」而變大。',
+      say:'揭秘結果。一百個小朋友，一共開咗五百盒，使咗四萬蚊。開到金星兔嘅小朋友，'+winSay+'重複咗嘅公仔，有'+S.dup+'隻！記住：就算已經開咗好多盒，下一盒開到金星兔嘅機會，都仲係一百四十四分之一，唔會因為開得多而變大。',
+      buttons:[{label:'明白！👍',cls:'go',onClick:()=>this.roundFeel()}]});
+  },
+  quiz(q,opts,needAll,done){
+    const P=$('#l5panel');P.className='l5panel pe';P.innerHTML='';
+    const hd=el('div','phead');hd.append(el('div','ptitle',q.text),spkBtn(q.say,'coach'));P.append(hd);
+    const box=el('div','opts'),fb=el('div','fb'),nx=el('button','btn go hide','繼續 ➡️');let got=0;
+    opts.forEach(o=>{const b=el('button','opt',o.label);b.onclick=()=>{
+      if(b.dataset.done)return;unlockAudio();
+      if(o.ok){b.classList.add('right');b.dataset.done=1;got++;SFX.good();}
+      else{b.classList.add('wrong');SFX.bad();setTimeout(()=>b.classList.remove('wrong'),1400);}
+      fb.innerHTML=(o.ok?'✅ ':'❌ ')+o.fb;fb.className='fb '+(o.ok?'ok':'no');
+      fb.append(spkBtn(o.fb,'coach'));Voice.say(o.fb,'coach');
+      if((needAll&&got>=needAll)||(!needAll&&o.ok)){box.querySelectorAll('.opt').forEach(x=>x.disabled=true);nx.classList.remove('hide');}
+    };box.append(b);});
+    nx.onclick=()=>{SFX.click();done();};
+    P.append(box,fb,nx);Voice.say(q.say,'coach');
+  },
+  roundFeel(){
+    this.quiz({text:'😢 冇開到想要嗰隻，你覺得好失望。你會點做？',say:'冇開到想要嗰隻，你覺得好失望。你會點做？'},[
+      {label:'🛒 即刻再買多盒，一定要開到！',ok:false,fb:'咁樣叫做「追」，愈追就使愈多錢，失望只會愈嚟愈多。再揀過吖！'},
+      {label:'💬 講出嚟：「我好失望，但係我唔使即刻再買。」',ok:true,fb:'啱喇！失望係正常嘅感覺。講出嚟、深呼吸，過一陣就會舒服返。'},
+      {label:'😡 發脾氣，掟咗個公仔佢',ok:false,fb:'發脾氣唔會令你開心返，仲可能整爛自己啲嘢。試下講出你嘅感受。'}
+    ],0,()=>this.roundSmart());
+  },
+  roundSmart(){
+    this.quiz({text:'🐰 如果你真係好想要某一隻兔仔，邊啲係聰明方法？（揀晒 3 個啱嘅）',say:'如果你真係好想要某一隻兔仔，邊啲係聰明方法？揀晒三個啱嘅。'},[
+      {label:'🏷️ 買明碼實價、睇得到係邊隻嘅公仔',ok:true,fb:'知道自己買緊乜，使幾多錢都清清楚楚。'},
+      {label:'🎰 繼續開，開到中為止',ok:false,fb:'一百四十四分之一好難中，可能使幾萬蚊都未有！'},
+      {label:'🔄 同朋友交換重複款',ok:true,fb:'你嘅重複款，可能正正係朋友想要嘅！'},
+      {label:'📅 同爸媽訂好規矩：每個月最多開一盒',ok:true,fb:'預先訂好規矩，去到舖頭就唔使掙扎。'}
+    ],3,()=>this.win());
+  },
+  win(){
+    this.state='done';$('#l5panel').classList.add('hide');
+    finishLevel(5,this.stars);SFX.win();confetti(new THREE.Vector3(0,2.2,0.6),100);toast('盲盒陷阱全識穿！🎁','good');
+    const tip=this.stars<3?'<br>⭐ 下次試下喺老闆話「差少少」嘅時候就停手，就有三粒星！':'';
+    const tipSay=this.stars<3?'下次試下喺老闆話差少少嘅時候就停手，就有三粒星！':'';
+    later(1600,()=>showDialog({title:'盲盒大揭秘完成！🎁🎉',
+      text:'盲盒嘅陷阱，你全部識穿晒：<br>🎁 <b>開盒好刺激</b>：令你興奮嘅係「唔知會開到乜」，唔係公仔本身。<br>✨ <b>差少少係假象</b>：閃金光唔代表下一盒會中。<br>🔍 <b>睇清楚機率</b>：隱藏款 1/144，使好多錢都未必有。<br>💸 <b>唔使追</b>：已經使咗嘅錢，唔使「追返」。<br>💬 <b>失望可以講出嚟</b>，唔使即刻再買。'+tip,
+      say:'盲盒大揭秘完成！盲盒嘅陷阱，你全部識穿晒。第一，開盒好刺激，令你興奮嘅係唔知會開到乜，唔係公仔本身。第二，差少少係假象，閃金光唔代表下一盒會中。第三，睇清楚機率，隱藏款一百四十四分之一，使好多錢都未必有。第四，唔使追，已經使咗嘅錢，唔使追返。第五，失望可以講出嚟，唔使即刻再買。'+tipSay,
+      buttons:endButtons(5)}));
+  },
+  update(dt,t){
+    const f=this.fox,hd=f.userData.head;
+    f.position.y=1.15+Math.sin(t*2)*0.04;
+    if(this.foxSad>0){this.foxSad-=dt;hd.rotation.x=0.35;hd.rotation.z=0;}
+    else{hd.rotation.x=Math.sin(t*1.3)*0.05;hd.rotation.z=Math.sin(t*1.7)*0.1;}
+    if(this.foxTalk>0){this.foxTalk-=dt;f.userData.mouth.scale.y=1+Math.abs(Math.sin(t*14))*1.8;hd.rotation.z=Math.sin(t*6)*0.15;}else f.userData.mouth.scale.y=1;
+    if(this.state==='tap'&&this.cur){const g=this.cur.grp;g.rotation.z=Math.sin(t*22)*0.05;g.rotation.y=Math.sin(t*3)*0.2;}
+    this.movers.forEach(m=>{const k=Math.min(1,dt*4);m.o.position.lerp(m.tgt,k);const s=m.o.scale.x+(m.s-m.o.scale.x)*k;m.o.scale.setScalar(Math.max(0.01,s));if(m.spin)m.o.rotation.y+=dt*8;});
+    if(this.state==='flip'&&this.flipBox){
+      const b=this.flipBox;
+      if(this.autoQ)b.quaternion.slerp(this.autoQ,Math.min(1,dt*3));
+      else if(!this.touched)b.rotation.y+=dt*0.6;
+      const n=new THREE.Vector3(0,-1,0).applyQuaternion(b.quaternion),toC=camera.position.clone().sub(b.position).normalize();
+      if(n.dot(toC)>0.82)this.found();
+    }
+    if(this.state==='sim'){const S=this.sim;S.acc+=dt;while(S.acc>0.011&&S.i<500){S.acc-=0.011;this.simStep();}this.pile.instanceMatrix.needsUpdate=true;if(S.i>=500)this.simDone();}
+  }
+};
+
+
 /* ================= level manager ================= */
-const LEVELS=[Menu,L1,L2,L3,L4];
+const LEVELS=[Menu,L1,L2,L3,L4,L5];
 function exitLevel(){clearTimers();hideDialog();hideBubble();if(L&&L.exit)L.exit();$('#lhud').innerHTML='';clearWorld();L=null;}
 function goLevel(n){
   exitLevel();L=LEVELS[n];L.enter();
@@ -1142,7 +1514,6 @@ $('#goBtn').onclick=()=>{
 updStarChip();
 goLevel(0);
 loop();
-window.__dd={goLevel,get L(){return L;}};
 })();
 </script>
 </body>
