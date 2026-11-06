@@ -267,6 +267,8 @@ details summary{font-weight:800;cursor:pointer}
 .lr.wrapbtn{display:flex;flex-wrap:wrap;gap:8px}.wrapbtn .btn{min-height:44px;padding:8px 14px;font-size:16px}
 h2.sec{margin:22px 0 4px;font-size:22px}
 .catq{margin:10px 0 4px}.catq input{width:100%;font-size:18px;padding:10px 14px;border:3px solid var(--line);border-radius:14px;background:#fff}
+.optrow{position:relative}.optrow .spk{top:10px;right:8px}
+.cardimg{display:block;max-width:100%;max-height:46vh;margin:8px auto;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.2);-webkit-touch-callout:default;user-select:auto}
 
 </style>
 </head>
@@ -1081,8 +1083,8 @@ IDIOMS.push(
   },
   {
     id: 'banmen', w: '班門弄斧', ch: 2, tone: 'n', src: '明・梅之渙《題李白墓》',
-    short: '喺專家面前賣弄', mean: '比喻喺專家面前賣弄本事，唔自量力。',
-    lit: '字面：「班」係魯班，「弄」係耍。喺魯班門口耍斧頭。', toneWhy: '係彈人。笑人唔自量力。（講自己就係謙虛：「我只係班門弄斧。」）', toneHint: '喺最叻嘅木匠面前耍斧頭，係咪好威？',
+    short: '喺專家面前賣弄', mean: '比喻喺專家面前賣弄本事，不自量力。',
+    lit: '字面：「班」係魯班，「弄」係耍。喺魯班門口耍斧頭。', toneWhy: '係彈人。笑人不自量力。（講自己就係謙虛：「我只係班門弄斧。」）', toneHint: '喺最叻嘅木匠面前耍斧頭，係咪好威？',
     story: [
       { t: '古時有個好出名嘅木匠叫魯班，整嘢好叻，大家都叫佢做木匠祖師。', sc: { bg: 'village', a: [['house', 620, 330, {}], ['oldman', 420, 345, { item: 'axe', arms: 'hold', face: 'smile' }], ['table', 260, 345, { w: 50 }], ['sparkle', 260, 250, { cls: 'bob', s: .6 }]] } },
       { t: '有人就喺魯班屋企門口，大模斯樣咁耍斧頭，想顯示自己好叻。', sc: { bg: 'village', a: [['house', 620, 330, {}], ['oldman', 640, 345, { face: 'shock', s: .9 }], ['man', 380, 345, { item: 'axe', arms: 'up', face: 'smug', swing: 1 }], ['q', 380, 150, { t: '睇我幾叻！', size: 28 }]] } },
@@ -1091,7 +1093,7 @@ IDIOMS.push(
     ],
     ex: [
       { c: '學校', s: '喺鋼琴老師面前彈《小星星》，佢話自己只係班門弄斧。', e: '佢喺專家面前表演，用呢個成語謙虛一下。' },
-      { c: '朋友', s: '阿明喺籃球隊長面前大講點樣射波，真係班門弄斧。', e: '喺專家面前賣弄，唔自量力。' }
+      { c: '朋友', s: '阿明喺籃球隊長面前大講點樣射波，真係班門弄斧。', e: '喺專家面前賣弄，不自量力。' }
     ],
     fill: { s: '佢喺廚師面前大講點樣煎蛋，其他人都笑佢＿＿＿＿。', why: '喺專家面前賣弄本事，係「班門弄斧」。' },
     d3: { m: 'kit', task: '撳嗰個耍斧頭嘅人，睇吓魯班點反應。', task2d: '撳呢度，等佢耍斧頭', done: '佢以為好威，但係喺木匠祖師魯班面前，佢嗰兩下好普通。',
@@ -4000,8 +4002,8 @@ IDIOMS.push(
 IDIOMS.push(
   {
     id: 'kuafu', w: '夸父逐日', ch: 10, tone: 'z', src: '《山海經・海外北經》',
-    short: '有大志／唔自量力', mean: '比喻人有遠大志向同決心；有時亦講人唔自量力。',
-    lit: '字面：巨人夸父追趕太陽。', toneWhy: '係唔讚唔彈（中性），可以讚決心，亦可以講唔自量力。', toneHint: '睇句子：係讚佢有決心，定係笑佢做唔到？',
+    short: '有大志／不自量力', mean: '比喻人有遠大志向同決心；有時亦講人不自量力。',
+    lit: '字面：巨人夸父追趕太陽。', toneWhy: '係唔讚唔彈（中性），可以讚決心，亦可以講不自量力。', toneHint: '睇句子：係讚佢有決心，定係笑佢做唔到？',
     story: [
       { t: '遠古時有個巨人叫夸父，佢想追上太陽，捉住佢。', sc: { bg: 'field', a: [['sun', 650, 90, {}], ['man', 250, 345, { s: 1.3, face: 'happy', arms: 'point' }]] } },
       { t: '佢一直跑，跨過一座座山、一條條河。', sc: { bg: 'field', a: [['mountain', 300, 345, { w: 100, h: 120 }], ['man', 100, 345, { s: 1.3, mv: [['to', 600, 345, 2400]] }], ['sun', 680, 80, {}]] } },
@@ -4010,9 +4012,9 @@ IDIOMS.push(
     ],
     ex: [
       { c: '學校', s: '佢立志要成為太空人，好似夸父逐日咁有決心。', e: '佢有遠大志向。' },
-      { c: '屋企', s: '冇練過就想一日跑完全馬，爸爸話佢係夸父逐日。', e: '笑佢唔自量力。' }
+      { c: '屋企', s: '冇練過就想一日跑完全馬，爸爸話佢係夸父逐日。', e: '笑佢不自量力。' }
     ],
-    fill: { s: '佢冇學過游水就想橫渡維港，好似＿＿＿＿咁唔自量力。', why: '唔自量力去追不可能嘅目標，係「夸父逐日」。' },
+    fill: { s: '佢冇學過游水就想橫渡維港，好似＿＿＿＿咁不自量力。', why: '不自量力去追不可能嘅目標，係「夸父逐日」。' },
     d3: { m: 'kit', task: '撳夸父，叫佢起步追太陽。', task2d: '撳呢度，追太陽', done: '佢跑過山、飲乾河，都追唔到太陽，最後手杖變成桃林。有決心，亦要量力而為。',
       k: [['kuafu', 'man', -2.4, .8, { s: 1.3 }], ['sun', 'sun', 2.6, -2, { y: 2.6 }], ['mt', 'mountain', -.4, -.6, { r: 1, h: 1.6 }], ['river', 'water', 1, .8, { r: .9 }], ['peach', 'fruittree', 1.8, .4, { c: '#F48FB1', hide: 1 }]],
       key: { type: 'tap', id: 'kuafu', fx: [[0, 'kuafu', 'run', 0, 1, 0, 800], [800, 'kuafu', 'run', 1, .8, 0, 600], [1300, 'river', 'shrink', .1], [1500, 'kuafu', 'fall', 1.4], [1900, 'peach', 'show']] },
@@ -4244,7 +4246,7 @@ IDIOMS.push(
     lit: '字面：一百種花一齊開放。', toneWhy: '係讚人（褒義），形容繁榮多元。', toneHint: '好多花一齊開，靚唔靚？',
     story: [
       { t: '《鏡花緣》講，唐朝女皇帝武則天冬天想賞花。', sc: { bg: 'snow', a: [['king', 400, 345, { g: 'f', c: '#FBC02D', face: 'smug' }]] } },
-      { t: '佢下令：「明朝全部花都要開！」', sc: { bg: 'snow', a: [['king', 400, 345, { g: 'f', c: '#FBC02D', arms: 'point', face: 'talk' }], ['say', 400, 130, { t: '全部花都要開！', tail: 0 }]] } },
+      { t: '佢下令：「聽朝全部花都要開！」', sc: { bg: 'snow', a: [['king', 400, 345, { g: 'f', c: '#FBC02D', arms: 'point', face: 'talk' }], ['say', 400, 130, { t: '全部花都要開！', tail: 0 }]] } },
       { t: '第二朝，雪地入面百花一齊開放，紅、黃、紫、白，好靚。', sc: { bg: 'snow', a: [['flower', 200, 345, {}], ['flower', 280, 345, { c: '#FFEB3B' }], ['flower', 360, 345, { c: '#AB47BC' }], ['flower', 440, 345, { c: '#FF7043' }], ['flower', 520, 345, { c: '#FAFAFA' }], ['flower', 600, 345, { c: '#F48FB1' }], ['sparkle', 400, 220, { cls: 'bob' }]] } },
       { t: '後來大家就用「百花齊放」形容唔同嘅藝術同意見一齊發展。', sc: { bg: 'class', a: [['palette', 260, 330, {}], ['notes', 400, 260, {}], ['book', 540, 330, {}], ['star', 400, 150, { cls: 'bob' }]] } }
     ],
@@ -4484,8 +4486,8 @@ IDIOMS.push(
   },
   {
     id: 'tangbi', w: '螳臂擋車', ch: 1, tone: 'n', src: '《莊子・人間世》', alt: ['螳臂當車'],
-    short: '唔自量力', mean: '比喻自不量力，想做遠超自己能力嘅事。',
-    lit: '字面：螳螂用前臂擋住架車。', toneWhy: '係彈人。笑人唔自量力。', toneHint: '螳螂擋唔擋得住架車？',
+    short: '不自量力', mean: '比喻不自量力，想做遠超自己能力嘅事。',
+    lit: '字面：螳螂用前臂擋住架車。', toneWhy: '係彈人。笑人不自量力。', toneHint: '螳螂擋唔擋得住架車？',
     story: [
       { t: '古時有架馬車喺大路上轆轆聲咁行緊，又快又重。', sc: { bg: 'road', a: [['cart', 200, 345, { mv: [['to', 400, 345, 1500]] }], ['horse', 290, 345, { mv: [['to', 490, 345, 1500]] }]] } },
       { t: '路中間有隻螳螂，舉起兩隻前臂，想擋住架車。', sc: { bg: 'road', cam: [500, 300, 1.4], a: [['q', 520, 330, { t: '🦗', size: 30 }], ['q', 520, 270, { t: '擋住佢！', size: 20 }]] } },
@@ -4493,11 +4495,11 @@ IDIOMS.push(
       { t: '莊子話：唔清楚自己能力去硬撼，好危險。', sc: { bg: 'room', a: [['scholar', 400, 345, { arms: 'point', face: 'talk' }], ['say', 400, 130, { t: '要量力而為！', tail: 0 }]] } }
     ],
     ex: [
-      { c: '學校', s: '冇練過就挑戰學界冠軍，簡直係螳臂擋車。', e: '唔自量力。' },
+      { c: '學校', s: '冇練過就挑戰學界冠軍，簡直係螳臂擋車。', e: '不自量力。' },
       { c: '屋企', s: '細佬一個人想搬部雪櫃，爸爸笑佢螳臂擋車。', e: '能力差太遠。' }
     ],
-    fill: { s: '一間細舖想同大集團鬥平，好似＿＿＿＿。', why: '自不量力硬撼強者，係「螳臂擋車」。' }, near: ['夸父逐日'],
-    d3: { m: 'kit', task: '撳架馬車，睇吓螳螂擋唔擋得住。', task2d: '撳呢度，馬車行過嚟', done: '螳螂用盡力都擋唔住，要即刻避開！唔自量力，就係螳臂擋車。',
+    fill: { s: '一間細舖想同大集團鬥平，好似＿＿＿＿。', why: '不自量力硬撼強者，係「螳臂擋車」。' }, near: ['夸父逐日'],
+    d3: { m: 'kit', task: '撳架馬車，睇吓螳螂擋唔擋得住。', task2d: '撳呢度，馬車行過嚟', done: '螳螂用盡力都擋唔住，要即刻避開！不自量力，就係螳臂擋車。',
       k: [['cart', 'cart', -2.2, 0], ['horse', 'horse', -1, 0], ['bug', 'leaf', 1.2, 0, { c: '#7CB342', s: 1.4 }], ['p', 'scholar', 2.4, 1.2]],
       key: { type: 'tap', id: ['cart', 'horse'], fx: [[0, 'horse', 'move', .2, 0, 0, 900], [0, 'cart', 'move', -1, 0, 0, 900], [700, 'bug', 'move', 1.4, 1.6, 0, 400], [1200, 'p', 'say', '要量力而為！', 1.2]] },
       parts: { bug: '我要擋住架車！' } }
@@ -8781,12 +8783,20 @@ const Voice = (() => {
     [/子彈/g, '子＃'], [/彈(?![出起跳弓簧開力])/g, '壇'], [/子＃/g, '子彈'],   // 彈人、彈琴 taan4；子彈、彈起 daan6
     [/好(?=龍|學|奇|客|勝|高騖|大喜|吃懶|逸惡|為人師)/g, '耗'],             // 葉公好龍、好學 hou3
     [/助長/g, '助掌'], [/(塞)(?=翁|外|北|上)/g, '賽'], [/邊塞/g, '邊賽'],    // 拔苗助長 zoeng2；塞翁 coi3
+    [/朝(?=早|頭早|夕|三|四暮|陽|氣|朝)/g, '焦'], [/(今|聽|琴|尋|二|每|成|一|呢|個)朝(?![代廷])/g, '$1焦'],   // 朝早、今朝、第二朝 ziu1（唐朝、朝代、朝住 ciu4 唔變）
     [/繇/g, '搖'], [/渻/g, '省'], [/鑣/g, '標'], [/嶠/g, '橋'], [/濫調/g, '濫掉'], [/興(?=致|高采|趣)/g, '慶'], [/頫/g, '府'], [/興嘆/g, '兄嘆'], [/逖/g, '剔'], [/琨/g, '坤'], [/智叟/g, '智手'], [/樂(?=羊子|廣)/g, '落'],
     [/曝/g, '僕'], [/肓/g, '荒'], [/鍥/g, '揭'], [/綢繆/g, '綢謀'], [/靡/g, '美'], [/瘁/g, '睡'], [/膏/g, '高'], [/櫝/g, '讀'], [/顰/g, '貧'], [/邯鄲/g, '寒單'], [/驥/g, '冀'], [/鵰/g, '雕'], [/頃/g, '傾']
   ];
   function clean(t) { // 唔好讀出符號
     PRON.forEach(([re, r]) => { t = t.replace(re, r); });
-    return t.replace(/[「」『』（）()《》【】]/g, ' ').replace(/[＿_]{2,}|＿/g, '空格').replace(/🔊|⭐|✅|👉|💡|📖|⏸|▶|⚙️|🏠|★/g, '').replace(/\s+/g, ' ').trim();
+    t = t.replace(/[「」『』（）()《》【】〈〉“”"]/g, ' ').replace(/[＿_]{2,}|＿/g, '空格')
+      .replace(/\p{Extended_Pictographic}|\uFE0F|\u200D|[★☆✓✔✗✘❌⭕→←↑↓⬅➡]/gu, '')
+      .replace(/[／/｜|～~＊*#＃＋+＝=]/g, ' ')
+      .replace(/…+|⋯+|\.{2,}/g, '，')
+      .replace(/\s*([，。！？、；：,.!?;:])[\s，。！？、；：,.!?;:]*/g, '$1')   // 連續標點只留一個，避免讀出「句號」
+      .replace(/^[\s，。！？、；：,.!?;:]+/, '')
+      .replace(/\s+/g, ' ').trim();
+    return /[\p{L}\p{N}]/u.test(t) ? t : '';
   }
   function audible() { return App.set.auto && st.unlocked && !!S; }
   function ui() {
@@ -8815,13 +8825,14 @@ const Voice = (() => {
     st.playing = true; ui();
     const next = () => { if (g !== st.gen) return; clearTimeout(st.wd); try { it.end && it.end(); } catch (e) { console.warn(e); } st.idx++; run(); };
     const begin = () => { if (g !== st.gen) return; try { it.on && it.on(); } catch (e) { console.warn(e); } };
-    if (!loud || !it.t) { // 靜音模式：按字數計時，令故事畫面照樣同步
+    const said = it.t ? clean(it.t) : '';
+    if (!loud || !said) { // 靜音模式：按字數計時，令故事畫面照樣同步
       begin();
       const ms = it.t ? Math.max(1200, it.t.length * 230 / (App.set.rate || 1)) : 0;
       st.timer = setTimeout(next, it.syncOnly || it.on || it.end ? ms : 0);
       return;
     }
-    const u = new SpeechSynthesisUtterance(clean(it.t));
+    const u = new SpeechSynthesisUtterance(said);
     const R = ROLE[it.role] || ROLE.narr; const v = pickVoice(it.role || 'narr');
     if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'zh-HK';
     const useRole = App.set.roles;
@@ -9469,8 +9480,8 @@ const D3 = (() => {
     g.add(at(box(o.w, o.h, o.d, o.wall), 0, o.h / 2, 0));
     const roof = cone(Math.max(o.w, o.d) * .78, o.h * .55, o.roof, 4); roof.rotation.y = Math.PI / 4; roof.scale.set(o.w / Math.max(o.w, o.d), 1, o.d / Math.max(o.w, o.d)); roof.position.y = o.h + o.h * .27; g.add(roof);
     g.add(at(box(.9, 1.4, .08, '#6D4C41'), 0, .7, o.d / 2 + .02));
-    [-1, 1].forEach(s => g.add(at(box(.8, .7, .06, '#B3E5FC'), s * o.w * .3, o.h * .6, o.d / 2 + .02)));
-    if (o.sign) { const b = board(o.sign, { w: Math.min(o.w * .9, 3.6), h: .8, bg: o.signBg || '#FFF8E1' }); b.position.set(0, o.h + .1, o.d / 2 + .08); g.add(b); g.userData.signMesh = b; }
+    [-1, 1].forEach(s => g.add(at(box(.8, .7, .06, '#B3E5FC'), s * o.w * .3, Math.min(o.h * .45, o.h - 1.5), o.d / 2 + .02)));
+    if (o.sign) { const b = board(o.sign, { w: Math.min(o.w * .9, 3.6), h: .8, bg: o.signBg || '#FFF8E1' }); b.position.set(0, o.h - .6, o.d / 2 + .1); g.add(b); g.userData.signMesh = b; }
     return g;
   }
   function tree(s) { const g = grp(at(cyl(.15, .2, 1.2, '#795548', 6), 0, .6, 0), at(cone(.9, 1.8, '#43A047', 7), 0, 1.9, 0), at(cone(.7, 1.3, '#66BB6A', 7), 0, 2.6, 0)); g.scale.setScalar(s || 1); return g; }
@@ -9483,7 +9494,7 @@ const D3 = (() => {
     root.add(at(cyl(1.6, 1.8, .5, '#B0BEC5', 16), 0, .25, 0)); root.add(at(cyl(1.35, 1.35, .05, '#4FC3F7', 16), 0, .5, 0)); root.add(at(cyl(.2, .3, 1.2, '#B0BEC5', 8), 0, .9, 0));
     const drop = at(sph(.25, '#81D4FA', 10, 8), 0, 1.6, 0); root.add(drop); v.addTick(n => { drop.position.y = 1.55 + Math.sin(n / 300) * .08; });
     const B = [
-      { id: 'learn', x: 0, z: -15, w: 6, h: 3.4, d: 4, wall: '#FFE0B2', roof: '#E53935', sign: '成語學堂', desc: '200 個成語故事', c: '#E53935' },
+      { id: 'learn', x: 0, z: -15, w: 6, h: 3.4, d: 4, wall: '#FFE0B2', roof: '#E53935', sign: '成語學堂', desc: IDIOMS.length + ' 個成語故事', c: '#E53935' },
       { id: 'skill', x: -13, z: -6, w: 5, h: 3, d: 4, wall: '#E1BEE7', roof: '#7B1FA2', sign: '技巧訓練場', desc: '練成語高手七招', c: '#7B1FA2' },
       { id: 'dex', x: 13, z: -6, w: 5, h: 3, d: 4, wall: '#F8BBD0', roof: '#C2185B', sign: '成語圖鑑', desc: '溫習學過嘅成語', c: '#C2185B' },
       { id: 'read', x: -12, z: 8, w: 5, h: 2.8, d: 4, wall: '#BBDEFB', roof: '#1565C0', sign: '延伸閱讀', desc: '大人小朋友都可以聽', c: '#1565C0' }
@@ -10277,13 +10288,13 @@ function stepPractice(d) {
   bar({ title: d.w, sub: `No. ${d.n + 1}／${IDIOMS.length} · 練習`, back: true, bot: `<button class="btn ghost" data-act="toStep" data-arg="2">◀ 例句</button><button class="btn main" id="btnNext" disabled>答啱先可以下一題</button>` });
   renderQ(d);
 }
-function qSay(q) { const L = 'ABC'; return [{ t: q.sayQ || q.q.replace(/\n/g, '。'), role: 'teacher' }].concat(q.opts.map((o, i) => ({ t: `${L[i]}，${o.t}。`, role: 'teacher' }))); }
+function qSay(q) { const L = 'ABCD'; return [{ t: q.sayQ || q.q.replace(/\n/g, '。'), role: 'teacher' }].concat(q.opts.map((o, i) => ({ t: `${L[i]}，${o.t}`, role: 'teacher' }))); }
 function renderQ(d) {
   const q = L.qs[L.qi]; const K = 'ABC';
   const lead = L.qi === 0 ? '第四步：做三條練習，答啱就有星！' : '';
   $('#lessonBody').innerHTML = `${lead ? `<p class="lead">${lead}${spk(lead)}</p>` : ''}
     <div class="card qcard has-spk"><div class="qprog">第 ${L.qi + 1}／${L.qs.length} 題</div><div class="q">${esc(q.q).replace(/\n/g, '<br>')}</div>${spk(qSay(q))}
-    <div class="opts">${q.opts.map((o, i) => `<button class="opt" data-act="answer" data-arg="${i}"><span class="k">${K[i]}</span><span>${esc(o.t)}</span>${spk({ t: `${K[i]}，${o.t}` })}</button>`).join('')}</div>
+    <div class="opts">${q.opts.map((o, i) => `<div class="optrow"><button class="opt" data-act="answer" data-arg="${i}"><span class="k">${K[i]}</span><span>${esc(o.t)}</span></button>${spk({ t: `${K[i]}，${o.t}` })}</div>`).join('')}</div>
     <div id="fb"></div></div>`;
   const nb = $('#btnNext'); nb.disabled = true; nb.textContent = '答啱先可以下一題'; nb.classList.remove('pulse'); nb.removeAttribute('data-act');
   Voice.stage((lead ? [{ t: lead, role: 'teacher' }] : []).concat(qSay(q)));
@@ -10392,7 +10403,7 @@ function renderSkill(s) {
       <p><button class="btn main" data-act="skWrite">✔ 交句子</button></p><div id="fb"></div></div>`;
   } else {
     body += `<div class="card qcard has-spk"><div class="q">${esc(ex.q)}</div>${spk(qSay({ q: ex.q, opts: ex.opts }))}
-      <div class="opts">${ex.opts.map((o, i) => `<button class="opt" data-act="skAns" data-arg="${i}"><span class="k">${'ABCD'[i]}</span><span>${esc(o.t)}</span>${spk({ t: `${'ABCD'[i]}，${o.t}` })}</button>`).join('')}</div><div id="fb"></div></div>`;
+      <div class="opts">${ex.opts.map((o, i) => `<div class="optrow"><button class="opt" data-act="skAns" data-arg="${i}"><span class="k">${'ABCD'[i]}</span><span>${esc(o.t)}</span></button>${spk({ t: `${'ABCD'[i]}，${o.t}` })}</div>`).join('')}</div><div id="fb"></div></div>`;
   }
   body += `<details><summary>📖 點解要識呢招？</summary><div class="has-spk" style="position:relative;padding-top:6px">${esc(s.why)}${spk(s.why)}</div></details></div>`;
   $('#scrSkill').innerHTML = body;
@@ -10461,14 +10472,25 @@ function cardImage(title, sub, rows, file) {
   let y = 290;
   blocks.forEach(b => { g.fillStyle = '#E65100'; g.font = `900 52px ${F}`; b.hl.forEach(l => { g.fillText(l, pad, y); y += 66; }); g.fillStyle = '#4E342E'; g.font = `700 38px ${F}`; b.b.forEach(l => { g.fillText(l, pad + 20, y); y += 54; }); y += 50; });
   g.fillStyle = '#8D6E63'; g.font = `700 30px ${F}`; g.fillText('成語小鎮・温習卡', pad, H - 40);
-  cv.toBlob(async bl => {
-    const done = () => { const t = '已經存咗張温習卡。'; UI.toast(t); Voice.say(t); };
-    if (DLNS) { try { await DLNS.save({ filename: file + '.png', data: bl }); done(); } catch (e) { if (e && e.code === 'declined') return; UI.toast('呢度存唔到圖片，可以下載個 App 檔案再試。'); } return; }
-    const f = new File([bl], file + '.png', { type: 'image/png' });
-    try { if (navigator.canShare && navigator.canShare({ files: [f] }) && /iPad|iPhone|Android|Mobile/i.test(navigator.userAgent + (navigator.maxTouchPoints > 1 ? 'iPad' : ''))) { await navigator.share({ files: [f], title }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-    const a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = f.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
-    done();
+  cv.toBlob(bl => {
+    CARD = { bl, name: file + '.png', title, url: URL.createObjectURL(bl) };
+    const canShare = (() => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([bl], CARD.name, { type: 'image/png' })] })); } catch (e) { return false; } })();
+    const tip = '想喺 iPad 或者手機儲存：長按張圖，揀「加入『相片』」，之後喺「相片」App 就搵到。' + (canShare ? '或者撳「分享」，再揀「儲存影像」。' : '') + '撳「下載」嘅話，檔案會喺「檔案」App 嘅「下載項目」資料夾。';
+    UI.modal(`<h2>💾 温習卡</h2><img src="${CARD.url}" alt="${esc(title)} 温習卡" class="cardimg"><p class="has-spk" style="position:relative;padding-right:44px">${esc(tip)}${spk(tip)}</p>
+      <div class="lr wrapbtn">${canShare ? '<button class="btn main" data-act="cardShare">📤 分享／存入相片</button>' : ''}<button class="btn ghost" data-act="cardDl">⬇️ 下載</button><button class="btn ghost" data-act="cardClose">關閉</button></div>`);
+    Voice.stage({ t: '温習卡整好喇。' + tip, role: 'teacher' });
   }, 'image/png');
+}
+let CARD = null;
+async function cardShare() {
+  if (!CARD) return; const f = new File([CARD.bl], CARD.name, { type: 'image/png' });
+  try { await navigator.share({ files: [f], title: CARD.title }); } catch (e) { if (e && e.name === 'AbortError') return; UI.toast('呢度分享唔到，試吓長按張圖儲存。'); }
+}
+async function cardDl() {
+  if (!CARD) return;
+  if (DLNS) { try { await DLNS.save({ filename: CARD.name, data: CARD.bl }); UI.toast('存好喇：喺「檔案」App →「下載項目」搵到。'); } catch (e) { if (!e || e.code !== 'declined') UI.toast('呢度下載唔到，試吓長按張圖儲存。'); } return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(CARD.bl); a.download = CARD.name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  UI.toast('下載咗：電腦喺「下載」資料夾；iPad 喺「檔案」App →「下載項目」。', 5000);
 }
 let RV = null;
 function startReview() {
@@ -10480,7 +10502,7 @@ function startReview() {
 function renderReview() {
   const q = RV.qs[RV.i];
   if (!q) { const t = '溫習完喇！記得隔幾日再嚟溫，會記得更耐。'; $('#scrDex').innerHTML = `<div class="wrap"><div class="card done has-spk"><h2>🎉 ${t}</h2>${spk(t)}</div><p><button class="btn pink" data-act="go" data-arg="dex">📒 返圖鑑</button></p></div>`; Sfx.win(); Voice.stage(t); return; }
-  $('#scrDex').innerHTML = `<div class="wrap"><div class="card qcard has-spk"><div class="qprog">溫習 第 ${RV.i + 1}／${RV.qs.length} 題</div><div class="q">${esc(q.q)}</div>${spk(qSay(q))}<div class="opts">${q.opts.map((o, i) => `<button class="opt" data-act="rvAns" data-arg="${i}"><span class="k">${'ABC'[i]}</span><span>${esc(o.t)}</span>${spk({ t: `${'ABC'[i]}，${o.t}` })}</button>`).join('')}</div><div id="fb"></div></div></div>`;
+  $('#scrDex').innerHTML = `<div class="wrap"><div class="card qcard has-spk"><div class="qprog">溫習 第 ${RV.i + 1}／${RV.qs.length} 題</div><div class="q">${esc(q.q)}</div>${spk(qSay(q))}<div class="opts">${q.opts.map((o, i) => `<div class="optrow"><button class="opt" data-act="rvAns" data-arg="${i}"><span class="k">${'ABC'[i]}</span><span>${esc(o.t)}</span></button>${spk({ t: `${'ABC'[i]}，${o.t}` })}</div>`).join('')}</div><div id="fb"></div></div></div>`;
   bar({ title: '隨機溫習', sub: `第 ${RV.i + 1}／${RV.qs.length} 題`, back: true, bot: `<button class="btn ghost" data-act="go" data-arg="dex">◀ 圖鑑</button><button class="btn main" id="btnNext" disabled>答啱先可以下一題</button>` });
   Voice.stage(qSay(q));
 }
@@ -10532,8 +10554,9 @@ const ACT = {
   skPart(i) { i = +i; const st = App.prog.sk[SK.id] || {}; if (i === 1 && !st.g) { const t = '先做完情境一。'; UI.toast(t); Voice.stage(t); return; } SK.part = i; SCR.skill(SK.id); },
   skAns(i) { skAns(+i); }, skWrite() { skWrite(); },
   flip(_, el) { el.classList.toggle('f'); Sfx.tap(); },
-  saveCard(id) { const d = BYID[id]; cardImage(d.w, d.short + '｜' + d.src, [{ h: '意思', b: d.mean }, { h: '例句', b: d.ex[0].s }, { h: '褒定貶？', b: d.toneWhy }], '温習卡-' + d.w); },
-  saveCh(id) { const c = CHAPTERS.find(x => x.id === +id || x.id === id), got = IDIOMS.filter(d => d.ch === c.id && isDone(d.id)); cardImage(c.name.split('：')[0], c.name.split('：')[1] || '', got.map(d => ({ h: d.w, b: d.short + '。例：' + d.ex[0].s })), '總結卡-' + c.name.split('：')[0]); },
+  saveCard(id) { const d = BYID[id]; cardImage(d.w, d.short + '｜' + d.src, [{ h: '意思', b: d.mean }, { h: '例句', b: d.ex[0].s }, { h: '褒定貶？', b: d.toneWhy }], 'chengyu-card-No' + (d.n + 1)); },
+  saveCh(id) { const c = CHAPTERS.find(x => x.id === +id || x.id === id), got = IDIOMS.filter(d => d.ch === c.id && isDone(d.id)); cardImage(c.name.split('：')[0], c.name.split('：')[1] || '', got.map(d => ({ h: d.w, b: d.short + '。例：' + d.ex[0].s })), 'chengyu-chapter-' + (CHAPTERS.indexOf(c) + 1)); },
+  cardShare() { cardShare(); }, cardDl() { cardDl(); }, cardClose() { UI.close(); if (CARD) { setTimeout(() => URL.revokeObjectURL(CARD.url), 500); CARD = null; } },
   review() { startReview(); }, rvAns(i) { rvAns(+i); }, rvNext() { RV.i++; renderReview(); },
   settings() { openSettings(); }, closeModal() { UI.close(); },
   setTog(k) { App.set[k] = !App.set[k]; App.save(); openSettings(); if (k === 'auto' && !App.set.auto) Voice.cut(); },
