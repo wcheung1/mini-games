@@ -253,6 +253,119 @@ h1{margin:10px 0 4px;font-size:clamp(36px,7vmin,64px);font-weight:900;color:#e63
   #taskText{font-size:18px}
   .opt{min-height:48px;font-size:20px}
 }
+
+/* ---------- 解難挑戰 ---------- */
+#puzzleScreen{align-items:stretch}
+.pzPanel::before{display:none}
+.pzPanel{--bs:min(44vw,calc(100vh - 300px),520px);max-width:min(98vw,1200px);height:100%;padding:clamp(14px,2.4vmin,24px)}
+.pzTop{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.pzTitle{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.pzDots{display:flex;gap:7px;flex-wrap:wrap;flex:1;justify-content:center;min-width:0}
+.pzDots i{width:14px;height:14px;border-radius:50%;background:#e8dcc0;transition:.2s}
+.pzDots i.done{background:var(--sun);box-shadow:0 0 0 2px #e0b600}
+.pzDots i.cur{background:var(--blue);transform:scale(1.3)}
+.pzBody{display:grid;grid-template-columns:minmax(0,1fr) var(--bs);grid-template-areas:"q board" "clues board" "after board";
+  grid-template-rows:auto auto 1fr;column-gap:22px;row-gap:12px;align-items:start}
+#pzQBox{grid-area:q}#pzClues{grid-area:clues}#pzAfter{grid-area:after}
+.pzRight{grid-area:board;width:var(--bs)}
+.pzQ{display:flex;gap:12px;align-items:center;background:#fff;border-radius:18px;padding:12px;box-shadow:0 4px 0 #eadbb6}
+#pzText,#pzThenText{font-size:clamp(19px,calc(1.9vmin + 8px),26px);font-weight:900;line-height:1.4}
+#pzThenText{font-size:clamp(18px,calc(1.7vmin + 8px),24px)}
+.teachLine.clue{font-size:clamp(16px,calc(1.5vmin + 8px),21px);margin:7px 0;padding:8px 10px}
+.teachLine.note{background:#eef6ff;box-shadow:0 4px 0 #cfdcf2}
+.teachLine.step .sn{flex:none;width:30px;height:30px;border-radius:50%;background:#e8dcc0;display:grid;place-items:center;font-size:16px;font-weight:900}
+.teachLine.step.cur{background:#fff1b8;box-shadow:0 4px 0 #f0c94a,inset 0 0 0 3px #ffb703}
+.teachLine.step.cur .sn{background:#ffb703;color:#fff}
+.teachLine.step.done{opacity:.6}
+.teachLine.step.done .sn{background:var(--grass);color:#fff}
+#pzThen{display:none;margin-top:4px;padding:12px;background:#fff8e1;border-radius:20px;border:3px dashed #ffb703}
+#pzThen.show{display:block;animation:pop .35s}
+.pzOpts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+#pzHint{display:none;align-items:center;gap:10px;margin-top:12px;padding:10px 12px;background:#fff1b8;border-radius:16px;font-size:19px;font-weight:800;line-height:1.4}
+#pzHint.show{display:flex}
+#pzResult{display:none;margin-top:12px;padding:12px;background:#e3f8dc;border-radius:18px;border:3px solid #9be08f}
+#pzResult.show{display:block;animation:pop .35s}
+#pzResText{font-size:20px;font-weight:800;line-height:1.45}
+#pzResText b{font-size:25px;color:#2a8a2a}
+#pzNext{width:100%}
+.btn:disabled{opacity:.45;filter:grayscale(.6);box-shadow:none;transform:none}
+
+.pzBoard{position:relative;width:100%;background:#fffaf0;border-radius:18px;padding:10px;box-shadow:0 0 0 3px #c9a86a,0 6px 0 rgba(138,109,59,.2)}
+.pzNorth{position:absolute;top:-14px;right:-8px;background:#e63946;color:#fff;font-weight:900;border-radius:12px;padding:4px 10px;font-size:16px;z-index:3;box-shadow:0 3px 0 #a4232e}
+.pgrid{display:grid;gap:6px;position:relative}
+.pcell{position:relative;aspect-ratio:1/1;min-width:0;border-radius:14px;background:#e6f5d2;box-shadow:inset 0 0 0 3px #cfe5b5;display:flex;align-items:center;justify-content:center;padding:0}
+.pcell .pin{display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;width:100%;height:100%}
+.pe{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1}
+.pcell .pe{font-size:calc(var(--bs) / var(--n) * .4)}
+.pcell .pn{font-size:clamp(13px,1.9vmin,17px);font-weight:900;margin-top:3px;white-space:nowrap}
+.pcell .clab{position:absolute;top:4px;left:8px;font-size:15px;font-weight:900;color:#8f98ab;pointer-events:none}
+.pcell.fixed{background:#fff3c4;box-shadow:inset 0 0 0 3px #f2cf5b}
+.pcell.filled{background:#fff;box-shadow:inset 0 0 0 3px #9cc3ff}
+.pgrid.selecting .pcell.empty{background:#eef4ff;box-shadow:inset 0 0 0 3px var(--blue);animation:pulseCell 1.2s infinite}
+@keyframes pulseCell{50%{background:#d8e6ff}}
+.pcell.wrong{animation:shake .4s;background:#ffe1e1!important;box-shadow:inset 0 0 0 4px var(--coral)!important}
+.pcell.right{background:#d8f5d0;box-shadow:inset 0 0 0 4px var(--grass)}
+.pcell.blocked{background:transparent;box-shadow:none;pointer-events:none}
+.pcell.frame::after{content:"";position:absolute;inset:-5px;border:5px solid #e63946;border-radius:17px;pointer-events:none}
+.lab{display:grid;place-items:center;font-weight:900;font-size:16px;color:#5f6778;padding:0 4px}
+.place.building{background:linear-gradient(#fbe3c4,#f6d3a8);box-shadow:0 0 0 3px #c08a4a,0 6px 0 rgba(138,109,59,.2)}
+.place.building .pcell{background:#d6ecff;box-shadow:inset 0 0 0 4px #8fb7e0}
+.place.building .pcell.filled{background:#fff}
+.place.rect .pgrid{gap:0}
+.place.rect .pgrid::before{content:"";position:absolute;left:25%;right:25%;top:25%;bottom:25%;border:5px solid var(--ink);border-radius:3px}
+.place.rect .pcell{background:transparent!important;box-shadow:none!important}
+.place.rect .pcell .pin{width:56%;height:56%;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 3px #9cc3ff,0 4px 0 #d6c9a8}
+.place.rect .pgrid.selecting .pcell.empty .pin{box-shadow:inset 0 0 0 4px var(--blue);background:#eef4ff}
+.place.rect .pcell.right .pin{box-shadow:inset 0 0 0 4px var(--grass);background:#d8f5d0}
+.place.rect .pcell .clab{font-size:28px;color:var(--ink);top:auto;left:auto}
+.place.rect .clab.tl{top:10%;left:12%}.place.rect .clab.tr{top:10%;right:12%}
+.place.rect .clab.bl{bottom:10%;left:12%}.place.rect .clab.br{bottom:10%;right:12%}
+.place.rect .pcell .pe{font-size:calc(var(--bs) * .1)}
+
+.pzTray{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.ppiece{display:flex;flex-direction:column;align-items:center;min-width:70px;padding:6px 10px;border-radius:16px;background:#fff;box-shadow:0 4px 0 #d6c9a8;font-weight:900;font-size:15px;transition:transform .1s}
+.ppiece .pe{font-size:34px}
+.ppiece.sel{background:#e7f0ff;box-shadow:inset 0 0 0 3px var(--blue),0 4px 0 var(--blueD);transform:translateY(-4px)}
+#pzStatus{text-align:center;font-weight:900;font-size:17px;margin-top:10px;color:#5f6778;min-height:24px}
+.pzCtrls{display:flex;justify-content:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.tbtn{min-width:96px;min-height:72px;border-radius:18px;background:#fff;box-shadow:0 5px 0 #cdbf9c;font-size:30px;font-weight:900;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.tbtn b{font-size:17px}
+.tbtn:active,.pad8 button:active{transform:translateY(4px);box-shadow:0 1px 0 #cdbf9c}
+.tbtn.fwd{background:#5fcf5f;color:#fff;box-shadow:0 5px 0 var(--grassD)}
+.pad8{display:grid;grid-template-columns:repeat(3,66px);grid-template-rows:repeat(3,58px);gap:6px}
+.pad8 button{border-radius:14px;background:#fff;box-shadow:0 4px 0 #cdbf9c;font-weight:900;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05}
+.pad8 button span{font-size:20px;color:#8f98ab}
+.pad8 .n{background:#e63946;color:#fff;box-shadow:0 4px 0 #a4232e}
+.pad8 .n span{color:#ffd6d9}
+.pad8 .ctr{display:grid;place-items:center;font-size:30px}
+.pzBtns{display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pzSvg{display:block;width:100%;height:auto}
+.pzSvg #pzRoute,.pzSvg #pzTrail,.pzSvg #pzMarks,.pzSvg #pzActors{pointer-events:none}
+.pzSvg rect.sc{cursor:pointer}
+.huntVis .big{font-size:62px}
+
+@media (orientation:portrait){
+  .pzPanel{--bs:min(86vw,46vh,560px)}
+  .pzBody{grid-template-columns:minmax(0,1fr);grid-template-areas:"q" "clues" "board" "after";grid-template-rows:none}
+  .pzRight{justify-self:center}
+}
+@media (orientation:portrait){
+  .pzPanel{--bs:min(86vw,40vh,560px)}
+  .pzRight.side{width:auto;display:grid;grid-template-columns:var(--bs) auto;grid-template-areas:"b c" "s s" "h h";column-gap:16px;align-items:center;justify-content:center}
+  .pzRight.side #pzBoard{grid-area:b}
+  .pzRight.side #pzCtrls{grid-area:c;flex-direction:column;margin-top:0}
+  .pzRight.side #pzStatus{grid-area:s}
+  .pzRight.side .pzBtns{grid-area:h}
+  .pzRight.side #pzTray{display:none}
+  .teachLine.clue{margin:5px 0;padding:6px 10px}
+}
+@media (orientation:portrait) and (max-width:620px){
+  .pzRight.side{display:block;width:var(--bs)}
+  .pzRight.side #pzCtrls{flex-direction:row}
+  .pzTop{flex-wrap:wrap}
+  .pzDots{order:5;flex-basis:100%}
+}
+
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}
 }
@@ -362,6 +475,39 @@ h1{margin:10px 0 4px;font-size:clamp(36px,7vmin,64px);font-weight:900;color:#e63
         <button id="btnMenu" class="btn ghost">📋 關卡</button>
         <button id="btnReplay" class="btn ghost">🔁 再玩</button>
         <button id="btnNextCh" class="btn big green">下一關 ▶</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 解難挑戰 -->
+  <div id="puzzleScreen" class="screen">
+    <div class="panel pzPanel" id="pzScroll">
+      <div class="pzTop">
+        <button id="pzHome" class="roundBtn" aria-label="返回關卡">🏠</button>
+        <button id="pzTitle" class="pill pzTitle"></button>
+        <div id="pzDots" class="pzDots"></div>
+        <button id="pzStarPill" class="pill" aria-label="星星">⭐ <b id="pzStarNum">0</b></button>
+        <button id="pzVoice" class="roundBtn" aria-label="自動讀出">🔊</button>
+      </div>
+      <div class="pzBody">
+        <div id="pzQBox" class="pzQ"><button class="spk" id="pzSpk" aria-label="讀出題目"></button><div id="pzText"></div></div>
+        <div id="pzClues"></div>
+        <div class="pzRight">
+          <div id="pzBoard" class="pzBoard"></div>
+          <div id="pzStatus"></div>
+          <div id="pzTray" class="pzTray"></div>
+          <div id="pzCtrls" class="pzCtrls"></div>
+          <div class="pzBtns"><button id="pzHintBtn" class="btn small ghost">💡 提示</button><button id="pzReset" class="btn small ghost">↺ 重新嚟過</button></div>
+        </div>
+        <div id="pzAfter">
+          <div id="pzThen"><div class="pzQ"><button class="spk sm" id="pzThenSpk" aria-label="讀出問題"></button><div id="pzThenText"></div></div><div id="pzOpts" class="pzOpts"></div></div>
+          <div id="pzHint"></div>
+          <div id="pzResult">
+            <div class="resRow"><button class="spk" id="pzResSpk" aria-label="讀出結果"></button><div id="pzResText"></div></div>
+            <button id="pzNext" class="btn green">下一題 ▶</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -531,6 +677,88 @@ const CH=[
     viaSay:'好嘢！買咗雪糕喇！而家去 G 7 搵寶藏！',
     hint:'雪糕店喺 C6。之後 G 係最右邊，7 係最下面。',
     done:'你搵到大寶藏！你係真正嘅小小地圖探險家！'}
+  ]},
+ {id:'puzzle',title:'解難挑戰',emoji:'🧩',color:'#ff7f50',sub:'方向推理大挑戰',visual:'puzzle',puzzle:true,
+  teach:['呢一關有 8 個解難挑戰，好似數學書入面嘅難題咁！','慢慢讀每一條線索。撳小喇叭，可以再聽一次。','唔識嘅時候，畫個圖出嚟就會易好多。','記住：上面係北，下面係南，右邊係東，左邊係西。'],
+  tasks:[
+   {type:'place',
+    text:'跟住線索，將圖案放入九宮格！⭐ 同 🚗 已經放好咗。',
+    say:'跟住線索，將圖案放入九宮格！星星同車仔已經放好咗。',
+    clues:['🍎 蘋果喺 ⭐ 星星嘅東面。','🌙 月亮喺 ⭐ 星星嘅西面。','🐟 魚仔喺 ⭐ 星星嘅北面。','🌸 花喺 🌙 月亮嘅南面。','⚽ 足球喺 🌙 月亮嘅北面。','🎈 氣球喺 🍎 蘋果嘅南面。'],
+    board:{rows:3,cols:3,relTo:{r:1,c:1,name:'星星'}},
+    fixed:[{e:'⭐',name:'星星',r:1,c:1},{e:'🚗',name:'車仔',r:2,c:1}],
+    pieces:[{e:'🍎',name:'蘋果',r:1,c:2},{e:'🌙',name:'月亮',r:1,c:0},{e:'🐟',name:'魚仔',r:0,c:1},{e:'🌸',name:'花',r:2,c:0},{e:'⚽',name:'足球',r:0,c:0},{e:'🎈',name:'氣球',r:2,c:2}],
+    hint:'先放同星星有關嘅：東面係右邊，西面係左邊，北面係上面。放好月亮同蘋果之後，再諗佢哋嘅上面同下面。',
+    done:'全部放啱晒！上面係北，下面係南，右邊係東，左邊係西。'},
+   {type:'place',
+    text:'幫五隻小動物搵返屋企！',
+    clues:['🐻 小熊屋企喺 🐰 小兔屋企嘅南面。','🐻 小熊屋企又喺 🐶 小狗屋企嘅西面。','🐻 小熊屋企嘅西面係 🐱 小貓屋企。','🐻 小熊屋企嘅南面係 🐷 小豬屋企。'],
+    board:{rows:3,cols:3,blocked:['0,0','0,2','2,0','2,2'],relTo:{r:1,c:1,name:'中間嗰間屋'}},
+    pieces:[{e:'🐻',name:'小熊',r:1,c:1},{e:'🐰',name:'小兔',r:0,c:1},{e:'🐶',name:'小狗',r:1,c:2},{e:'🐱',name:'小貓',r:1,c:0},{e:'🐷',name:'小豬',r:2,c:1}],
+    hint:'小熊係中心，放喺正中間。小熊喺小兔南面，即係小兔喺小熊嘅北面（上面）。小熊喺小狗西面，即係小狗喺小熊嘅東面（右邊）。',
+    then:{text:'🐰 小兔屋企喺 🐶 小狗屋企嘅邊個方向？',options:['東北','西北','東南','西南'],answer:1,
+      hint:'由小狗望去小兔：小兔喺小狗嘅上面（北），又喺左邊（西）。'},
+    done:'小兔喺小狗嘅左上面，即係西北面！'},
+   {type:'place',
+    text:'四隻小動物各自企喺長方形嘅一個角。佢哋企喺邊？',
+    clues:['🐱 貓仔喺 🐶 狗仔嘅東南面。','🐼 熊貓喺 🐰 兔仔嘅東北面。'],
+    board:{rows:2,cols:2,style:'rect',cellLabels:{'0,0':'A','0,1':'B','1,0':'D','1,1':'C'},
+      cellSay:{'0,0':'A 點，左上角','0,1':'B 點，右上角','1,0':'D 點，左下角','1,1':'C 點，右下角'}},
+    pieces:[{e:'🐶',name:'狗仔',r:0,c:0},{e:'🐼',name:'熊貓',r:0,c:1},{e:'🐱',name:'貓仔',r:1,c:1},{e:'🐰',name:'兔仔',r:1,c:0}],
+    hint:'東南即係右下面，東北即係右上面。貓仔喺狗仔嘅右下面，所以狗仔喺左上角 A，貓仔喺右下角 C。',
+    done:'狗仔喺 A，熊貓喺 B，貓仔喺 C，兔仔喺 D！'},
+   {type:'place',
+    text:'動物大廈有 3 層，每層有 1 號、2 號、3 號。幫小動物搬返屋企！',
+    clues:['🐸 青蛙住喺 1 樓 1 號，🐵 猴子住喺 2 樓 2 號。','🦊 狐狸住喺 3 樓 3 號。','🐔 雞仔住喺 🐵 猴子屋企嘅左邊。','🐢 烏龜同 🐸 青蛙係鄰居，住喺青蛙屋企嘅右邊。','🦉 貓頭鷹住喺 🦊 狐狸屋企嘅下面。'],
+    board:{rows:3,cols:3,style:'building',rowLabels:['3樓','2樓','1樓'],colLabels:['1號','2號','3號'],frame:'1,0'},
+    pieces:[{e:'🐸',name:'青蛙',r:2,c:0},{e:'🐵',name:'猴子',r:1,c:1},{e:'🦊',name:'狐狸',r:0,c:2},{e:'🐔',name:'雞仔',r:1,c:0},{e:'🐢',name:'烏龜',r:2,c:1},{e:'🦉',name:'貓頭鷹',r:1,c:2}],
+    hint:'樓層由下面數上去，最下面係 1 樓。號數由左邊數去右邊。先放有樓層同號數嘅，再放「左邊」「右邊」「下面」嗰啲。',
+    then:{text:'紅色框框入面，係邊隻動物嘅屋企？',options:['🐸 青蛙','🐔 雞仔','🦉 貓頭鷹','🐢 烏龜'],optsSay:['青蛙','雞仔','貓頭鷹','烏龜'],answer:1,
+      hint:'紅色框框喺 2 樓 1 號。睇吓你放咗邊隻動物喺嗰度。'},
+    done:'紅框係 2 樓 1 號，係雞仔嘅屋企！'},
+   {type:'race',
+    text:'🐰 小兔同 🐢 小龜同時出發去 🏫 學校，兩個行得一樣快。邊個會先到？',
+    clues:['🐰 小兔：先向北行 2 格，再向東行 4 格。','🐢 小龜：先向南行 1 格，再向東行 2 格，最後向南行 1 格。','💡 撳「畫路線」，好似喺紙上畫圈咁數格仔。'],
+    board:{cols:6,rows:6,colLabels:['1','2','3','4','5','6'],rowLabels:['1','2','3','4','5','6']},
+    marks:[{e:'🏫',x:4,y:2,name:'學校'}],
+    runners:[{e:'🐰',name:'小兔',start:[0,0],route:[['N',2],['E',4]],color:'#e76f51'},
+             {e:'🐢',name:'小龜',start:[2,4],route:[['S',1],['E',2],['S',1]],color:'#2a9d8f'}],
+    then:{text:'邊個會先到學校？',options:['🐰 小兔','🐢 小龜','一齊到'],optsSay:['小兔','小龜','一齊到'],answer:1},
+    hint:'數吓每個要行幾多格。小兔：2 加 4；小龜：1 加 2 加 1。行少啲格嘅，就會先到。',
+    done:'小兔要行 6 格，小龜只係行 4 格，所以小龜先到！撳「睇比賽」睇吓佢哋鬥快。'},
+   {type:'place',
+    text:'摩天輪喺樂樂嘅邊個方向？先跟住線索畫圖！',
+    clues:['👧 小美喺 🧒 樂樂嘅北面。','🎡 摩天輪喺 👧 小美嘅東南面。','🎡 摩天輪喺 👦 阿傑嘅南面。','樂樂同小美、小美同摩天輪、摩天輪同阿傑，都係貼住隔籬格。'],
+    board:{rows:3,cols:3,relTo:{r:1,c:1,name:'樂樂'}},
+    fixed:[{e:'🧒',name:'樂樂',r:1,c:1}],
+    pieces:[{e:'👧',name:'小美',r:0,c:1},{e:'🎡',name:'摩天輪',r:1,c:2},{e:'👦',name:'阿傑',r:0,c:2}],
+    hint:'先放小美：北面即係樂樂上面。然後喺小美嘅右下面（東南）放摩天輪。最後阿傑喺摩天輪嘅上面。',
+    then:{text:'🎡 摩天輪喺 🧒 樂樂嘅邊個方向？',options:['北','南','東','西'],answer:2,
+      hint:'睇吓你畫嘅圖：摩天輪喺樂樂嘅邊一邊？右邊係乜嘢方向？'},
+    done:'摩天輪喺樂樂嘅右邊，即係東面！畫圖真係幫到手。'},
+   {type:'steps',mode:'turn',
+    text:'樂樂面向東面。跟住指示操作，睇吓佢最後喺起點嘅邊個方向？',
+    clues:['🔄 轉左、轉右，要跟住樂樂「面向」嘅方向嚟計㗎！每格係 1 米。'],
+    board:{cols:7,rows:7},
+    marks:[{e:'🚩',x:3,y:3,name:'起點'}],
+    actor:'🧒',start:{x:3,y:3,face:'E'},
+    steps:[{say:'向東行 2 米',acts:['F','F']},{say:'轉右，行 1 米',acts:['R','F']},{say:'再轉右，行 1 米',acts:['R','F']},
+           {say:'再轉右，行 3 米',acts:['R','F','F','F']},{say:'最後轉左，行 3 米',acts:['L','F','F','F']}],
+    then:{text:'樂樂而家喺起點 🚩 嘅邊個方向？',options:['東北','西北','東南','西南'],answer:1,
+      hint:'睇吓地圖：樂樂喺紅旗嘅上面定下面？左邊定右邊？'},
+    hint:'藍色箭咀係樂樂面向嘅方向。轉右即係順住時鐘轉，轉左即係逆時鐘轉。',
+    done:'樂樂最後喺紅旗嘅左上面，即係起點嘅西北面！'},
+   {type:'steps',mode:'compass8',
+    text:'🔷 由 25 出發，跟住指示行。佢最後會去到邊個位置？',
+    clues:['📍 位置用兩個數字表示：先睇下面嘅數字，再睇左邊嘅數字。','例如 ⭕ 喺 34（30 嗰直行，第 4 橫行），🔺 喺 71。'],
+    board:{cols:8,rows:8,checker:true,codes:true,colLabels:['10','20','30','40','50','60','70','80'],rowLabels:['1','2','3','4','5','6','7','8']},
+    marks:[{e:'⭕',x:2,y:3,name:'圓形'},{e:'🔺',x:6,y:0,name:'三角形'}],
+    actor:'🔷',start:{x:1,y:4},
+    steps:[{say:'向東行 4 格，去到 65',acts:['E','E','E','E']},{say:'向西南行 2 格',acts:['SW','SW']},{say:'向北行 3 格',acts:['N','N','N']},{say:'最後向東行 1 格',acts:['E']}],
+    then:{text:'🔷 最後喺邊個位置？',options:['56','65','46','55'],answer:0,
+      hint:'睇吓藍色鑽石下面係幾多（十位），左邊係幾多（個位）。'},
+    hint:'西南即係左下面，斜斜咁行。撳格仔可以聽到佢嘅位置號碼。',
+    done:'🔷 最後喺 56：50 嗰直行，第 6 橫行！'}
   ]}
 ];
 const PRAISE=['啱咗！好叻呀！','好嘢！你真係好醒！','正呀！做得好好！','好犀利！地圖專家！','冇錯！你好叻！'];
@@ -1128,6 +1356,7 @@ const VISUALS={
     for(let r=1;r<=4;r++){ h+='<div class="hr">'+r+'</div>'; for(let c=0;c<4;c++){ const hl=c===2&&r===4; h+='<div class="'+(hl?'hl':(c===2?'colHl':(r===4?'rowHl':'')))+'">'+(hl?'C4':'')+'</div>'; } }
     return h+'</div>'; },
   scale:()=>'<div class="scaleVis">'+[0,1,2].map(i=>'<div class="seg '+(i%2?'w':'b')+'"><span>'+(i*100)+'</span>'+(i===2?'<span class="end">300 米</span>':'')+'</div>').join('')+'</div><p class="scaleNote">1 格 = 100 米</p>',
+  puzzle:()=>'<div class="huntVis"><span class="big">🧩</span><span class="big">🧠</span><span class="big">✏️</span></div>',
   treasure:()=>'<div class="huntVis"><span>🐥</span><span class="dash">➜ ➜ ➜</span><span>💎</span></div>'
 };
 
@@ -1153,7 +1382,7 @@ function openMenu(){
   renderMenu(); showScreen('menuScreen');
   autoSay('揀一個關卡。建議由第一關開始，一關一關咁玩。撳每個關卡上面嘅小喇叭，就可以聽到佢教乜嘢。',$('#menuSpk'));
 }
-$('#menuSpk').onclick=()=>Voice.speak('揀一個關卡。一共有五關：第一關，東南西北；第二關，地圖符號；第三關，格仔座標；第四關，比例尺；第五關，尋寶路線。',$('#menuSpk'));
+$('#menuSpk').onclick=()=>Voice.speak('揀一個關卡。一共有六關：第一關，東南西北；第二關，地圖符號；第三關，格仔座標；第四關，比例尺；第五關，尋寶路線；第六關，解難挑戰。',$('#menuSpk'));
 function introSpeech(i){ const ch=CH[i]; return '第'+(i+1)+'關，'+ch.title+'。'+ch.teach.join('')+' 準備好，就撳「開始挑戰」！'; }
 function openIntro(i){
   state.ch=i; const ch=CH[i];
@@ -1172,6 +1401,7 @@ $('#btnIntroBack').onclick=()=>{ SFX.click(); openMenu(); };
 $('#btnIntroGo').onclick=()=>{ SFX.click(); startChapter(state.ch); };
 
 function startChapter(i){
+  if(CH[i].puzzle){ startPuzzle(i); return; }
   state.ch=i; state.taskStars=[]; Voice.stop(); showScreen(null);
   document.body.classList.add('playing'); state.playing=true; state.attract=false; state.far=false; $('#btnView').textContent='🔭';
   const ch=CH[i]; $('#chTitle').textContent=ch.emoji+' 第'+(i+1)+'關 '+ch.title;
@@ -1199,7 +1429,331 @@ $('#btnMenu').onclick=()=>{ SFX.click(); openMenu(); };
 $('#btnReplay').onclick=()=>{ SFX.click(); openIntro(state.ch); };
 $('#btnNextCh').onclick=()=>{ SFX.click(); openIntro(Math.min(CH.length-1,state.ch+1)); };
 
-const START_SPEECH='歡迎嚟到小小地圖探險家！我係小雞波波。我哋一齊學睇地圖：東南西北、地圖符號、格仔座標同埋比例尺，最後仲要去尋寶！見到小喇叭，撳一下就可以聽廣東話。準備好，就撳「開始玩」！';
+
+/* ================= 解難挑戰 ================= */
+const D8={N:{dx:0,dy:1,name:'北',ar:'▲',ang:-90},S:{dx:0,dy:-1,name:'南',ar:'▼',ang:90},E:{dx:1,dy:0,name:'東',ar:'▶',ang:0},W:{dx:-1,dy:0,name:'西',ar:'◀',ang:180},
+  NE:{dx:1,dy:1,name:'東北',ar:'◥'},NW:{dx:-1,dy:1,name:'西北',ar:'◤'},SE:{dx:1,dy:-1,name:'東南',ar:'◢'},SW:{dx:-1,dy:-1,name:'西南',ar:'◣'}};
+const FACES=['N','E','S','W'];
+const CN=['一','二','三','四','五','六','七','八','九','十'];
+const ACT_NAME={F:'向前行',L:'轉左',R:'轉右'};
+const actName=a=>ACT_NAME[a]||('向'+D8[a].name+'行一格');
+const relDir=(dx,dy)=>(dx>0?'東':dx<0?'西':'')+(dy>0?'北':dy<0?'南':'');
+const SVGNS='http://www.w3.org/2000/svg';
+function svgEl(tag,attrs,parent){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e; }
+function svgEmoji(ch,x,y,size,parent){ const t=svgEl('text',{x:x,y:y,'font-size':size,'text-anchor':'middle','dominant-baseline':'central','font-family':EFONT},parent); t.textContent=ch; return t; }
+const pz={t:null,mistakes:0,solved:false};
+
+function pzSpeech(t){
+  let s=t.say||t.text;
+  if(t.clues&&t.clues.length) s+=' '+t.clues.join(' ');
+  if(t.steps) s+=' 指示：'+t.steps.map((x,i)=>'第'+CN[i]+'，'+x.say).join('；')+'。';
+  if(t.type==='race'&&t.then) s+=' 答案有：'+(t.then.optsSay||t.then.options).join('、')+'。';
+  return s;
+}
+function pzLine(text,cls,num){
+  const b=document.createElement('button'); b.className='teachLine clue '+(cls||'');
+  b.innerHTML=(num?'<span class="sn">'+num+'</span>':'')+'<span class="mini">'+SPK_SVG+'</span><span></span>';
+  b.lastChild.textContent=text; b.onclick=()=>{ SFX.click(); Voice.speak(text,b); }; return b;
+}
+function pzRenderDots(){ $('#pzDots').innerHTML=CH[state.ch].tasks.map((_,i)=>'<i class="'+(state.taskStars[i]!==undefined?'done ':'')+(i===state.ti?'cur':'')+'"></i>').join(''); }
+function pzUpdateStars(bump){ const n=state.taskStars.reduce((a,b)=>a+(b||0),0); $('#pzStarNum').textContent=n+' / '+CH[state.ch].tasks.length;
+  if(bump){ const el=$('#pzStarPill'); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } }
+
+function startPuzzle(i){
+  state.ch=i; state.taskStars=[]; Voice.stop();
+  state.playing=false; state.attract=true; state.task=null; document.body.classList.remove('playing'); marker.visible=false; clearTreasure(); updateViewOffset();
+  const ch=CH[i]; $('#pzTitle').textContent=ch.emoji+' 第'+(i+1)+'關 '+ch.title;
+  showScreen('puzzleScreen'); pzUpdateStars(false); pzLoad(0);
+}
+function pzLoad(i){
+  const t=CH[state.ch].tasks[i]; state.ti=i;
+  Object.assign(pz,{t,mistakes:0,solved:false,placeOk:false,stepsDone:false,sel:-1,racePos:null,racing:false});
+  $('#pzText').textContent=t.text;
+  $('.pzRight').classList.toggle('side',t.type==='steps');
+  const cl=$('#pzClues'); cl.innerHTML='';
+  (t.clues||[]).forEach(c=>cl.appendChild(pzLine(c,t.steps?'note':'')));
+  if(t.steps) t.steps.forEach((s,k)=>{ const el=pzLine(s.say,'step',k+1); el.dataset.li=k; cl.appendChild(el); });
+  $('#pzThen').classList.remove('show'); $('#pzHint').classList.remove('show'); $('#pzResult').classList.remove('show');
+  $('#pzHintBtn').style.display=''; $('#pzReset').style.display='';
+  $('#pzTray').innerHTML=''; $('#pzCtrls').innerHTML=''; $('#pzStatus').textContent='';
+  pzInit(); pzRender();
+  if(t.type==='race') pzShowThen(false);
+  pzRenderDots();
+  $('#pzScroll').scrollTop=0;
+  autoSay(pzSpeech(t),$('#pzSpk'));
+}
+function pzInit(){
+  const t=pz.t;
+  if(t.type==='place'){ pz.pos={}; pz.sel=-1; pz.placed=t.pieces.map(()=>null);
+    (t.fixed||[]).forEach(f=>pz.pos[f.r+','+f.c]={fixed:true,e:f.e,name:f.name}); }
+  else if(t.type==='steps'){ pz.x=t.start.x; pz.y=t.start.y; pz.face=t.start.face||'N'; pz.flat=[];
+    t.steps.forEach((s,li)=>s.acts.forEach(a=>pz.flat.push({a,li}))); pz.k=0; pz.trail=[[pz.x,pz.y]]; pz.walked=0; pz.lineCount=0; pz.busy=false; pz.stepsDone=false; }
+  else if(t.type==='race'){ pz.shown=t.runners.map(()=>false); pz.racePos=null; }
+}
+function pzRender(){ const ty=pz.t.type; if(ty==='place') pzRenderPlace(); else if(ty==='steps') pzRenderSteps(); else pzRenderRace(); }
+
+/* ---- 擺位置 ---- */
+function pzCellSay(r,c){
+  const b=pz.t.board, k=r+','+c;
+  if(b.cellSay&&b.cellSay[k]) return b.cellSay[k];
+  if(b.rowLabels&&b.colLabels) return b.rowLabels[r]+' '+b.colLabels[c];
+  if(b.relTo){ const R=b.relTo; if(r===R.r&&c===R.c) return '正中間'; return R.name+'嘅'+relDir(c-R.c,R.r-r)+'面'; }
+  return '';
+}
+function pzRenderPlace(){
+  const t=pz.t, b=t.board, wrap=$('#pzBoard');
+  wrap.className='pzBoard place '+(b.style||'grid');
+  const hasRL=!!b.rowLabels, n=b.cols+(hasRL?0.6:0);
+  let h=(b.style==='building'?'':'<div class="pzNorth">▲ 北</div>')+
+    '<div class="pgrid'+(pz.sel>=0?' selecting':'')+'" style="grid-template-columns:'+(hasRL?'auto ':'')+'repeat('+b.cols+',minmax(0,1fr));--n:'+n+'">';
+  for(let r=0;r<b.rows;r++){
+    if(hasRL) h+='<div class="lab">'+b.rowLabels[r]+'</div>';
+    for(let c=0;c<b.cols;c++){
+      const k=r+','+c;
+      if(b.blocked&&b.blocked.includes(k)){ h+='<div class="pcell blocked"></div>'; continue; }
+      const o=pz.pos[k];
+      const cls='pcell'+(o?(o.fixed?' fixed':' filled'):' empty')+(b.frame===k?' frame':'')+(pz.placeOk&&o&&!o.fixed?' right':'');
+      const lab=b.cellLabels&&b.cellLabels[k]?'<span class="clab '+(r?'b':'t')+(c?'r':'l')+'">'+b.cellLabels[k]+'</span>':'';
+      h+='<button class="'+cls+'" data-k="'+k+'" aria-label="'+pzCellSay(r,c)+'">'+lab+'<span class="pin">'+(o?'<span class="pe">'+o.e+'</span><span class="pn">'+o.name+'</span>':'')+'</span></button>';
+    }
+  }
+  if(b.colLabels){ if(hasRL) h+='<div></div>'; b.colLabels.forEach(l=>h+='<div class="lab">'+l+'</div>'); }
+  wrap.innerHTML=h+'</div>';
+  wrap.querySelectorAll('.pcell[data-k]').forEach(el=>el.onclick=()=>pzCellTap(el.dataset.k));
+  const tray=$('#pzTray'); tray.innerHTML='';
+  t.pieces.forEach((p,i)=>{ if(pz.placed[i]) return;
+    const bt=document.createElement('button'); bt.className='ppiece'+(pz.sel===i?' sel':'');
+    bt.innerHTML='<span class="pe">'+p.e+'</span><span>'+p.name+'</span>';
+    bt.onclick=()=>{ if(pz.placeOk) return; SFX.click(); pz.sel=pz.sel===i?-1:i; if(pz.sel>=0) Voice.speak(p.name+'。撳一格，放佢落去。',bt); pzRenderPlace(); };
+    tray.appendChild(bt); });
+  const left=pz.placed.filter(x=>!x).length;
+  $('#pzStatus').textContent=pz.placeOk?'✅ 全部放啱晒！':(left?(pz.sel>=0?'👇 撳一格，放低 '+t.pieces[pz.sel].e+' '+t.pieces[pz.sel].name:'👆 先撳一個圖案，再撳一格放落去（仲有 '+left+' 個）'):'全部放好喇！撳「檢查答案」。');
+  $('#pzCtrls').innerHTML=pz.placeOk?'':'<button class="btn green" id="pzCheck"'+(left?' disabled':'')+'>✅ 檢查答案</button>';
+  const ck=$('#pzCheck'); if(ck) ck.onclick=()=>{ SFX.click(); pzCheckPlace(); };
+}
+function pzCellTap(k){
+  const t=pz.t, rc=k.split(',').map(Number), o=pz.pos[k], where=pzCellSay(rc[0],rc[1]);
+  if(o&&o.fixed){ SFX.click(); Voice.speak('呢個係'+o.name+'。'); toast(o.e+' '+o.name); return; }
+  if(pz.placeOk){ Voice.speak((o?o.name+'，':'')+where+'。'); return; }
+  if(o){ pz.placed[o.i]=null; delete pz.pos[k]; pz.sel=o.i; SFX.click(); Voice.speak('拎返'+o.name+'出嚟。'); pzRenderPlace(); return; }
+  if(pz.sel>=0){ const i=pz.sel, p=t.pieces[i]; pz.pos[k]={e:p.e,name:p.name,i}; pz.placed[i]=k; pz.sel=-1; SFX.step();
+    Voice.speak(p.name+'，放喺'+where+'。'); pzRenderPlace(); return; }
+  SFX.click(); if(where){ Voice.speak('呢一格係'+where+'。'); toast(where); }
+}
+function pzCheckPlace(){
+  const t=pz.t, wrong=[];
+  t.pieces.forEach((p,i)=>{ if(pz.placed[i]!==p.r+','+p.c) wrong.push(i); });
+  if(!wrong.length){
+    pz.placeOk=true; pzRenderPlace();
+    if(t.then){ SFX.good(); confetti(25); toast('✅ 全部放啱！'); pzShowThen(true,'全部放啱晒！跟住答呢條問題：'); }
+    else pzWin();
+    return;
+  }
+  pz.mistakes++; SFX.bad(); toast('有 '+wrong.length+' 個唔啱，再試吓！💪');
+  wrong.forEach(i=>{ const el=$('#pzBoard .pcell[data-k="'+pz.placed[i]+'"]'); if(el) el.classList.add('wrong'); });
+  setTimeout(()=>{ wrong.forEach(i=>{ delete pz.pos[pz.placed[i]]; pz.placed[i]=null; }); pzRenderPlace(); },750);
+  pzShowHint(false);
+  autoSay('有'+wrong.length+'個位置唔啱，我會拎返佢哋出嚟。'+t.hint,$('#pzSpk'));
+}
+
+/* ---- SVG 格仔板 ---- */
+function pzSvgBase(b){
+  const S=60, ML=b.rowLabels?44:12, MT=12, MB=b.colLabels?40:12, MR=12;
+  const G={S,W:ML+b.cols*S+MR,H:MT+b.rows*S+MB,px:x=>ML+x*S+S/2,py:y=>MT+(b.rows-1-y)*S+S/2};
+  pz.G=G;
+  let s='<svg class="pzSvg" viewBox="0 0 '+G.W+' '+G.H+'" xmlns="'+SVGNS+'">';
+  for(let y=0;y<b.rows;y++) for(let x=0;x<b.cols;x++){
+    const f=b.checker?((x+y)%2?'#fffaf0':'#e8d9b4'):((x+y)%2?'#e6f5d2':'#d9efbf');
+    s+='<rect class="sc" data-x="'+x+'" data-y="'+y+'" x="'+(ML+x*S)+'" y="'+(MT+(b.rows-1-y)*S)+'" width="'+S+'" height="'+S+'" fill="'+f+'" stroke="#c2a46a" stroke-width="1.5"/>';
+  }
+  s+='<rect x="'+ML+'" y="'+MT+'" width="'+(b.cols*S)+'" height="'+(b.rows*S)+'" fill="none" stroke="#8a6d3b" stroke-width="3.5"/>';
+  if(b.colLabels) b.colLabels.forEach((l,x)=>s+='<text x="'+G.px(x)+'" y="'+(MT+b.rows*S+25)+'" font-size="19" font-weight="900" text-anchor="middle" dominant-baseline="central" fill="#1d6fd8">'+l+'</text>');
+  if(b.rowLabels) b.rowLabels.forEach((l,y)=>s+='<text x="'+(ML/2)+'" y="'+G.py(y)+'" font-size="19" font-weight="900" text-anchor="middle" dominant-baseline="central" fill="#e0474c">'+l+'</text>');
+  return s+'<g id="pzTrail"></g><g id="pzMarks"></g><g id="pzRoute"></g><g id="pzActors"></g></svg>';
+}
+function pzMakeActor(e,color,parent){
+  const G=pz.G, g=svgEl('g',{},parent);
+  svgEl('circle',{r:G.S*0.38,fill:'#fff',stroke:color,'stroke-width':4},g);
+  svgEmoji(e,0,2,G.S*0.48,g); return g;
+}
+const pzMoveTo=(g,x,y)=>g.setAttribute('transform','translate('+x+','+y+')');
+function pzHop(g,a,b2,ms,done,off){ off=off||0; const G=pz.G, x0=G.px(a[0])+off,y0=G.py(a[1])+off,x1=G.px(b2[0])+off,y1=G.py(b2[1])+off;
+  tween(ms,k=>pzMoveTo(g,x0+(x1-x0)*k,y0+(y1-y0)*k-Math.sin(Math.PI*k)*9),done); }
+const pzCode=(x,y)=>(x+1)*10+(y+1);
+
+/* ---- 跟指示行 ---- */
+function pzRenderSteps(){
+  const t=pz.t, b=t.board, wrap=$('#pzBoard');
+  wrap.className='pzBoard svgb';
+  wrap.innerHTML='<div class="pzNorth">▲ 北</div>'+pzSvgBase(b);
+  const G=pz.G;
+  (t.marks||[]).forEach(m=>svgEmoji(m.e,G.px(m.x),G.py(m.y),G.S*0.58,$('#pzMarks')));
+  pz.actor=pzMakeActor(t.actor,'#ff6b6b',$('#pzActors'));
+  if(t.mode==='turn'){ pz.arrow=svgEl('g',{},pz.actor);
+    svgEl('polygon',{points:(G.S*0.4)+','+(-G.S*0.17)+' '+(G.S*0.7)+',0 '+(G.S*0.4)+','+(G.S*0.17),fill:'#3a86ff',stroke:'#fff','stroke-width':2.5},pz.arrow); }
+  pzMoveTo(pz.actor,G.px(pz.x),G.py(pz.y)); pzSetArrow(); pzDrawTrail();
+  wrap.querySelectorAll('rect.sc').forEach(r=>r.addEventListener('click',()=>{
+    const x=+r.dataset.x, y=+r.dataset.y, m=(t.marks||[]).find(q=>q.x===x&&q.y===y);
+    SFX.click();
+    if(b.codes){ const c=pzCode(x,y); Voice.speak(c+'。'+((x+1)*10)+'嗰直行，第'+(y+1)+'橫行。'+(m?'呢度有'+m.name+'。':'')); toast('📍 '+c+(m?'  '+m.e:'')); }
+    else if(m){ Voice.speak('呢度係'+m.name+'。'); toast(m.e+' '+m.name); }
+  }));
+  const c=$('#pzCtrls');
+  if(t.mode==='turn'){
+    c.innerHTML='<button class="tbtn" data-act="L">↺<b>轉左</b></button><button class="tbtn fwd" data-act="F">⬆<b>向前行</b></button><button class="tbtn" data-act="R">↻<b>轉右</b></button>';
+  } else {
+    const order=['NW','N','NE','W','',  'E','SW','S','SE'];
+    c.innerHTML='<div class="pad8">'+order.map(k=>k?'<button data-act="'+k+'" class="'+(k==='N'?'n':'')+'" aria-label="向'+D8[k].name+'"><span>'+D8[k].ar+'</span>'+D8[k].name+'</button>':'<div class="ctr">🧭</div>').join('')+'</div>';
+  }
+  c.querySelectorAll('[data-act]').forEach(bt=>bt.addEventListener('click',()=>{ SFX.init(); pzAct(bt.dataset.act); }));
+  pzStepsUI();
+}
+function pzSetArrow(){ if(pz.arrow) pz.arrow.setAttribute('transform','rotate('+D8[pz.face].ang+')'); }
+function pzDrawTrail(){
+  const G=pz.G, tr=$('#pzTrail'); if(!tr) return; tr.innerHTML='';
+  if(pz.trail.length>1) svgEl('polyline',{points:pz.trail.map(([x,y])=>G.px(x)+','+G.py(y)).join(' '),fill:'none',stroke:'#ff6b6b','stroke-width':5,'stroke-dasharray':'9 7','stroke-linecap':'round','stroke-linejoin':'round'},tr);
+}
+function pzStepsUI(){
+  const t=pz.t, cur=pz.stepsDone?99:pz.flat[pz.k].li;
+  $$('#pzClues .step').forEach(el=>{ const li=+el.dataset.li; el.classList.toggle('done',li<cur); el.classList.toggle('cur',li===cur); });
+  $('#pzStatus').textContent=t.mode==='turn'?(t.actor+' 面向：'+D8[pz.face].name+'　｜　行咗 '+pz.walked+' 米'):(t.actor+' 而家喺：'+pzCode(pz.x,pz.y));
+}
+function pzAct(a){
+  if(pz.solved||pz.stepsDone||pz.busy) return;
+  const t=pz.t, exp=pz.flat[pz.k];
+  if(a!==exp.a){
+    pz.mistakes++; SFX.bad(); toast('唔係呢一步呀！');
+    autoSay('唔啱呀。而家要：'+t.steps[exp.li].say+'。',$('#pzSpk'));
+    const g=pz.actor, G=pz.G, bx=G.px(pz.x), by=G.py(pz.y); pz.busy=true;
+    tween(300,k=>pzMoveTo(g,bx+Math.sin(k*Math.PI*4)*5,by),()=>{ pzMoveTo(g,bx,by); pz.busy=false; });
+    return;
+  }
+  const prevLi=exp.li;
+  if(a==='L'||a==='R'){
+    pz.face=FACES[(FACES.indexOf(pz.face)+(a==='R'?1:3))%4]; SFX.click(); pzSetArrow();
+    pz.k++; pz.lineCount=0; pzAfterAct(prevLi,ACT_NAME[a]+'，而家面向'+D8[pz.face].name+'。'); return;
+  }
+  const d=a==='F'?D8[pz.face]:D8[a], from=[pz.x,pz.y], to=[pz.x+d.dx,pz.y+d.dy];
+  pz.x=to[0]; pz.y=to[1]; pz.trail.push(to); pz.walked++; pz.k++; pz.lineCount++; pz.busy=true; SFX.step();
+  const say=t.board.codes?(d.name+'，'+pzCode(pz.x,pz.y)+'。'):(CN[pz.lineCount-1]||'')+'。';
+  pzHop(pz.actor,from,to,280,()=>{ pz.busy=false; pzDrawTrail(); pzAfterAct(prevLi,say); });
+}
+function pzAfterAct(prevLi,say){
+  const t=pz.t;
+  if(pz.k>=pz.flat.length){ pz.stepsDone=true; pzStepsUI(); SFX.good(); toast('🎉 行完喇！');
+    $('#pzCtrls').querySelectorAll('button').forEach(b=>b.disabled=true);
+    pzShowThen(true,'行完喇！'); return; }
+  pzStepsUI();
+  const cur=pz.flat[pz.k];
+  if(cur.li!==prevLi){ pz.lineCount=0; const el=$('#pzClues .step[data-li="'+cur.li+'"]'); autoSay(say+' 下一個指示：'+t.steps[cur.li].say+'。',el); }
+  else autoSay(say);
+}
+
+/* ---- 鬥快 ---- */
+function pzPath(rn){ const p=[rn.start.slice()]; rn.route.forEach(([d,n])=>{ for(let i=0;i<n;i++){ const l=p[p.length-1]; p.push([l[0]+D8[d].dx,l[1]+D8[d].dy]); } }); return p; }
+function pzRenderRace(){
+  const t=pz.t, wrap=$('#pzBoard');
+  wrap.className='pzBoard svgb';
+  wrap.innerHTML='<div class="pzNorth">▲ 北</div>'+pzSvgBase(t.board);
+  const G=pz.G, rg=$('#pzRoute');
+  t.marks.forEach(m=>svgEmoji(m.e,G.px(m.x),G.py(m.y),G.S*0.62,$('#pzMarks')));
+  t.runners.forEach((rn,i)=>{ if(!pz.shown[i]) return;
+    const path=pzPath(rn), off=(i?1:-1)*G.S*0.17;
+    svgEl('polyline',{points:path.map(([x,y])=>(G.px(x)+off)+','+(G.py(y)+off)).join(' '),fill:'none',stroke:rn.color,'stroke-width':4,'stroke-dasharray':'8 6','stroke-linecap':'round'},rg);
+    path.slice(1).forEach(([x,y],n)=>{ const cx=G.px(x)+off, cy=G.py(y)+off;
+      svgEl('circle',{cx,cy,r:G.S*0.18,fill:'#fff',stroke:rn.color,'stroke-width':3},rg);
+      const tx=svgEl('text',{x:cx,y:cy+1,'font-size':G.S*0.23,'font-weight':900,'text-anchor':'middle','dominant-baseline':'central',fill:rn.color},rg); tx.textContent=n+1; }); });
+  pz.actorsEl=t.runners.map((rn,i)=>{ const g=pzMakeActor(rn.e,rn.color,$('#pzActors')); const p=pz.racePos?pz.racePos[i]:rn.start, o=(i?1:-1)*G.S*0.14; pzMoveTo(g,G.px(p[0])+o,G.py(p[1])+o); return g; });
+  const c=$('#pzCtrls');
+  c.innerHTML=t.runners.map((rn,i)=>'<button class="btn small ghost" data-rt="'+i+'">'+(pz.shown[i]?'🙈 收埋':'✏️ 畫')+rn.e+rn.name+'路線</button>').join('')+
+    (pz.solved?'<button class="btn small green" id="pzRace">🏁 睇比賽</button>':'');
+  c.querySelectorAll('[data-rt]').forEach(bt=>bt.onclick=()=>{ if(pz.racing) return; const i=+bt.dataset.rt, rn=t.runners[i]; SFX.click(); pz.shown[i]=!pz.shown[i]; pzRenderRace();
+    if(pz.shown[i]){ const n=pzPath(rn).length-1; Voice.speak(rn.name+'嘅路線：'+rn.route.map(([d,k])=>'向'+D8[d].name+'行'+k+'格').join('，')+'。數吓圈圈，一共行咗幾多格？'); } });
+  const rb=$('#pzRace'); if(rb) rb.onclick=()=>{ SFX.click(); pzRunRace(); };
+  $('#pzStatus').textContent=t.runners.map((rn,i)=>pz.shown[i]?rn.e+' '+rn.name+'：'+(pzPath(rn).length-1)+' 格':'').filter(Boolean).join('　｜　')||'✏️ 撳掣畫出路線，幫你數格仔';
+}
+function pzRunRace(){
+  if(pz.racing) return; const t=pz.t, paths=t.runners.map(pzPath);
+  pz.racing=true; pz.racePos=null; pzRenderRace();
+  let n=0, winner=null;
+  const stepFn=()=>{
+    if(state.ti===undefined||pz.t!==t) return;
+    n++; let moving=false;
+    paths.forEach((p,i)=>{ if(n<p.length){ moving=true; pzHop(pz.actorsEl[i],p[n-1],p[n],380,null,(i?1:-1)*pz.G.S*0.14); if(n===p.length-1&&!winner) winner=t.runners[i]; } });
+    if(!moving){ pz.racing=false; pz.racePos=paths.map(p=>p[p.length-1]); return; }
+    SFX.step(); Voice.speak(CN[n-1]||String(n));
+    if(winner&&!winner.told){ const w=winner; w.told=true; setTimeout(()=>{ toast('🏆 '+w.e+' '+w.name+'先到！'); SFX.fanfare(); Voice.speak(w.name+'先到學校！'); },420); }
+    setTimeout(stepFn,750);
+  };
+  t.runners.forEach(r=>r.told=false);
+  stepFn();
+}
+
+/* ---- 問題、提示、結果 ---- */
+function pzShowThen(speak,prefix){
+  const q=pz.t.then; if(!q){ pzWin(); return; }
+  $('#pzThen').classList.add('show'); $('#pzThenText').textContent=q.text;
+  const box=$('#pzOpts'); box.innerHTML='';
+  q.options.forEach((o,i)=>{
+    const b=document.createElement('button'); b.className='opt';
+    const lab=document.createElement('span'); lab.textContent=o; b.appendChild(lab);
+    const s=document.createElement('span'); s.className='spk sm ospk'; s.setAttribute('role','button'); s.setAttribute('aria-label','讀出答案'); s.innerHTML=SPK_SVG;
+    s.addEventListener('click',e=>{ e.stopPropagation(); SFX.click(); Voice.speak((q.optsSay||q.options)[i],s); }); b.appendChild(s);
+    b.addEventListener('click',()=>pzAnswer(i,b)); box.appendChild(b);
+  });
+  pz.thenSpeech=q.text+' 答案有：'+(q.optsSay||q.options).join('、')+'。';
+  if(speak){ autoSay((prefix||'')+pz.thenSpeech,$('#pzThenSpk'));
+    setTimeout(()=>$('#pzThen').scrollIntoView({block:'nearest',behavior:'smooth'}),60); }
+}
+$('#pzThenSpk').onclick=()=>Voice.speak(pz.thenSpeech||'',$('#pzThenSpk'));
+function pzAnswer(i,b){
+  const q=pz.t.then; if(pz.solved||b.disabled) return;
+  if(i===q.answer){ b.classList.add('right'); $$('#pzOpts .opt').forEach(o=>o.disabled=true); pzWin(); }
+  else { pz.mistakes++; b.classList.add('wrong'); b.disabled=true; SFX.bad(); toast('再試吓！💪');
+    pzShowHint(false,q.hint); autoSay(pick(WRONG)+' '+(q.hint||pz.t.hint),$('#pzThenSpk')); }
+}
+function pzHintText(){
+  const t=pz.t;
+  if(t.then&&$('#pzThen').classList.contains('show')&&t.then.hint) return t.then.hint;
+  let h=t.hint;
+  if(t.type==='steps'&&!pz.stepsDone){ const e=pz.flat[pz.k]; h+=' 而家要做：「'+t.steps[e.li].say+'」，下一個掣係「'+actName(e.a)+'」。'; }
+  return h;
+}
+function pzShowHint(speakIt,text){
+  const tx_=text||pzHintText(), hb=$('#pzHint'); hb.innerHTML='';
+  const s=document.createElement('button'); s.className='spk sm'; s.innerHTML=SPK_SVG; s.setAttribute('aria-label','讀出提示');
+  s.onclick=()=>Voice.speak(tx_,s);
+  const sp=document.createElement('span'); sp.textContent='💡 '+tx_;
+  hb.appendChild(s); hb.appendChild(sp); hb.classList.add('show');
+  if(speakIt) Voice.speak(tx_,s);
+}
+function pzWin(){
+  const t=pz.t; pz.solved=true;
+  const star=pz.mistakes<=(t.type==='steps'?1:0)?1:0;
+  state.taskStars[state.ti]=star;
+  SFX.good(); confetti(star?70:30); pzUpdateStars(true); pzRenderDots();
+  const praise=pick(PRAISE);
+  $('#pzResText').innerHTML='<b>'+praise+'</b>'+(star?'<span class="gotStar">+1 ⭐</span>':'')+'<br>'+t.done;
+  $('#pzNext').textContent=state.ti===CH[state.ch].tasks.length-1?'完成 🎉':'下一題 ▶';
+  $('#pzHint').classList.remove('show'); $('#pzHintBtn').style.display='none'; $('#pzReset').style.display='none';
+  $('#pzResult').classList.add('show');
+  if(t.type==='race') pzRenderRace();
+  pz.resSpeech=praise+' '+t.done+(star?' 你攞到一粒星！':'');
+  autoSay(pz.resSpeech,$('#pzResSpk'));
+  setTimeout(()=>$('#pzResult').scrollIntoView({block:'nearest',behavior:'smooth'}),80);
+}
+$('#pzResSpk').onclick=()=>Voice.speak(pz.resSpeech||'',$('#pzResSpk'));
+$('#pzSpk').onclick=()=>{ if(pz.t) Voice.speak(pzSpeech(pz.t),$('#pzSpk')); };
+$('#pzHintBtn').onclick=()=>{ SFX.click(); pzShowHint(true); };
+$('#pzReset').onclick=()=>{ if(pz.solved||pz.racing) return; SFX.click(); const keepThen=pz.t.type==='race';
+  pzInit(); pz.placeOk=false; pz.stepsDone=false; if(!keepThen) $('#pzThen').classList.remove('show'); pzRender(); Voice.speak('重新嚟過！'); };
+$('#pzNext').onclick=()=>{ SFX.click(); if(state.ti<CH[state.ch].tasks.length-1) pzLoad(state.ti+1); else finishChapter(); };
+$('#pzHome').onclick=()=>{ SFX.click(); openMenu(); };
+$('#pzTitle').onclick=()=>{ const ch=CH[state.ch]; Voice.speak('第'+(state.ch+1)+'關，'+ch.title+'。第'+(state.ti+1)+'題，一共有'+ch.tasks.length+'題。'); };
+$('#pzStarPill').onclick=()=>{ const n=state.taskStars.reduce((a,b)=>a+(b||0),0); Voice.speak('呢一關你攞咗'+n+'粒星。'); };
+$('#pzVoice').onclick=()=>{ setVoiceOn(!state.voiceOn); toast(state.voiceOn?'🔊 自動讀出：開':'🔇 自動讀出：關'); Voice.speak(state.voiceOn?'開咗自動讀出。':'熄咗自動讀出。想聽嘅時候，可以撳小喇叭。'); };
+
+const START_SPEECH='歡迎嚟到小小地圖探險家！我係小雞波波。我哋一齊學睇地圖：東南西北、地圖符號、格仔座標同埋比例尺，仲要去尋寶，最後挑戰方向推理難題！見到小喇叭，撳一下就可以聽廣東話。準備好，就撳「開始玩」！';
 $('#startSpk').onclick=()=>Voice.speak(START_SPEECH,$('#startSpk'));
 $('#btnStart').onclick=()=>{ SFX.init(); SFX.click(); openMenu(); };
 
@@ -1208,7 +1762,7 @@ $('#btnHome').onclick=()=>{ SFX.click(); openMenu(); };
 $('#chTitle').onclick=()=>{ const ch=CH[state.ch]; Voice.speak('第'+(state.ch+1)+'關，'+ch.title+'。第'+(state.ti+1)+'題，一共有'+ch.tasks.length+'題。'); };
 $('#starPill').onclick=()=>{ const n=state.taskStars.reduce((a,b)=>a+(b||0),0); Voice.speak('呢一關你攞咗'+n+'粒星。'); };
 function setVoiceOn(v){ state.voiceOn=v; save.voiceOn=v; persist();
-  $('#btnVoice').textContent=v?'🔊':'🔇'; $('#btnAuto').textContent='🔊 自動讀出：'+(v?'開':'關'); }
+  $('#btnVoice').textContent=v?'🔊':'🔇'; $('#pzVoice').textContent=v?'🔊':'🔇'; $('#btnAuto').textContent='🔊 自動讀出：'+(v?'開':'關'); }
 function setSlow(v){ save.slow=v; persist(); Voice.rate=v?0.72:0.95; $('#btnSlow').textContent='🐢 慢慢讀：'+(v?'開':'關'); }
 $('#btnVoice').onclick=()=>{ setVoiceOn(!state.voiceOn); toast(state.voiceOn?'🔊 自動讀出：開':'🔇 自動讀出：關'); Voice.speak(state.voiceOn?'開咗自動讀出。':'熄咗自動讀出。想聽嘅時候，可以撳小喇叭。'); };
 $('#btnAuto').onclick=()=>{ setVoiceOn(!state.voiceOn); Voice.speak(state.voiceOn?'開咗自動讀出。':'熄咗自動讀出。想聽嘅時候，可以撳小喇叭。'); };
