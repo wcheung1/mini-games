@@ -151,15 +151,19 @@ export function LessonView({ mod, onBack, mode = 'basic' }) {
     const st = L.steps[stepRef.current];
     if (!st.action || !ctrl.current || demoRef.current || doneRef.current.has(st.action.id)) return;
     demoRef.current = true; setDemoing(true);
-    try { await ctrl.current.demo(st.action.id); } finally { demoRef.current = false; setDemoing(false); }
+    // 看門狗：示範 2 分鐘都未完（或者出錯），都收返「示範緊」，俾小朋友再撳
+    try { await Promise.race([ctrl.current.demo(st.action.id), sleep(120000)]); } catch (e) { console.warn('demo', e); } finally { demoRef.current = false; setDemoing(false); }
   }, [L]);
   const demoThenNext = useCallback(async () => {
     const my = ++autoTok.current;
+    const s0 = stepRef.current; const st = L.steps[s0];
     await runDemo(); if (my !== autoTok.current) return;
-    await Speech.waitIdle(); if (my !== autoTok.current) return;
+    await Speech.waitIdle({ ignorePause: true }); if (my !== autoTok.current) return;
     await sleep(600); if (my !== autoTok.current) return;
-    go(stepRef.current + 1);
-  }, [runDemo, go]);
+    if (stepRef.current !== s0) return; // 小朋友已經自己撳咗下一步：唔好再跳多一步
+    if (st.action && !doneRef.current.has(st.action.id)) return; // 未做完就留喺呢步（提示手指會再出現）
+    go(s0 + 1);
+  }, [runDemo, go, L]);
 
   // 自動播放：讀完 → 示範 → 讀完 → 下一步（去到思考挑戰就停低等小朋友答）
   useEffect(() => {
@@ -173,6 +177,7 @@ export function LessonView({ mod, onBack, mode = 'basic' }) {
         await sleep(400); if (my !== autoTok.current) return;
         await runDemo(); if (my !== autoTok.current) return;
         await sleep(300); await Speech.waitIdle(); if (my !== autoTok.current) return;
+        if (!doneRef.current.has(st.action.id)) return; // 示範未做完：唔好跳步
       }
       if (st.tag === 'quiz') return;
       await sleep(900); if (my !== autoTok.current) return;

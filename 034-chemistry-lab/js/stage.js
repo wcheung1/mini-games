@@ -57,7 +57,7 @@ export function ThreeStage({ mod, lang, readMode, ctrlRef, onEvent, onReadLabel,
       emit: (k, p) => evRef.current && evRef.current(k, p),
       done: (id) => evRef.current && evRef.current('done', { id }),
       state: (patch) => evRef.current && evRef.current('state', patch),
-      waitSpeech: () => Speech.waitIdle(),
+      waitSpeech: () => Speech.waitIdle({ ignorePause: true }), // 示範：暫停只係停聲，實驗照做；一定有時限
       label(texts, opts) { const l = makeLabel(texts, opts); labels.push(l); return l; },
       onLang(fn) { langFns.push(fn); },
       // 可以撳嘅物件
