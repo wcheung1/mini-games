@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>小紅帽探外婆 - 手繪卡通迷宮遊戲（支援360°觸控操控桿）</title>
+<title>小紅帽探外婆 - 手繪卡通迷宮遊戲</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Noto+Sans+TC:wght@500;700;900&display=swap');
 
@@ -27,7 +27,7 @@
   }
 
   body {
-    padding: 10px;
+    padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
     min-height: 100vh;
     min-height: 100dvh;
     background: #f9f6ef;
@@ -48,12 +48,15 @@
 
   .game-shell {
     width: 100%;
-    max-width: 1040px;
+    max-width: 1020px;
     background: #ffffff;
-    border-radius: 26px;
+    border-radius: 24px;
     box-shadow: 0 12px 36px rgba(102, 74, 42, 0.14), 0 0 0 4px #f3ead8;
-    padding: 10px 12px 14px;
+    padding: 10px 12px 12px;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   /* Top toolbar */
@@ -62,88 +65,93 @@
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    padding: 4px 10px 6px;
+    gap: 6px;
+    padding: 2px 4px;
   }
 
   .hud-stats {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
   }
 
   .stat-pill {
     background: #fff9e6;
-    border: 2.5px solid #e6b84c;
+    border: 2px solid #e6b84c;
     border-radius: 999px;
-    padding: 4px 13px;
-    font-size: 13.5px;
+    padding: 4px 11px;
+    font-size: 13px;
     font-weight: 700;
     color: #5c3d1e;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     box-shadow: 0 2px 0 #e6b84c;
+    white-space: nowrap;
   }
 
   .hud-actions {
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     flex-wrap: wrap;
   }
 
   .btn {
     font-family: inherit;
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
-    padding: 5px 13px;
+    padding: 5px 12px;
     border-radius: 999px;
-    border: 2.5px solid #3d2c1e;
+    border: 2px solid #3d2c1e;
     cursor: pointer;
     transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 4px;
     color: #3d2c1e;
     background: #fff;
-    box-shadow: 0 3px 0 #3d2c1e;
+    box-shadow: 0 2.5px 0 #3d2c1e;
     touch-action: manipulation;
+    white-space: nowrap;
   }
 
   .btn:hover { transform: translateY(-1px); }
   .btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #3d2c1e; }
 
-  .btn-pink   { background: #ffd6e6; border-color: #c95b84; box-shadow: 0 3px 0 #c95b84; color: #6e2340; }
-  .btn-yellow { background: #fff0a8; border-color: #c48c1d; box-shadow: 0 3px 0 #c48c1d; color: #5c3d0e; }
-  .btn-green  { background: #d4f4be; border-color: #2e8a34; box-shadow: 0 3px 0 #2e8a34; color: #19521e; }
+  .btn-pink   { background: #ffd6e6; border-color: #c95b84; box-shadow: 0 2.5px 0 #c95b84; color: #6e2340; }
+  .btn-yellow { background: #fff0a8; border-color: #c48c1d; box-shadow: 0 2.5px 0 #c48c1d; color: #5c3d0e; }
+  .btn-green  { background: #d4f4be; border-color: #2e8a34; box-shadow: 0 2.5px 0 #2e8a34; color: #19521e; }
 
   /* 5-Level Difficulty Bar */
   .level-bar {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
-    padding: 2px 10px 8px;
+    padding: 0 2px 2px;
   }
 
   .level-chip {
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12.5px;
     font-weight: 800;
-    padding: 5px 12px;
+    padding: 4px 11px;
     border-radius: 999px;
-    border: 2.5px solid #d4c5b0;
+    border: 2px solid #d4c5b0;
     background: #fbf8f1;
     color: #7c6854;
     cursor: pointer;
     transition: all 0.15s ease;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 4px;
     touch-action: manipulation;
+    white-space: nowrap;
   }
 
   .level-chip:hover {
@@ -155,7 +163,7 @@
     background: #ffd6e6;
     border-color: #c95b84;
     color: #6e2340;
-    box-shadow: 0 3px 0 #c95b84;
+    box-shadow: 0 2.5px 0 #c95b84;
   }
 
   .level-chip.cleared {
@@ -170,14 +178,18 @@
     color: #6e2340;
   }
 
-  /* Main SVG Stage */
+  /* Main SVG Stage — cleanly preserves exact 1000:680 aspect ratio & fits inside viewport */
   .stage-wrap {
     position: relative;
     width: 100%;
+    max-width: calc((100dvh - 210px) * (1000 / 680));
+    min-width: min(100%, 300px);
+    margin: 0 auto;
     aspect-ratio: 1000 / 680;
     background: #fffefb;
-    border-radius: 18px;
+    border-radius: 16px;
     overflow: hidden;
+    border: 2px solid #f0e6d2;
     touch-action: none;
   }
 
@@ -230,10 +242,10 @@
   /* ================= FLOATING 360° ANALOG JOYSTICK OVERLAY ================= */
   .floating-joystick {
     position: fixed;
-    width: 120px;
-    height: 120px;
-    margin-left: -60px;
-    margin-top: -60px;
+    width: 116px;
+    height: 116px;
+    margin-left: -58px;
+    margin-top: -58px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 245, 214, 0.52) 0%, rgba(255, 214, 230, 0.42) 100%);
     border: 3.5px dashed rgba(201, 91, 132, 0.78);
@@ -253,7 +265,6 @@
     transform: scale(1);
   }
 
-  /* Subtle compass dots inside floating joystick */
   .floating-joystick::before {
     content: '';
     position: absolute;
@@ -263,8 +274,8 @@
   }
 
   .floating-knob {
-    width: 50px;
-    height: 50px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 32%, #ff9eb8 0%, #e6554d 82%);
     border: 3.5px solid #ffffff;
@@ -274,31 +285,30 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
+    font-size: 19px;
   }
 
   /* Toast speech bubble */
   .toast-bubble {
-    position: absolute;
+    position: fixed;
     left: 50%;
-    bottom: 18px;
+    bottom: max(18px, env(safe-area-inset-bottom));
     transform: translateX(-50%) translateY(20px);
     background: #fff9e2;
     border: 3px solid #d97a2b;
     color: #5c3310;
-    padding: 8px 18px;
+    padding: 7px 16px;
     border-radius: 999px;
     font-weight: 800;
-    font-size: 14.5px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.14);
+    font-size: 14px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.16);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.22s ease, transform 0.22s ease;
-    z-index: 20;
-    white-space: nowrap;
-    max-width: 92%;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    z-index: 800;
+    max-width: 92vw;
+    text-align: center;
+    line-height: 1.35;
   }
   .toast-bubble.show {
     opacity: 1;
@@ -310,45 +320,41 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    margin-top: 10px;
-    padding: 4px 10px 2px;
-    flex-wrap: wrap;
+    gap: 10px;
+    padding: 2px 6px 0;
   }
 
   .tip-text {
-    font-size: 13.5px;
+    font-size: 13px;
     color: #6b5642;
     font-weight: 600;
-    line-height: 1.55;
+    line-height: 1.45;
     flex: 1;
-    min-width: 220px;
   }
 
-  /* Docked cute analog joystick pad for thumb resting */
   .dock-joystick-wrap {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-left: auto;
+    gap: 8px;
+    flex-shrink: 0;
   }
 
   .dock-label {
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 800;
     color: #7a5538;
     text-align: right;
-    line-height: 1.35;
+    line-height: 1.3;
   }
 
   .dock-joystick {
     position: relative;
-    width: 92px;
-    height: 92px;
+    width: 82px;
+    height: 82px;
     border-radius: 50%;
     background: radial-gradient(circle, #fffdf4 0%, #e4f9d5 100%);
     border: 3px solid #2e8a34;
-    box-shadow: 0 4px 0 #2e8a34, inset 0 2px 8px rgba(46, 138, 52, 0.16);
+    box-shadow: 0 3.5px 0 #2e8a34, inset 0 2px 8px rgba(46, 138, 52, 0.16);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -364,19 +370,19 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    font-size: 10px;
+    font-size: 9px;
     color: rgba(46, 138, 52, 0.55);
     font-weight: 900;
   }
   .dock-arrows span { position: absolute; }
   .dock-arrows .a-up { top: 4px; left: 50%; transform: translateX(-50%); }
   .dock-arrows .a-down { bottom: 4px; left: 50%; transform: translateX(-50%); }
-  .dock-arrows .a-left { left: 6px; top: 50%; transform: translateY(-50%); }
-  .dock-arrows .a-right { right: 6px; top: 50%; transform: translateY(-50%); }
+  .dock-arrows .a-left { left: 5px; top: 50%; transform: translateY(-50%); }
+  .dock-arrows .a-right { right: 5px; top: 50%; transform: translateY(-50%); }
 
   .dock-knob {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: radial-gradient(circle at 35% 32%, #ff9eb8 0%, #e6554d 85%);
     border: 3px solid #ffffff;
@@ -387,24 +393,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    font-size: 15px;
   }
 
-  /* Victory Modal */
+  /* ================= FULL-VIEWPORT VICTORY MODAL (NEVER CLIPPED!) ================= */
   .modal-backdrop {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    background: rgba(61, 44, 30, 0.42);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    padding: 16px;
+    background: rgba(61, 44, 30, 0.48);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 30;
+    z-index: 1200;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.25s ease;
-    border-radius: 18px;
+    transition: opacity 0.24s ease;
   }
   .modal-backdrop.show {
     opacity: 1;
@@ -415,18 +421,26 @@
     background: #fffdf5;
     border: 4px solid #f08cae;
     border-radius: 26px;
-    padding: 24px 26px;
-    max-width: 410px;
-    width: 90%;
+    padding: 22px 22px 20px;
+    max-width: 390px;
+    width: 100%;
+    max-height: 88dvh;
+    overflow-y: auto;
     text-align: center;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
     transform: scale(0.9);
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .modal-backdrop.show .modal-card { transform: scale(1); }
 
+  .modal-emoji {
+    font-size: 44px;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
   .modal-title {
-    font-size: 25px;
+    font-size: 24px;
     font-weight: 900;
     color: #c94672;
     margin: 0 0 8px;
@@ -454,14 +468,97 @@
     flex-wrap: wrap;
   }
 
+  .modal-btns .btn {
+    padding: 8px 16px;
+    font-size: 14.5px;
+  }
+
+  /* ================= MOBILE PORTRAIT OPTIMIZATION ================= */
   @media (max-width: 680px) {
-    body { padding: 4px; justify-content: flex-start; }
-    .game-shell { padding: 8px; border-radius: 18px; }
-    .stat-pill, .btn, .level-chip { font-size: 12px; padding: 4px 9px; }
-    .controls-bar { justify-content: center; }
-    .dock-joystick-wrap { margin-left: 0; }
-    .tip-text { text-align: center; width: 100%; font-size: 12.5px; }
+    body {
+      padding: max(5px, env(safe-area-inset-top)) 5px max(6px, env(safe-area-inset-bottom)) 5px;
+      justify-content: center;
+    }
+    .game-shell {
+      padding: 8px 8px 10px;
+      border-radius: 18px;
+      gap: 6px;
+    }
+    .hud-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+      padding: 0;
+    }
+    .hud-stats {
+      justify-content: center;
+      gap: 5px;
+    }
+    .hud-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+    }
+    .stat-pill {
+      font-size: 11.5px;
+      padding: 3px 8px;
+    }
+    .hud-actions .btn {
+      font-size: 11.5px;
+      padding: 5px 4px;
+      gap: 2px;
+    }
+    .level-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      padding: 0;
+    }
+    .level-chip {
+      font-size: 11px;
+      padding: 4px 2px;
+      gap: 2px;
+    }
+    .stage-wrap {
+      max-width: 100%;
+      border-radius: 14px;
+    }
+    .controls-bar {
+      gap: 8px;
+      padding: 2px 2px 0;
+    }
+    .tip-text {
+      font-size: 12px;
+      line-height: 1.4;
+    }
     .dock-label { display: none; }
+    .dock-joystick {
+      width: 74px;
+      height: 74px;
+    }
+    .dock-knob {
+      width: 32px;
+      height: 32px;
+      font-size: 14px;
+    }
+    .modal-card {
+      padding: 18px 16px;
+      border-radius: 22px;
+    }
+    .modal-emoji { font-size: 38px; }
+    .modal-title { font-size: 21px; }
+    .modal-sub { font-size: 13.5px; margin-bottom: 12px; }
+  }
+
+  /* Landscape phone / short screen optimization */
+  @media (max-height: 520px) and (orientation: landscape) {
+    body { padding: 4px 8px; }
+    .game-shell { padding: 6px 10px; gap: 4px; }
+    .level-bar { padding: 0; }
+    .tip-text { font-size: 11.5px; }
+    .dock-joystick { width: 64px; height: 64px; }
+    .dock-knob { width: 28px; height: 28px; font-size: 13px; }
+    .stage-wrap { max-width: calc((100dvh - 145px) * (1000 / 680)); }
   }
 </style>
 </head>
@@ -471,15 +568,15 @@
   <!-- Top HUD -->
   <div class="hud-bar">
     <div class="hud-stats">
-      <span class="stat-pill">⭐ 難度：<span id="levelNameText">第 1 關・輕鬆散步</span></span>
-      <span class="stat-pill">⏱️ 時間：<span id="timerText">00:00</span></span>
-      <span class="stat-pill">👣 步數：<span id="stepsText">0</span></span>
+      <span class="stat-pill">⭐ <span id="levelNameText">第 1 關・輕鬆散步</span></span>
+      <span class="stat-pill">⏱️ <span id="timerText">00:00</span></span>
+      <span class="stat-pill">👣 <span id="stepsText">0</span> 步</span>
     </div>
     <div class="hud-actions">
-      <button class="btn btn-yellow" id="hintBtn" title="顯示避開大灰狼的安全提示路線">💡 提示路線</button>
-      <button class="btn btn-pink" id="resetBtn" title="回到起點重新走一次">🔄 回起點</button>
-      <button class="btn btn-green" id="rerollBtn" title="重新產生同難度的新迷宮路線">🎲 換新路線</button>
-      <button class="btn" id="soundBtn" title="開啟或關閉音效">🔊 音效開</button>
+      <button class="btn btn-yellow" id="hintBtn" title="顯示避開大灰狼的安全提示路線">💡 提示</button>
+      <button class="btn btn-pink" id="resetBtn" title="回到起點重新走一次">🔄 起點</button>
+      <button class="btn btn-green" id="rerollBtn" title="重新產生同難度的新迷宮路線">🎲 換圖</button>
+      <button class="btn" id="soundBtn" title="開啟或關閉音效">🔊 音效</button>
     </div>
   </div>
 
@@ -488,7 +585,7 @@
 
   <!-- Main Illustrated Maze Canvas -->
   <div class="stage-wrap" id="stageWrap">
-    <svg id="gameSvg" viewBox="0 0 1000 680" xmlns="http://www.w3.org/2000/svg">
+    <svg id="gameSvg" viewBox="0 0 1000 680" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <filter id="crayon" x="-5%" y="-5%" width="110%" height="110%">
           <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="3" result="noise" />
@@ -786,32 +883,12 @@
       <!-- Confetti Layer -->
       <g id="confettiLayer"></g>
     </svg>
-
-    <!-- Cute Speech Toast -->
-    <div class="toast-bubble" id="toastBubble"></div>
-
-    <!-- Victory Modal -->
-    <div class="modal-backdrop" id="victoryModal">
-      <div class="modal-card">
-        <div style="font-size:48px; margin-bottom:4px;" id="modalEmoji">🏠👵🎉</div>
-        <h2 class="modal-title" id="modalTitle">成功探到外婆啦！</h2>
-        <p class="modal-sub" id="modalSub">小紅帽平安避開大灰狼，把點心籃送到外婆家了！</p>
-        <div class="modal-stats">
-          <span class="stat-pill">⏱️ <span id="winTime">00:00</span></span>
-          <span class="stat-pill">👣 <span id="winSteps">0</span> 步</span>
-        </div>
-        <div class="modal-btns">
-          <button class="btn btn-pink" id="modalReplayBtn">🔄 再玩本關</button>
-          <button class="btn btn-green" id="modalNextBtn">⬆️ 挑戰下一關</button>
-        </div>
-      </div>
-    </div>
   </div>
 
   <!-- Bottom Friendly Instructions & 360° Docked Joystick -->
   <div class="controls-bar">
     <div class="tip-text">
-      🕹️ <strong>手機 / iPad Safari 玩法：</strong>直接按住<strong>畫面任何地方拖曳</strong>就會出現 360° 浮動操控桿，可自由上下左右或任何角度打斜行！也可用右下角固定操控桿或鍵盤方向鍵／WASD。
+      🕹️ 按住<strong>畫面任何地方拖曳</strong>即可用 360° 操控桿上下左右或打斜行，也可用右邊操控桿或鍵盤方向鍵。
     </div>
     <div class="dock-joystick-wrap">
       <div class="dock-label">360°<br>操控桿</div>
@@ -824,6 +901,26 @@
         </div>
         <div class="dock-knob" id="dockKnob">🍓</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cute Speech Toast (Viewport-fixed so never clipped) -->
+<div class="toast-bubble" id="toastBubble"></div>
+
+<!-- Victory Modal (Viewport-fixed so never clipped on mobile!) -->
+<div class="modal-backdrop" id="victoryModal">
+  <div class="modal-card">
+    <div class="modal-emoji" id="modalEmoji">🏠👵🎉</div>
+    <h2 class="modal-title" id="modalTitle">成功探到外婆啦！</h2>
+    <p class="modal-sub" id="modalSub">小紅帽平安避開大灰狼，把點心籃送到外婆家了！</p>
+    <div class="modal-stats">
+      <span class="stat-pill">⏱️ <span id="winTime">00:00</span></span>
+      <span class="stat-pill">👣 <span id="winSteps">0</span> 步</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-pink" id="modalReplayBtn">🔄 再玩本關</button>
+      <button class="btn btn-green" id="modalNextBtn">⬆️ 挑戰下一關</button>
     </div>
   </div>
 </div>
@@ -843,7 +940,7 @@
 
   const LEVELS = [
     {
-      id: 1, name: '輕鬆散步', short: 'Lv.1 簡單',
+      id: 1, name: '輕鬆散步', short: 'Lv.1',
       cols: 9, rows: 7,
       houseCols: [3, 4, 5], houseRows: [2, 3],
       goal: { c: 4, r: 4 },
@@ -851,7 +948,7 @@
       classic: false
     },
     {
-      id: 2, name: '原圖經典', short: 'Lv.2 經典',
+      id: 2, name: '原圖經典', short: 'Lv.2',
       cols: 9, rows: 7,
       houseCols: [3, 4, 5], houseRows: [2, 3],
       goal: { c: 4, r: 4 },
@@ -859,7 +956,7 @@
       classic: true
     },
     {
-      id: 3, name: '森林岔路', short: 'Lv.3 普通',
+      id: 3, name: '森林岔路', short: 'Lv.3',
       cols: 11, rows: 9,
       houseCols: [4, 5, 6], houseRows: [3, 4],
       goal: { c: 5, r: 5 },
@@ -867,7 +964,7 @@
       classic: false
     },
     {
-      id: 4, name: '迷霧深林', short: 'Lv.4 困難',
+      id: 4, name: '迷霧深林', short: 'Lv.4',
       cols: 13, rows: 9,
       houseCols: [5, 6, 7], houseRows: [3, 4],
       goal: { c: 6, r: 5 },
@@ -875,7 +972,7 @@
       classic: false
     },
     {
-      id: 5, name: '終極冒險', short: 'Lv.5 專家',
+      id: 5, name: '終極冒險', short: 'Lv.5',
       cols: 15, rows: 11,
       houseCols: [6, 7, 8], houseRows: [4, 5],
       goal: { c: 7, r: 6 },
@@ -975,20 +1072,19 @@
   const keys = { up: false, down: false, left: false, right: false };
 
   // ================= 360° ANALOG JOYSTICK STATE =================
-  // Works anywhere on the screen (floating) OR on the docked thumb pad!
   const joy = {
     active: false,
     mode: null,        // 'floating' | 'dock'
-    touchId: null,     // tracks exact finger on iOS/iPadOS multi-touch
+    touchId: null,
     isMouse: false,
     originX: 0,
     originY: 0,
-    maxRadius: 46,
-    vecX: 0,           // -1 .. 1 (analog 360° vector)
+    maxRadius: 44,
+    vecX: 0,
     vecY: 0
   };
 
-  // ================= WEB AUDIO SYNTHESIZER (iOS Safari Safe) =================
+  // ================= WEB AUDIO SYNTHESIZER =================
   let audioCtx = null;
   function ensureAudio() {
     if (!soundEnabled) return null;
@@ -1602,7 +1698,7 @@
       const nextLv = LEVELS[currentLevelIdx + 1];
       modalEmoji.textContent = '🏠👵🎉';
       modalTitle.textContent = `第 ${lv.id} 關過關成功！`;
-      modalSub.textContent = `小紅帽平安避開大灰狼把點心送到外婆家了！準備好提升難度，挑戰第 ${nextLv.id} 關「${nextLv.name}」嗎？`;
+      modalSub.textContent = `小紅帽平安避開大灰狼把點心送到外婆家了！準備好挑戰第 ${nextLv.id} 關「${nextLv.name}」嗎？`;
       modalNextBtn.textContent = `⬆️ 挑戰第 ${nextLv.id} 關`;
     } else {
       modalEmoji.textContent = '👑🏠👵🎊';
@@ -1652,13 +1748,12 @@
     requestAnimationFrame(animConfetti);
   }
 
-  // ================= MAIN GAME LOOP (360° ANALOG + SMOOTH WALL SLIDING) =================
+  // ================= MAIN GAME LOOP =================
   let walkPhase = 0;
   function tick() {
     if (!gameWon) {
       let ix = 0, iy = 0;
 
-      // 1. Keyboard input (supports 8 directions including diagonals)
       if (keys.left)  ix -= 1;
       if (keys.right) ix += 1;
       if (keys.up)    iy -= 1;
@@ -1669,7 +1764,6 @@
         iy /= kLen;
       }
 
-      // 2. 360° Analog Joystick input (overrides keyboard when active, proportional speed 0..1)
       if (joy.active && (Math.abs(joy.vecX) > 0.08 || Math.abs(joy.vecY) > 0.08)) {
         ix = joy.vecX;
         iy = joy.vecY;
@@ -1679,22 +1773,16 @@
       if (mag > 0.08) {
         startTimerIfNeeded();
         const maxSpeed = Math.max(3.0, Math.min(4.2, Math.min(CELL_W, CELL_H) * 0.058));
-        // Smooth analog curve so gentle drag moves slowly & full drag moves briskly
         const clampedMag = Math.min(1, mag);
         const dx = (ix / mag) * maxSpeed * clampedMag;
         const dy = (iy / mag) * maxSpeed * clampedMag;
 
         if (Math.abs(dx) > 0.15) player.facing = dx >= 0 ? 1 : -1;
 
-        // Smooth axis-separated movement so diagonal sliding along hedges feels buttery!
         const nx = player.x + dx;
-        if (!collidesWithWalls(nx, player.y)) {
-          player.x = nx;
-        }
+        if (!collidesWithWalls(nx, player.y)) player.x = nx;
         const ny = player.y + dy;
-        if (!collidesWithWalls(player.x, ny)) {
-          player.y = ny;
-        }
+        if (!collidesWithWalls(player.x, ny)) player.y = ny;
 
         walkPhase += 0.28 * clampedMag;
         addTrailDot(player.x, player.y);
@@ -1709,7 +1797,6 @@
           if (hintVisible) renderHint();
         }
 
-        // Check Wolves ONLY if in same cell or directly connected cell
         if (wolfCooldown <= 0) {
           const triggerDist = Math.min(CELL_W, CELL_H) * 0.43;
           for (const w of wolves) {
@@ -1734,7 +1821,6 @@
           }
         }
 
-        // Check Goal (終點)
         const gp = cellCenter(GOAL_CELL.c, GOAL_CELL.r);
         if (Math.hypot(player.x - gp.x, player.y - gp.y) < Math.min(CELL_W, CELL_H) * 0.45) {
           triggerVictory();
@@ -1752,7 +1838,7 @@
 
   // ================= 360° JOYSTICK LOGIC (iOS / iPadOS SAFARI OPTIMIZED) =================
   function isInteractiveUI(target) {
-    return !!(target && target.closest && target.closest('button, .modal-card'));
+    return !!(target && target.closest && target.closest('button, .modal-backdrop'));
   }
 
   function startJoystick(clientX, clientY, mode, touchId, isMouse) {
@@ -1771,7 +1857,7 @@
     } else {
       joy.originX = clientX;
       joy.originY = clientY;
-      joy.maxRadius = 46;
+      joy.maxRadius = 44;
       joy.vecX = 0;
       joy.vecY = 0;
       floatingJoystick.style.left = `${clientX}px`;
@@ -1795,7 +1881,6 @@
       clampedY = (rawY / dist) * maxR;
     }
 
-    // Deadzone 4px so tiny finger jitter doesn't move character unintentionally
     if (dist < 4) {
       joy.vecX = 0;
       joy.vecY = 0;
@@ -1811,7 +1896,6 @@
     }
   }
 
-  // --- Touch Events (Full-screen anywhere drag for iPhone & iPad Safari) ---
   document.addEventListener('touchstart', (e) => {
     if (gameWon) return;
     if (joy.active) return;
@@ -1820,7 +1904,7 @@
     if (isInteractiveUI(e.target)) return;
 
     const inDock = !!(e.target && e.target.closest && e.target.closest('#dockJoystick'));
-    e.preventDefault(); // Prevents Safari double-tap zoom & scroll bounce immediately
+    e.preventDefault();
     startJoystick(t.clientX, t.clientY, inDock ? 'dock' : 'floating', t.identifier, false);
   }, { passive: false });
 
@@ -1829,7 +1913,7 @@
     for (let i = 0; i < e.changedTouches.length; i++) {
       const t = e.changedTouches[i];
       if (t.identifier === joy.touchId) {
-        e.preventDefault(); // Strictly blocks Safari page scroll / pull-to-refresh while steering
+        e.preventDefault();
         updateJoystick(t.clientX, t.clientY);
         break;
       }
@@ -1848,7 +1932,6 @@
   document.addEventListener('touchend', handleTouchEnd, { passive: true });
   document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 
-  // --- Mouse Events (Desktop drag anywhere on stage or docked joystick) ---
   document.addEventListener('mousedown', (e) => {
     if (e.button !== 0 || gameWon) return;
     if (isInteractiveUI(e.target)) return;
@@ -1870,7 +1953,6 @@
 
   window.addEventListener('blur', releaseJoystick);
 
-  // --- Keyboard Controls ---
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
     if (['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)) {
@@ -1890,7 +1972,6 @@
     if (k === 'arrowright' || k === 'd') keys.right = false;
   });
 
-  // --- Buttons ---
   hintBtn.addEventListener('click', () => {
     hintVisible = !hintVisible;
     renderHint();
@@ -1918,7 +1999,7 @@
 
   soundBtn.addEventListener('click', () => {
     soundEnabled = !soundEnabled;
-    soundBtn.textContent = soundEnabled ? '🔊 音效開' : '🔇 音效關';
+    soundBtn.textContent = soundEnabled ? '🔊 音效' : '🔇 靜音';
   });
 
   // ================= START AT LEVEL 1 =================
