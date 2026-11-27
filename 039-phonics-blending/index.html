@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Phonics 拼讀小冒險 · 英式自然拼讀初階課程</title>
+  <title>Phonics 拼讀小冒險 · PN 啟蒙 & 英式自然拼讀課程</title>
   <style>
     :root {
       --bg-top: #fef9ef;
@@ -17,7 +17,10 @@
       --success-dark: #1f9d91;
       --danger: #ff5964;
       --purple: #8b5cf6;
+      --purple-dark: #6d28d9;
       --yellow: #ffd166;
+      --pn-green: #22c55e;
+      --pn-green-dark: #15803d;
       --text-main: #2b3445;
       --text-muted: #64748b;
       --consonant-bg: #e8f1ff;
@@ -62,7 +65,7 @@
 
     .app-shell {
       width: 100%;
-      max-width: 720px;
+      max-width: 740px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -74,7 +77,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(8px);
       padding: 10px 15px;
       border-radius: 20px;
@@ -149,7 +152,756 @@
     .icon-btn:hover { background: #e2e8f0; }
     .icon-btn:active { transform: scale(0.94); }
 
-    /* Unit Curriculum Strip */
+    /* Top-Level Main Navigation Tabs (PN 啟蒙區 vs 拼讀課程) */
+    .main-nav-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 6px;
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .main-tab-btn {
+      border: 2px solid transparent;
+      background: transparent;
+      border-radius: 17px;
+      padding: 12px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      color: var(--text-muted);
+      transition: all 0.18s ease;
+    }
+
+    .main-tab-btn .tab-title {
+      font-size: 1.02rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .main-tab-btn .tab-sub {
+      font-size: 0.72rem;
+      font-weight: 700;
+      opacity: 0.86;
+    }
+
+    .main-tab-btn[data-section="pn"].active {
+      background: linear-gradient(135deg, #22c55e, #10b981);
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.32);
+    }
+
+    .main-tab-btn[data-section="course"].active {
+      background: linear-gradient(135deg, #4f86f7, #3b82f6);
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(79, 134, 247, 0.32);
+    }
+
+    .main-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .main-section.hidden {
+      display: none;
+    }
+
+    /* ============================================================
+       PN 啟蒙區 STYLES (4 Toddler-Friendly Modes)
+       ============================================================ */
+    .pn-subbar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .pn-mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background: rgba(255, 255, 255, 0.94);
+      padding: 5px;
+      border-radius: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      gap: 5px;
+    }
+
+    .pn-mode-btn {
+      border: none;
+      background: transparent;
+      padding: 10px 8px;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.16s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    .pn-mode-btn.active {
+      background: #10b981;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .pn-mode-btn[data-pnmode="robot"].active {
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.32);
+    }
+
+    .pn-mode-btn[data-pnmode="rhyme"].active {
+      background: linear-gradient(135deg, #ec4899, #db2777);
+      box-shadow: 0 4px 10px rgba(236, 72, 153, 0.32);
+    }
+
+    .pn-mode-btn[data-pnmode="slide"].active {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.34);
+    }
+
+    .pn-mode-btn[data-pnmode="case"].active {
+      background: linear-gradient(135deg, #0ea5e9, #2563eb);
+      box-shadow: 0 4px 10px rgba(14, 165, 233, 0.34);
+    }
+
+    .pn-az-toolbar {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .pn-audio-mode-toggle {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 4px;
+      border-radius: 16px;
+      border: 2px solid #d1fae5;
+      gap: 4px;
+    }
+
+    .pn-audio-opt {
+      border: none;
+      background: transparent;
+      padding: 7px 11px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .pn-audio-opt.active {
+      background: #ff8c42;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(255, 140, 66, 0.28);
+    }
+
+    /* PN Featured Spotlight Card */
+    .pn-spotlight {
+      width: 100%;
+      background: linear-gradient(135deg, #fffbeb 0%, #ecfdf5 100%);
+      border: 3px solid #a7f3d0;
+      border-radius: 22px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .pn-spotlight:active { transform: scale(0.98); }
+
+    .pn-spot-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pn-spot-letter {
+      min-width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: #ffffff;
+      border: 3px solid #34d399;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.14);
+    }
+
+    .pn-spot-letter strong {
+      font-size: 2rem;
+      line-height: 1;
+      color: var(--text-main);
+    }
+
+    .pn-spot-letter span {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #059669;
+      margin-top: 2px;
+    }
+
+    .pn-spot-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .pn-spot-word {
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pn-spot-word .hl {
+      color: #e11d48;
+      text-decoration: underline;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 3px;
+    }
+
+    .pn-spot-zh {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .pn-spot-emoji {
+      font-size: 3.4rem;
+      line-height: 1;
+      user-select: none;
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .pn-spotlight.playing .pn-spot-emoji {
+      transform: scale(1.18) rotate(-4deg);
+    }
+
+    /* A-Z Big Button Grid */
+    .az-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .az-card {
+      border: 3px solid var(--card-border, #93c5fd);
+      background: var(--card-bg-tint, #eff6ff);
+      border-radius: 20px;
+      padding: 12px 6px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      user-select: none;
+      font-family: inherit;
+      box-shadow: 0 5px 0 rgba(0, 0, 0, 0.08);
+      transition: transform 0.14s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.14s ease, border-color 0.14s ease;
+      position: relative;
+      min-height: 112px;
+    }
+
+    .az-card:active {
+      transform: translateY(3px) scale(0.96);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .az-card.playing {
+      transform: translateY(-6px) scale(1.06);
+      border-color: #ff8c42 !important;
+      box-shadow: 0 12px 20px rgba(255, 140, 66, 0.3);
+      z-index: 3;
+    }
+
+    .az-card-vowel-tag {
+      position: absolute;
+      top: 5px;
+      right: 6px;
+      font-size: 0.64rem;
+      font-weight: 900;
+      background: #ffe4e6;
+      color: #be123c;
+      padding: 1px 5px;
+      border-radius: 999px;
+    }
+
+    .az-letters {
+      font-size: 1.72rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--card-text, #1e3a8a);
+      letter-spacing: 0.5px;
+    }
+
+    .az-emoji {
+      font-size: 2.1rem;
+      line-height: 1.1;
+      margin: 2px 0;
+    }
+
+    .az-word {
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .az-ipa {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* Beginning Sounds Hunt Game */
+    .bs-stage {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .bs-header-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .bs-picture-card {
+      width: 100%;
+      max-width: 340px;
+      background: linear-gradient(180deg, #fffdf5 0%, #f0f9ff 100%);
+      border: 3px solid #bae6fd;
+      border-radius: 26px;
+      padding: 20px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.14);
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bs-picture-card:active { transform: scale(0.97); }
+    .bs-picture-card.pop { transform: scale(1.06); border-color: #2ec4b6; }
+
+    .bs-big-emoji {
+      font-size: 5.5rem;
+      line-height: 1.05;
+      user-select: none;
+    }
+
+    .bs-word-reveal {
+      font-size: 1.45rem;
+      font-weight: 900;
+      color: var(--text-main);
+      min-height: 30px;
+      letter-spacing: 0.5px;
+    }
+
+    .bs-word-reveal .hl {
+      color: #059669;
+      font-size: 1.6rem;
+    }
+
+    .bs-zh-hint {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .bs-choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .bs-choice-btn {
+      background: #ffffff;
+      border: 4px solid #cbd5e1;
+      border-radius: 24px;
+      padding: 18px 8px;
+      min-height: 122px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 7px 0 #cbd5e1;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s ease, background 0.15s ease;
+      position: relative;
+      user-select: none;
+    }
+
+    .bs-choice-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .bs-choice-btn:active { transform: translateY(4px); }
+
+    .bs-choice-main {
+      font-size: 3.4rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text-main);
+    }
+
+    .bs-choice-upper {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #94a3b8;
+    }
+
+    .bs-choice-ipa {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .bs-choice-btn.correct {
+      border-color: #10b981;
+      background: #d1fae5;
+      box-shadow: 0 7px 0 #059669;
+      transform: scale(1.05);
+    }
+
+    .bs-choice-btn.correct .bs-choice-main { color: #065f46; }
+
+    .bs-choice-btn.wrong {
+      border-color: var(--danger);
+      background: #fff1f2;
+      animation: shake 0.36s ease;
+    }
+
+    .bs-feedback {
+      font-size: 1.02rem;
+      font-weight: 800;
+      text-align: center;
+      min-height: 28px;
+      color: var(--text-muted);
+    }
+
+    .bs-feedback.success { color: #059669; }
+    .bs-feedback.error { color: #be123c; }
+
+    /* ============================================================
+       NEW PHASE 1 GAME 1: 🤖 機械人講嘢 (Oral Blending - Pure Listening)
+       ============================================================ */
+    .robot-hero-box {
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);
+      border: 3px solid #a5b4fc;
+      border-radius: 26px;
+      padding: 18px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(99, 102, 241, 0.14);
+      transition: transform 0.16s ease, border-color 0.2s ease;
+    }
+
+    .robot-hero-box:active { transform: scale(0.98); }
+
+    .robot-avatar {
+      font-size: 5rem;
+      line-height: 1;
+      user-select: none;
+      transition: transform 0.18s ease;
+    }
+
+    .robot-hero-box.talking .robot-avatar {
+      animation: robot-bounce 0.45s ease-in-out infinite alternate;
+    }
+
+    @keyframes robot-bounce {
+      from { transform: translateY(0) scale(1) rotate(-4deg); }
+      to { transform: translateY(-7px) scale(1.1) rotate(4deg); }
+    }
+
+    /* Visual sound pulses instead of letters! */
+    .robot-beats {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      min-height: 36px;
+    }
+
+    .robot-beat-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #c7d2fe;
+      border: 3px solid #818cf8;
+      display: grid;
+      place-items: center;
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: #4338ca;
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.16s ease;
+    }
+
+    .robot-beat-dot.active {
+      transform: scale(1.38);
+      background: #ff8c42;
+      border-color: #ea580c;
+      color: #ffffff;
+      box-shadow: 0 0 0 6px rgba(255, 140, 66, 0.22);
+    }
+
+    .robot-caption {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #4338ca;
+      text-align: center;
+    }
+
+    .robot-pic-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .robot-pic-card {
+      background: #ffffff;
+      border: 4px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 18px 8px 14px;
+      min-height: 136px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 7px 0 #e2e8f0;
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.18s ease, background 0.18s ease;
+      user-select: none;
+    }
+
+    .robot-pic-card:hover {
+      border-color: #818cf8;
+      transform: translateY(-2px);
+    }
+
+    .robot-pic-card:active { transform: translateY(4px); }
+
+    .robot-pic-emoji {
+      font-size: 3.8rem;
+      line-height: 1.05;
+    }
+
+    .robot-pic-zh {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .robot-pic-card.correct {
+      border-color: #10b981;
+      background: #d1fae5;
+      box-shadow: 0 7px 0 #059669;
+      transform: scale(1.05);
+    }
+
+    .robot-pic-card.correct .robot-pic-zh {
+      color: #065f46;
+      font-size: 0.98rem;
+    }
+
+    .robot-pic-card.wrong {
+      border-color: var(--danger);
+      background: #fff1f2;
+      animation: shake 0.36s ease;
+    }
+
+    /* ============================================================
+       NEW PHASE 1 GAME 2: 🎶 押韻搵朋友 (Rhyming Match - Pure Listening)
+       ============================================================ */
+    .rhyme-target-card {
+      width: 100%;
+      max-width: 340px;
+      background: linear-gradient(135deg, #fdf2f8 0%, #fffbeb 100%);
+      border: 3px solid #f9a8d4;
+      border-radius: 26px;
+      padding: 18px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(236, 72, 153, 0.14);
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .rhyme-target-card:active { transform: scale(0.97); }
+    .rhyme-target-card.playing {
+      transform: scale(1.05);
+      border-color: #ec4899;
+    }
+
+    .rhyme-target-emoji {
+      font-size: 5.2rem;
+      line-height: 1.05;
+      user-select: none;
+    }
+
+    .rhyme-target-zh {
+      font-size: 1rem;
+      font-weight: 900;
+      color: #9d174d;
+    }
+
+    .rhyme-target-hint {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .rhyme-choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .rhyme-option-wrap {
+      background: #ffffff;
+      border: 3px solid #e2e8f0;
+      border-radius: 24px;
+      padding: 10px 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 6px 0 #e2e8f0;
+      transition: transform 0.16s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .rhyme-option-wrap.listening {
+      border-color: #ec4899;
+      background: #fdf2f8;
+      transform: translateY(-3px);
+    }
+
+    .rhyme-option-wrap.correct {
+      border-color: #10b981;
+      background: #d1fae5;
+      box-shadow: 0 6px 0 #059669;
+      transform: scale(1.04);
+    }
+
+    .rhyme-option-wrap.wrong {
+      border-color: var(--danger);
+      background: #fff1f2;
+      animation: shake 0.36s ease;
+    }
+
+    .rhyme-listen-btn {
+      width: 100%;
+      border: none;
+      background: transparent;
+      padding: 6px 4px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      user-select: none;
+    }
+
+    .rhyme-opt-emoji {
+      font-size: 3.4rem;
+      line-height: 1.05;
+    }
+
+    .rhyme-opt-zh {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .rhyme-opt-sound-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #db2777;
+      background: #fce7f3;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .rhyme-pick-btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 9px 6px;
+      background: linear-gradient(135deg, #ec4899, #f43f5e);
+      color: #ffffff;
+      font-size: 0.86rem;
+      font-weight: 900;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 0 #be185d;
+      transition: transform 0.12s ease;
+    }
+
+    .rhyme-pick-btn:active:not(:disabled) { transform: translateY(2px); }
+    .rhyme-pick-btn:disabled {
+      opacity: 0.65;
+      cursor: default;
+    }
+
+    .rhyme-option-wrap.correct .rhyme-pick-btn {
+      background: #10b981;
+      box-shadow: 0 4px 0 #047857;
+    }
+
+    /* ============================================================
+       EXISTING 8-UNIT COURSE STYLES (Preserved)
+       ============================================================ */
     .curriculum-strip {
       background: rgba(255, 255, 255, 0.88);
       border-radius: 20px;
@@ -195,9 +947,7 @@
       transition: all 0.16s ease;
     }
 
-    .unit-card-btn:hover {
-      border-color: #93c5fd;
-    }
+    .unit-card-btn:hover { border-color: #93c5fd; }
 
     .unit-card-btn.active {
       border-color: var(--primary);
@@ -242,7 +992,6 @@
       transition: width 0.3s ease;
     }
 
-    /* Mode & Utility Controls */
     .controls-bar {
       display: flex;
       flex-wrap: wrap;
@@ -304,7 +1053,6 @@
       color: #4338ca;
     }
 
-    /* Warmup Sound Bar */
     .warmup-bar {
       width: 100%;
       background: #f8fafc;
@@ -397,6 +1145,31 @@
       border-radius: 999px;
     }
 
+    .unit-title-badge.pn-badge {
+      color: #047857;
+      background: #d1fae5;
+    }
+
+    .unit-title-badge.robot-badge {
+      color: #4338ca;
+      background: #e0e7ff;
+    }
+
+    .unit-title-badge.rhyme-badge {
+      color: #be185d;
+      background: #fce7f3;
+    }
+
+    .unit-title-badge.slide-badge {
+      color: #b45309;
+      background: #fef3c7;
+    }
+
+    .unit-title-badge.case-badge {
+      color: #0369a1;
+      background: #e0f2fe;
+    }
+
     .progress-badge {
       font-size: 0.82rem;
       font-weight: 800;
@@ -414,7 +1187,6 @@
       color: var(--text-muted);
     }
 
-    /* Picture Reveal Area */
     .word-visual {
       min-height: 88px;
       display: flex;
@@ -437,9 +1209,7 @@
       transform: scale(0.88);
     }
 
-    .emoji-showcase.pop {
-      transform: scale(1.14);
-    }
+    .emoji-showcase.pop { transform: scale(1.14); }
 
     .word-meaning {
       font-size: 0.95rem;
@@ -448,7 +1218,6 @@
       min-height: 22px;
     }
 
-    /* Phoneme Tiles */
     .tiles-track {
       display: flex;
       justify-content: center;
@@ -460,9 +1229,7 @@
       width: 100%;
     }
 
-    .tiles-track.blending {
-      gap: 3px;
-    }
+    .tiles-track.blending { gap: 3px; }
 
     .phoneme-tile {
       min-width: 74px;
@@ -538,9 +1305,7 @@
       margin-top: 3px;
     }
 
-    .phoneme-tile.hidden-letter .tile-grapheme {
-      font-size: 1.85rem;
-    }
+    .phoneme-tile.hidden-letter .tile-grapheme { font-size: 1.85rem; }
 
     /* Buttons */
     .audio-controls {
@@ -574,6 +1339,12 @@
       background: var(--primary);
       color: #ffffff;
       box-shadow: 0 5px 0 var(--primary-dark);
+    }
+
+    .btn-purple {
+      background: var(--purple);
+      color: #ffffff;
+      box-shadow: 0 5px 0 var(--purple-dark);
     }
 
     .btn-secondary {
@@ -612,7 +1383,6 @@
       100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0), 0 5px 0 #b91c1c; }
     }
 
-    /* Interaction Panels */
     .interaction-zone {
       width: 100%;
       background: #f8fafc;
@@ -654,7 +1424,6 @@
       width: 100%;
     }
 
-    /* Quiz Grid */
     .quiz-grid {
       width: 100%;
       display: grid;
@@ -705,7 +1474,6 @@
       75% { transform: translateX(6px); }
     }
 
-    /* Bottom Navigation */
     .nav-row {
       width: 100%;
       display: flex;
@@ -727,7 +1495,6 @@
       font-family: inherit;
     }
 
-    /* Footer Status */
     .source-footer {
       text-align: center;
       font-size: 0.76rem;
@@ -826,7 +1593,520 @@
     .test-chip.ok { border-color: var(--success); background: #ecfdf5; }
     .test-chip.fallback { border-color: #f59e0b; background: #fffbeb; }
 
-    @media (max-width: 520px) {
+
+    /* ============================================================
+       NEW TRANSITION GAME 1: 🛝 兩音滑梯拼讀 (2-Sound Blending)
+       ============================================================ */
+    .slide-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .slide-filter-pill {
+      border: 2px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .slide-filter-pill.active {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      border-color: #ea580c;
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.28);
+    }
+
+    .slide-arena {
+      width: 100%;
+      background: linear-gradient(180deg, #e0f2fe 0%, #fef9c3 68%, #dcfce7 100%);
+      border: 3px solid #fcd34d;
+      border-radius: 26px;
+      padding: 16px 14px 18px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 22px rgba(245, 158, 11, 0.14);
+    }
+
+    .slide-stage-visual {
+      position: relative;
+      width: 100%;
+      max-width: 520px;
+      height: 204px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .slide-svg-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .slide-landing-pad {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 210px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(251, 191, 36, 0.28);
+      border: 2px dashed #f59e0b;
+      transition: all 0.25s ease;
+    }
+
+    .slide-arena.merged .slide-landing-pad {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #10b981;
+      border-style: solid;
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35);
+    }
+
+    .slide-blocks-layer {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide-block {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      width: 94px;
+      height: 108px;
+      border-radius: 22px;
+      border: 4px solid var(--consonant-border);
+      background: var(--consonant-bg);
+      color: var(--consonant-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      font-family: "Verdana", "Nunito", "PingFang HK", sans-serif;
+      box-shadow: 0 7px 0 rgba(0, 0, 0, 0.12);
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+      will-change: transform;
+      user-select: none;
+    }
+
+    .slide-block.vowel {
+      border-color: var(--vowel-border);
+      background: var(--vowel-bg);
+      color: var(--vowel-text);
+    }
+
+    .slide-block.playing {
+      border-color: #ff8c42 !important;
+      box-shadow: 0 0 0 7px rgba(255, 140, 66, 0.28), 0 8px 18px rgba(255, 140, 66, 0.32);
+      z-index: 4;
+    }
+
+    .slide-arena.merged .slide-block {
+      border-color: #10b981;
+      box-shadow: 0 7px 0 rgba(5, 150, 105, 0.25), 0 0 18px rgba(16, 185, 129, 0.28);
+    }
+
+    .slide-block-letter {
+      font-size: 2.9rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .slide-block-ipa {
+      font-size: 0.84rem;
+      font-weight: 800;
+      opacity: 0.82;
+    }
+
+    .slide-block-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.55;
+      margin-top: 2px;
+    }
+
+    .slide-result-banner {
+      min-height: 54px;
+      width: 100%;
+      max-width: 440px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #fde68a;
+      border-radius: 18px;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      text-align: center;
+      transition: all 0.22s ease;
+    }
+
+    .slide-arena.merged .slide-result-banner {
+      background: #ecfdf5;
+      border-color: #34d399;
+      transform: scale(1.03);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.16);
+    }
+
+    .slide-result-emoji {
+      font-size: 2.1rem;
+      line-height: 1;
+    }
+
+    .slide-result-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1px;
+    }
+
+    .slide-result-word {
+      font-size: 1.32rem;
+      font-weight: 900;
+      color: var(--text-main);
+      line-height: 1.15;
+    }
+
+    .slide-arena.merged .slide-result-word {
+      color: #065f46;
+    }
+
+    .slide-result-sub {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    .slide-slider-wrap {
+      width: 100%;
+      max-width: 480px;
+      background: #fffbeb;
+      border: 2px dashed #fbbf24;
+      border-radius: 20px;
+      padding: 12px 16px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .slide-slider-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.84rem;
+      font-weight: 800;
+      color: #b45309;
+    }
+
+    .slide-range {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #93c5fd 0%, #fda4af 50%, #34d399 100%);
+      outline: none;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .slide-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 4px solid #f59e0b;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.42);
+      cursor: grab;
+      background-image: radial-gradient(circle, #f59e0b 32%, transparent 36%);
+    }
+
+    .slide-range::-moz-range-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 4px solid #f59e0b;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.42);
+      cursor: grab;
+    }
+
+    .slide-quick-strip {
+      width: 100%;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 4px 2px 6px;
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .slide-pill-item {
+      flex: 0 0 auto;
+      border: 2px solid #e2e8f0;
+      background: #ffffff;
+      color: var(--text-main);
+      border-radius: 12px;
+      padding: 6px 11px;
+      font-size: 0.88rem;
+      font-weight: 900;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.14s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .slide-pill-item.active {
+      border-color: #f59e0b;
+      background: #fffbeb;
+      color: #b45309;
+      box-shadow: 0 3px 8px rgba(245, 158, 11, 0.22);
+    }
+
+    .slide-pill-item.done {
+      border-color: #6ee7b7;
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    /* ============================================================
+       NEW TRANSITION GAME 2: 🔠 大細階搵朋友 (Upper/Lower Case Match)
+       ============================================================ */
+    .case-toolbar {
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .case-dir-seg {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 4px;
+      border-radius: 14px;
+      gap: 4px;
+    }
+
+    .case-dir-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .case-dir-btn.active {
+      background: #0ea5e9;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(14, 165, 233, 0.3);
+    }
+
+    .case-mirror-toggle {
+      border: 2px solid #bae6fd;
+      background: #f0f9ff;
+      color: #0369a1;
+      padding: 7px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .case-mirror-toggle.active {
+      background: linear-gradient(135deg, #8b5cf6, #6366f1);
+      border-color: #6366f1;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(99, 102, 241, 0.28);
+    }
+
+    .case-target-card {
+      width: 100%;
+      max-width: 340px;
+      background: linear-gradient(180deg, #f0f9ff 0%, #eef2ff 100%);
+      border: 4px solid #7dd3fc;
+      border-radius: 28px;
+      padding: 18px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 10px 24px rgba(14, 165, 233, 0.16);
+      transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease;
+      user-select: none;
+    }
+
+    .case-target-card:active { transform: scale(0.97); }
+    .case-target-card.playing {
+      transform: scale(1.04);
+      border-color: #ff8c42;
+    }
+    .case-target-card.pop {
+      transform: scale(1.06);
+      border-color: #10b981;
+      background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+    }
+
+    .case-prompt-badges {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .case-role-pill {
+      font-size: 0.78rem;
+      font-weight: 900;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .case-mirror-pill {
+      font-size: 0.75rem;
+      font-weight: 900;
+      background: #ede9fe;
+      color: #6d28d9;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+
+    .case-big-letter {
+      font-family: "Verdana", "Nunito", "PingFang HK", sans-serif;
+      font-size: 5.4rem;
+      font-weight: 900;
+      line-height: 1.08;
+      color: #1e3a8a;
+      letter-spacing: 2px;
+    }
+
+    .case-target-card.pop .case-big-letter {
+      color: #065f46;
+    }
+
+    .case-target-ipa {
+      font-size: 0.96rem;
+      font-weight: 800;
+      color: #0284c7;
+    }
+
+    .case-hint-reveal {
+      min-height: 28px;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .case-choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .case-choice-btn {
+      background: #ffffff;
+      border: 4px solid #cbd5e1;
+      border-radius: 24px;
+      padding: 18px 8px;
+      min-height: 126px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      font-family: "Verdana", "Nunito", "PingFang HK", sans-serif;
+      box-shadow: 0 7px 0 #cbd5e1;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s ease, background 0.15s ease;
+      user-select: none;
+    }
+
+    .case-choice-btn:hover {
+      border-color: #0ea5e9;
+      transform: translateY(-2px);
+    }
+
+    .case-choice-btn:active { transform: translateY(4px); }
+
+    .case-choice-letter {
+      font-size: 3.7rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--text-main);
+    }
+
+    .case-choice-btn.correct {
+      border-color: #10b981;
+      background: #d1fae5;
+      box-shadow: 0 7px 0 #059669;
+      transform: scale(1.06);
+    }
+
+    .case-choice-btn.correct .case-choice-letter {
+      color: #065f46;
+    }
+
+    .case-choice-btn.wrong {
+      border-color: var(--danger);
+      background: #fff1f2;
+      animation: shake 0.36s ease;
+    }
+
+    @media (max-width: 600px) {
+      .pn-mode-tabs {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .pn-mode-btn {
+        font-size: 0.86rem;
+        padding: 10px 6px;
+      }
+      .az-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+      }
+      .az-card { min-height: 106px; }
       .phoneme-tile {
         min-width: 62px;
         height: 84px;
@@ -835,6 +2115,19 @@
       .tile-grapheme { font-size: 1.9rem; }
       .quiz-option .opt-emoji { font-size: 2.4rem; }
       .btn { padding: 11px 14px; font-size: 0.92rem; }
+      .bs-big-emoji { font-size: 4.6rem; }
+      .bs-choice-main { font-size: 2.8rem; }
+      .bs-choice-btn { min-height: 106px; }
+      .robot-pic-emoji { font-size: 3.1rem; }
+      .robot-pic-card { min-height: 118px; padding: 14px 6px 12px; }
+      .rhyme-opt-emoji { font-size: 2.8rem; }
+      .rhyme-pick-btn { font-size: 0.8rem; padding: 8px 4px; }
+      .slide-stage-visual { height: 184px; }
+      .slide-block { width: 80px; height: 94px; }
+      .slide-block-letter { font-size: 2.4rem; }
+      .case-big-letter { font-size: 4.4rem; }
+      .case-choice-letter { font-size: 3.1rem; }
+      .case-choice-btn { min-height: 108px; }
     }
   </style>
 </head>
@@ -848,7 +2141,7 @@
         <div class="brand-icon">🦉</div>
         <div class="brand-text">
           <h1>Phonics 拼讀小冒險</h1>
-          <p>英式自然拼讀初階課程 · 8 大單元 126 字</p>
+          <p>PN 啟蒙練耳 · 英式自然拼讀 8 單元課程</p>
         </div>
       </div>
       <div class="top-actions">
@@ -857,88 +2150,356 @@
       </div>
     </header>
 
-    <!-- Curriculum Unit Selector -->
-    <section class="curriculum-strip" aria-label="課程單元選擇">
-      <div class="strip-head">
-        <span>📚 課程地圖（英式 s-a-t-p-i-n 累積式進度）</span>
-        <span id="overall-mastery-text">總進度 0 / 126 字</span>
+    <!-- Prominent Top-Level Entry Tabs -->
+    <nav class="main-nav-tabs" aria-label="主要學習分區">
+      <button type="button" class="main-tab-btn active" id="tab-pn-btn" data-section="pn">
+        <span class="tab-title">🌱 PN 啟蒙區</span>
+        <span class="tab-sub">A–Z · 頭音 · 機械人 · 押韻 · 滑梯 · 大細階</span>
+      </button>
+      <button type="button" class="main-tab-btn" id="tab-course-btn" data-section="course">
+        <span class="tab-title">📚 拼讀課程</span>
+        <span class="tab-sub">8 大單元 · 126 個英式生字</span>
+      </button>
+    </nav>
+
+    <!-- ============================================================
+         SECTION 1: 🌱 PN 啟蒙區 (Phase 1 Listening & A-Z Pure Sounds)
+         ============================================================ -->
+    <section class="main-section" id="section-pn">
+      <div class="pn-subbar">
+        <div class="pn-mode-tabs" role="tablist">
+          <button type="button" class="pn-mode-btn active" id="pn-mode-az-btn" data-pnmode="az">🎹 A–Z 純音板</button>
+          <button type="button" class="pn-mode-btn" id="pn-mode-bs-btn" data-pnmode="bs">🔍 頭音尋寶</button>
+          <button type="button" class="pn-mode-btn" id="pn-mode-robot-btn" data-pnmode="robot">🤖 機械人講嘢</button>
+          <button type="button" class="pn-mode-btn" id="pn-mode-rhyme-btn" data-pnmode="rhyme">🎶 押韻搵朋友</button>
+          <button type="button" class="pn-mode-btn" id="pn-mode-slide-btn" data-pnmode="slide">🛝 兩音滑梯</button>
+          <button type="button" class="pn-mode-btn" id="pn-mode-case-btn" data-pnmode="case">🔠 大細階搵朋友</button>
+        </div>
+
+        <div class="pn-az-toolbar" id="pn-az-toolbar">
+          <div class="pn-audio-mode-toggle" id="pn-audio-mode-wrap" title="切換點按字母時的發音方式">
+            <button type="button" class="pn-audio-opt active" data-azsound="both">🔊 純音+生字</button>
+            <button type="button" class="pn-audio-opt" data-azsound="pure">🎵 只讀純音</button>
+          </div>
+        </div>
       </div>
-      <div class="unit-scroll" id="unit-scroll"></div>
+
+      <!-- PN Mode 1: A-Z Pure Sound Board -->
+      <div class="stage-card" id="pn-az-panel">
+        <div class="stage-header">
+          <span class="unit-title-badge pn-badge">🎹 A–Z 純音發聲板（英式純音）</span>
+          <span class="progress-badge">按任何大字母聽標準發音</span>
+        </div>
+
+        <div class="pn-spotlight" id="pn-spotlight" role="button" tabindex="0" title="按此重聽發音">
+          <div class="pn-spot-left">
+            <div class="pn-spot-letter">
+              <strong id="pn-spot-letters">Aa</strong>
+              <span id="pn-spot-ipa">/æ/</span>
+            </div>
+            <div class="pn-spot-info">
+              <div class="pn-spot-word" id="pn-spot-word"><span class="hl">a</span>pple</div>
+              <div class="pn-spot-zh" id="pn-spot-zh">蘋果 · 按一下大卡可以重聽！</div>
+            </div>
+          </div>
+          <div class="pn-spot-emoji" id="pn-spot-emoji">🍎</div>
+        </div>
+
+        <div class="az-grid" id="az-grid" aria-label="A 到 Z 字母純音按鈕"></div>
+      </div>
+
+      <!-- PN Mode 2: Beginning Sounds Hunt -->
+      <div class="stage-card" id="pn-bs-panel" style="display: none;">
+        <div class="bs-stage">
+          <div class="bs-header-row">
+            <span class="unit-title-badge pn-badge">🔍 頭音尋寶 (Beginning Sounds)</span>
+            <span class="progress-badge" id="bs-score-badge">今次答啱 0 題</span>
+          </div>
+
+          <p class="instruction-text">聽一聽呢個字嘅開頭發音，搵出正確嘅字母大按鈕！</p>
+
+          <div class="bs-picture-card" id="bs-picture-card" role="button" tabindex="0" title="按此重聽生字">
+            <div class="bs-big-emoji" id="bs-big-emoji">🐶</div>
+            <div class="bs-word-reveal" id="bs-word-reveal">___</div>
+            <div class="bs-zh-hint" id="bs-zh-hint">小狗（按圖片再聽一次）</div>
+          </div>
+
+          <div class="audio-controls">
+            <button type="button" class="btn btn-primary" id="bs-replay-word-btn">🔊 再聽生字</button>
+            <button type="button" class="btn btn-secondary" id="bs-hint-sound-btn">💡 聽頭音提示</button>
+          </div>
+
+          <div class="bs-feedback" id="bs-feedback">揀一個開頭發音啱嘅大字母掣啦！</div>
+
+          <div class="bs-choices-grid" id="bs-choices-grid" aria-label="三個字母選項"></div>
+
+          <div class="nav-row" style="justify-content: center;">
+            <button type="button" class="btn btn-success" id="bs-next-btn" style="min-width: 190px;">下一題尋寶 ➡️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PN Mode 3: 🤖 機械人講嘢 (Phase 1 Pure Listening Oral Blending) -->
+      <div class="stage-card" id="pn-robot-panel" style="display: none;">
+        <div class="bs-stage">
+          <div class="bs-header-row">
+            <span class="unit-title-badge robot-badge">🤖 機械人講嘢（純聽覺拼讀 · 36 題庫）</span>
+            <span class="progress-badge" id="robot-score-badge">今次估中 0 題</span>
+          </div>
+
+          <p class="instruction-text">唔睇英文字！細心聽機械人逐個音讀，估下佢講緊邊張圖？</p>
+
+          <div class="robot-hero-box" id="robot-hero-box" role="button" tabindex="0" title="按一下叫機械人再讀一次">
+            <div class="robot-avatar" id="robot-avatar">🤖</div>
+            <div class="robot-beats" id="robot-beats" aria-label="發音節拍燈"></div>
+            <div class="robot-caption" id="robot-caption">按一下機械人聽佢拆音講嘢！</div>
+          </div>
+
+          <div class="audio-controls">
+            <button type="button" class="btn btn-purple" id="robot-replay-btn">🔊 機械人再講一次</button>
+            <button type="button" class="btn btn-soft" id="robot-speed-btn">🐢 慢速講嘢：關</button>
+          </div>
+
+          <div class="bs-feedback" id="robot-feedback">聽清楚每個音，揀出正確嘅大圖片！</div>
+
+          <div class="robot-pic-grid" id="robot-pic-grid" aria-label="三個大圖片選項"></div>
+
+          <div class="nav-row" style="justify-content: center;">
+            <button type="button" class="btn btn-success" id="robot-next-btn" style="min-width: 190px;">下一題機械人 ➡️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PN Mode 4: 🎶 押韻搵朋友 (Phase 1 Pure Listening Rhyming Match) -->
+      <div class="stage-card" id="pn-rhyme-panel" style="display: none;">
+        <div class="bs-stage">
+          <div class="bs-header-row">
+            <span class="unit-title-badge rhyme-badge">🎶 押韻搵朋友（純聽覺 · 20 組押韻）</span>
+            <span class="progress-badge" id="rhyme-score-badge">今次搵啱 0 對</span>
+          </div>
+
+          <p class="instruction-text">先聽主圖讀音，再逐張點下面圖片聽下邊個尾音最似、係押韻朋友！</p>
+
+          <div class="rhyme-target-card" id="rhyme-target-card" role="button" tabindex="0" title="按一下重聽主圖讀音">
+            <div class="rhyme-target-emoji" id="rhyme-target-emoji">🐱</div>
+            <div class="rhyme-target-zh" id="rhyme-target-zh">貓咪</div>
+            <div class="rhyme-target-hint">🔊 按一下大圖重聽讀音</div>
+          </div>
+
+          <div class="audio-controls">
+            <button type="button" class="btn btn-primary" id="rhyme-replay-target-btn">🔊 再聽主圖讀音</button>
+            <button type="button" class="btn btn-secondary" id="rhyme-listen-all-btn">🎵 輪流聽晒 3 張圖</button>
+          </div>
+
+          <div class="bs-feedback" id="rhyme-feedback">點圖片可以先聽讀音，搵啱朋友就撳「🤝 揀佢！」</div>
+
+          <div class="rhyme-choices-grid" id="rhyme-choices-grid" aria-label="三個押韻圖片選項"></div>
+
+          <div class="nav-row" style="justify-content: center;">
+            <button type="button" class="btn btn-success" id="rhyme-next-btn" style="min-width: 190px;">下一對押韻朋友 ➡️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PN Mode 5: 🛝 兩音滑梯拼讀 (2-Sound Blending Transition to K1) -->
+      <div class="stage-card" id="pn-slide-panel" style="display: none;">
+        <div class="bs-stage">
+          <div class="bs-header-row">
+            <span class="unit-title-badge slide-badge">🛝 兩音滑梯拼讀（2-Sound Blending · 20 題）</span>
+            <span class="progress-badge" id="slide-score-badge">已拼讀 0 / 20 個</span>
+          </div>
+
+          <p class="instruction-text">先點兩塊積木聽純音，再按「🚀 出發」或用手指拖動滑梯，睇佢哋滑埋一齊拼出一個音！</p>
+
+          <div class="slide-filter-bar" role="group" aria-label="篩選兩音組合類型">
+            <button type="button" class="slide-filter-pill active" data-slidefilter="all">🌟 全部 20 個</button>
+            <button type="button" class="slide-filter-pill" data-slidefilter="real">📖 常見真實字 (10)</button>
+            <button type="button" class="slide-filter-pill" data-slidefilter="cv">🛝 開音節熱身 (10)</button>
+          </div>
+
+          <div class="slide-arena" id="slide-arena">
+            <div class="slide-stage-visual" id="slide-stage-visual">
+              <svg class="slide-svg-bg" viewBox="0 0 520 204" preserveAspectRatio="none" aria-hidden="true">
+                <!-- Left slide chute -->
+                <path d="M 38 42 Q 130 50, 210 176" fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" opacity="0.28" />
+                <path d="M 38 42 Q 130 50, 210 176" fill="none" stroke="#fbbf24" stroke-width="8" stroke-linecap="round" />
+                <!-- Right slide chute -->
+                <path d="M 482 42 Q 390 50, 310 176" fill="none" stroke="#f59e0b" stroke-width="18" stroke-linecap="round" opacity="0.28" />
+                <path d="M 482 42 Q 390 50, 310 176" fill="none" stroke="#fbbf24" stroke-width="8" stroke-linecap="round" />
+                <!-- Support poles -->
+                <line x1="56" y1="54" x2="56" y2="194" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" opacity="0.5" />
+                <line x1="464" y1="54" x2="464" y2="194" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" opacity="0.5" />
+              </svg>
+              <div class="slide-landing-pad"></div>
+              <div class="slide-blocks-layer">
+                <button type="button" class="slide-block" id="slide-block-left" title="點我聽第一個純音">
+                  <span class="slide-block-letter" id="slide-left-letter">a</span>
+                  <span class="slide-block-ipa" id="slide-left-ipa">/æ/</span>
+                  <span class="slide-block-dot"></span>
+                </button>
+                <button type="button" class="slide-block" id="slide-block-right" title="點我聽第二個純音">
+                  <span class="slide-block-letter" id="slide-right-letter">t</span>
+                  <span class="slide-block-ipa" id="slide-right-ipa">/t/</span>
+                  <span class="slide-block-dot"></span>
+                </button>
+              </div>
+            </div>
+
+            <div class="slide-result-banner" id="slide-result-banner">
+              <span class="slide-result-emoji" id="slide-result-emoji">🛝</span>
+              <div class="slide-result-text">
+                <span class="slide-result-word" id="slide-result-word">a + t ＝ ？</span>
+                <span class="slide-result-sub" id="slide-result-sub">按「出發」或用手指向右拖動滑梯拼埋佢！</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-slider-wrap">
+            <div class="slide-slider-label">
+              <span>👆 手指滑動掣（向右拖動滑落去）</span>
+              <span id="slide-progress-pct">0%</span>
+            </div>
+            <input type="range" class="slide-range" id="slide-range" min="0" max="100" value="0" aria-label="滑梯拼讀滑動掣" />
+          </div>
+
+          <div class="audio-controls">
+            <button type="button" class="btn btn-secondary" id="slide-go-btn" style="min-width: 170px;">🚀 出發滑落去！</button>
+            <button type="button" class="btn btn-primary" id="slide-replay-blend-btn">🔊 再聽連讀音</button>
+            <button type="button" class="btn btn-soft" id="slide-reset-btn">🔄 返去起點</button>
+          </div>
+
+          <div class="slide-quick-strip" id="slide-quick-strip" aria-label="快速選擇兩音組合"></div>
+
+          <div class="nav-row">
+            <button type="button" class="btn btn-soft" id="slide-prev-btn">⬅️ 上一個</button>
+            <span class="progress-badge" id="slide-index-badge">第 1 / 20 個</span>
+            <button type="button" class="btn btn-success" id="slide-next-btn">下一個 ➡️</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PN Mode 6: 🔠 大細階搵朋友 (Upper/Lower Case & Mirror Letters Match) -->
+      <div class="stage-card" id="pn-case-panel" style="display: none;">
+        <div class="bs-stage">
+          <div class="bs-header-row">
+            <span class="unit-title-badge case-badge">🔠 大細階搵朋友（針對 b/d · p/q · m/w · n/u 評估）</span>
+            <span class="progress-badge" id="case-score-badge">今次答啱 0 題 · ⭐ 0</span>
+          </div>
+
+          <div class="case-toolbar">
+            <div class="case-dir-seg" role="group" aria-label="切換大細階方向">
+              <button type="button" class="case-dir-btn active" data-casedir="mix">🔀 大細混合</button>
+              <button type="button" class="case-dir-btn" data-casedir="u2l">A ➡️ a</button>
+              <button type="button" class="case-dir-btn" data-casedir="l2u">a ➡️ A</button>
+            </div>
+            <button type="button" class="case-mirror-toggle" id="case-mirror-toggle-btn">🪞 鏡像特訓：關</button>
+          </div>
+
+          <p class="instruction-text" id="case-instruction">睇清楚上面個大楷定細楷字母，聽佢純音，搵出下面真正嘅好朋友！</p>
+
+          <div class="case-target-card" id="case-target-card" role="button" tabindex="0" title="按一下重聽字母純音">
+            <div class="case-prompt-badges">
+              <span class="case-role-pill" id="case-role-pill">搵出細楷朋友</span>
+              <span class="case-mirror-pill" id="case-mirror-pill" style="display: none;">🪞 鏡像挑戰</span>
+            </div>
+            <div class="case-big-letter" id="case-big-letter">B</div>
+            <div class="case-target-ipa" id="case-target-ipa">/b/</div>
+            <div class="case-hint-reveal" id="case-hint-reveal">🔊 按一下字母重聽純音</div>
+          </div>
+
+          <div class="audio-controls">
+            <button type="button" class="btn btn-primary" id="case-replay-btn">🔊 再聽純音</button>
+            <button type="button" class="btn btn-secondary" id="case-hint-btn">💡 睇字詞提示</button>
+          </div>
+
+          <div class="bs-feedback" id="case-feedback">小心睇清楚形狀，揀出正確嘅大細階朋友啦！</div>
+
+          <div class="case-choices-grid" id="case-choices-grid" aria-label="三個大細階字母選項"></div>
+
+          <div class="nav-row" style="justify-content: center;">
+            <button type="button" class="btn btn-success" id="case-next-btn" style="min-width: 190px;">下一題大細階 ➡️</button>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Mode & Toggles -->
-    <div class="controls-bar">
-      <div class="segmented" role="tablist">
-        <button class="seg-btn active" id="mode-speak-btn" data-mode="speak">🗣️ 聽音讀字</button>
-        <button class="seg-btn" id="mode-quiz-btn" data-mode="quiz">🎯 聽音揀圖</button>
-      </div>
-      <div class="quick-toggles">
-        <button class="pill-toggle" id="shuffle-toggle-btn">🔀 順序出題</button>
-        <button class="pill-toggle" id="blind-toggle-btn">👀 顯示字母</button>
-      </div>
-    </div>
-
-    <!-- Main Stage Card -->
-    <main class="stage-card">
-      <div class="stage-header">
-        <span class="unit-title-badge" id="unit-title-badge">Unit 1 · 黃金起步 6 音</span>
-        <span class="progress-badge" id="progress-badge">第 1 / 15 題</span>
-      </div>
-
-      <!-- Target Sounds Warm-up Bar -->
-      <div class="warmup-bar">
-        <div class="warmup-label">
-          <span>🎵 本課重點音素（先點一下熱身再拼字）</span>
-          <span id="unit-mastery-badge">本單元已掌握 0/15</span>
+    <!-- ============================================================
+         SECTION 2: 📚 拼讀課程 (Original 8 Units · 126 Words)
+         ============================================================ -->
+    <section class="main-section hidden" id="section-course">
+      <div class="curriculum-strip" aria-label="課程單元選擇">
+        <div class="strip-head">
+          <span>📚 課程地圖（英式 s-a-t-p-i-n 累積式進度）</span>
+          <span id="overall-mastery-text">總進度 0 / 126 字</span>
         </div>
-        <div class="warmup-chips" id="warmup-chips"></div>
+        <div class="unit-scroll" id="unit-scroll"></div>
       </div>
 
-      <p class="instruction-text" id="instruction-text">先聽每個 Phoneme 發音，再請小朋友大聲拼讀出整個字！</p>
-
-      <!-- Visual Cue (Speak mode) -->
-      <div class="word-visual" id="word-visual">
-        <div class="emoji-showcase mystery" id="emoji-showcase">🐱</div>
-        <div class="word-meaning" id="word-meaning">猜猜這是什麼字？</div>
-      </div>
-
-      <!-- Phoneme Tiles -->
-      <div class="tiles-track" id="tiles-track" aria-label="音素積木"></div>
-
-      <!-- Audio Controls -->
-      <div class="audio-controls">
-        <button class="btn btn-primary" id="play-phonemes-btn">🔊 逐個讀 Phonemes</button>
-        <button class="btn btn-secondary" id="blend-word-btn">✨ 拼埋讀全字 (UK)</button>
-      </div>
-
-      <!-- Speak & Check Panel -->
-      <section class="interaction-zone" id="speak-panel">
-        <button class="btn btn-mic" id="mic-btn">🎙️ 撳一下講出個字</button>
-        <div class="mic-status" id="mic-status">小朋友可以按麥克風讀出來，或按「揭曉答案」核對</div>
-        <div class="manual-actions">
-          <button class="btn btn-soft" id="reveal-btn">👀 揭曉答案</button>
-          <button class="btn btn-success" id="got-it-btn">✅ 我讀啱咗！(+1 ⭐)</button>
+      <div class="controls-bar">
+        <div class="segmented" role="tablist">
+          <button type="button" class="seg-btn active" id="mode-speak-btn" data-mode="speak">🗣️ 聽音讀字</button>
+          <button type="button" class="seg-btn" id="mode-quiz-btn" data-mode="quiz">🎯 聽音揀圖</button>
         </div>
-      </section>
-
-      <!-- Picture Quiz Panel -->
-      <section class="interaction-zone" id="quiz-panel" style="display: none;">
-        <div class="mic-status" id="quiz-status">聽清楚每個發音，揀出正確的圖片！</div>
-        <div class="quiz-grid" id="quiz-grid"></div>
-      </section>
-
-      <!-- Bottom Bar -->
-      <div class="nav-row">
-        <button class="btn btn-soft" id="prev-btn">⬅️ 上一題</button>
-        <button class="speed-chip" id="speed-toggle-btn">🐢 慢速模式：關</button>
-        <button class="btn btn-primary" id="next-btn">下一題 ➡️</button>
+        <div class="quick-toggles">
+          <button type="button" class="pill-toggle" id="shuffle-toggle-btn">🔀 順序出題</button>
+          <button type="button" class="pill-toggle" id="blind-toggle-btn">👀 顯示字母</button>
+        </div>
       </div>
-    </main>
+
+      <main class="stage-card">
+        <div class="stage-header">
+          <span class="unit-title-badge" id="unit-title-badge">Unit 1 · 黃金起步 6 音</span>
+          <span class="progress-badge" id="progress-badge">第 1 / 15 題</span>
+        </div>
+
+        <div class="warmup-bar">
+          <div class="warmup-label">
+            <span>🎵 本課重點音素（先點一下熱身再拼字）</span>
+            <span id="unit-mastery-badge">本單元已掌握 0/15</span>
+          </div>
+          <div class="warmup-chips" id="warmup-chips"></div>
+        </div>
+
+        <p class="instruction-text" id="instruction-text">先聽每個 Phoneme 發音，再請小朋友大聲拼讀出整個字！</p>
+
+        <div class="word-visual" id="word-visual">
+          <div class="emoji-showcase mystery" id="emoji-showcase">🐱</div>
+          <div class="word-meaning" id="word-meaning">猜猜這是什麼字？</div>
+        </div>
+
+        <div class="tiles-track" id="tiles-track" aria-label="音素積木"></div>
+
+        <div class="audio-controls">
+          <button type="button" class="btn btn-primary" id="play-phonemes-btn">🔊 逐個讀 Phonemes</button>
+          <button type="button" class="btn btn-secondary" id="blend-word-btn">✨ 拼埋讀全字 (UK)</button>
+        </div>
+
+        <section class="interaction-zone" id="speak-panel">
+          <button type="button" class="btn btn-mic" id="mic-btn">🎙️ 撳一下講出個字</button>
+          <div class="mic-status" id="mic-status">小朋友可以按麥克風讀出來，或按「揭曉答案」核對</div>
+          <div class="manual-actions">
+            <button type="button" class="btn btn-soft" id="reveal-btn">👀 揭曉答案</button>
+            <button type="button" class="btn btn-success" id="got-it-btn">✅ 我讀啱咗！(+1 ⭐)</button>
+          </div>
+        </section>
+
+        <section class="interaction-zone" id="quiz-panel" style="display: none;">
+          <div class="mic-status" id="quiz-status">聽清楚每個發音，揀出正確的圖片！</div>
+          <div class="quiz-grid" id="quiz-grid"></div>
+        </section>
+
+        <div class="nav-row">
+          <button type="button" class="btn btn-soft" id="prev-btn">⬅️ 上一題</button>
+          <button type="button" class="speed-chip" id="speed-toggle-btn">🐢 慢速模式：關</button>
+          <button type="button" class="btn btn-primary" id="next-btn">下一題 ➡️</button>
+        </div>
+      </main>
+    </section>
 
     <!-- Footer Status -->
     <footer class="source-footer">
       <div><span class="status-dot" id="audio-status-dot"></span><span id="audio-status-text">已連線至 xiaozhah/phoneme_audio 音標語音庫（英式發音優先 · 防無聲備援）</span></div>
-      <div>小貼士：圓點代表單字母發音，橫線代表雙／三字母合拼發音（英國學校標準標記）</div>
+      <div>小貼士：PN 啟蒙區由純聽覺（機械人＋押韻）自然銜接到「兩音滑梯」同「大細階搵朋友」，輕鬆預備 K1 拼讀評估！</div>
     </footer>
   </div>
 
@@ -947,7 +2508,7 @@
     <div class="modal-card">
       <div class="modal-head">
         <h2>⚙️ 家長設定與音檔測試</h2>
-        <button class="icon-btn" id="close-settings-btn">✕</button>
+        <button type="button" class="icon-btn" id="close-settings-btn">✕</button>
       </div>
 
       <div class="setting-group">
@@ -960,7 +2521,7 @@
           <input type="checkbox" id="show-ipa-checkbox" checked style="width:20px;height:20px;" />
         </div>
         <div class="setting-row">
-          <span>拼全字語音口音</span>
+          <span>拼全字及生字語音口音</span>
           <select id="accent-select" style="padding:6px 10px;border-radius:10px;border:2px solid #cbd5e1;font-weight:700;">
             <option value="en-GB" selected>英式英語 (UK · 預設)</option>
             <option value="en-US">美式英語 (US)</option>
@@ -968,14 +2529,14 @@
         </div>
         <div class="setting-row">
           <span>重設全部學習進度與星星</span>
-          <button class="btn btn-soft" id="reset-progress-btn" style="padding:7px 12px;font-size:0.84rem;">清除紀錄</button>
+          <button type="button" class="btn btn-soft" id="reset-progress-btn" style="padding:7px 12px;font-size:0.84rem;">清除紀錄</button>
         </div>
       </div>
 
       <div class="setting-group">
         <div class="setting-row">
           <span>🔊 全部 38 個英式音標檢測（點個別試聽）</span>
-          <button class="btn btn-primary" id="test-all-btn" style="padding:7px 12px;font-size:0.82rem;">全部檢測</button>
+          <button type="button" class="btn btn-primary" id="test-all-btn" style="padding:7px 12px;font-size:0.82rem;">全部檢測</button>
         </div>
         <div style="font-size:0.8rem;color:var(--text-muted);">
           綠色 = 成功載入 GitHub 標準 MP3 音檔；黃色 = 音檔庫缺該音標，已自動切換為英式瀏覽器發音備援（確保不會無聲）。
@@ -989,7 +2550,7 @@
     /*****************************************************************
      * 1. UK PHONEME AUDIO ENGINE (xiaozhah/phoneme_audio via jsDelivr)
      *    - Strict encodeURIComponent for IPA symbols
-     *    - British English RP IPA mappings (non-rhotic ar/or/ur, short /ɒ/, /əʊ/)
+     *    - British English RP IPA mappings
      *    - Dual CDN mirrors + UK SpeechSynthesis voice fallback
      *****************************************************************/
     const CDN_MIRRORS = [
@@ -1059,7 +2620,6 @@
     function pickPreferredVoice(langCode) {
       if (!availableVoices.length) refreshVoices();
       const target = langCode.toLowerCase();
-      // Prefer high quality UK voices (Daniel, Serena, Martha, Google UK English)
       const exact = availableVoices.filter(v => v.lang && v.lang.toLowerCase().replace("_", "-") === target);
       if (exact.length) {
         const preferred = exact.find(v => /google|serena|daniel|martha|kate|arthur/i.test(v.name));
@@ -1116,8 +2676,22 @@
       return "FALLBACK";
     }
 
+    const decodedBufferCache = new Map();
+    let activeWebAudioSources = [];
+
+    function stopWebAudioSources() {
+      activeWebAudioSources.forEach(src => {
+        try { src.stop(); } catch (_) {}
+      });
+      activeWebAudioSources = [];
+    }
+
     function stopAllAudio() {
       sequenceToken++;
+      stopWebAudioSources();
+      if (typeof cancelSlideAnimation === "function") {
+        cancelSlideAnimation();
+      }
       if (currentPlayingAudio) {
         try {
           currentPlayingAudio.pause();
@@ -1128,7 +2702,90 @@
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
-      document.querySelectorAll(".phoneme-tile.playing, .warmup-chip.playing").forEach(el => el.classList.remove("playing"));
+      document.querySelectorAll(
+        ".phoneme-tile.playing, .warmup-chip.playing, .az-card.playing, .pn-spotlight.playing, .robot-hero-box.talking, .robot-beat-dot.active, .rhyme-target-card.playing, .rhyme-option-wrap.listening, .slide-block.playing, .case-target-card.playing"
+      ).forEach(el => {
+        el.classList.remove("playing", "talking", "active", "listening");
+      });
+    }
+
+    // Fetch, decode & trim silence from a phoneme MP3 for smooth 2-sound CV syllable blending
+    async function loadDecodedPhonemeBuffer(phonemeKey) {
+      if (decodedBufferCache.has(phonemeKey)) return decodedBufferCache.get(phonemeKey);
+      const url = await resolvePhonemeAudio(phonemeKey);
+      if (!url || url === "FALLBACK") return null;
+      const ctx = getAudioCtx();
+      if (!ctx) return null;
+      try {
+        const res = await fetch(url, { mode: "cors" });
+        if (!res.ok) return null;
+        const arrBuf = await res.arrayBuffer();
+        const decoded = await ctx.decodeAudioData(arrBuf);
+        // Trim leading and trailing silence
+        const data = decoded.getChannelData(0);
+        const threshold = 0.016;
+        let start = 0;
+        let end = data.length - 1;
+        while (start < data.length && Math.abs(data[start]) < threshold) start++;
+        while (end > start && Math.abs(data[end]) < threshold) end--;
+        start = Math.max(0, start - Math.floor(decoded.sampleRate * 0.015));
+        end = Math.min(data.length - 1, end + Math.floor(decoded.sampleRate * 0.025));
+        const length = Math.max(1, end - start + 1);
+        const trimmed = ctx.createBuffer(decoded.numberOfChannels, length, decoded.sampleRate);
+        for (let ch = 0; ch < decoded.numberOfChannels; ch++) {
+          trimmed.copyToChannel(decoded.getChannelData(ch).subarray(start, end + 1), ch);
+        }
+        decodedBufferCache.set(phonemeKey, trimmed);
+        return trimmed;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    async function playSeamlessPhonemePair(key1, key2, myToken) {
+      const ctx = getAudioCtx();
+      const [buf1, buf2] = await Promise.all([
+        loadDecodedPhonemeBuffer(key1),
+        loadDecodedPhonemeBuffer(key2)
+      ]);
+      if (myToken !== sequenceToken) return false;
+      if (ctx && buf1 && buf2) {
+        return new Promise((resolve) => {
+          const now = ctx.currentTime + 0.02;
+          const overlap = Math.min(0.055, buf1.duration * 0.28, buf2.duration * 0.28);
+          const secondStart = Math.max(now + 0.04, now + buf1.duration - overlap);
+
+          const src1 = ctx.createBufferSource();
+          src1.buffer = buf1;
+          const g1 = ctx.createGain();
+          g1.gain.setValueAtTime(1, now);
+          g1.gain.setValueAtTime(1, Math.max(now, secondStart));
+          g1.gain.linearRampToValueAtTime(0.001, now + buf1.duration);
+          src1.connect(g1);
+          g1.connect(ctx.destination);
+
+          const src2 = ctx.createBufferSource();
+          src2.buffer = buf2;
+          const g2 = ctx.createGain();
+          g2.gain.setValueAtTime(0.001, secondStart);
+          g2.gain.linearRampToValueAtTime(1, secondStart + Math.max(0.015, overlap));
+          g2.gain.setValueAtTime(1, secondStart + buf2.duration);
+          src2.connect(g2);
+          g2.connect(ctx.destination);
+
+          activeWebAudioSources.push(src1, src2);
+          src1.start(now);
+          src2.start(secondStart);
+          src2.onended = () => resolve(true);
+        });
+      }
+      // Fallback: play tightly back-to-back
+      await playSinglePhonemeKey(key1, false);
+      if (myToken !== sequenceToken) return false;
+      await wait(30);
+      if (myToken !== sequenceToken) return false;
+      await playSinglePhonemeKey(key2, false);
+      return true;
     }
 
     function speakText(text, rate = 0.88) {
@@ -1147,15 +2804,16 @@
       });
     }
 
-    async function playSinglePhonemeKey(phonemeKey) {
+    async function playSinglePhonemeKey(phonemeKey, slowOverride = null) {
       const resolved = await resolvePhonemeAudio(phonemeKey);
       const info = PHONEME_MAP[phonemeKey];
+      const useSlow = slowOverride !== null ? slowOverride : state.slowMode;
 
       if (resolved && resolved !== "FALLBACK") {
         updateAudioStatusBadge(true);
         return new Promise((resolve) => {
           const audio = new Audio(resolved);
-          audio.playbackRate = state.slowMode ? 0.84 : 1.0;
+          audio.playbackRate = useSlow ? 0.82 : 1.0;
           currentPlayingAudio = audio;
           let done = false;
           const finish = () => {
@@ -1201,7 +2859,7 @@
       const txt = document.getElementById("audio-status-text");
       if (isCdn) {
         dot.style.background = "#2ec4b6";
-        txt.textContent = "已使用 xiaozhah/phoneme_audio 標準音標 MP3 播放（英式課程）";
+        txt.textContent = "已使用 xiaozhah/phoneme_audio 標準音標 MP3 播放（英式發音）";
       } else {
         dot.style.background = "#f59e0b";
         txt.textContent = "部分音標已自動切換至英式瀏覽器備用語音（確保每個音都聽得到）";
@@ -1257,8 +2915,261 @@
     }
 
     /*****************************************************************
-     * 3. COMPLETE UK SYNTHETIC PHONICS BEGINNER CURRICULUM (8 UNITS · 126 WORDS)
-     *    Structured on UK DfE Letters & Sounds (Phase 2 & 3) / Jolly Phonics
+     * 3. PN 啟蒙區 DATA
+     *    - A-Z UK Pure Sounds (26)
+     *    - Beginning Sounds Bank (45)
+     *    - Robot Oral Blending Bank (36 toddler-friendly words)
+     *    - Rhyming Match Groups (20 UK RP rhyming groups)
+     *****************************************************************/
+    const AZ_PALETTE = [
+      { bg: "#fff1f2", border: "#fda4af", text: "#be123c" },
+      { bg: "#fff7ed", border: "#fdba74", text: "#c2410c" },
+      { bg: "#fefce8", border: "#fde047", text: "#a16207" },
+      { bg: "#ecfdf5", border: "#6ee7b7", text: "#047857" },
+      { bg: "#eff6ff", border: "#93c5fd", text: "#1d4ed8" },
+      { bg: "#f5f3ff", border: "#c4b5fd", text: "#6d28d9" }
+    ];
+
+    const AZ_PHONICS = [
+      { upper: "A", lower: "a", key: "ae", vowel: true,  word: "apple",      emoji: "🍎", zh: "蘋果" },
+      { upper: "B", lower: "b", key: "b",  vowel: false, word: "ball",       emoji: "⚽", zh: "波波" },
+      { upper: "C", lower: "c", key: "k",  vowel: false, word: "cat",        emoji: "🐱", zh: "貓咪" },
+      { upper: "D", lower: "d", key: "d",  vowel: false, word: "dog",        emoji: "🐶", zh: "小狗" },
+      { upper: "E", lower: "e", key: "e",  vowel: true,  word: "egg",        emoji: "🥚", zh: "雞蛋" },
+      { upper: "F", lower: "f", key: "f",  vowel: false, word: "fish",       emoji: "🐟", zh: "魚仔" },
+      { upper: "G", lower: "g", key: "g",  vowel: false, word: "goat",       emoji: "🐐", zh: "山羊" },
+      { upper: "H", lower: "h", key: "h",  vowel: false, word: "hat",        emoji: "🎩", zh: "帽子" },
+      { upper: "I", lower: "i", key: "ih", vowel: true,  word: "insect",     emoji: "🪲", zh: "昆蟲" },
+      { upper: "J", lower: "j", key: "jh", vowel: false, word: "jam",        emoji: "🍓", zh: "果醬" },
+      { upper: "K", lower: "k", key: "k",  vowel: false, word: "king",       emoji: "👑", zh: "國王" },
+      { upper: "L", lower: "l", key: "l",  vowel: false, word: "lion",       emoji: "🦁", zh: "獅子" },
+      { upper: "M", lower: "m", key: "m",  vowel: false, word: "monkey",     emoji: "🐒", zh: "馬騮" },
+      { upper: "N", lower: "n", key: "n",  vowel: false, word: "nest",       emoji: "🪺", zh: "雀巢" },
+      { upper: "O", lower: "o", key: "o",  vowel: true,  word: "orange",     emoji: "🍊", zh: "橙" },
+      { upper: "P", lower: "p", key: "p",  vowel: false, word: "pig",        emoji: "🐷", zh: "小豬" },
+      { upper: "Q", lower: "q", keys: ["k", "w"], ipa: "/kw/", vowel: false, word: "queen", emoji: "👸", zh: "皇后" },
+      { upper: "R", lower: "r", key: "r",  vowel: false, word: "rabbit",     emoji: "🐰", zh: "兔仔" },
+      { upper: "S", lower: "s", key: "s",  vowel: false, word: "sun",        emoji: "☀️", zh: "太陽" },
+      { upper: "T", lower: "t", key: "t",  vowel: false, word: "tiger",      emoji: "🐯", zh: "老虎" },
+      { upper: "U", lower: "u", key: "uh", vowel: true,  word: "umbrella",   emoji: "☂️", zh: "雨遮" },
+      { upper: "V", lower: "v", key: "v",  vowel: false, word: "van",        emoji: "🚐", zh: "客貨車" },
+      { upper: "W", lower: "w", key: "w",  vowel: false, word: "watermelon", emoji: "🍉", zh: "西瓜" },
+      { upper: "X", lower: "x", keys: ["k", "s"], ipa: "/ks/", vowel: false, word: "fox", emoji: "🦊", zh: "狐狸（尾音 x）", isEndSound: true },
+      { upper: "Y", lower: "y", key: "y",  vowel: false, word: "yo-yo",      emoji: "🪀", zh: "搖搖" },
+      { upper: "Z", lower: "z", key: "z",  vowel: false, word: "zebra",      emoji: "🦓", zh: "斑馬" }
+    ];
+
+    const BEGINNING_SOUNDS_BANK = [
+      { letter: "a", word: "apple",      emoji: "🍎", zh: "蘋果" },
+      { letter: "a", word: "ant",        emoji: "🐜", zh: "螞蟻" },
+      { letter: "b", word: "ball",       emoji: "⚽", zh: "波波" },
+      { letter: "b", word: "bus",        emoji: "🚌", zh: "巴士" },
+      { letter: "b", word: "banana",     emoji: "🍌", zh: "香蕉" },
+      { letter: "c", word: "cat",        emoji: "🐱", zh: "貓咪" },
+      { letter: "c", word: "car",        emoji: "🚗", zh: "私家車" },
+      { letter: "c", word: "cup",        emoji: "☕", zh: "水杯" },
+      { letter: "d", word: "dog",        emoji: "🐶", zh: "小狗" },
+      { letter: "d", word: "duck",       emoji: "🦆", zh: "鴨仔" },
+      { letter: "e", word: "egg",        emoji: "🥚", zh: "雞蛋" },
+      { letter: "e", word: "elephant",   emoji: "🐘", zh: "大象" },
+      { letter: "f", word: "fish",       emoji: "🐟", zh: "魚仔" },
+      { letter: "f", word: "frog",       emoji: "🐸", zh: "青蛙" },
+      { letter: "g", word: "goat",       emoji: "🐐", zh: "山羊" },
+      { letter: "g", word: "grapes",     emoji: "🍇", zh: "提子" },
+      { letter: "h", word: "hat",        emoji: "🎩", zh: "帽子" },
+      { letter: "h", word: "horse",      emoji: "🐴", zh: "馬仔" },
+      { letter: "i", word: "insect",     emoji: "🪲", zh: "昆蟲" },
+      { letter: "j", word: "jam",        emoji: "🍓", zh: "果醬" },
+      { letter: "j", word: "juice",      emoji: "🧃", zh: "果汁" },
+      { letter: "k", word: "king",       emoji: "👑", zh: "國王" },
+      { letter: "k", word: "kite",       emoji: "🪁", zh: "風箏" },
+      { letter: "l", word: "lion",       emoji: "🦁", zh: "獅子" },
+      { letter: "l", word: "lemon",      emoji: "🍋", zh: "檸檬" },
+      { letter: "m", word: "monkey",     emoji: "🐒", zh: "馬騮" },
+      { letter: "m", word: "milk",       emoji: "🥛", zh: "牛奶" },
+      { letter: "n", word: "nest",       emoji: "🪺", zh: "雀巢" },
+      { letter: "n", word: "nose",       emoji: "👃", zh: "鼻哥" },
+      { letter: "o", word: "orange",     emoji: "🍊", zh: "橙" },
+      { letter: "o", word: "octopus",    emoji: "🐙", zh: "八爪魚" },
+      { letter: "p", word: "pig",        emoji: "🐷", zh: "小豬" },
+      { letter: "p", word: "panda",      emoji: "🐼", zh: "熊貓" },
+      { letter: "q", word: "queen",      emoji: "👸", zh: "皇后" },
+      { letter: "r", word: "rabbit",     emoji: "🐰", zh: "兔仔" },
+      { letter: "r", word: "rainbow",    emoji: "🌈", zh: "彩虹" },
+      { letter: "s", word: "sun",        emoji: "☀️", zh: "太陽" },
+      { letter: "s", word: "star",       emoji: "⭐", zh: "星星" },
+      { letter: "t", word: "tiger",      emoji: "🐯", zh: "老虎" },
+      { letter: "t", word: "train",      emoji: "🚂", zh: "火車" },
+      { letter: "u", word: "umbrella",   emoji: "☂️", zh: "雨遮" },
+      { letter: "v", word: "van",        emoji: "🚐", zh: "客貨車" },
+      { letter: "w", word: "watermelon", emoji: "🍉", zh: "西瓜" },
+      { letter: "y", word: "yo-yo",      emoji: "🪀", zh: "搖搖" },
+      { letter: "z", word: "zebra",      emoji: "🦓", zh: "斑馬" }
+    ];
+
+    // 36 Toddler-Friendly Words for 🤖 機械人講嘢 (UK Letters & Sounds Phase 1 Oral Blending)
+    const ROBOT_BLENDING_BANK = [
+      { word: "cat",   emoji: "🐱", zh: "貓咪",   phonemes: ["k", "ae", "t"] },
+      { word: "dog",   emoji: "🐶", zh: "小狗",   phonemes: ["d", "o", "g"] },
+      { word: "pig",   emoji: "🐷", zh: "小豬",   phonemes: ["p", "ih", "g"] },
+      { word: "sun",   emoji: "☀️", zh: "太陽",   phonemes: ["s", "uh", "n"] },
+      { word: "bus",   emoji: "🚌", zh: "巴士",   phonemes: ["b", "uh", "s"] },
+      { word: "hat",   emoji: "🎩", zh: "帽子",   phonemes: ["h", "ae", "t"] },
+      { word: "bed",   emoji: "🛏️", zh: "睡床",   phonemes: ["b", "e", "d"] },
+      { word: "cup",   emoji: "☕", zh: "水杯",   phonemes: ["k", "uh", "p"] },
+      { word: "pen",   emoji: "🖊️", zh: "原子筆", phonemes: ["p", "e", "n"] },
+      { word: "hen",   emoji: "🐔", zh: "母雞",   phonemes: ["h", "e", "n"] },
+      { word: "bat",   emoji: "🦇", zh: "蝙蝠",   phonemes: ["b", "ae", "t"] },
+      { word: "bag",   emoji: "🎒", zh: "書包",   phonemes: ["b", "ae", "g"] },
+      { word: "bug",   emoji: "🐞", zh: "甲蟲",   phonemes: ["b", "uh", "g"] },
+      { word: "duck",  emoji: "🦆", zh: "鴨仔",   phonemes: ["d", "uh", "k"] },
+      { word: "sock",  emoji: "🧦", zh: "襪仔",   phonemes: ["s", "o", "k"] },
+      { word: "fish",  emoji: "🐟", zh: "魚仔",   phonemes: ["f", "ih", "sh"] },
+      { word: "ship",  emoji: "🚢", zh: "大船",   phonemes: ["sh", "ih", "p"] },
+      { word: "bee",   emoji: "🐝", zh: "蜜蜂",   phonemes: ["b", "ee"] },
+      { word: "car",   emoji: "🚗", zh: "私家車", phonemes: ["k", "ar"] },
+      { word: "cow",   emoji: "🐄", zh: "乳牛",   phonemes: ["k", "ow"] },
+      { word: "fox",   emoji: "🦊", zh: "狐狸",   phonemes: ["f", "o", "k", "s"] },
+      { word: "box",   emoji: "📦", zh: "紙盒",   phonemes: ["b", "o", "k", "s"] },
+      { word: "jam",   emoji: "🍓", zh: "果醬",   phonemes: ["jh", "ae", "m"] },
+      { word: "van",   emoji: "🚐", zh: "客貨車", phonemes: ["v", "ae", "n"] },
+      { word: "web",   emoji: "🕸️", zh: "蜘蛛網", phonemes: ["w", "e", "b"] },
+      { word: "tap",   emoji: "🚰", zh: "水龍頭", phonemes: ["t", "ae", "p"] },
+      { word: "pan",   emoji: "🍳", zh: "平底鑊", phonemes: ["p", "ae", "n"] },
+      { word: "pot",   emoji: "🍲", zh: "煲仔",   phonemes: ["p", "o", "t"] },
+      { word: "fan",   emoji: "🪭", zh: "風扇",   phonemes: ["f", "ae", "n"] },
+      { word: "bell",  emoji: "🔔", zh: "鈴鐺",   phonemes: ["b", "e", "l"] },
+      { word: "ring",  emoji: "💍", zh: "戒指",   phonemes: ["r", "ih", "ng"] },
+      { word: "king",  emoji: "👑", zh: "國王",   phonemes: ["k", "ih", "ng"] },
+      { word: "moon",  emoji: "🌙", zh: "月亮",   phonemes: ["m", "oo_long", "n"] },
+      { word: "boat",  emoji: "🚤", zh: "小船",   phonemes: ["b", "oa", "t"] },
+      { word: "goat",  emoji: "🐐", zh: "山羊",   phonemes: ["g", "oa", "t"] },
+      { word: "book",  emoji: "📖", zh: "圖書",   phonemes: ["b", "oo_short", "k"] }
+    ];
+
+    // 20 UK RP Rhyming Groups for 🎶 押韻搵朋友 (Pure Listening Rhyming Match)
+    const RHYMING_GROUPS = [
+      { id: "at",  items: [{ word: "cat", emoji: "🐱", zh: "貓咪" }, { word: "hat", emoji: "🎩", zh: "帽子" }, { word: "bat", emoji: "🦇", zh: "蝙蝠" }] },
+      { id: "og",  items: [{ word: "dog", emoji: "🐶", zh: "小狗" }, { word: "frog", emoji: "🐸", zh: "青蛙" }, { word: "log", emoji: "🪵", zh: "木頭" }] },
+      { id: "un",  items: [{ word: "sun", emoji: "☀️", zh: "太陽" }, { word: "bun", emoji: "🥯", zh: "麵包" }, { word: "run", emoji: "🏃", zh: "跑步" }] },
+      { id: "ig",  items: [{ word: "pig", emoji: "🐷", zh: "小豬" }, { word: "wig", emoji: "💇", zh: "假髮" }, { word: "dig", emoji: "⛏️", zh: "掘窿" }] },
+      { id: "ed",  items: [{ word: "bed", emoji: "🛏️", zh: "睡床" }, { word: "red", emoji: "🔴", zh: "紅色" }] },
+      { id: "ar",  items: [{ word: "star", emoji: "⭐", zh: "星星" }, { word: "car", emoji: "🚗", zh: "私家車" }] },
+      { id: "ee",  items: [{ word: "bee", emoji: "🐝", zh: "蜜蜂" }, { word: "tree", emoji: "🌳", zh: "大樹" }] },
+      { id: "ox",  items: [{ word: "fox", emoji: "🦊", zh: "狐狸" }, { word: "box", emoji: "📦", zh: "紙盒" }] },
+      { id: "oat", items: [{ word: "boat", emoji: "🚤", zh: "小船" }, { word: "goat", emoji: "🐐", zh: "山羊" }, { word: "coat", emoji: "🧥", zh: "外套" }] },
+      { id: "ing", items: [{ word: "ring", emoji: "💍", zh: "戒指" }, { word: "king", emoji: "👑", zh: "國王" }, { word: "sing", emoji: "🎤", zh: "唱歌" }] },
+      { id: "ish", items: [{ word: "fish", emoji: "🐟", zh: "魚仔" }, { word: "dish", emoji: "🍽️", zh: "碟子" }] },
+      { id: "ug",  items: [{ word: "bug", emoji: "🐞", zh: "甲蟲" }, { word: "mug", emoji: "🍺", zh: "大杯" }, { word: "jug", emoji: "🏺", zh: "水壺" }] },
+      { id: "an",  items: [{ word: "pan", emoji: "🍳", zh: "平底鑊" }, { word: "fan", emoji: "🪭", zh: "風扇" }, { word: "van", emoji: "🚐", zh: "客貨車" }] },
+      { id: "en",  items: [{ word: "pen", emoji: "🖊️", zh: "原子筆" }, { word: "hen", emoji: "🐔", zh: "母雞" }, { word: "ten", emoji: "🔟", zh: "數字十" }] },
+      { id: "oon", items: [{ word: "moon", emoji: "🌙", zh: "月亮" }, { word: "spoon", emoji: "🥄", zh: "湯匙" }] },
+      { id: "uck", items: [{ word: "duck", emoji: "🦆", zh: "鴨仔" }, { word: "truck", emoji: "🚚", zh: "貨車" }] },
+      { id: "ous", items: [{ word: "mouse", emoji: "🐭", zh: "老鼠" }, { word: "house", emoji: "🏠", zh: "屋仔" }] },
+      { id: "ake", items: [{ word: "cake", emoji: "🎂", zh: "蛋糕" }, { word: "snake", emoji: "🐍", zh: "蛇仔" }] },
+      { id: "ain", items: [{ word: "rain", emoji: "🌧️", zh: "落雨" }, { word: "train", emoji: "🚂", zh: "火車" }] },
+      { id: "ock", items: [{ word: "sock", emoji: "🧦", zh: "襪仔" }, { word: "clock", emoji: "⏰", zh: "鬧鐘" }] }
+    ];
+
+    // 20 Simplest 2-Letter Blending Combos for 🛝 兩音滑梯拼讀 (10 Real VC Words + 10 Open-Syllable CV Warmups)
+    const SLIDE_BLENDING_BANK = [
+      // 10 Common Real 2-Letter Words (VC)
+      { id: "at", text: "at", type: "real", emoji: "📍", zh: "喺某處（真實字）", tts: "at",
+        left: { g: "a", key: "ae", t: "v" }, right: { g: "t", key: "t", t: "c" } },
+      { id: "in", text: "in", type: "real", emoji: "📥", zh: "入面（真實字）", tts: "in",
+        left: { g: "i", key: "ih", t: "v" }, right: { g: "n", key: "n", t: "c" } },
+      { id: "it", text: "it", type: "real", emoji: "👉", zh: "佢／呢樣嘢（真實字）", tts: "it",
+        left: { g: "i", key: "ih", t: "v" }, right: { g: "t", key: "t", t: "c" } },
+      { id: "on", text: "on", type: "real", emoji: "⬆️", zh: "上面（真實字）", tts: "on",
+        left: { g: "o", key: "o", t: "v" }, right: { g: "n", key: "n", t: "c" } },
+      { id: "up", text: "up", type: "real", emoji: "🚀", zh: "向上（真實字）", tts: "up",
+        left: { g: "u", key: "uh", t: "v" }, right: { g: "p", key: "p", t: "c" } },
+      { id: "am", text: "am", type: "real", emoji: "🙋", zh: "我係（真實字）", tts: "amm",
+        left: { g: "a", key: "ae", t: "v" }, right: { g: "m", key: "m", t: "c" } },
+      { id: "an", text: "an", type: "real", emoji: "🍎", zh: "一個（真實字）", tts: "an",
+        left: { g: "a", key: "ae", t: "v" }, right: { g: "n", key: "n", t: "c" } },
+      { id: "is", text: "is", type: "real", emoji: "✨", zh: "係（真實字，s 讀 /z/）", tts: "is",
+        left: { g: "i", key: "ih", t: "v" }, right: { g: "s", key: "z", t: "c" } },
+      { id: "us", text: "us", type: "real", emoji: "👨‍👩‍👧", zh: "我哋（真實字）", tts: "us",
+        left: { g: "u", key: "uh", t: "v" }, right: { g: "s", key: "s", t: "c" } },
+      { id: "if", text: "if", type: "real", emoji: "🤔", zh: "如果（真實字）", tts: "if",
+        left: { g: "i", key: "ih", t: "v" }, right: { g: "f", key: "f", t: "c" } },
+
+      // 10 Simple Open-Syllable CV Warmups
+      { id: "sa", text: "sa", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 sat 開頭）",
+        left: { g: "s", key: "s", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "ta", text: "ta", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 tap 開頭）",
+        left: { g: "t", key: "t", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "pa", text: "pa", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 pan 開頭）",
+        left: { g: "p", key: "p", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "ma", text: "ma", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 mat 開頭）",
+        left: { g: "m", key: "m", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "da", text: "da", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 dad 開頭）",
+        left: { g: "d", key: "d", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "ba", text: "ba", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 bag 開頭）",
+        left: { g: "b", key: "b", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "na", text: "na", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 nap 開頭）",
+        left: { g: "n", key: "n", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "fa", text: "fa", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 fan 開頭）",
+        left: { g: "f", key: "f", t: "c" }, right: { g: "a", key: "ae", t: "v" } },
+      { id: "si", text: "si", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 sit 開頭）",
+        left: { g: "s", key: "s", t: "c" }, right: { g: "i", key: "ih", t: "v" } },
+      { id: "pi", text: "pi", type: "cv", emoji: "🛝", zh: "開音節熱身（好似 pig 開頭）",
+        left: { g: "p", key: "p", t: "c" }, right: { g: "i", key: "ih", t: "v" } }
+    ];
+
+    // Curated Mirror & Visually Confusable Distractors for 🔠 大細階搵朋友
+    const CONFUSABLE_LETTERS = {
+      a: ["e", "o", "d", "u"],
+      b: ["d", "p", "q", "h"],
+      c: ["o", "e", "g", "s"],
+      d: ["b", "p", "q", "a"],
+      e: ["c", "a", "o", "s"],
+      f: ["t", "j", "l", "r"],
+      g: ["q", "p", "j", "y"],
+      h: ["n", "b", "k", "m"],
+      i: ["l", "j", "t", "f"],
+      j: ["i", "g", "l", "y"],
+      k: ["x", "h", "r", "v"],
+      l: ["i", "t", "j", "f"],
+      m: ["w", "n", "u", "v"],
+      n: ["u", "m", "h", "r"],
+      o: ["c", "e", "a", "q"],
+      p: ["q", "b", "d", "g"],
+      q: ["p", "b", "d", "g"],
+      r: ["n", "f", "t", "v"],
+      s: ["z", "c", "x", "e"],
+      t: ["f", "l", "i", "j"],
+      u: ["n", "v", "w", "a"],
+      v: ["w", "u", "y", "n"],
+      w: ["m", "v", "u", "n"],
+      x: ["k", "z", "v", "s"],
+      y: ["v", "g", "j", "u"],
+      z: ["s", "x", "n", "v"]
+    };
+
+    const CORE_MIRROR_LETTERS = ["b", "d", "p", "q", "m", "w", "n", "u"];
+    const MIRROR_DRILL_SET = ["b", "d", "p", "q", "m", "w", "n", "u", "i", "l", "f", "t", "c", "o", "s", "z"];
+
+
+    function getAzEntry(letterLower) {
+      return AZ_PHONICS.find(item => item.lower === letterLower);
+    }
+
+    function getAzIpa(entry) {
+      return entry.ipa || (PHONEME_MAP[entry.key] ? PHONEME_MAP[entry.key].label : "");
+    }
+
+    function formatHighlightedWord(entry) {
+      if (entry.isEndSound) {
+        return entry.word.slice(0, -1) + `<span class="hl">${entry.word.slice(-1)}</span>`;
+      }
+      const prefixLen = entry.lower === "q" ? 2 : 1;
+      return `<span class="hl">${entry.word.slice(0, prefixLen)}</span>${entry.word.slice(prefixLen)}`;
+    }
+
+    /*****************************************************************
+     * 4. COMPLETE UK SYNTHETIC PHONICS BEGINNER CURRICULUM (8 UNITS · 126 WORDS)
      *****************************************************************/
     const CURRICULUM_UNITS = [
       {
@@ -1518,7 +3429,7 @@
     ];
 
     /*****************************************************************
-     * 4. STATE & STORAGE
+     * 5. STATE & STORAGE
      *****************************************************************/
     function loadMasteredSet() {
       try {
@@ -1529,6 +3440,53 @@
     }
 
     const state = {
+      activeSection: "pn",   // 'pn' | 'course'
+      pnMode: "az",          // 'az' | 'bs' | 'robot' | 'rhyme'
+      azSoundMode: "both",   // 'both' | 'pure'
+      selectedAzLetter: "a",
+
+      // Beginning Sounds state
+      bsQueue: [],
+      bsCursor: 0,
+      bsCurrentItem: null,
+      bsSolved: false,
+      bsSessionCorrect: 0,
+
+      // Robot Oral Blending state
+      robotQueue: [],
+      robotCursor: 0,
+      robotCurrentItem: null,
+      robotSolved: false,
+      robotSessionCorrect: 0,
+      robotSlow: false,
+
+      // Rhyming Match state
+      rhymeQueue: [],
+      rhymeCursor: 0,
+      rhymeCurrent: null, // { groupId, target, match, options }
+      rhymeSolved: false,
+      rhymeSessionCorrect: 0,
+
+      // Two-Sound Slide Blending state
+      slideFilter: "all",
+      slideIndex: 0,
+      slideProgress: 0,
+      slideCompletedSet: new Set(),
+      slideMergedCurrent: false,
+      slideDragPhoneme1Played: false,
+      slideDragPhoneme2Played: false,
+
+      // Upper/Lower Case Match state
+      caseDir: "mix",        // 'mix' | 'u2l' | 'l2u'
+      caseMirrorOnly: false,
+      caseQueue: [],
+      caseCursor: 0,
+      caseCurrent: null,     // { entry, targetIsUpper, choices }
+      caseSolved: false,
+      caseSessionCorrect: 0,
+      caseStars: Number(localStorage.getItem("phonics_uk_case_stars") || "0"),
+
+      // 8-Unit Course state
       mode: "speak",
       unitIndex: 0,
       wordIndex: 0,
@@ -1548,6 +3506,109 @@
 
     const els = {
       starCount: document.getElementById("star-count"),
+      tabPnBtn: document.getElementById("tab-pn-btn"),
+      tabCourseBtn: document.getElementById("tab-course-btn"),
+      sectionPn: document.getElementById("section-pn"),
+      sectionCourse: document.getElementById("section-course"),
+
+      // PN Navigation
+      pnModeAzBtn: document.getElementById("pn-mode-az-btn"),
+      pnModeBsBtn: document.getElementById("pn-mode-bs-btn"),
+      pnModeRobotBtn: document.getElementById("pn-mode-robot-btn"),
+      pnModeRhymeBtn: document.getElementById("pn-mode-rhyme-btn"),
+      pnModeSlideBtn: document.getElementById("pn-mode-slide-btn"),
+      pnModeCaseBtn: document.getElementById("pn-mode-case-btn"),
+      pnAzToolbar: document.getElementById("pn-az-toolbar"),
+      pnAzPanel: document.getElementById("pn-az-panel"),
+      pnBsPanel: document.getElementById("pn-bs-panel"),
+      pnRobotPanel: document.getElementById("pn-robot-panel"),
+      pnRhymePanel: document.getElementById("pn-rhyme-panel"),
+      pnSlidePanel: document.getElementById("pn-slide-panel"),
+      pnCasePanel: document.getElementById("pn-case-panel"),
+
+      // PN A-Z Elements
+      pnSpotlight: document.getElementById("pn-spotlight"),
+      pnSpotLetters: document.getElementById("pn-spot-letters"),
+      pnSpotIpa: document.getElementById("pn-spot-ipa"),
+      pnSpotWord: document.getElementById("pn-spot-word"),
+      pnSpotZh: document.getElementById("pn-spot-zh"),
+      pnSpotEmoji: document.getElementById("pn-spot-emoji"),
+      azGrid: document.getElementById("az-grid"),
+
+      // PN Beginning Sounds Elements
+      bsScoreBadge: document.getElementById("bs-score-badge"),
+      bsPictureCard: document.getElementById("bs-picture-card"),
+      bsBigEmoji: document.getElementById("bs-big-emoji"),
+      bsWordReveal: document.getElementById("bs-word-reveal"),
+      bsZhHint: document.getElementById("bs-zh-hint"),
+      bsReplayWordBtn: document.getElementById("bs-replay-word-btn"),
+      bsHintSoundBtn: document.getElementById("bs-hint-sound-btn"),
+      bsFeedback: document.getElementById("bs-feedback"),
+      bsChoicesGrid: document.getElementById("bs-choices-grid"),
+      bsNextBtn: document.getElementById("bs-next-btn"),
+
+      // PN Robot Oral Blending Elements
+      robotScoreBadge: document.getElementById("robot-score-badge"),
+      robotHeroBox: document.getElementById("robot-hero-box"),
+      robotBeats: document.getElementById("robot-beats"),
+      robotCaption: document.getElementById("robot-caption"),
+      robotReplayBtn: document.getElementById("robot-replay-btn"),
+      robotSpeedBtn: document.getElementById("robot-speed-btn"),
+      robotFeedback: document.getElementById("robot-feedback"),
+      robotPicGrid: document.getElementById("robot-pic-grid"),
+      robotNextBtn: document.getElementById("robot-next-btn"),
+
+      // PN Rhyming Match Elements
+      rhymeScoreBadge: document.getElementById("rhyme-score-badge"),
+      rhymeTargetCard: document.getElementById("rhyme-target-card"),
+      rhymeTargetEmoji: document.getElementById("rhyme-target-emoji"),
+      rhymeTargetZh: document.getElementById("rhyme-target-zh"),
+      rhymeReplayTargetBtn: document.getElementById("rhyme-replay-target-btn"),
+      rhymeListenAllBtn: document.getElementById("rhyme-listen-all-btn"),
+      rhymeFeedback: document.getElementById("rhyme-feedback"),
+      rhymeChoicesGrid: document.getElementById("rhyme-choices-grid"),
+      rhymeNextBtn: document.getElementById("rhyme-next-btn"),
+
+      // PN Slide Blending Elements
+      slideScoreBadge: document.getElementById("slide-score-badge"),
+      slideArena: document.getElementById("slide-arena"),
+      slideStageVisual: document.getElementById("slide-stage-visual"),
+      slideBlockLeft: document.getElementById("slide-block-left"),
+      slideBlockRight: document.getElementById("slide-block-right"),
+      slideLeftLetter: document.getElementById("slide-left-letter"),
+      slideLeftIpa: document.getElementById("slide-left-ipa"),
+      slideRightLetter: document.getElementById("slide-right-letter"),
+      slideRightIpa: document.getElementById("slide-right-ipa"),
+      slideResultEmoji: document.getElementById("slide-result-emoji"),
+      slideResultWord: document.getElementById("slide-result-word"),
+      slideResultSub: document.getElementById("slide-result-sub"),
+      slideProgressPct: document.getElementById("slide-progress-pct"),
+      slideRange: document.getElementById("slide-range"),
+      slideGoBtn: document.getElementById("slide-go-btn"),
+      slideReplayBlendBtn: document.getElementById("slide-replay-blend-btn"),
+      slideResetBtn: document.getElementById("slide-reset-btn"),
+      slideQuickStrip: document.getElementById("slide-quick-strip"),
+      slidePrevBtn: document.getElementById("slide-prev-btn"),
+      slideIndexBadge: document.getElementById("slide-index-badge"),
+      slideNextBtn: document.getElementById("slide-next-btn"),
+
+      // PN Upper/Lower Case Match Elements
+      caseScoreBadge: document.getElementById("case-score-badge"),
+      caseMirrorToggleBtn: document.getElementById("case-mirror-toggle-btn"),
+      caseInstruction: document.getElementById("case-instruction"),
+      caseTargetCard: document.getElementById("case-target-card"),
+      caseRolePill: document.getElementById("case-role-pill"),
+      caseMirrorPill: document.getElementById("case-mirror-pill"),
+      caseBigLetter: document.getElementById("case-big-letter"),
+      caseTargetIpa: document.getElementById("case-target-ipa"),
+      caseHintReveal: document.getElementById("case-hint-reveal"),
+      caseReplayBtn: document.getElementById("case-replay-btn"),
+      caseHintBtn: document.getElementById("case-hint-btn"),
+      caseFeedback: document.getElementById("case-feedback"),
+      caseChoicesGrid: document.getElementById("case-choices-grid"),
+      caseNextBtn: document.getElementById("case-next-btn"),
+
+      // Course Elements
       overallMasteryText: document.getElementById("overall-mastery-text"),
       unitScroll: document.getElementById("unit-scroll"),
       unitTitleBadge: document.getElementById("unit-title-badge"),
@@ -1574,6 +3635,8 @@
       prevBtn: document.getElementById("prev-btn"),
       nextBtn: document.getElementById("next-btn"),
       speedToggleBtn: document.getElementById("speed-toggle-btn"),
+
+      // Settings Modal
       settingsModal: document.getElementById("settings-modal"),
       openSettingsBtn: document.getElementById("open-settings-btn"),
       closeSettingsBtn: document.getElementById("close-settings-btn"),
@@ -1585,9 +3648,887 @@
       phonemeTestGrid: document.getElementById("phoneme-test-grid")
     };
 
-    function getCurrentUnit() {
-      return CURRICULUM_UNITS[state.unitIndex];
+    function addStarReward() {
+      state.stars += 1;
+      localStorage.setItem("phonics_uk_stars", String(state.stars));
+      els.starCount.textContent = state.stars;
+      playSuccessChime();
+      launchConfetti();
     }
+
+    function shuffleArray(arr) {
+      const copy = arr.slice();
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    /*****************************************************************
+     * 6. PN 啟蒙區: A-Z PURE SOUND BOARD
+     *****************************************************************/
+    function updatePnSpotlight(entry) {
+      state.selectedAzLetter = entry.lower;
+      els.pnSpotLetters.textContent = `${entry.upper}${entry.lower}`;
+      els.pnSpotIpa.textContent = state.showIpa ? getAzIpa(entry) : "";
+      els.pnSpotIpa.style.display = state.showIpa ? "block" : "none";
+      els.pnSpotWord.innerHTML = formatHighlightedWord(entry);
+      els.pnSpotZh.textContent = `${entry.zh} · 點按此處再聽一次`;
+      els.pnSpotEmoji.textContent = entry.emoji;
+    }
+
+    async function playAzEntry(entry, cardEl) {
+      stopAllAudio();
+      const myToken = sequenceToken;
+      updatePnSpotlight(entry);
+
+      if (cardEl) cardEl.classList.add("playing");
+      els.pnSpotlight.classList.add("playing");
+
+      const keys = Array.isArray(entry.keys) ? entry.keys : [entry.key];
+      for (let i = 0; i < keys.length; i++) {
+        if (myToken !== sequenceToken) return;
+        await playSinglePhonemeKey(keys[i]);
+        if (i < keys.length - 1) await wait(40);
+      }
+
+      if (myToken !== sequenceToken) return;
+      if (state.azSoundMode === "both") {
+        await wait(160);
+        if (myToken !== sequenceToken) return;
+        await speakText(entry.word, 0.86);
+      }
+
+      if (cardEl) cardEl.classList.remove("playing");
+      els.pnSpotlight.classList.remove("playing");
+    }
+
+    function renderAzBoard() {
+      els.azGrid.innerHTML = "";
+      AZ_PHONICS.forEach((entry, idx) => {
+        const pal = entry.vowel
+          ? { bg: "#fff1f2", border: "#ff8fa3", text: "#be123c" }
+          : AZ_PALETTE[(idx % (AZ_PALETTE.length - 1)) + 1];
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "az-card";
+        btn.style.setProperty("--card-bg-tint", pal.bg);
+        btn.style.setProperty("--card-border", pal.border);
+        btn.style.setProperty("--card-text", pal.text);
+
+        const ipa = getAzIpa(entry);
+        btn.innerHTML = `
+          ${entry.vowel ? '<span class="az-card-vowel-tag">元音</span>' : ""}
+          <span class="az-letters">${entry.upper}${entry.lower}</span>
+          <span class="az-emoji">${entry.emoji}</span>
+          <span class="az-word">${entry.word}</span>
+          ${state.showIpa ? `<span class="az-ipa">${ipa}</span>` : ""}
+        `;
+        btn.addEventListener("click", () => playAzEntry(entry, btn));
+        els.azGrid.appendChild(btn);
+      });
+
+      const current = getAzEntry(state.selectedAzLetter) || AZ_PHONICS[0];
+      updatePnSpotlight(current);
+    }
+
+    /*****************************************************************
+     * 7. PN 啟蒙區: BEGINNING SOUNDS HUNT (🔍 頭音尋寶)
+     *****************************************************************/
+    function nextBeginningSoundsQuestion(shouldSpeak = true) {
+      stopAllAudio();
+      if (!state.bsQueue.length || state.bsCursor >= state.bsQueue.length) {
+        state.bsQueue = shuffleArray(BEGINNING_SOUNDS_BANK);
+        state.bsCursor = 0;
+      }
+
+      const item = state.bsQueue[state.bsCursor++];
+      state.bsCurrentItem = item;
+      state.bsSolved = false;
+
+      const targetAz = getAzEntry(item.letter);
+      const targetPhonemeSig = Array.isArray(targetAz.keys) ? targetAz.keys.join("+") : targetAz.key;
+
+      const distractorPool = AZ_PHONICS.filter(a => {
+        if (a.isEndSound || a.lower === item.letter) return false;
+        const sig = Array.isArray(a.keys) ? a.keys.join("+") : a.key;
+        return sig !== targetPhonemeSig;
+      });
+      const distractors = shuffleArray(distractorPool).slice(0, 2);
+      const choices = shuffleArray([targetAz, ...distractors]);
+
+      els.bsPictureCard.classList.remove("pop");
+      els.bsBigEmoji.textContent = item.emoji;
+      els.bsWordReveal.textContent = "？";
+      els.bsZhHint.textContent = `${item.zh}（按圖片再聽一次）`;
+      els.bsFeedback.className = "bs-feedback";
+      els.bsFeedback.textContent = "聽一聽個字嘅開頭發音，撳下面啱嘅大字母！";
+
+      els.bsChoicesGrid.innerHTML = "";
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "bs-choice-btn";
+        const ipa = getAzIpa(choice);
+        btn.innerHTML = `
+          <span class="bs-choice-upper">${choice.upper}</span>
+          <span class="bs-choice-main">${choice.lower}</span>
+          ${state.showIpa ? `<span class="bs-choice-ipa">${ipa}</span>` : ""}
+        `;
+
+        btn.addEventListener("click", async () => {
+          if (state.bsSolved) return;
+          stopAllAudio();
+
+          if (choice.lower === item.letter) {
+            state.bsSolved = true;
+            state.bsSessionCorrect += 1;
+            els.bsScoreBadge.textContent = `今次答啱 ${state.bsSessionCorrect} 題`;
+            btn.classList.add("correct");
+            els.bsPictureCard.classList.add("pop");
+
+            const hlLen = item.letter === "q" ? 2 : 1;
+            els.bsWordReveal.innerHTML = `<span class="hl">${item.word.slice(0, hlLen)}</span>${item.word.slice(hlLen)}`;
+            els.bsFeedback.className = "bs-feedback success";
+            els.bsFeedback.textContent = `🎉 好叻呀！"${item.word}" 係用 ${choice.upper}${choice.lower} (${ipa}) 開頭！`;
+
+            addStarReward();
+            await wait(320);
+            const myToken = sequenceToken;
+            await playTileSound(choice, null);
+            if (myToken !== sequenceToken) return;
+            await wait(140);
+            if (myToken !== sequenceToken) return;
+            await speakText(item.word, 0.86);
+          } else {
+            btn.classList.add("wrong");
+            playGentleOops();
+            els.bsFeedback.className = "bs-feedback error";
+            els.bsFeedback.textContent = `呢個係 ${choice.lower} (${ipa}) 喎，再聽清楚試多次啦！`;
+            setTimeout(() => btn.classList.remove("wrong"), 500);
+            await wait(240);
+            await playTileSound(choice, null);
+          }
+        });
+        els.bsChoicesGrid.appendChild(btn);
+      });
+
+      const tKeys = Array.isArray(targetAz.keys) ? targetAz.keys : [targetAz.key];
+      tKeys.forEach(k => resolvePhonemeAudio(k));
+
+      if (shouldSpeak && state.autoPlay) {
+        setTimeout(() => speakBeginningSoundsWord(), 240);
+      }
+    }
+
+    async function speakBeginningSoundsWord() {
+      if (!state.bsCurrentItem) return;
+      stopAllAudio();
+      await speakText(state.bsCurrentItem.word, 0.84);
+    }
+
+    async function playBeginningSoundsHint() {
+      if (!state.bsCurrentItem) return;
+      stopAllAudio();
+      const myToken = sequenceToken;
+      const targetAz = getAzEntry(state.bsCurrentItem.letter);
+      await playTileSound(targetAz, null);
+      if (myToken !== sequenceToken) return;
+      await wait(180);
+      if (myToken !== sequenceToken) return;
+      await speakText(state.bsCurrentItem.word, 0.84);
+    }
+
+    /*****************************************************************
+     * 8. NEW PN PHASE 1 GAME: 🤖 機械人講嘢 (Oral Blending - Pure Ear)
+     *    - ZERO English letters displayed before answering!
+     *    - Robot pronounces phonemes sequentially using phoneme engine
+     *    - Child picks 1 of 3 big pictures; only reveals full word audio on win
+     *****************************************************************/
+    function nextRobotQuestion(shouldPlay = true) {
+      stopAllAudio();
+      if (!state.robotQueue.length || state.robotCursor >= state.robotQueue.length) {
+        state.robotQueue = shuffleArray(ROBOT_BLENDING_BANK);
+        state.robotCursor = 0;
+      }
+
+      const target = state.robotQueue[state.robotCursor++];
+      state.robotCurrentItem = target;
+      state.robotSolved = false;
+
+      // Pick 2 distinct distractors (avoid very similar emojis/words)
+      const distractors = shuffleArray(
+        ROBOT_BLENDING_BANK.filter(w => w.word !== target.word && w.emoji !== target.emoji)
+      ).slice(0, 2);
+      const options = shuffleArray([target, ...distractors]);
+
+      // Build beat indicator dots (represents sound count without revealing spelling!)
+      els.robotBeats.innerHTML = "";
+      target.phonemes.forEach((_, idx) => {
+        const dot = document.createElement("div");
+        dot.className = "robot-beat-dot";
+        dot.textContent = idx + 1;
+        els.robotBeats.appendChild(dot);
+      });
+
+      els.robotCaption.textContent = `機械人準備讀 ${target.phonemes.length} 個音（按機械人重聽）`;
+      els.robotFeedback.className = "bs-feedback";
+      els.robotFeedback.textContent = "唔睇字母，純粹靠耳仔估下機械人講緊邊張圖！";
+
+      els.robotPicGrid.innerHTML = "";
+      options.forEach(opt => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "robot-pic-card";
+        // Pure listening: NO English spelling shown! Only big emoji + Chinese meaning so toddler knows the picture
+        card.innerHTML = `
+          <span class="robot-pic-emoji">${opt.emoji}</span>
+          <span class="robot-pic-zh">${opt.zh}</span>
+        `;
+
+        card.addEventListener("click", async () => {
+          if (state.robotSolved) return;
+          stopAllAudio();
+
+          if (opt.word === target.word) {
+            state.robotSolved = true;
+            state.robotSessionCorrect += 1;
+            els.robotScoreBadge.textContent = `今次估中 ${state.robotSessionCorrect} 題`;
+            card.classList.add("correct");
+            // Celebrate without forcing spelling memorization; speak full word in UK English!
+            els.robotCaption.textContent = `🎉 機械人話：「係 ${target.zh} 呀！」`;
+            els.robotFeedback.className = "bs-feedback success";
+            els.robotFeedback.textContent = `🌟 好厲害嘅耳仔！你聽出機械人講緊「${target.zh}」！`;
+
+            addStarReward();
+            await wait(360);
+            const myToken = sequenceToken;
+            await speakText(target.word, 0.86);
+            if (myToken !== sequenceToken) return;
+          } else {
+            card.classList.add("wrong");
+            playGentleOops();
+            els.robotFeedback.className = "bs-feedback error";
+            els.robotFeedback.textContent = "唔係呢張喎～按「機械人再講一次」聽清楚每個音再試！";
+            setTimeout(() => card.classList.remove("wrong"), 520);
+          }
+        });
+        els.robotPicGrid.appendChild(card);
+      });
+
+      // Preload target phonemes
+      target.phonemes.forEach(k => resolvePhonemeAudio(k));
+
+      if (shouldPlay && state.autoPlay) {
+        setTimeout(() => playRobotPhonemes(), 280);
+      }
+    }
+
+    async function playRobotPhonemes() {
+      if (!state.robotCurrentItem) return;
+      stopAllAudio();
+      const myToken = sequenceToken;
+      const item = state.robotCurrentItem;
+      const beatDots = Array.from(els.robotBeats.querySelectorAll(".robot-beat-dot"));
+      const gapMs = state.robotSlow ? 720 : 340;
+
+      els.robotHeroBox.classList.add("talking");
+      els.robotCaption.textContent = "🤖 機械人講緊嘢，細心聽...";
+
+      for (let i = 0; i < item.phonemes.length; i++) {
+        if (myToken !== sequenceToken) return;
+        beatDots.forEach(d => d.classList.remove("active"));
+        if (beatDots[i]) beatDots[i].classList.add("active");
+
+        await playSinglePhonemeKey(item.phonemes[i], state.robotSlow);
+        if (myToken !== sequenceToken) return;
+
+        if (i < item.phonemes.length - 1) {
+          await wait(gapMs);
+        }
+      }
+
+      if (myToken !== sequenceToken) return;
+      beatDots.forEach(d => d.classList.remove("active"));
+      els.robotHeroBox.classList.remove("talking");
+      if (!state.robotSolved) {
+        els.robotCaption.textContent = "估到係邊張圖未？按機械人可以再聽！";
+      }
+    }
+
+    /*****************************************************************
+     * 9. NEW PN PHASE 1 GAME: 🎶 押韻搵朋友 (Rhyming Match - Pure Ear)
+     *    - ZERO English spelling shown! Pure listening!
+     *    - Tap target picture to hear main word (UK English)
+     *    - Tap any of the 3 bottom pictures to hear its pronunciation first
+     *    - Tap "🤝 揀佢！" button to confirm the rhyming friend
+     *****************************************************************/
+    function buildRhymeQuestionQueue() {
+      // Create shuffled list of all 20 rhyming groups; each time choose random target & matching friend
+      return shuffleArray(RHYMING_GROUPS);
+    }
+
+    function nextRhymeQuestion(shouldSpeak = true) {
+      stopAllAudio();
+      if (!state.rhymeQueue.length || state.rhymeCursor >= state.rhymeQueue.length) {
+        state.rhymeQueue = buildRhymeQuestionQueue();
+        state.rhymeCursor = 0;
+      }
+
+      const group = state.rhymeQueue[state.rhymeCursor++];
+      const shuffledGroupItems = shuffleArray(group.items);
+      const target = shuffledGroupItems[0];
+      const match = shuffledGroupItems[1];
+
+      // Pick 2 non-rhyming distractors from 2 different other groups
+      const otherGroups = shuffleArray(RHYMING_GROUPS.filter(g => g.id !== group.id)).slice(0, 2);
+      const distractors = otherGroups.map(g => g.items[Math.floor(Math.random() * g.items.length)]);
+
+      const options = shuffleArray([
+        { ...match, isMatch: true },
+        { ...distractors[0], isMatch: false },
+        { ...distractors[1], isMatch: false }
+      ]);
+
+      state.rhymeCurrent = { groupId: group.id, target, match, options };
+      state.rhymeSolved = false;
+
+      els.rhymeTargetEmoji.textContent = target.emoji;
+      els.rhymeTargetZh.textContent = target.zh;
+      els.rhymeFeedback.className = "bs-feedback";
+      els.rhymeFeedback.textContent = "先逐張點下面圖片聽讀音，搵出同主圖押韻嘅朋友再撳「🤝 揀佢！」";
+
+      els.rhymeChoicesGrid.innerHTML = "";
+      options.forEach((opt, idx) => {
+        const wrap = document.createElement("div");
+        wrap.className = "rhyme-option-wrap";
+        wrap.dataset.idx = idx;
+
+        // Top clickable picture button: listen as many times as toddler wants! (NO English spelling shown)
+        const listenBtn = document.createElement("button");
+        listenBtn.type = "button";
+        listenBtn.className = "rhyme-listen-btn";
+        listenBtn.innerHTML = `
+          <span class="rhyme-opt-emoji">${opt.emoji}</span>
+          <span class="rhyme-opt-zh">${opt.zh}</span>
+          <span class="rhyme-opt-sound-tag">🔊 點我聽音</span>
+        `;
+        listenBtn.addEventListener("click", async () => {
+          stopAllAudio();
+          const myToken = sequenceToken;
+          wrap.classList.add("listening");
+          await speakText(opt.word, 0.84);
+          if (myToken === sequenceToken) wrap.classList.remove("listening");
+        });
+
+        // Bottom clear pick button
+        const pickBtn = document.createElement("button");
+        pickBtn.type = "button";
+        pickBtn.className = "rhyme-pick-btn";
+        pickBtn.textContent = "🤝 揀佢！";
+        pickBtn.addEventListener("click", async () => {
+          if (state.rhymeSolved) return;
+          stopAllAudio();
+
+          if (opt.isMatch) {
+            state.rhymeSolved = true;
+            state.rhymeSessionCorrect += 1;
+            els.rhymeScoreBadge.textContent = `今次搵啱 ${state.rhymeSessionCorrect} 對`;
+            wrap.classList.add("correct");
+            pickBtn.textContent = "🎉 押韻朋友！";
+            els.rhymeChoicesGrid.querySelectorAll(".rhyme-pick-btn").forEach(b => { b.disabled = true; });
+
+            els.rhymeFeedback.className = "bs-feedback success";
+            els.rhymeFeedback.textContent = `🎶 好叻呀！「${target.zh}」同「${opt.zh}」尾音一樣，係押韻好朋友！`;
+
+            addStarReward();
+            await wait(320);
+            const myToken = sequenceToken;
+            els.rhymeTargetCard.classList.add("playing");
+            await speakText(target.word, 0.84);
+            if (myToken !== sequenceToken) return;
+            els.rhymeTargetCard.classList.remove("playing");
+            await wait(160);
+            if (myToken !== sequenceToken) return;
+            wrap.classList.add("listening");
+            await speakText(opt.word, 0.84);
+            if (myToken === sequenceToken) wrap.classList.remove("listening");
+          } else {
+            wrap.classList.add("wrong");
+            playGentleOops();
+            els.rhymeFeedback.className = "bs-feedback error";
+            els.rhymeFeedback.textContent = `「${target.zh}」同「${opt.zh}」尾音唔同喎，再聽清楚其他圖片試多次啦！`;
+            setTimeout(() => wrap.classList.remove("wrong"), 520);
+            await wait(240);
+            await speakText(opt.word, 0.84);
+          }
+        });
+
+        wrap.appendChild(listenBtn);
+        wrap.appendChild(pickBtn);
+        els.rhymeChoicesGrid.appendChild(wrap);
+      });
+
+      if (shouldSpeak && state.autoPlay) {
+        setTimeout(() => playRhymeTarget(), 260);
+      }
+    }
+
+    async function playRhymeTarget() {
+      if (!state.rhymeCurrent) return;
+      stopAllAudio();
+      const myToken = sequenceToken;
+      els.rhymeTargetCard.classList.add("playing");
+      await speakText(state.rhymeCurrent.target.word, 0.84);
+      if (myToken === sequenceToken) els.rhymeTargetCard.classList.remove("playing");
+    }
+
+    async function playAllRhymeOptions() {
+      if (!state.rhymeCurrent) return;
+      stopAllAudio();
+      const myToken = sequenceToken;
+      const wraps = Array.from(els.rhymeChoicesGrid.querySelectorAll(".rhyme-option-wrap"));
+
+      // First play target word, then each of the 3 options with visual highlight
+      els.rhymeTargetCard.classList.add("playing");
+      await speakText(state.rhymeCurrent.target.word, 0.84);
+      if (myToken !== sequenceToken) return;
+      els.rhymeTargetCard.classList.remove("playing");
+      await wait(420);
+
+      for (let i = 0; i < state.rhymeCurrent.options.length; i++) {
+        if (myToken !== sequenceToken) return;
+        const opt = state.rhymeCurrent.options[i];
+        if (wraps[i]) wraps[i].classList.add("listening");
+        await speakText(opt.word, 0.84);
+        if (myToken !== sequenceToken) return;
+        if (wraps[i]) wraps[i].classList.remove("listening");
+        if (i < state.rhymeCurrent.options.length - 1) await wait(380);
+      }
+    }
+
+    /*****************************************************************
+     * 9B. NEW PN→K1 TRANSITION GAME 1: 🛝 兩音滑梯拼讀 (2-Sound Blending)
+     *****************************************************************/
+    let slideAnimFrameId = null;
+
+    function cancelSlideAnimation() {
+      if (slideAnimFrameId !== null) {
+        cancelAnimationFrame(slideAnimFrameId);
+        slideAnimFrameId = null;
+      }
+    }
+
+    function getFilteredSlideList() {
+      if (state.slideFilter === "real") return SLIDE_BLENDING_BANK.filter(i => i.type === "real");
+      if (state.slideFilter === "cv") return SLIDE_BLENDING_BANK.filter(i => i.type === "cv");
+      return SLIDE_BLENDING_BANK;
+    }
+
+    function getCurrentSlideItem() {
+      const list = getFilteredSlideList();
+      if (!list.length) return SLIDE_BLENDING_BANK[0];
+      state.slideIndex = ((state.slideIndex % list.length) + list.length) % list.length;
+      return list[state.slideIndex];
+    }
+
+    function updateSlideBlockPositions(progress01) {
+      const p = Math.max(0, Math.min(1, progress01));
+      state.slideProgress = p;
+      const pct = Math.round(p * 100);
+      els.slideRange.value = String(pct);
+      els.slideProgressPct.textContent = `${pct}%`;
+
+      // Compute responsive horizontal/vertical slide travel along the double chute
+      const stageW = els.slideStageVisual.clientWidth || 360;
+      const blockW = els.slideBlockLeft.offsetWidth || (window.innerWidth <= 600 ? 80 : 94);
+      const maxSpanX = Math.min(185, Math.max(88, (stageW - blockW * 2) / 2 + blockW * 0.42));
+      const maxLiftY = window.innerWidth <= 600 ? 78 : 88;
+
+      // Ease curve along slide chute (y drops smoothly as blocks move toward center)
+      const inv = 1 - p;
+      const offsetFromCenter = (blockW / 2) + inv * maxSpanX;
+      const liftY = Math.pow(inv, 1.35) * maxLiftY;
+      const tiltDeg = inv * 9;
+
+      // Left block centers around -offsetFromCenter; Right block around +offsetFromCenter
+      els.slideBlockLeft.style.transform = `translate(calc(-50% - ${offsetFromCenter.toFixed(1)}px), ${(-liftY).toFixed(1)}px) rotate(${tiltDeg.toFixed(1)}deg)`;
+      els.slideBlockRight.style.transform = `translate(calc(-50% + ${offsetFromCenter.toFixed(1)}px), ${(-liftY).toFixed(1)}px) rotate(${(-tiltDeg).toFixed(1)}deg)`;
+    }
+
+    function renderSlideQuickStrip() {
+      const list = getFilteredSlideList();
+      const current = getCurrentSlideItem();
+      els.slideQuickStrip.innerHTML = "";
+      list.forEach((item, idx) => {
+        const pill = document.createElement("button");
+        pill.type = "button";
+        const isDone = state.slideCompletedSet.has(item.id);
+        pill.className = "slide-pill-item" + (item.id === current.id ? " active" : "") + (isDone ? " done" : "");
+        pill.textContent = isDone ? `${item.text} ✓` : item.text;
+        pill.addEventListener("click", () => {
+          state.slideIndex = idx;
+          renderSlideItem(false);
+        });
+        els.slideQuickStrip.appendChild(pill);
+      });
+    }
+
+    function renderSlideItem(keepMerged = false) {
+      if (!keepMerged) {
+        stopAllAudio();
+      }
+      const list = getFilteredSlideList();
+      const item = getCurrentSlideItem();
+
+      els.slideScoreBadge.textContent = `已拼讀 ${state.slideCompletedSet.size} / ${SLIDE_BLENDING_BANK.length} 個`;
+      els.slideIndexBadge.textContent = `第 ${state.slideIndex + 1} / ${list.length} 個`;
+
+      // Configure left block
+      els.slideBlockLeft.className = "slide-block" + (item.left.t === "v" ? " vowel" : "");
+      els.slideLeftLetter.textContent = item.left.g;
+      const leftIpa = PHONEME_MAP[item.left.key] ? PHONEME_MAP[item.left.key].label : "";
+      els.slideLeftIpa.textContent = leftIpa;
+      els.slideLeftIpa.style.display = state.showIpa ? "block" : "none";
+
+      // Configure right block
+      els.slideBlockRight.className = "slide-block" + (item.right.t === "v" ? " vowel" : "");
+      els.slideRightLetter.textContent = item.right.g;
+      const rightIpa = PHONEME_MAP[item.right.key] ? PHONEME_MAP[item.right.key].label : "";
+      els.slideRightIpa.textContent = rightIpa;
+      els.slideRightIpa.style.display = state.showIpa ? "block" : "none";
+
+      if (!keepMerged) {
+        state.slideMergedCurrent = false;
+        state.slideDragPhoneme1Played = false;
+        state.slideDragPhoneme2Played = false;
+        els.slideArena.classList.remove("merged");
+        els.slideResultEmoji.textContent = "🛝";
+        els.slideResultWord.textContent = `${item.left.g}  +  ${item.right.g}  ＝  ？`;
+        els.slideResultSub.textContent = "按「🚀 出發滑落去」或用手指向右拖動滑梯拼埋佢！";
+        updateSlideBlockPositions(0);
+      }
+
+      renderSlideQuickStrip();
+
+      // Preload audio buffers for crisp playback
+      resolvePhonemeAudio(item.left.key);
+      resolvePhonemeAudio(item.right.key);
+      if (item.type === "cv") {
+        loadDecodedPhonemeBuffer(item.left.key);
+        loadDecodedPhonemeBuffer(item.right.key);
+      }
+    }
+
+    async function playSlideBlendedSound(item, myToken) {
+      els.slideBlockLeft.classList.add("playing");
+      els.slideBlockRight.classList.add("playing");
+      if (item.type === "real") {
+        await speakText(item.tts || item.text, state.slowMode ? 0.74 : 0.86);
+      } else {
+        await playSeamlessPhonemePair(item.left.key, item.right.key, myToken);
+      }
+      if (myToken === sequenceToken) {
+        els.slideBlockLeft.classList.remove("playing");
+        els.slideBlockRight.classList.remove("playing");
+      }
+    }
+
+    async function completeSlideMerge(playSound = true, existingToken = null) {
+      const item = getCurrentSlideItem();
+      const firstTimeInSession = !state.slideCompletedSet.has(item.id);
+      state.slideMergedCurrent = true;
+      updateSlideBlockPositions(1);
+      els.slideArena.classList.add("merged");
+
+      els.slideResultEmoji.textContent = item.emoji;
+      els.slideResultWord.textContent = `✨ ${item.text}！`;
+      els.slideResultSub.textContent = item.zh;
+
+      if (firstTimeInSession) {
+        state.slideCompletedSet.add(item.id);
+        els.slideScoreBadge.textContent = `已拼讀 ${state.slideCompletedSet.size} / ${SLIDE_BLENDING_BANK.length} 個`;
+        renderSlideQuickStrip();
+        addStarReward();
+      } else {
+        playSuccessChime();
+      }
+
+      if (playSound) {
+        const myToken = existingToken !== null ? existingToken : sequenceToken;
+        await wait(160);
+        if (myToken !== sequenceToken) return;
+        await playSlideBlendedSound(item, myToken);
+      }
+    }
+
+    async function runAutoSlideBlend() {
+      stopAllAudio();
+      const myToken = sequenceToken;
+      const item = getCurrentSlideItem();
+
+      state.slideMergedCurrent = false;
+      els.slideArena.classList.remove("merged");
+      els.slideResultEmoji.textContent = "🛝";
+      els.slideResultWord.textContent = `${item.left.g}  →  ${item.right.g}  ...`;
+      els.slideResultSub.textContent = "兩塊積木一齊滑落嚟啦！";
+      updateSlideBlockPositions(0);
+
+      // Helper to smoothly animate slide from startP to endP
+      function animateSlideRange(startP, endP, durationMs) {
+        return new Promise((resolve) => {
+          const t0 = performance.now();
+          function step(now) {
+            if (myToken !== sequenceToken) { slideAnimFrameId = null; resolve(false); return; }
+            const t = Math.min(1, (now - t0) / durationMs);
+            const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+            updateSlideBlockPositions(startP + (endP - startP) * eased);
+            if (t < 1) {
+              slideAnimFrameId = requestAnimationFrame(step);
+            } else {
+              slideAnimFrameId = null;
+              resolve(true);
+            }
+          }
+          slideAnimFrameId = requestAnimationFrame(step);
+        });
+      }
+
+      // Stage 1: Left phoneme sounds while gliding 0 -> 0.45
+      els.slideBlockLeft.classList.add("playing");
+      await Promise.all([
+        playSinglePhonemeKey(item.left.key),
+        animateSlideRange(0, 0.45, state.slowMode ? 760 : 520)
+      ]);
+      if (myToken !== sequenceToken) return;
+      els.slideBlockLeft.classList.remove("playing");
+
+      await wait(state.slowMode ? 200 : 80);
+      if (myToken !== sequenceToken) return;
+
+      // Stage 2: Right phoneme sounds while gliding 0.45 -> 0.94
+      els.slideBlockRight.classList.add("playing");
+      await Promise.all([
+        playSinglePhonemeKey(item.right.key),
+        animateSlideRange(0.45, 0.94, state.slowMode ? 760 : 520)
+      ]);
+      if (myToken !== sequenceToken) return;
+      els.slideBlockRight.classList.remove("playing");
+
+      // Stage 3: Snap together 0.94 -> 1.0 and play blended syllable/word!
+      await animateSlideRange(0.94, 1.0, 140);
+      if (myToken !== sequenceToken) return;
+      await completeSlideMerge(true, myToken);
+    }
+
+    function handleManualSlideInput() {
+      cancelSlideAnimation();
+      const val = Number(els.slideRange.value);
+      const p = val / 100;
+      const item = getCurrentSlideItem();
+      updateSlideBlockPositions(p);
+
+      if (val < 15) {
+        state.slideDragPhoneme1Played = false;
+        state.slideDragPhoneme2Played = false;
+        if (state.slideMergedCurrent) {
+          state.slideMergedCurrent = false;
+          els.slideArena.classList.remove("merged");
+          els.slideResultEmoji.textContent = "🛝";
+          els.slideResultWord.textContent = `${item.left.g}  +  ${item.right.g}  ＝  ？`;
+          els.slideResultSub.textContent = "繼續向右拖動滑梯拼埋佢！";
+        }
+        return;
+      }
+
+      if (val >= 22 && !state.slideDragPhoneme1Played) {
+        state.slideDragPhoneme1Played = true;
+        els.slideBlockLeft.classList.add("playing");
+        playSinglePhonemeKey(item.left.key).then(() => els.slideBlockLeft.classList.remove("playing"));
+      }
+
+      if (val >= 62 && !state.slideDragPhoneme2Played) {
+        state.slideDragPhoneme2Played = true;
+        els.slideBlockRight.classList.add("playing");
+        playSinglePhonemeKey(item.right.key).then(() => els.slideBlockRight.classList.remove("playing"));
+      }
+
+      if (val >= 95 && !state.slideMergedCurrent) {
+        stopAllAudio();
+        const myToken = sequenceToken;
+        completeSlideMerge(true, myToken);
+      }
+    }
+
+    /*****************************************************************
+     * 9C. NEW PN→K1 TRANSITION GAME 2: 🔠 大細階搵朋友 (Case & Mirror Match)
+     *****************************************************************/
+    function getMirrorHintMessage(targetLower, wrongLower, wrongLabel) {
+      const pair = [targetLower, wrongLower].sort().join("");
+      if (pair === "bd") return `呢個係 ${wrongLabel} 喎！仔細睇下圓肚腩向邊邊（b 向右、d 向左），再試多次！`;
+      if (pair === "pq") return `呢個係 ${wrongLabel} 喎！仔細睇下個圈向邊邊（p 向右、q 向左），再試多次！`;
+      if (pair === "mw") return `呢個係 ${wrongLabel} 喎！睇下兩座山係向上定向下，再試多次！`;
+      if (pair === "nu") return `呢個係 ${wrongLabel} 喎！睇下開口係向下定向上，再試多次！`;
+      if (pair === "bp" || pair === "dq") return `呢個係 ${wrongLabel} 喎！睇下條棍喺上面定下面，再試多次！`;
+      return `呢個係 ${wrongLabel} 喎，再睇清楚同聽清楚純音試多次啦！`;
+    }
+
+    function buildCaseQueue() {
+      const pool = state.caseMirrorOnly
+        ? AZ_PHONICS.filter(a => MIRROR_DRILL_SET.includes(a.lower))
+        : [
+            ...AZ_PHONICS,
+            // Slightly weight the 8 core mirror letters so kids practice them more often!
+            ...AZ_PHONICS.filter(a => CORE_MIRROR_LETTERS.includes(a.lower))
+          ];
+      return shuffleArray(pool);
+    }
+
+    function updateCaseScoreBadge() {
+      els.caseScoreBadge.textContent = `今次答啱 ${state.caseSessionCorrect} 題 · ⭐ ${state.caseStars}`;
+    }
+
+    function renderCaseTargetDisplay() {
+      if (!state.caseCurrent) return;
+      const { entry, targetIsUpper } = state.caseCurrent;
+      const ipa = getAzIpa(entry);
+      els.caseTargetIpa.textContent = ipa;
+      els.caseTargetIpa.style.display = state.showIpa ? "block" : "none";
+      if (!state.caseSolved) {
+        els.caseBigLetter.textContent = targetIsUpper ? entry.upper : entry.lower;
+      }
+    }
+
+    function nextCaseQuestion(shouldSpeak = true) {
+      stopAllAudio();
+      if (!state.caseQueue.length || state.caseCursor >= state.caseQueue.length) {
+        state.caseQueue = buildCaseQueue();
+        state.caseCursor = 0;
+      }
+
+      const entry = state.caseQueue[state.caseCursor++];
+      let targetIsUpper;
+      if (state.caseDir === "u2l") targetIsUpper = true;
+      else if (state.caseDir === "l2u") targetIsUpper = false;
+      else targetIsUpper = Math.random() < 0.5;
+
+      // Pick 2 deliberate mirror/confusable distractors from CONFUSABLE_LETTERS
+      const confusables = CONFUSABLE_LETTERS[entry.lower] || [];
+      // Prioritize top confusables (e.g. for b -> d, p, q) with slight shuffle among top 3 so kids see varied tricky combos
+      const topConfusables = shuffleArray(confusables.slice(0, 3));
+      const distractorLetters = topConfusables.slice(0, 2);
+      const distractorEntries = distractorLetters
+        .map(l => getAzEntry(l))
+        .filter(Boolean);
+
+      const choices = shuffleArray([entry, ...distractorEntries]);
+      state.caseCurrent = { entry, targetIsUpper, choices };
+      state.caseSolved = false;
+
+      const isCoreMirror = CORE_MIRROR_LETTERS.includes(entry.lower);
+      els.caseTargetCard.classList.remove("pop", "playing");
+      els.caseRolePill.textContent = targetIsUpper ? "上方係大楷 · 搵細楷朋友" : "上方係細楷 · 搵大楷朋友";
+      els.caseMirrorPill.style.display = isCoreMirror ? "inline-block" : "none";
+      els.caseBigLetter.textContent = targetIsUpper ? entry.upper : entry.lower;
+      els.caseHintReveal.textContent = "🔊 按一下字母重聽純音";
+      els.caseInstruction.textContent = targetIsUpper
+        ? "睇清楚上面嘅大楷字母並聽純音，喺下面搵出佢嘅細楷朋友！"
+        : "睇清楚上面嘅細楷字母並聽純音，喺下面搵出佢嘅大楷朋友！";
+
+      renderCaseTargetDisplay();
+      updateCaseScoreBadge();
+
+      els.caseFeedback.className = "bs-feedback";
+      els.caseFeedback.textContent = isCoreMirror
+        ? "🪞 鏡像字母挑戰！仔細睇清楚方向再揀呀！"
+        : "揀出下面真正嘅大細階好朋友啦！";
+
+      els.caseChoicesGrid.innerHTML = "";
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "case-choice-btn";
+        const displayChar = targetIsUpper ? choice.lower : choice.upper;
+        btn.innerHTML = `<span class="case-choice-letter">${displayChar}</span>`;
+
+        btn.addEventListener("click", async () => {
+          if (state.caseSolved) return;
+          stopAllAudio();
+
+          if (choice.lower === entry.lower) {
+            state.caseSolved = true;
+            state.caseSessionCorrect += 1;
+            state.caseStars += 1;
+            localStorage.setItem("phonics_uk_case_stars", String(state.caseStars));
+            updateCaseScoreBadge();
+
+            btn.classList.add("correct");
+            els.caseTargetCard.classList.add("pop");
+            els.caseBigLetter.textContent = `${entry.upper}${entry.lower}`;
+            els.caseHintReveal.textContent = `${entry.emoji} ${entry.word}（${entry.zh}）`;
+            els.caseFeedback.className = "bs-feedback success";
+            els.caseFeedback.textContent = `🎉 好眼力！${entry.upper} 同 ${entry.lower} 係一對好朋友！（+1 ⭐）`;
+
+            addStarReward();
+            await wait(300);
+            const myToken = sequenceToken;
+            await playTileSound(entry, null);
+            if (myToken !== sequenceToken) return;
+            await wait(140);
+            if (myToken !== sequenceToken) return;
+            await speakText(entry.word, 0.86);
+          } else {
+            btn.classList.add("wrong");
+            playGentleOops();
+            els.caseFeedback.className = "bs-feedback error";
+            els.caseFeedback.textContent = getMirrorHintMessage(entry.lower, choice.lower, displayChar);
+            setTimeout(() => btn.classList.remove("wrong"), 520);
+            await wait(240);
+            await playTileSound(choice, null);
+          }
+        });
+        els.caseChoicesGrid.appendChild(btn);
+      });
+
+      // Preload target phoneme
+      const keys = Array.isArray(entry.keys) ? entry.keys : [entry.key];
+      keys.forEach(k => resolvePhonemeAudio(k));
+
+      if (shouldSpeak && state.autoPlay) {
+        setTimeout(() => playCaseTargetPhoneme(), 240);
+      }
+    }
+
+    async function playCaseTargetPhoneme() {
+      if (!state.caseCurrent) return;
+      stopAllAudio();
+      const myToken = sequenceToken;
+      els.caseTargetCard.classList.add("playing");
+      await playTileSound(state.caseCurrent.entry, null);
+      if (myToken === sequenceToken) els.caseTargetCard.classList.remove("playing");
+    }
+
+    async function showCaseWordHint() {
+      if (!state.caseCurrent) return;
+      stopAllAudio();
+      const entry = state.caseCurrent.entry;
+      els.caseHintReveal.textContent = `${entry.emoji} ${entry.word}（${entry.zh}）`;
+      const myToken = sequenceToken;
+      els.caseTargetCard.classList.add("playing");
+      await playTileSound(entry, null);
+      if (myToken !== sequenceToken) return;
+      await wait(150);
+      if (myToken !== sequenceToken) return;
+      await speakText(entry.word, 0.86);
+      if (myToken === sequenceToken) els.caseTargetCard.classList.remove("playing");
+    }
+
+    /*****************************************************************
+     * 10. EXISTING 8-UNIT COURSE LOGIC (Preserved)
+     *****************************************************************/
+    function getCurrentUnit() { return CURRICULUM_UNITS[state.unitIndex]; }
 
     function rebuildOrder() {
       const unit = getCurrentUnit();
@@ -1621,22 +4562,14 @@
       const unit = getCurrentUnit();
       const item = getCurrentWord();
 
-      state.stars += 1;
       state.mastered.add(`${unit.id}:${item.word}`);
-      localStorage.setItem("phonics_uk_stars", String(state.stars));
       localStorage.setItem("phonics_uk_mastered", JSON.stringify(Array.from(state.mastered)));
 
-      els.starCount.textContent = state.stars;
+      addStarReward();
       renderUnitStrip();
       els.unitMasteryBadge.textContent = `本單元已掌握 ${getUnitMasteredCount(unit)}/${unit.words.length}`;
-
-      playSuccessChime();
-      launchConfetti();
     }
 
-    /*****************************************************************
-     * 5. RENDERING
-     *****************************************************************/
     function renderUnitStrip() {
       const totalWords = getTotalWordCount();
       els.overallMasteryText.textContent = `總進度 ${state.mastered.size} / ${totalWords} 字`;
@@ -1747,13 +4680,12 @@
         els.tilesTrack.appendChild(btn);
       });
 
-      // Quiet preload
       item.tiles.forEach(t => {
         const keys = Array.isArray(t.keys) ? t.keys : [t.key];
         keys.forEach(k => resolvePhonemeAudio(k));
       });
 
-      if (shouldAutoPlay && state.autoPlay) {
+      if (shouldAutoPlay && state.autoPlay && state.activeSection === "course") {
         setTimeout(() => playAllPhonemes(), 260);
       }
     }
@@ -1822,9 +4754,6 @@
       });
     }
 
-    /*****************************************************************
-     * 6. SEQUENTIAL PLAYBACK & BLENDING
-     *****************************************************************/
     async function playAllPhonemes() {
       stopAllAudio();
       const myToken = sequenceToken;
@@ -1865,7 +4794,7 @@
     }
 
     /*****************************************************************
-     * 7. SPEECH RECOGNITION
+     * 11. SPEECH RECOGNITION
      *****************************************************************/
     const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
     let recognition = null;
@@ -1946,7 +4875,7 @@
     }
 
     /*****************************************************************
-     * 8. SETTINGS & DIAGNOSTICS
+     * 12. SETTINGS & DIAGNOSTICS
      *****************************************************************/
     function buildPhonemeTestGrid() {
       els.phonemeTestGrid.innerHTML = "";
@@ -1997,7 +4926,7 @@
     }
 
     /*****************************************************************
-     * 9. CONFETTI
+     * 13. CONFETTI
      *****************************************************************/
     const confettiCanvas = document.getElementById("confetti-canvas");
     const cCtx = confettiCanvas.getContext("2d");
@@ -2012,11 +4941,11 @@
     resizeConfetti();
 
     function launchConfetti() {
-      const colors = ["#ff5964", "#ffd166", "#2ec4b6", "#4f86f7", "#a855f7", "#ff8c42"];
+      const colors = ["#ff5964", "#ffd166", "#2ec4b6", "#4f86f7", "#a855f7", "#ff8c42", "#22c55e", "#ec4899"];
       for (let i = 0; i < 60; i++) {
         confettiParticles.push({
-          x: window.innerWidth / 2 + (Math.random() - 0.5) * 140,
-          y: window.innerHeight * 0.45,
+          x: window.innerWidth / 2 + (Math.random() - 0.5) * 160,
+          y: window.innerHeight * 0.44,
           vx: (Math.random() - 0.5) * 11,
           vy: -Math.random() * 11 - 4,
           size: Math.random() * 8 + 5,
@@ -2054,8 +4983,193 @@
     }
 
     /*****************************************************************
-     * 10. EVENT LISTENERS
+     * 14. NAVIGATION & EVENT LISTENERS
      *****************************************************************/
+    function switchMainSection(sectionName) {
+      stopAllAudio();
+      stopRecognition();
+      state.activeSection = sectionName;
+
+      els.tabPnBtn.classList.toggle("active", sectionName === "pn");
+      els.tabCourseBtn.classList.toggle("active", sectionName === "course");
+      els.sectionPn.classList.toggle("hidden", sectionName !== "pn");
+      els.sectionCourse.classList.toggle("hidden", sectionName !== "course");
+
+      if (sectionName === "pn") {
+        if (state.pnMode === "bs" && !state.bsCurrentItem) nextBeginningSoundsQuestion(false);
+        if (state.pnMode === "robot" && !state.robotCurrentItem) nextRobotQuestion(false);
+        if (state.pnMode === "rhyme" && !state.rhymeCurrent) nextRhymeQuestion(false);
+        if (state.pnMode === "slide") renderSlideItem(false);
+        if (state.pnMode === "case" && !state.caseCurrent) nextCaseQuestion(false);
+      }
+    }
+
+    els.tabPnBtn.addEventListener("click", () => switchMainSection("pn"));
+    els.tabCourseBtn.addEventListener("click", () => switchMainSection("course"));
+
+    function switchPnMode(pnMode) {
+      stopAllAudio();
+      state.pnMode = pnMode;
+
+      els.pnModeAzBtn.classList.toggle("active", pnMode === "az");
+      els.pnModeBsBtn.classList.toggle("active", pnMode === "bs");
+      els.pnModeRobotBtn.classList.toggle("active", pnMode === "robot");
+      els.pnModeRhymeBtn.classList.toggle("active", pnMode === "rhyme");
+      els.pnModeSlideBtn.classList.toggle("active", pnMode === "slide");
+      els.pnModeCaseBtn.classList.toggle("active", pnMode === "case");
+
+      els.pnAzPanel.style.display = pnMode === "az" ? "flex" : "none";
+      els.pnBsPanel.style.display = pnMode === "bs" ? "flex" : "none";
+      els.pnRobotPanel.style.display = pnMode === "robot" ? "flex" : "none";
+      els.pnRhymePanel.style.display = pnMode === "rhyme" ? "flex" : "none";
+      els.pnSlidePanel.style.display = pnMode === "slide" ? "flex" : "none";
+      els.pnCasePanel.style.display = pnMode === "case" ? "flex" : "none";
+      els.pnAzToolbar.style.display = pnMode === "az" ? "flex" : "none";
+
+      if (pnMode === "bs") {
+        if (!state.bsCurrentItem) {
+          nextBeginningSoundsQuestion(true);
+        } else if (state.autoPlay) {
+          speakBeginningSoundsWord();
+        }
+      } else if (pnMode === "robot") {
+        if (!state.robotCurrentItem) {
+          nextRobotQuestion(true);
+        } else if (state.autoPlay) {
+          playRobotPhonemes();
+        }
+      } else if (pnMode === "rhyme") {
+        if (!state.rhymeCurrent) {
+          nextRhymeQuestion(true);
+        } else if (state.autoPlay) {
+          playRhymeTarget();
+        }
+      } else if (pnMode === "slide") {
+        renderSlideItem(false);
+      } else if (pnMode === "case") {
+        if (!state.caseCurrent) {
+          nextCaseQuestion(true);
+        } else if (state.autoPlay) {
+          playCaseTargetPhoneme();
+        }
+      }
+    }
+
+    els.pnModeAzBtn.addEventListener("click", () => switchPnMode("az"));
+    els.pnModeBsBtn.addEventListener("click", () => switchPnMode("bs"));
+    els.pnModeRobotBtn.addEventListener("click", () => switchPnMode("robot"));
+    els.pnModeRhymeBtn.addEventListener("click", () => switchPnMode("rhyme"));
+    els.pnModeSlideBtn.addEventListener("click", () => switchPnMode("slide"));
+    els.pnModeCaseBtn.addEventListener("click", () => switchPnMode("case"));
+
+    document.querySelectorAll(".pn-audio-opt").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".pn-audio-opt").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.azSoundMode = btn.dataset.azsound;
+      });
+    });
+
+    els.pnSpotlight.addEventListener("click", () => {
+      const entry = getAzEntry(state.selectedAzLetter) || AZ_PHONICS[0];
+      playAzEntry(entry, null);
+    });
+
+    // Beginning Sounds Listeners
+    els.bsPictureCard.addEventListener("click", speakBeginningSoundsWord);
+    els.bsReplayWordBtn.addEventListener("click", speakBeginningSoundsWord);
+    els.bsHintSoundBtn.addEventListener("click", playBeginningSoundsHint);
+    els.bsNextBtn.addEventListener("click", () => nextBeginningSoundsQuestion(true));
+
+    // Robot Oral Blending Listeners
+    els.robotHeroBox.addEventListener("click", playRobotPhonemes);
+    els.robotReplayBtn.addEventListener("click", playRobotPhonemes);
+    els.robotSpeedBtn.addEventListener("click", () => {
+      state.robotSlow = !state.robotSlow;
+      els.robotSpeedBtn.textContent = state.robotSlow ? "🐢 慢速講嘢：開" : "🐢 慢速講嘢：關";
+    });
+    els.robotNextBtn.addEventListener("click", () => nextRobotQuestion(true));
+
+    // Rhyming Match Listeners
+    els.rhymeTargetCard.addEventListener("click", playRhymeTarget);
+    els.rhymeReplayTargetBtn.addEventListener("click", playRhymeTarget);
+    els.rhymeListenAllBtn.addEventListener("click", playAllRhymeOptions);
+    els.rhymeNextBtn.addEventListener("click", () => nextRhymeQuestion(true));
+
+    // Two-Sound Slide Blending Listeners
+    document.querySelectorAll(".slide-filter-pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".slide-filter-pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.slideFilter = btn.dataset.slidefilter;
+        state.slideIndex = 0;
+        renderSlideItem(false);
+      });
+    });
+
+    els.slideBlockLeft.addEventListener("click", () => {
+      stopAllAudio();
+      const item = getCurrentSlideItem();
+      els.slideBlockLeft.classList.add("playing");
+      playSinglePhonemeKey(item.left.key).then(() => els.slideBlockLeft.classList.remove("playing"));
+    });
+
+    els.slideBlockRight.addEventListener("click", () => {
+      stopAllAudio();
+      const item = getCurrentSlideItem();
+      els.slideBlockRight.classList.add("playing");
+      playSinglePhonemeKey(item.right.key).then(() => els.slideBlockRight.classList.remove("playing"));
+    });
+
+    els.slideRange.addEventListener("input", handleManualSlideInput);
+    els.slideGoBtn.addEventListener("click", runAutoSlideBlend);
+    els.slideReplayBlendBtn.addEventListener("click", () => {
+      stopAllAudio();
+      const myToken = sequenceToken;
+      playSlideBlendedSound(getCurrentSlideItem(), myToken);
+    });
+    els.slideResetBtn.addEventListener("click", () => renderSlideItem(false));
+    els.slidePrevBtn.addEventListener("click", () => {
+      const len = getFilteredSlideList().length;
+      state.slideIndex = (state.slideIndex - 1 + len) % len;
+      renderSlideItem(false);
+    });
+    els.slideNextBtn.addEventListener("click", () => {
+      const len = getFilteredSlideList().length;
+      state.slideIndex = (state.slideIndex + 1) % len;
+      renderSlideItem(false);
+    });
+    window.addEventListener("resize", () => {
+      if (state.activeSection === "pn" && state.pnMode === "slide") {
+        updateSlideBlockPositions(state.slideProgress);
+      }
+    });
+
+    // Upper/Lower Case Match Listeners
+    document.querySelectorAll(".case-dir-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".case-dir-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.caseDir = btn.dataset.casedir;
+        nextCaseQuestion(true);
+      });
+    });
+
+    els.caseMirrorToggleBtn.addEventListener("click", () => {
+      state.caseMirrorOnly = !state.caseMirrorOnly;
+      els.caseMirrorToggleBtn.classList.toggle("active", state.caseMirrorOnly);
+      els.caseMirrorToggleBtn.textContent = state.caseMirrorOnly ? "🪞 鏡像特訓：開" : "🪞 鏡像特訓：關";
+      state.caseQueue = [];
+      state.caseCursor = 0;
+      nextCaseQuestion(true);
+    });
+
+    els.caseTargetCard.addEventListener("click", playCaseTargetPhoneme);
+    els.caseReplayBtn.addEventListener("click", playCaseTargetPhoneme);
+    els.caseHintBtn.addEventListener("click", showCaseWordHint);
+    els.caseNextBtn.addEventListener("click", () => nextCaseQuestion(true));
+
+    // Course Mode Listeners
     document.querySelectorAll(".seg-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".seg-btn").forEach(b => b.classList.remove("active"));
@@ -2121,7 +5235,7 @@
       renderCurrentWord(true);
     });
 
-    // Settings Modal
+    // Settings Modal Listeners
     els.openSettingsBtn.addEventListener("click", () => els.settingsModal.classList.add("open"));
     els.closeSettingsBtn.addEventListener("click", () => els.settingsModal.classList.remove("open"));
     els.settingsModal.addEventListener("click", (e) => {
@@ -2130,27 +5244,47 @@
     els.autoPlayCheckbox.addEventListener("change", (e) => { state.autoPlay = e.target.checked; });
     els.showIpaCheckbox.addEventListener("change", (e) => {
       state.showIpa = e.target.checked;
+      renderAzBoard();
       renderWarmupBar();
       renderCurrentWord(false);
+      renderSlideItem(state.slideMergedCurrent);
+      renderCaseTargetDisplay();
     });
     els.accentSelect.addEventListener("change", (e) => { state.accent = e.target.value; });
     els.resetProgressBtn.addEventListener("click", () => {
       state.stars = 0;
+      state.bsSessionCorrect = 0;
+      state.robotSessionCorrect = 0;
+      state.rhymeSessionCorrect = 0;
+      state.slideCompletedSet.clear();
+      state.caseSessionCorrect = 0;
+      state.caseStars = 0;
       state.mastered.clear();
       localStorage.removeItem("phonics_uk_stars");
       localStorage.removeItem("phonics_uk_mastered");
+      localStorage.removeItem("phonics_uk_case_stars");
       els.starCount.textContent = "0";
+      els.bsScoreBadge.textContent = "今次答啱 0 題";
+      els.robotScoreBadge.textContent = "今次估中 0 題";
+      els.rhymeScoreBadge.textContent = "今次搵啱 0 對";
+      els.slideScoreBadge.textContent = `已拼讀 0 / ${SLIDE_BLENDING_BANK.length} 個`;
+      updateCaseScoreBadge();
+      renderSlideQuickStrip();
       renderUnitStrip();
       renderWarmupBar();
     });
     els.testAllBtn.addEventListener("click", testAllPhonemes);
 
     // Initialize
+    els.starCount.textContent = state.stars;
+    updateCaseScoreBadge();
+    renderAzBoard();
     rebuildOrder();
     buildPhonemeTestGrid();
     renderUnitStrip();
     renderWarmupBar();
     renderCurrentWord(false);
+    switchMainSection("pn");
   </script>
 </body>
 </html>
