@@ -1,0 +1,1784 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Phonics 拼讀小冒險 | Phonics Blending Game</title>
+  <style>
+    :root {
+      --bg-top: #fef9ef;
+      --bg-bottom: #e8f5ff;
+      --card-bg: #ffffff;
+      --primary: #4f86f7;
+      --primary-dark: #3568d4;
+      --secondary: #ff8c42;
+      --secondary-dark: #e06d22;
+      --success: #2ec4b6;
+      --success-dark: #1f9d91;
+      --danger: #ff5964;
+      --purple: #8b5cf6;
+      --yellow: #ffd166;
+      --text-main: #2b3445;
+      --text-muted: #6c7a91;
+      --consonant-bg: #e8f1ff;
+      --consonant-border: #7bb0ff;
+      --consonant-text: #1d4ed8;
+      --vowel-bg: #ffe9ec;
+      --vowel-border: #ff8fa3;
+      --vowel-text: #be123c;
+      --digraph-bg: #f3e8ff;
+      --digraph-border: #c084fc;
+      --digraph-text: #6b21a8;
+      --shadow-soft: 0 10px 28px rgba(43, 52, 69, 0.08);
+      --radius-lg: 24px;
+      --radius-md: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Nunito", "PingFang HK", "Noto Sans TC", "Microsoft JhengHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-bottom) 100%);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 14px 36px;
+      overflow-x: hidden;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Top Header */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+      padding: 10px 16px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #ffd166, #ff8c42);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      box-shadow: 0 4px 10px rgba(255, 140, 66, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.12rem;
+      line-height: 1.2;
+      color: var(--text-main);
+    }
+
+    .brand-text p {
+      margin: 2px 0 0;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .star-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: #fff7db;
+      border: 2px solid #ffe08a;
+      color: #b45309;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 6px 12px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 12px;
+      background: #f1f5f9;
+      color: var(--text-main);
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: #e2e8f0;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* Mode & Level Bar */
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .segmented {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.85);
+      padding: 4px;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+      gap: 4px;
+    }
+
+    .seg-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 13px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-family: inherit;
+    }
+
+    .seg-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(79, 134, 247, 0.3);
+    }
+
+    .level-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .level-btn {
+      border: 2px solid transparent;
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      font-family: inherit;
+    }
+
+    .level-btn.active {
+      border-color: var(--secondary);
+      background: #fff3e6;
+      color: #c2410c;
+    }
+
+    /* Main Stage Card */
+    .stage-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 22px 18px 24px;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stage-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .progress-badge {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    .blind-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 2px solid #e2e8f0;
+      background: #ffffff;
+      color: var(--text-main);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s ease;
+    }
+
+    .blind-toggle.active {
+      background: #eef2ff;
+      border-color: #818cf8;
+      color: #4338ca;
+    }
+
+    .instruction-text {
+      margin: 0;
+      text-align: center;
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    /* Picture Reveal Area (Speak Mode) */
+    .word-visual {
+      min-height: 92px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    .emoji-showcase {
+      font-size: 4.1rem;
+      line-height: 1;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.25s ease;
+      user-select: none;
+    }
+
+    .emoji-showcase.mystery {
+      filter: blur(12px) grayscale(0.4);
+      opacity: 0.35;
+      transform: scale(0.88);
+    }
+
+    .emoji-showcase.pop {
+      transform: scale(1.15);
+    }
+
+    .word-meaning {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      min-height: 22px;
+    }
+
+    /* Phoneme Tiles */
+    .tiles-track {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 8px 6px;
+      transition: gap 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      width: 100%;
+    }
+
+    .tiles-track.blending {
+      gap: 4px;
+    }
+
+    .phoneme-tile {
+      min-width: 78px;
+      height: 96px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: 3px solid var(--consonant-border);
+      background: var(--consonant-bg);
+      color: var(--consonant-text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.08);
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.16s ease, background 0.2s ease;
+      position: relative;
+    }
+
+    .phoneme-tile.vowel {
+      border-color: var(--vowel-border);
+      background: var(--vowel-bg);
+      color: var(--vowel-text);
+    }
+
+    .phoneme-tile.digraph {
+      border-color: var(--digraph-border);
+      background: var(--digraph-bg);
+      color: var(--digraph-text);
+    }
+
+    .phoneme-tile:active {
+      transform: translateY(3px) scale(0.96);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .phoneme-tile.playing {
+      transform: translateY(-8px) scale(1.1);
+      box-shadow: 0 12px 20px rgba(79, 134, 247, 0.28);
+      border-color: var(--secondary);
+      z-index: 2;
+    }
+
+    .tile-grapheme {
+      font-size: 2.35rem;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 0.5px;
+    }
+
+    .tile-ipa {
+      font-size: 0.85rem;
+      font-weight: 700;
+      opacity: 0.78;
+    }
+
+    .tile-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.55;
+      margin-top: 2px;
+    }
+
+    .tile-bar {
+      width: 30px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: 0.55;
+      margin-top: 3px;
+    }
+
+    .phoneme-tile.hidden-letter .tile-grapheme {
+      font-size: 1.9rem;
+    }
+
+    /* Primary Audio Controls */
+    .audio-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 16px;
+      padding: 13px 20px;
+      font-size: 1.02rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+      user-select: none;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(3px);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 5px 0 var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: #ffffff;
+      box-shadow: 0 5px 0 var(--secondary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #ffffff;
+      box-shadow: 0 5px 0 var(--success-dark);
+    }
+
+    .btn-soft {
+      background: #f1f5f9;
+      color: var(--text-main);
+      box-shadow: 0 4px 0 #cbd5e1;
+    }
+
+    .btn-mic {
+      background: linear-gradient(135deg, #ff5964, #ff7b54);
+      color: #ffffff;
+      box-shadow: 0 5px 0 #c93842;
+      min-width: 210px;
+    }
+
+    .btn-mic.listening {
+      animation: pulse-mic 1.1s infinite;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    @keyframes pulse-mic {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.55), 0 5px 0 #b91c1c; }
+      70% { box-shadow: 0 0 0 16px rgba(239, 68, 68, 0), 0 5px 0 #b91c1c; }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0), 0 5px 0 #b91c1c; }
+    }
+
+    /* Interaction Panels */
+    .interaction-zone {
+      width: 100%;
+      background: #f8fafc;
+      border: 2px dashed #dbe4f0;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .mic-status {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+      min-height: 24px;
+    }
+
+    .mic-status.success {
+      color: #0f766e;
+    }
+
+    .mic-status.error {
+      color: #be123c;
+    }
+
+    .heard-pill {
+      display: inline-block;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .manual-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+    }
+
+    /* Quiz Choices Grid */
+    .quiz-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .quiz-option {
+      background: #ffffff;
+      border: 3px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 16px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.18s ease, background 0.18s ease;
+      box-shadow: 0 5px 0 #e2e8f0;
+      font-family: inherit;
+    }
+
+    .quiz-option:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .quiz-option:active {
+      transform: translateY(3px);
+    }
+
+    .quiz-option .opt-emoji {
+      font-size: 3.1rem;
+      line-height: 1.1;
+    }
+
+    .quiz-option .opt-label {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .quiz-option.correct {
+      border-color: var(--success);
+      background: #e6fffa;
+      box-shadow: 0 5px 0 var(--success-dark);
+    }
+
+    .quiz-option.wrong {
+      border-color: var(--danger);
+      background: #fff1f2;
+      animation: shake 0.35s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    /* Bottom Navigation */
+    .nav-row {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+    }
+
+    .speed-chip {
+      border: none;
+      background: #eef2ff;
+      color: #4338ca;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 0.86rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* Audio Source Badge */
+    .source-footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      margin-right: 4px;
+    }
+
+    /* Modal (Parent Settings & Sound Test) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 560px;
+      max-height: 88vh;
+      overflow-y: auto;
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-head h2 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .setting-group {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .phoneme-test-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+      gap: 8px;
+    }
+
+    .test-chip {
+      border: 2px solid #e2e8f0;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 8px 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .test-chip strong {
+      font-size: 1rem;
+    }
+
+    .test-chip span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .test-chip.ok {
+      border-color: var(--success);
+      background: #ecfdf5;
+    }
+
+    .test-chip.fallback {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .custom-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .custom-input-row input {
+      flex: 1;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 0.92rem;
+      font-family: inherit;
+    }
+
+    @media (max-width: 520px) {
+      .phoneme-tile {
+        min-width: 66px;
+        height: 86px;
+        padding: 6px 10px;
+      }
+      .tile-grapheme {
+        font-size: 2rem;
+      }
+      .quiz-option .opt-emoji {
+        font-size: 2.5rem;
+      }
+      .btn {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="top-bar">
+      <div class="brand">
+        <div class="brand-icon">🦉</div>
+        <div class="brand-text">
+          <h1>Phonics 拼讀小冒險</h1>
+          <p>聽音素 · 拼生字 · 大聲讀</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="star-pill" title="已收集的星星">⭐ <span id="star-count">0</span></div>
+        <button class="icon-btn" id="open-settings-btn" title="家長設定與音檔測試">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Mode & Level Controls -->
+    <div class="controls-bar">
+      <div class="segmented" role="tablist">
+        <button class="seg-btn active" id="mode-speak-btn" data-mode="speak">🗣️ 聽音讀字</button>
+        <button class="seg-btn" id="mode-quiz-btn" data-mode="quiz">🎯 聽音揀圖</button>
+      </div>
+      <div class="level-pills">
+        <button class="level-btn active" data-level="cvc">Lv.1 基礎 CVC</button>
+        <button class="level-btn" data-level="digraph">Lv.2 雙字母</button>
+        <button class="level-btn" data-level="long">Lv.3 進階拼讀</button>
+      </div>
+    </div>
+
+    <!-- Main Game Card -->
+    <main class="stage-card">
+      <div class="stage-header">
+        <span class="progress-badge" id="progress-badge">第 1 / 25 題</span>
+        <button class="blind-toggle" id="blind-toggle-btn">👀 顯示字母</button>
+      </div>
+
+      <p class="instruction-text" id="instruction-text">撳下面藍色掣聽發音，再大聲讀出成個英文字！</p>
+
+      <!-- Visual Cue (Speak mode) -->
+      <div class="word-visual" id="word-visual">
+        <div class="emoji-showcase mystery" id="emoji-showcase">🐱</div>
+        <div class="word-meaning" id="word-meaning">猜猜這是什麼字？</div>
+      </div>
+
+      <!-- Phoneme Tiles -->
+      <div class="tiles-track" id="tiles-track" aria-label="音素積木"></div>
+
+      <!-- Sound Controls -->
+      <div class="audio-controls">
+        <button class="btn btn-primary" id="play-phonemes-btn">🔊 逐個讀 Phonemes</button>
+        <button class="btn btn-secondary" id="blend-word-btn">✨ 拼埋讀全字</button>
+      </div>
+
+      <!-- Speak & Check Panel (Mode: speak) -->
+      <section class="interaction-zone" id="speak-panel">
+        <button class="btn btn-mic" id="mic-btn">🎙️ 撳住／撳一下講出個字</button>
+        <div class="mic-status" id="mic-status">小朋友可以按麥克風讀出來，或由家長按下方核對</div>
+        <div class="manual-actions">
+          <button class="btn btn-soft" id="reveal-btn">👀 揭曉答案</button>
+          <button class="btn btn-success" id="got-it-btn">✅ 我讀啱咗！(+1 ⭐)</button>
+        </div>
+      </section>
+
+      <!-- Picture Quiz Panel (Mode: quiz) -->
+      <section class="interaction-zone" id="quiz-panel" style="display: none;">
+        <div class="mic-status" id="quiz-status">聽清楚每個發音，揀出正確的圖片！</div>
+        <div class="quiz-grid" id="quiz-grid"></div>
+      </section>
+
+      <!-- Bottom Bar -->
+      <div class="nav-row">
+        <button class="btn btn-soft" id="prev-btn">⬅️ 上一題</button>
+        <button class="speed-chip" id="speed-toggle-btn">🐢 慢速模式：關</button>
+        <button class="btn btn-primary" id="next-btn">下一題 ➡️</button>
+      </div>
+    </main>
+
+    <!-- Footer Status -->
+    <footer class="source-footer">
+      <div><span class="status-dot" id="audio-status-dot"></span><span id="audio-status-text">已連線至 xiaozhah/phoneme_audio 音標語音庫（含自動編碼與防無聲備援）</span></div>
+      <div>提示：點擊任何單獨字母積木，都可以重聽該 Phoneme 發音</div>
+    </footer>
+  </div>
+
+  <!-- Parent Settings & Sound Check Modal -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>⚙️ 家長設定與音檔測試</h2>
+        <button class="icon-btn" id="close-settings-btn">✕</button>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-row">
+          <span>自動播放每一題發音</span>
+          <input type="checkbox" id="auto-play-checkbox" checked style="width:20px;height:20px;" />
+        </div>
+        <div class="setting-row">
+          <span>顯示國際音標 (IPA) 提示</span>
+          <input type="checkbox" id="show-ipa-checkbox" checked style="width:20px;height:20px;" />
+        </div>
+        <div class="setting-row">
+          <span>口音偏好（拼全字 & 備用語音）</span>
+          <select id="accent-select" style="padding:6px 10px;border-radius:10px;border:2px solid #cbd5e1;font-weight:700;">
+            <option value="en-GB">英式英語 (UK)</option>
+            <option value="en-US">美式英語 (US)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span>重設星星紀錄</span>
+          <button class="btn btn-soft" id="reset-stars-btn" style="padding:7px 12px;font-size:0.84rem;">清除星星</button>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-row">
+          <span>🔊 音檔庫連線測試（點擊個別音標試聽）</span>
+          <button class="btn btn-primary" id="test-all-btn" style="padding:7px 12px;font-size:0.82rem;">全部檢測</button>
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-muted);">
+          綠色 = 成功載入 GitHub 真人 MP3 音檔；黃色 = 音檔庫缺該音標，已自動切換為瀏覽器發音備援（確保不會無聲）。
+        </div>
+        <div class="phoneme-test-grid" id="phoneme-test-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*****************************************************************
+     * 1. PHONEME AUDIO ENGINE (xiaozhah/phoneme_audio via jsDelivr)
+     *    - Proper encodeURIComponent for special IPA symbols
+     *    - Smart IPA alias candidates (e.g. g/ɡ, r/ɹ, e/ɛ, ɒ/ɑ/ɔ)
+     *    - Dual CDN mirrors + SpeechSynthesis fallback (never silent!)
+     *****************************************************************/
+    const CDN_MIRRORS = [
+      "https://fastly.jsdelivr.net/gh/xiaozhah/phoneme_audio@main/audio/",
+      "https://cdn.jsdelivr.net/gh/xiaozhah/phoneme_audio@main/audio/"
+    ];
+
+    // Candidate IPA filenames + phonics-friendly speech fallback for each phoneme key
+    const PHONEME_MAP = {
+      p:  { label: "/p/",  candidates: ["p"],             fallback: "puh" },
+      b:  { label: "/b/",  candidates: ["b"],             fallback: "buh" },
+      t:  { label: "/t/",  candidates: ["t"],             fallback: "tuh" },
+      d:  { label: "/d/",  candidates: ["d"],             fallback: "duh" },
+      k:  { label: "/k/",  candidates: ["k"],             fallback: "kuh" },
+      g:  { label: "/g/",  candidates: ["g", "ɡ"],        fallback: "guh" },
+      f:  { label: "/f/",  candidates: ["f"],             fallback: "fff" },
+      v:  { label: "/v/",  candidates: ["v"],             fallback: "vvv" },
+      s:  { label: "/s/",  candidates: ["s"],             fallback: "sss" },
+      z:  { label: "/z/",  candidates: ["z"],             fallback: "zzz" },
+      h:  { label: "/h/",  candidates: ["h"],             fallback: "huh" },
+      m:  { label: "/m/",  candidates: ["m"],             fallback: "mmm" },
+      n:  { label: "/n/",  candidates: ["n"],             fallback: "nnn" },
+      l:  { label: "/l/",  candidates: ["l"],             fallback: "lll" },
+      r:  { label: "/r/",  candidates: ["r", "ɹ"],        fallback: "rrr" },
+      w:  { label: "/w/",  candidates: ["w"],             fallback: "wuh" },
+      j:  { label: "/j/",  candidates: ["j"],             fallback: "yuh" },
+      sh: { label: "/ʃ/",  candidates: ["ʃ"],             fallback: "shh" },
+      ch: { label: "/tʃ/", candidates: ["tʃ", "ʧ"],       fallback: "ch"  },
+      th: { label: "/θ/",  candidates: ["θ"],             fallback: "thh" },
+      ng: { label: "/ŋ/",  candidates: ["ŋ"],             fallback: "ng"  },
+      ae: { label: "/æ/",  candidates: ["æ"],             fallback: "a"   },
+      e:  { label: "/e/",  candidates: ["e", "ɛ"],        fallback: "eh"  },
+      ih: { label: "/ɪ/",  candidates: ["ɪ", "i"],        fallback: "ih"  },
+      o:  { label: "/ɒ/",  candidates: ["ɒ", "ɑ", "ɔ"],   fallback: "aw"  },
+      uh: { label: "/ʌ/",  candidates: ["ʌ"],             fallback: "uh"  },
+      ee: { label: "/iː/", candidates: ["iː", "i"],       fallback: "ee"  },
+      ai: { label: "/eɪ/", candidates: ["eɪ"],            fallback: "ay"  },
+      ie: { label: "/aɪ/", candidates: ["aɪ"],            fallback: "eye" },
+      oa: { label: "/əʊ/", candidates: ["əʊ", "oʊ"],      fallback: "oh"  },
+      oo: { label: "/uː/", candidates: ["uː", "u"],       fallback: "oo"  },
+      ar: { label: "/ɑː/", candidates: ["ɑː", "ɑ"],       fallback: "ar"  }
+    };
+
+    // Cache resolved working audio URL or 'FALLBACK'
+    const resolvedUrlCache = new Map();
+    const audioElementCache = new Map();
+    let currentPlayingAudio = null;
+    let sequenceToken = 0;
+
+    function buildAudioUrl(mirror, ipaSymbol) {
+      return `${mirror}${encodeURIComponent(ipaSymbol)}_isolation.mp3`;
+    }
+
+    function loadAudioProbe(url, timeoutMs = 4500) {
+      return new Promise((resolve, reject) => {
+        const audio = new Audio();
+        audio.crossOrigin = "anonymous";
+        audio.preload = "auto";
+        let settled = false;
+
+        const timer = setTimeout(() => {
+          if (!settled) {
+            settled = true;
+            reject(new Error("timeout"));
+          }
+        }, timeoutMs);
+
+        audio.addEventListener("canplaythrough", () => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            resolve(audio);
+          }
+        }, { once: true });
+
+        audio.addEventListener("error", () => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timer);
+            reject(new Error("load-error"));
+          }
+        }, { once: true });
+
+        audio.src = url;
+        audio.load();
+      });
+    }
+
+    async function resolvePhonemeAudio(phonemeKey) {
+      if (resolvedUrlCache.has(phonemeKey)) {
+        return resolvedUrlCache.get(phonemeKey);
+      }
+
+      const info = PHONEME_MAP[phonemeKey];
+      if (!info) return "FALLBACK";
+
+      for (const mirror of CDN_MIRRORS) {
+        for (const candidate of info.candidates) {
+          const url = buildAudioUrl(mirror, candidate);
+          try {
+            const audio = await loadAudioProbe(url);
+            resolvedUrlCache.set(phonemeKey, url);
+            audioElementCache.set(phonemeKey, audio);
+            return url;
+          } catch (_) {
+            // Try next candidate or mirror
+          }
+        }
+      }
+
+      resolvedUrlCache.set(phonemeKey, "FALLBACK");
+      return "FALLBACK";
+    }
+
+    function stopAllAudio() {
+      sequenceToken++;
+      if (currentPlayingAudio) {
+        try {
+          currentPlayingAudio.pause();
+          currentPlayingAudio.currentTime = 0;
+        } catch (_) {}
+        currentPlayingAudio = null;
+      }
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+      document.querySelectorAll(".phoneme-tile.playing").forEach(el => el.classList.remove("playing"));
+    }
+
+    function speakTextFallback(text, rate = 0.85) {
+      return new Promise((resolve) => {
+        if (!("speechSynthesis" in window)) {
+          resolve();
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = state.accent;
+        utter.rate = rate;
+        utter.pitch = 1.05;
+        utter.onend = () => resolve();
+        utter.onerror = () => resolve();
+        window.speechSynthesis.speak(utter);
+      });
+    }
+
+    async function playSinglePhonemeKey(phonemeKey) {
+      const resolved = await resolvePhonemeAudio(phonemeKey);
+      const info = PHONEME_MAP[phonemeKey];
+
+      if (resolved && resolved !== "FALLBACK") {
+        updateAudioStatusBadge(true);
+        return new Promise((resolve) => {
+          const audio = new Audio(resolved);
+          audio.playbackRate = state.slowMode ? 0.85 : 1.0;
+          currentPlayingAudio = audio;
+          let done = false;
+          const finish = () => {
+            if (!done) {
+              done = true;
+              if (currentPlayingAudio === audio) currentPlayingAudio = null;
+              resolve("mp3");
+            }
+          };
+          audio.addEventListener("ended", finish, { once: true });
+          audio.addEventListener("error", async () => {
+            resolvedUrlCache.set(phonemeKey, "FALLBACK");
+            await speakTextFallback(info ? info.fallback : phonemeKey, 0.85);
+            finish();
+          }, { once: true });
+
+          audio.play().catch(async () => {
+            await speakTextFallback(info ? info.fallback : phonemeKey, 0.85);
+            finish();
+          });
+        });
+      } else {
+        updateAudioStatusBadge(false);
+        await speakTextFallback(info ? info.fallback : phonemeKey, 0.8);
+        return "fallback";
+      }
+    }
+
+    // Play a tile (a tile may have 1 phoneme key, or 2 like 'x' => ['k', 's'])
+    async function playTileSound(tileDef, tileEl) {
+      if (tileEl) tileEl.classList.add("playing");
+      const keys = Array.isArray(tileDef.keys) ? tileDef.keys : [tileDef.key];
+      for (let i = 0; i < keys.length; i++) {
+        await playSinglePhonemeKey(keys[i]);
+        if (i < keys.length - 1) await wait(40);
+      }
+      if (tileEl) tileEl.classList.remove("playing");
+    }
+
+    function wait(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    function updateAudioStatusBadge(isCdn) {
+      const dot = document.getElementById("audio-status-dot");
+      const txt = document.getElementById("audio-status-text");
+      if (isCdn) {
+        dot.style.background = "#2ec4b6";
+        txt.textContent = "已使用 xiaozhah/phoneme_audio 標準音標 MP3 播放";
+      } else {
+        dot.style.background = "#f59e0b";
+        txt.textContent = "部分音標已自動切換至瀏覽器備用語音（確保每個音都聽得到）";
+      }
+    }
+
+    /*****************************************************************
+     * 2. WEB AUDIO SOUND EFFECTS (Chimes & Rewards)
+     *****************************************************************/
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtx = new Ctx();
+      }
+      if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    }
+
+    function playSuccessChime() {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.5];
+      notes.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.value = freq;
+        const start = ctx.currentTime + idx * 0.08;
+        gain.gain.setValueAtTime(0.001, start);
+        gain.gain.exponentialRampToValueAtTime(0.16, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.28);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.3);
+      });
+    }
+
+    function playGentleOops() {
+      const ctx = getAudioCtx();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.18);
+      gain.gain.setValueAtTime(0.14, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.24);
+    }
+
+    /*****************************************************************
+     * 3. CURATED PHONICS WORD BANK
+     *****************************************************************/
+    const WORD_BANKS = {
+      cvc: [
+        { word: "cat", emoji: "🐱", zh: "貓咪", tiles: [{ g: "c", key: "k", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "dog", emoji: "🐶", zh: "小狗", tiles: [{ g: "d", key: "d", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "g", key: "g", t: "c" }] },
+        { word: "sun", emoji: "☀️", zh: "太陽", alts: ["son"], tiles: [{ g: "s", key: "s", t: "c" }, { g: "u", key: "uh", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "pig", emoji: "🐷", zh: "小豬", tiles: [{ g: "p", key: "p", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "g", key: "g", t: "c" }] },
+        { word: "hat", emoji: "🎩", zh: "帽子", tiles: [{ g: "h", key: "h", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "bed", emoji: "🛏️", zh: "睡床", tiles: [{ g: "b", key: "b", t: "c" }, { g: "e", key: "e", t: "v" }, { g: "d", key: "d", t: "c" }] },
+        { word: "bus", emoji: "🚌", zh: "巴士", tiles: [{ g: "b", key: "b", t: "c" }, { g: "u", key: "uh", t: "v" }, { g: "s", key: "s", t: "c" }] },
+        { word: "cup", emoji: "☕", zh: "杯子", tiles: [{ g: "c", key: "k", t: "c" }, { g: "u", key: "uh", t: "v" }, { g: "p", key: "p", t: "c" }] },
+        { word: "pen", emoji: "🖊️", zh: "原子筆", tiles: [{ g: "p", key: "p", t: "c" }, { g: "e", key: "e", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "hen", emoji: "🐔", zh: "母雞", tiles: [{ g: "h", key: "h", t: "c" }, { g: "e", key: "e", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "bat", emoji: "🦇", zh: "蝙蝠", tiles: [{ g: "b", key: "b", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "map", emoji: "🗺️", zh: "地圖", tiles: [{ g: "m", key: "m", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "p", key: "p", t: "c" }] },
+        { word: "fox", emoji: "🦊", zh: "狐狸", tiles: [{ g: "f", key: "f", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "x", keys: ["k", "s"], ipa: "/ks/", t: "c" }] },
+        { word: "box", emoji: "📦", zh: "盒子", tiles: [{ g: "b", key: "b", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "x", keys: ["k", "s"], ipa: "/ks/", t: "c" }] },
+        { word: "bug", emoji: "🐞", zh: "甲蟲", tiles: [{ g: "b", key: "b", t: "c" }, { g: "u", key: "uh", t: "v" }, { g: "g", key: "g", t: "c" }] },
+        { word: "red", emoji: "🔴", zh: "紅色", alts: ["read"], tiles: [{ g: "r", key: "r", t: "c" }, { g: "e", key: "e", t: "v" }, { g: "d", key: "d", t: "c" }] },
+        { word: "pot", emoji: "🍲", zh: "鍋子", tiles: [{ g: "p", key: "p", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "fan", emoji: "🪭", zh: "風扇", tiles: [{ g: "f", key: "f", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "pin", emoji: "📌", zh: "大頭針", tiles: [{ g: "p", key: "p", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "zip", emoji: "🤐", zh: "拉鍊", tiles: [{ g: "z", key: "z", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "p", key: "p", t: "c" }] },
+        { word: "net", emoji: "🥅", zh: "網", tiles: [{ g: "n", key: "n", t: "c" }, { g: "e", key: "e", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "van", emoji: "🚐", zh: "客貨車", tiles: [{ g: "v", key: "v", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "web", emoji: "🕸️", zh: "蜘蛛網", tiles: [{ g: "w", key: "w", t: "c" }, { g: "e", key: "e", t: "v" }, { g: "b", key: "b", t: "c" }] },
+        { word: "hot", emoji: "🔥", zh: "好熱", tiles: [{ g: "h", key: "h", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "sit", emoji: "🪑", zh: "坐下", tiles: [{ g: "s", key: "s", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "t", key: "t", t: "c" }] }
+      ],
+      digraph: [
+        { word: "ship", emoji: "🚢", zh: "大船", tiles: [{ g: "sh", key: "sh", t: "d" }, { g: "i", key: "ih", t: "v" }, { g: "p", key: "p", t: "c" }] },
+        { word: "fish", emoji: "🐟", zh: "魚兒", tiles: [{ g: "f", key: "f", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "sh", key: "sh", t: "d" }] },
+        { word: "shop", emoji: "🏪", zh: "商店", tiles: [{ g: "sh", key: "sh", t: "d" }, { g: "o", key: "o", t: "v" }, { g: "p", key: "p", t: "c" }] },
+        { word: "dish", emoji: "🍽️", zh: "碟子", tiles: [{ g: "d", key: "d", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "sh", key: "sh", t: "d" }] },
+        { word: "chip", emoji: "🍟", zh: "薯條", tiles: [{ g: "ch", key: "ch", t: "d" }, { g: "i", key: "ih", t: "v" }, { g: "p", key: "p", t: "c" }] },
+        { word: "chat", emoji: "💬", zh: "傾偈", tiles: [{ g: "ch", key: "ch", t: "d" }, { g: "a", key: "ae", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "chin", emoji: "🧑", zh: "下巴", tiles: [{ g: "ch", key: "ch", t: "d" }, { g: "i", key: "ih", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "duck", emoji: "🦆", zh: "鴨子", tiles: [{ g: "d", key: "d", t: "c" }, { g: "u", key: "uh", t: "v" }, { g: "ck", key: "k", t: "d" }] },
+        { word: "sock", emoji: "🧦", zh: "襪子", tiles: [{ g: "s", key: "s", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "ck", key: "k", t: "d" }] },
+        { word: "lock", emoji: "🔒", zh: "鎖頭", tiles: [{ g: "l", key: "l", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "ck", key: "k", t: "d" }] },
+        { word: "ring", emoji: "💍", zh: "戒指", tiles: [{ g: "r", key: "r", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "ng", key: "ng", t: "d" }] },
+        { word: "king", emoji: "👑", zh: "國王", tiles: [{ g: "k", key: "k", t: "c" }, { g: "i", key: "ih", t: "v" }, { g: "ng", key: "ng", t: "d" }] },
+        { word: "bath", emoji: "🛁", zh: "沖涼", tiles: [{ g: "b", key: "b", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "th", key: "th", t: "d" }] },
+        { word: "moth", emoji: "🦋", zh: "飛蛾", tiles: [{ g: "m", key: "m", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "th", key: "th", t: "d" }] }
+      ],
+      long: [
+        { word: "bee", emoji: "🐝", zh: "蜜蜂", alts: ["be"], tiles: [{ g: "b", key: "b", t: "c" }, { g: "ee", key: "ee", t: "v" }] },
+        { word: "tree", emoji: "🌳", zh: "大樹", tiles: [{ g: "t", key: "t", t: "c" }, { g: "r", key: "r", t: "c" }, { g: "ee", key: "ee", t: "v" }] },
+        { word: "rain", emoji: "🌧️", zh: "落雨", alts: ["reign"], tiles: [{ g: "r", key: "r", t: "c" }, { g: "ai", key: "ai", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "boat", emoji: "⛵", zh: "小船", tiles: [{ g: "b", key: "b", t: "c" }, { g: "oa", key: "oa", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "goat", emoji: "🐐", zh: "山羊", tiles: [{ g: "g", key: "g", t: "c" }, { g: "oa", key: "oa", t: "v" }, { g: "t", key: "t", t: "c" }] },
+        { word: "moon", emoji: "🌙", zh: "月亮", tiles: [{ g: "m", key: "m", t: "c" }, { g: "oo", key: "oo", t: "v" }, { g: "n", key: "n", t: "c" }] },
+        { word: "star", emoji: "⭐", zh: "星星", tiles: [{ g: "s", key: "s", t: "c" }, { g: "t", key: "t", t: "c" }, { g: "ar", key: "ar", t: "v" }] },
+        { word: "car", emoji: "🚗", zh: "汽車", tiles: [{ g: "c", key: "k", t: "c" }, { g: "ar", key: "ar", t: "v" }] },
+        { word: "frog", emoji: "🐸", zh: "青蛙", tiles: [{ g: "f", key: "f", t: "c" }, { g: "r", key: "r", t: "c" }, { g: "o", key: "o", t: "v" }, { g: "g", key: "g", t: "c" }] },
+        { word: "crab", emoji: "🦀", zh: "螃蟹", tiles: [{ g: "c", key: "k", t: "c" }, { g: "r", key: "r", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "b", key: "b", t: "c" }] },
+        { word: "drum", emoji: "🥁", zh: "大鼓", tiles: [{ g: "d", key: "d", t: "c" }, { g: "r", key: "r", t: "c" }, { g: "u", key: "uh", t: "v" }, { g: "m", key: "m", t: "c" }] },
+        { word: "flag", emoji: "🚩", zh: "旗幟", tiles: [{ g: "f", key: "f", t: "c" }, { g: "l", key: "l", t: "c" }, { g: "a", key: "ae", t: "v" }, { g: "g", key: "g", t: "c" }] }
+      ]
+    };
+
+    /*****************************************************************
+     * 4. APP STATE & DOM REFERENCES
+     *****************************************************************/
+    const state = {
+      mode: "speak", // 'speak' | 'quiz'
+      level: "cvc",
+      index: 0,
+      stars: Number(localStorage.getItem("phonics_stars") || "0"),
+      blindMode: false,
+      slowMode: false,
+      autoPlay: true,
+      showIpa: true,
+      accent: "en-GB",
+      revealed: false,
+      scoredThisWord: false,
+      isListening: false
+    };
+
+    const els = {
+      starCount: document.getElementById("star-count"),
+      progressBadge: document.getElementById("progress-badge"),
+      blindToggleBtn: document.getElementById("blind-toggle-btn"),
+      instructionText: document.getElementById("instruction-text"),
+      wordVisual: document.getElementById("word-visual"),
+      emojiShowcase: document.getElementById("emoji-showcase"),
+      wordMeaning: document.getElementById("word-meaning"),
+      tilesTrack: document.getElementById("tiles-track"),
+      playPhonemesBtn: document.getElementById("play-phonemes-btn"),
+      blendWordBtn: document.getElementById("blend-word-btn"),
+      speakPanel: document.getElementById("speak-panel"),
+      quizPanel: document.getElementById("quiz-panel"),
+      micBtn: document.getElementById("mic-btn"),
+      micStatus: document.getElementById("mic-status"),
+      revealBtn: document.getElementById("reveal-btn"),
+      gotItBtn: document.getElementById("got-it-btn"),
+      quizStatus: document.getElementById("quiz-status"),
+      quizGrid: document.getElementById("quiz-grid"),
+      prevBtn: document.getElementById("prev-btn"),
+      nextBtn: document.getElementById("next-btn"),
+      speedToggleBtn: document.getElementById("speed-toggle-btn"),
+      settingsModal: document.getElementById("settings-modal"),
+      openSettingsBtn: document.getElementById("open-settings-btn"),
+      closeSettingsBtn: document.getElementById("close-settings-btn"),
+      autoPlayCheckbox: document.getElementById("auto-play-checkbox"),
+      showIpaCheckbox: document.getElementById("show-ipa-checkbox"),
+      accentSelect: document.getElementById("accent-select"),
+      resetStarsBtn: document.getElementById("reset-stars-btn"),
+      testAllBtn: document.getElementById("test-all-btn"),
+      phonemeTestGrid: document.getElementById("phoneme-test-grid")
+    };
+
+    function getCurrentList() {
+      return WORD_BANKS[state.level];
+    }
+
+    function getCurrentWord() {
+      const list = getCurrentList();
+      return list[state.index % list.length];
+    }
+
+    function addStar() {
+      if (state.scoredThisWord) return;
+      state.scoredThisWord = true;
+      state.stars += 1;
+      localStorage.setItem("phonics_stars", String(state.stars));
+      els.starCount.textContent = state.stars;
+      playSuccessChime();
+      launchConfetti();
+    }
+
+    /*****************************************************************
+     * 5. RENDERING
+     *****************************************************************/
+    function renderCurrentWord(shouldAutoPlay = false) {
+      stopAllAudio();
+      stopRecognition();
+
+      const list = getCurrentList();
+      const item = getCurrentWord();
+      state.revealed = false;
+      state.scoredThisWord = false;
+
+      els.starCount.textContent = state.stars;
+      els.progressBadge.textContent = `第 ${state.index + 1} / ${list.length} 題`;
+
+      // Mode layout
+      if (state.mode === "speak") {
+        els.speakPanel.style.display = "flex";
+        els.quizPanel.style.display = "none";
+        els.wordVisual.style.display = "flex";
+        els.instructionText.textContent = "先聽每個 Phoneme 發音，再請小朋友大聲拼讀出整個字！";
+        els.emojiShowcase.textContent = item.emoji;
+        els.emojiShowcase.className = "emoji-showcase mystery";
+        els.wordMeaning.textContent = "猜猜這是什麼字？";
+        els.micStatus.className = "mic-status";
+        els.micStatus.textContent = "小朋友可以按麥克風讀出來，或按「揭曉答案」核對";
+        els.gotItBtn.disabled = false;
+      } else {
+        els.speakPanel.style.display = "none";
+        els.quizPanel.style.display = "flex";
+        els.wordVisual.style.display = "none";
+        els.instructionText.textContent = "聽清楚每個 Phoneme 發音，揀出正確的圖片！";
+        els.quizStatus.className = "mic-status";
+        els.quizStatus.textContent = "哪一張圖是這個字呢？";
+        renderQuizOptions(item, list);
+      }
+
+      // Render Phoneme Tiles
+      els.tilesTrack.classList.remove("blending");
+      els.tilesTrack.innerHTML = "";
+      item.tiles.forEach((tile, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "phoneme-tile";
+        if (tile.t === "v") btn.classList.add("vowel");
+        if (tile.t === "d") btn.classList.add("digraph");
+        if (state.blindMode && !state.revealed) btn.classList.add("hidden-letter");
+
+        const graphemeText = (state.blindMode && !state.revealed) ? "🔊" : tile.g;
+        const ipaText = tile.ipa || (PHONEME_MAP[tile.key] ? PHONEME_MAP[tile.key].label : "");
+        const markerHtml = tile.g.length > 1 ? `<div class="tile-bar"></div>` : `<div class="tile-dot"></div>`;
+
+        btn.innerHTML = `
+          <span class="tile-grapheme">${graphemeText}</span>
+          ${state.showIpa && !(state.blindMode && !state.revealed) ? `<span class="tile-ipa">${ipaText}</span>` : ""}
+          ${markerHtml}
+        `;
+        btn.dataset.idx = idx;
+        btn.addEventListener("click", () => {
+          stopAllAudio();
+          playTileSound(tile, btn);
+        });
+        els.tilesTrack.appendChild(btn);
+      });
+
+      // Preload phonemes of current word quietly
+      item.tiles.forEach(t => {
+        const keys = Array.isArray(t.keys) ? t.keys : [t.key];
+        keys.forEach(k => resolvePhonemeAudio(k));
+      });
+
+      if (shouldAutoPlay && state.autoPlay) {
+        setTimeout(() => playAllPhonemes(), 260);
+      }
+    }
+
+    function revealWordVisual() {
+      const item = getCurrentWord();
+      state.revealed = true;
+      els.emojiShowcase.classList.remove("mystery");
+      els.emojiShowcase.classList.add("pop");
+      setTimeout(() => els.emojiShowcase.classList.remove("pop"), 350);
+      els.wordMeaning.textContent = `${item.word}（${item.zh}）`;
+
+      // Also reveal hidden letters if blind mode was on
+      if (state.blindMode) {
+        const tileEls = els.tilesTrack.querySelectorAll(".phoneme-tile");
+        item.tiles.forEach((tile, idx) => {
+          const el = tileEls[idx];
+          if (!el) return;
+          el.classList.remove("hidden-letter");
+          const ipaText = tile.ipa || (PHONEME_MAP[tile.key] ? PHONEME_MAP[tile.key].label : "");
+          const markerHtml = tile.g.length > 1 ? `<div class="tile-bar"></div>` : `<div class="tile-dot"></div>`;
+          el.innerHTML = `
+            <span class="tile-grapheme">${tile.g}</span>
+            ${state.showIpa ? `<span class="tile-ipa">${ipaText}</span>` : ""}
+            ${markerHtml}
+          `;
+        });
+      }
+    }
+
+    function renderQuizOptions(correctItem, list) {
+      const distractors = list
+        .filter(w => w.word !== correctItem.word)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 2);
+
+      const options = [correctItem, ...distractors].sort(() => Math.random() - 0.5);
+      els.quizGrid.innerHTML = "";
+
+      options.forEach(opt => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "quiz-option";
+        card.innerHTML = `
+          <span class="opt-emoji">${opt.emoji}</span>
+          <span class="opt-label">${opt.zh}</span>
+        `;
+        card.addEventListener("click", async () => {
+          if (card.classList.contains("correct")) return;
+          if (opt.word === correctItem.word) {
+            card.classList.add("correct");
+            card.querySelector(".opt-label").textContent = `${opt.word} · ${opt.zh}`;
+            els.quizStatus.className = "mic-status success";
+            els.quizStatus.textContent = `🎉 答啱咗！係 "${correctItem.word}"！`;
+            revealWordVisual();
+            addStar();
+            await speakTextFallback(correctItem.word, 0.9);
+          } else {
+            card.classList.add("wrong");
+            playGentleOops();
+            els.quizStatus.className = "mic-status error";
+            els.quizStatus.textContent = "差少少！再聽多一次 Phonemes 試下啦！";
+            setTimeout(() => card.classList.remove("wrong"), 600);
+          }
+        });
+        els.quizGrid.appendChild(card);
+      });
+    }
+
+    /*****************************************************************
+     * 6. SEQUENTIAL PHONEME PLAYBACK & BLENDING ANIMATION
+     *****************************************************************/
+    async function playAllPhonemes() {
+      stopAllAudio();
+      const myToken = sequenceToken;
+      const item = getCurrentWord();
+      const tileEls = Array.from(els.tilesTrack.querySelectorAll(".phoneme-tile"));
+      const gapMs = state.slowMode ? 650 : 280;
+
+      els.tilesTrack.classList.remove("blending");
+
+      for (let i = 0; i < item.tiles.length; i++) {
+        if (myToken !== sequenceToken) return;
+        await playTileSound(item.tiles[i], tileEls[i]);
+        if (myToken !== sequenceToken) return;
+        if (i < item.tiles.length - 1) {
+          await wait(gapMs);
+        }
+      }
+    }
+
+    async function playBlendedWord() {
+      stopAllAudio();
+      const myToken = sequenceToken;
+      const item = getCurrentWord();
+      const tileEls = Array.from(els.tilesTrack.querySelectorAll(".phoneme-tile"));
+
+      // Quick phonetic sweep then bring tiles together and pronounce full word
+      els.tilesTrack.classList.add("blending");
+      for (let i = 0; i < item.tiles.length; i++) {
+        if (myToken !== sequenceToken) return;
+        await playTileSound(item.tiles[i], tileEls[i]);
+        if (myToken !== sequenceToken) return;
+        await wait(70);
+      }
+
+      await wait(160);
+      if (myToken !== sequenceToken) return;
+
+      tileEls.forEach(el => el.classList.add("playing"));
+      await speakTextFallback(item.word, state.slowMode ? 0.72 : 0.9);
+      tileEls.forEach(el => el.classList.remove("playing"));
+    }
+
+    /*****************************************************************
+     * 7. SPEECH RECOGNITION (小朋友讀出個字)
+     *****************************************************************/
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+
+    function stopRecognition() {
+      if (recognition && state.isListening) {
+        try { recognition.abort(); } catch (_) {}
+      }
+      state.isListening = false;
+      els.micBtn.classList.remove("listening");
+      els.micBtn.textContent = "🎙️ 撳一下講出個字";
+    }
+
+    function startListeningForWord() {
+      if (!SpeechRecognitionAPI) {
+        els.micStatus.className = "mic-status error";
+        els.micStatus.textContent = "此瀏覽器暫不支援麥克風辨識（建議用 Chrome / Safari），可直接用下方「揭曉答案」與小朋友互動！";
+        return;
+      }
+
+      if (state.isListening) {
+        stopRecognition();
+        return;
+      }
+
+      stopAllAudio();
+      recognition = new SpeechRecognitionAPI();
+      recognition.lang = state.accent;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 5;
+
+      state.isListening = true;
+      els.micBtn.classList.add("listening");
+      els.micBtn.textContent = "👂 正在聆聽... 請大聲讀！";
+      els.micStatus.className = "mic-status";
+      els.micStatus.textContent = "請大聲讀出拼好的英文字...";
+
+      recognition.onresult = async (event) => {
+        const item = getCurrentWord();
+        const accepted = [item.word.toLowerCase(), ...(item.alts || []).map(a => a.toLowerCase())];
+        const transcripts = [];
+        for (let i = 0; i < event.results[0].length; i++) {
+          transcripts.push(event.results[0][i].transcript.trim().toLowerCase());
+        }
+
+        const primaryHeard = transcripts[0] || "";
+        const matched = transcripts.some(t => {
+          const words = t.replace(/[^a-z\s]/g, "").split(/\s+/);
+          return words.some(w => accepted.includes(w)) || accepted.includes(t.replace(/[^a-z]/g, ""));
+        });
+
+        stopRecognition();
+
+        if (matched) {
+          els.micStatus.className = "mic-status success";
+          els.micStatus.innerHTML = `🎉 好叻呀！你讀啱咗 <strong>"${item.word}"</strong>！`;
+          revealWordVisual();
+          addStar();
+          await speakTextFallback(item.word, 0.9);
+        } else {
+          playGentleOops();
+          els.micStatus.className = "mic-status error";
+          els.micStatus.innerHTML = `聽到：<span class="heard-pill">${primaryHeard || "（聽唔清楚）"}</span> — 再聽一次發音試多一次啦！`;
+        }
+      };
+
+      recognition.onerror = (event) => {
+        stopRecognition();
+        els.micStatus.className = "mic-status error";
+        if (event.error === "not-allowed") {
+          els.micStatus.textContent = "未開啟麥克風權限，請允許麥克風或直接按下方「揭曉答案」核對。";
+        } else if (event.error === "no-speech") {
+          els.micStatus.textContent = "未聽到聲音，請靠近一點再試一次！";
+        } else {
+          els.micStatus.textContent = "語音辨識未能啟動，可以再試或直接用下方核對按鈕。";
+        }
+      };
+
+      recognition.onend = () => {
+        if (state.isListening) stopRecognition();
+      };
+
+      try {
+        recognition.start();
+      } catch (_) {
+        stopRecognition();
+      }
+    }
+
+    /*****************************************************************
+     * 8. PARENT SETTINGS & SOUND DIAGNOSTIC PANEL
+     *****************************************************************/
+    function buildPhonemeTestGrid() {
+      els.phonemeTestGrid.innerHTML = "";
+      Object.entries(PHONEME_MAP).forEach(([key, info]) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "test-chip";
+        chip.id = `test-chip-${key}`;
+        chip.innerHTML = `<strong>${info.label}</strong><span>未測試</span>`;
+        chip.addEventListener("click", async () => {
+          stopAllAudio();
+          chip.querySelector("span").textContent = "播放中...";
+          const res = await playSinglePhonemeKey(key);
+          chip.classList.remove("ok", "fallback");
+          if (res === "mp3") {
+            chip.classList.add("ok");
+            chip.querySelector("span").textContent = "MP3 正常";
+          } else {
+            chip.classList.add("fallback");
+            chip.querySelector("span").textContent = "備用語音";
+          }
+        });
+        els.phonemeTestGrid.appendChild(chip);
+      });
+    }
+
+    async function testAllPhonemes() {
+      els.testAllBtn.disabled = true;
+      els.testAllBtn.textContent = "檢測中...";
+      const keys = Object.keys(PHONEME_MAP);
+      await Promise.all(keys.map(async (key) => {
+        const chip = document.getElementById(`test-chip-${key}`);
+        if (chip) chip.querySelector("span").textContent = "檢查中...";
+        const res = await resolvePhonemeAudio(key);
+        if (chip) {
+          chip.classList.remove("ok", "fallback");
+          if (res !== "FALLBACK") {
+            chip.classList.add("ok");
+            chip.querySelector("span").textContent = "MP3 正常";
+          } else {
+            chip.classList.add("fallback");
+            chip.querySelector("span").textContent = "備用語音";
+          }
+        }
+      }));
+      els.testAllBtn.disabled = false;
+      els.testAllBtn.textContent = "重新檢測";
+    }
+
+    /*****************************************************************
+     * 9. LIGHTWEIGHT CONFETTI ANIMATION
+     *****************************************************************/
+    const confettiCanvas = document.getElementById("confetti-canvas");
+    const cCtx = confettiCanvas.getContext("2d");
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfetti() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeConfetti);
+    resizeConfetti();
+
+    function launchConfetti() {
+      const colors = ["#ff5964", "#ffd166", "#2ec4b6", "#4f86f7", "#a855f7", "#ff8c42"];
+      for (let i = 0; i < 65; i++) {
+        confettiParticles.push({
+          x: window.innerWidth / 2 + (Math.random() - 0.5) * 140,
+          y: window.innerHeight * 0.45,
+          vx: (Math.random() - 0.5) * 11,
+          vy: -Math.random() * 11 - 4,
+          size: Math.random() * 8 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 12,
+          life: 90 + Math.random() * 35
+        });
+      }
+      if (!confettiAnimId) animateConfetti();
+    }
+
+    function animateConfetti() {
+      cCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiParticles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.34;
+        p.rot += p.vRot;
+        p.life -= 1;
+
+        cCtx.save();
+        cCtx.translate(p.x, p.y);
+        cCtx.rotate((p.rot * Math.PI) / 180);
+        cCtx.fillStyle = p.color;
+        cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+        cCtx.restore();
+      });
+      confettiParticles = confettiParticles.filter(p => p.life > 0 && p.y < confettiCanvas.height + 20);
+      if (confettiParticles.length > 0) {
+        confettiAnimId = requestAnimationFrame(animateConfetti);
+      } else {
+        confettiAnimId = null;
+      }
+    }
+
+    /*****************************************************************
+     * 10. EVENT LISTENERS
+     *****************************************************************/
+    document.querySelectorAll(".seg-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".seg-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.mode = btn.dataset.mode;
+        // In quiz mode, default to hiding letters so kids rely on listening!
+        if (state.mode === "quiz" && !state.blindMode) {
+          state.blindMode = true;
+          els.blindToggleBtn.classList.add("active");
+          els.blindToggleBtn.textContent = "🙈 盲聽模式";
+        }
+        renderCurrentWord(true);
+      });
+    });
+
+    document.querySelectorAll(".level-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".level-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.level = btn.dataset.level;
+        state.index = 0;
+        renderCurrentWord(true);
+      });
+    });
+
+    els.blindToggleBtn.addEventListener("click", () => {
+      state.blindMode = !state.blindMode;
+      els.blindToggleBtn.classList.toggle("active", state.blindMode);
+      els.blindToggleBtn.textContent = state.blindMode ? "🙈 盲聽模式" : "👀 顯示字母";
+      renderCurrentWord(false);
+    });
+
+    els.speedToggleBtn.addEventListener("click", () => {
+      state.slowMode = !state.slowMode;
+      els.speedToggleBtn.textContent = state.slowMode ? "🐢 慢速模式：開" : "🐢 慢速模式：關";
+    });
+
+    els.playPhonemesBtn.addEventListener("click", playAllPhonemes);
+    els.blendWordBtn.addEventListener("click", playBlendedWord);
+    els.micBtn.addEventListener("click", startListeningForWord);
+
+    els.revealBtn.addEventListener("click", async () => {
+      revealWordVisual();
+      await playBlendedWord();
+    });
+
+    els.gotItBtn.addEventListener("click", async () => {
+      const item = getCurrentWord();
+      revealWordVisual();
+      addStar();
+      els.micStatus.className = "mic-status success";
+      els.micStatus.textContent = `🌟 太棒了！成功拼讀出 "${item.word}"！`;
+      els.gotItBtn.disabled = true;
+      await speakTextFallback(item.word, 0.9);
+    });
+
+    els.prevBtn.addEventListener("click", () => {
+      const list = getCurrentList();
+      state.index = (state.index - 1 + list.length) % list.length;
+      renderCurrentWord(true);
+    });
+
+    els.nextBtn.addEventListener("click", () => {
+      const list = getCurrentList();
+      state.index = (state.index + 1) % list.length;
+      renderCurrentWord(true);
+    });
+
+    // Settings Modal
+    els.openSettingsBtn.addEventListener("click", () => {
+      els.settingsModal.classList.add("open");
+    });
+    els.closeSettingsBtn.addEventListener("click", () => {
+      els.settingsModal.classList.remove("open");
+    });
+    els.settingsModal.addEventListener("click", (e) => {
+      if (e.target === els.settingsModal) els.settingsModal.classList.remove("open");
+    });
+    els.autoPlayCheckbox.addEventListener("change", (e) => {
+      state.autoPlay = e.target.checked;
+    });
+    els.showIpaCheckbox.addEventListener("change", (e) => {
+      state.showIpa = e.target.checked;
+      renderCurrentWord(false);
+    });
+    els.accentSelect.addEventListener("change", (e) => {
+      state.accent = e.target.value;
+    });
+    els.resetStarsBtn.addEventListener("click", () => {
+      state.stars = 0;
+      localStorage.setItem("phonics_stars", "0");
+      els.starCount.textContent = "0";
+    });
+    els.testAllBtn.addEventListener("click", testAllPhonemes);
+
+    // Initialize
+    buildPhonemeTestGrid();
+    renderCurrentWord(false);
+  </script>
+</body>
+</html>
